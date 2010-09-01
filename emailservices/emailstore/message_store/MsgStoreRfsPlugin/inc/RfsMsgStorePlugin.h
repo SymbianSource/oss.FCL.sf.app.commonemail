@@ -24,7 +24,7 @@
 // Forward declarations
 class RFs;
 
-NONSHARABLE_CLASS( CRfsMsgStorePlugin ) : public CRFSPlugin
+class CRfsMsgStorePlugin : public CRFSPlugin
     {
 public:
     static CRfsMsgStorePlugin* NewL();

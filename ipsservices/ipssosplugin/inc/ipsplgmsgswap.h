@@ -33,8 +33,7 @@ class CMsvEntry;
  *  @lib ipssosplugin.dll
  *  @since 
  */
-NONSHARABLE_CLASS( TIpsPlgMsgSwap )
-    : public TSwap
+class TIpsPlgMsgSwap : public TSwap
     {
 public:
 

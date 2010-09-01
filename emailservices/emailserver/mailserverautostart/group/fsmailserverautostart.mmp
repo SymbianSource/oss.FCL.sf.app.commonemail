@@ -1,0 +1,50 @@
+/*
+* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for project ?myapp
+*
+*/
+
+
+#include <platform_paths.hrh>
+#include <data_caging_paths.hrh>
+
+#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../inc/fsmailserverdefinitions.h"
+
+TARGET                  fsmailserverautostart.exe
+TARGETTYPE              exe
+UID                     0x00000000 KFSMailServerAutoStartUid
+
+CAPABILITY              CAP_APPLICATION
+VENDORID                VID_DEFAULT
+
+VERSION                 KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH              ../src
+SOURCE                  fsmailserverautostart.cpp
+
+// ONLY FOR TESTING
+//START RESOURCE          ../data/mailserverautostart_reg.rss
+//TARGETPATH              /private/10003a3f/apps
+//END
+
+APP_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE             ../inc
+USERINCLUDE             ../../../../inc
+
+LIBRARY                 euser.lib
+LIBRARY                 flogger.lib
+LIBRARY                 cmaillogger.lib

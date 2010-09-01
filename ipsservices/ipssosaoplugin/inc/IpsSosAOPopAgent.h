@@ -17,8 +17,8 @@
 */
 
 
-#ifndef IPSSOSAOPOPAGENT_H
-#define IPSSOSAOPOPAGENT_H
+#ifndef IPSSOSAOPOPAGENT_H_
+#define IPSSOSAOPOPAGENT_H_
 
 #include <pop3set.h>
 #include <mtclreg.h>
@@ -35,9 +35,7 @@ class CPop3ClientMtm;
 * implementations of base class pure virtual functions.
 *
 */
-//<Qmail>
-NONSHARABLE_CLASS (CIpsSosAOPopAgent) : public CIpsSosAOBaseAgent
-//</Qmail>
+class CIpsSosAOPopAgent : public CIpsSosAOBaseAgent
     {
 public:
     
@@ -56,77 +54,35 @@ public:
     virtual ~CIpsSosAOPopAgent();
     
 public: // from CIpsSosAOBaseAgent
-    //<Qmail>
-    /**
-     * GetServerAddress
-     * @param a return parameter
-     */
+    
     virtual void GetServerAddress( 
             TBuf<KIpsSosAOTextBufferSize>& aIncomingServer ) const;
     
-    /**
-     * GetUsername
-     * @param a return parameter
-     */
     virtual void GetUsername( 
             TBuf8<KIpsSosAOTextBufferSize>& aUsername ) const;
     
-    /**
-     * checks is does mailbox have connection open
-     * @return is connected or not
-     */
     virtual TBool IsConnected() const;
     
-    /**
-     * Starts email sync
-     */
     virtual void StartSyncL();
     
-    /**
-     * starts fetching messages
-     */
     virtual void StartFetchMessagesL( const RArray<TMsvId>& aFetchMsgArray );
     
-    /**
-     * cancels all ongoing suboperations and disconnects
-     */
     virtual void CancelAllAndDisconnectL();
     
-    /**
-     * cancels all suboperations
-     */
     virtual void CancelAllAndDoNotDisconnect();
     
-    /**
-     * sets iDoNotDisconnect as ETrue
-     */
     virtual void DoNotDisconnect();
     
-    /**
-     * sets iDoNotDisconnect as EFalse
-     */
     virtual void ClearDoNotDisconnect();
     
-    /**
-     * pauses ongoing operations
-     */
     virtual void HoldOperations();
 
-    /**
-     * resumes paused operations
-     */
     virtual void ContinueHoldOperations();
     
-    /**
-     * @return current iState
-     */
     virtual CIpsSosAOBaseAgent::TAgentState GetState() const;
     
-    /**
-     * Loads CImPop3Settings object
-     */
     virtual void LoadSettingsL();
-    //</Qmail>
+    
 private:
 
     /**
@@ -141,32 +97,17 @@ private:
     * Second phase constructor
     */
     void ConstructL();
-    //<Qmail>
-    /**
-     * called when cancelled
-     */
+    
     virtual void DoCancel();
     
-    /**
-     * from CActive
-     */
     virtual void RunL();
     
-    /**
-     * from CActive
-     */
     virtual TInt RunError( TInt aError );
 
-    /**
-     * fetches the content of all synced messages
-     */
     void PopulateAllL();
     
-    /**
-     * triggers async statemachine
-     */
     inline void SetActiveAndCompleteThis();
-    //</Qmail>
+    
     
 private:
     
@@ -176,19 +117,17 @@ private:
     TBool                               iSyncStartedSignaled;
     TAgentState                         iState;
     TBool                               iDoNotDisconnect;
-	//<Qmail>
-    CImPop3Settings*                    iPopSettings;//owned
-    CMsvOperation*                      iOngoingOp;//owned
+    CImPop3Settings*                    iPopSettings;
+    CMsvOperation*                      iOngoingOp;
 
     TPckgBuf<TPop3Progress>             iProgressBuf;
-    CMsvEntrySelection*                 iSelection;//owned
+    CMsvEntrySelection*                 iSelection;
     TInt                                iError;
-    CPop3ClientMtm*                     iPopClientMtm;//owned
-    CClientMtmRegistry*                 iMtmReg;//owned
-	//</Qmail>
+    CPop3ClientMtm*                     iPopClientMtm;
+    CClientMtmRegistry*                 iMtmReg;
     TInt                                iPopulateLimit;
     
     };
 
 
-#endif /*IPSSOSAOPOPAGENT_H*/
+#endif /*IPSSOSAOPOPAGENT_H_*/

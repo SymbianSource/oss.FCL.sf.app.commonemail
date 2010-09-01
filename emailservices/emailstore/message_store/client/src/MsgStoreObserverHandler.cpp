@@ -16,10 +16,10 @@
 */
 
 
-#include "MsgStoreObserverHandler.h"
-#include "RMessageStoreSession.h"
+#include "msgstoreobserverhandler.h"
+#include "rmessagestoresession.h"
 //<cmail>
-#include "MsgStoreObserver.h"
+#include "msgstoreobserver.h"
 //</cmail>
 
 
@@ -45,8 +45,6 @@ CMsgStoreObserverHandler::CMsgStoreObserverHandler( RMessageStoreSession& aSessi
 	iSession( aSession )
 	{
 	__LOG_CONSTRUCT( "MsgClient", "CMsgStoreObserverHandler" )
-	//initialize variable to false.
-    iObjectDeleted = EFalse;
 	} // end constructor
 
 // ==========================================================================
@@ -59,10 +57,6 @@ CMsgStoreObserverHandler::~CMsgStoreObserverHandler()
 	iMailBoxObservers.Close();
 	iObservers.Close();
 		
-	//object is being deleted. Mark variable as true to cover case where delete
-	//has come while RunL was running and "AccountEventNotify" was called and
-	//has not completed.
-	iObjectDeleted = ETrue;
 	__LOG_DESTRUCT
 	} // end destructor
 
@@ -239,15 +233,9 @@ void CMsgStoreObserverHandler::RunL()
     	    eventPtr++;
             }
             
-        //check that "this" object was not deleted by client during "AccountEventNotify".
-        //If object has been deleted there is no need to get session events and activate itself.
-        if ( !iObjectDeleted )
-            {
-            // Get the next event(s).       
-            iSession.GetEvents(iStatus, iEventBuffer);
-            SetActive();
-            }
-    	
+    	// Get the next event(s).    	
+    	iSession.GetEvents( iStatus, iEventBuffer );
+    	SetActive();
 	    }
     else
     	{

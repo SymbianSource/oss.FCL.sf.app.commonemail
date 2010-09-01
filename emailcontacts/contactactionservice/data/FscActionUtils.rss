@@ -1,0 +1,2509 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Resource definitions for project Contact Action Service Utils
+*
+*/
+
+// RESOURCE IDENTIFIER
+NAME    FSAU // 4 letter ID
+
+// for RSS_SIGNATURE
+#include <eikon.rh>
+// For pbk2_phone_number_select
+#include <avkon.rsg>
+#include "FscAddressSelect.rh"
+// For vpbk field_type_selector
+#include <VPbkFieldType.rh>
+// Text strings
+// </cmail>
+#include <fsccontactactionservice.loc>
+// </cmail>
+// For icons array
+#include <Pbk2IconArrayId.hrh>
+#include <Pbk2IconInfo.rh>
+#include <Pbk2IconId.rh>
+
+#include <Pbk2UID.h>
+
+// Localization strings
+//<cmail> to prevent compiler warnings
+//#include <phonebook2.loc>
+//</cmail>
+
+#include "FscFieldOrdering.rh"
+#include <VPbkEng.rsg>
+
+// RESOURCE DEFINITIONS
+#include <Pbk2StoreProperty.rh>
+#include <Pbk2ContactView.hrh>
+#include <Pbk2StoreProperty.hrh>
+#include <Pbk2IconId.hrh>
+#include <Pbk2FieldProperty.hrh>
+#include <Pbk2FieldProperty.rh>
+#include <Pbk2ContentIdentifiers.hrh>
+
+#include <VPbkContactView.rh>
+#include <VPbkStoreUriDefinitions.hrh>
+#include <VPbkFieldType.hrh>
+
+
+#include "FscDefaultFieldOrdering.hrh"
+#include "fscvpbkfieldtype.hrh"
+
+RESOURCE RSS_SIGNATURE { }
+
+RESOURCE TBUF { buf = ""; }
+
+// For number selection dialog
+// --------------------------------------------------------------------------
+// Text: Synchronization private value
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_confident_private
+    {
+    buf = qtn_cale_confident_private;
+    }
+
+// --------------------------------------------------------------------------
+// Text: Synchronization public value
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_confident_public
+    {
+    buf = qtn_cale_confident_public;
+    }
+
+// --------------------------------------------------------------------------
+// Text: Synchronization none value
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_confident_none
+    {
+    buf = qtn_cale_confident_none;
+    }
+
+// --------------------------------------------------------------------------
+// Text: No phone number for name
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_number_to_name
+    {
+    buf = qtn_phob_note_no_number_to_name;
+    }
+
+// --------------------------------------------------------------------------
+// Text: No phone number
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_number
+    {
+    buf = qtn_phob_note_no_number;
+    }
+// --------------------------------------------------------------------------
+// Text: No  PTT address for name
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_poc_to_name
+    {
+    buf = qtn_phob_note_no_poc_to_name;
+    }
+
+// --------------------------------------------------------------------------
+// Text: No  PTT address
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_poc
+    {
+    buf = qtn_phob_note_no_poc;
+    }
+
+// --------------------------------------------------------------------------
+// Text: No  VOIP number for name
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_voip_to_name
+    {
+    buf = qtn_phob_note_no_voip_to_name;
+    }
+
+// --------------------------------------------------------------------------
+// Text: No  VOIP number
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_voip
+    {
+    buf = qtn_phob_note_no_voip;
+    }
+
+// --------------------------------------------------------------------------
+// Text: No  email address for name
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_email_to_name
+    {
+    buf = qtn_phob_note_no_email_to_name;
+    }
+
+// --------------------------------------------------------------------------
+// Text: No  email address
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_email
+    {
+    buf = qtn_phob_note_no_email;
+    }
+
+// --------------------------------------------------------------------------
+// Text: No  message address for name
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_msg_to_name
+    {
+    buf = qtn_phob_note_no_msg_to_name;
+    }
+
+// --------------------------------------------------------------------------
+// Text: No  message address
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_note_no_msg
+    {
+    buf = qtn_phob_note_no_msg;
+    }
+
+// --------------------------------------------------------------------------
+// Text: Unnamed contact
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_fs_unnamed 
+    { 
+    buf = qtn_phob_unnamed; 
+    }
+
+// --------------------------------------------------------------------------
+// Text: One contact over limit
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_max_recipients_exceeded_1
+    {
+    buf = qtn_msg_query_remove_recipient;
+    }
+
+// --------------------------------------------------------------------------
+// Text: %N contacts over limit
+// --------------------------------------------------------------------------
+//
+RESOURCE TBUF r_qtn_max_recipients_exceeded_many
+    {
+    buf = qtn_msg_query_remove_recipients;
+    }
+
+
+// --------------------------------------------------------------------------
+//  Selector for phone number fields
+// --------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_phonenumber_selector
+    {
+    versitProperties =
+        {
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameTEL;
+            },
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameX;
+            extensionName = "X-ASSISTANT-TEL";
+            }
+        };
+    }
+
+// --------------------------------------------------------------------------
+//  Selector for video number fields
+// --------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_video_selector
+    {
+    versitProperties =
+        {
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameTEL;
+            parameters =
+                {
+                EVPbkVersitParamVIDEO
+                };
+            }
+        };
+    }
+
+// --------------------------------------------------------------------------
+//  Selector for PTT (push-to-talk) field
+// --------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_ptt_selector
+    {
+    versitProperties =
+        {
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameX;
+            extensionName = "X-SIP";
+            },
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameTEL;
+            },
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameX;
+            extensionName = "X-ASSISTANT-TEL";
+            }
+        };
+    }
+
+// --------------------------------------------------------------------------
+//  Selector for last name field
+// --------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_last_name_selector
+    {
+    versitProperties =
+        {
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameN;
+            subField = EVPbkVersitSubFieldFamilyName;
+            }
+        };
+    }
+
+
+// ---------------------------------------------------------------------------
+//  Selector for conference number
+// ---------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_conf_number_selector
+    {
+    nonVersitType =
+        {
+        EFscVPbkNonVersitTypeConfServiceNumber
+        };
+    }
+
+// ---------------------------------------------------------------------------
+//  Selector for conference id
+// ---------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_conf_id_selector
+    {
+    nonVersitType =
+        {
+        EFscVPbkNonVersitTypeConfServiceId
+        };
+    }
+
+// ---------------------------------------------------------------------------
+//  Selector for conference pin
+// ---------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_conf_pin_selector
+    {
+    nonVersitType =
+        {
+        EFscVPbkNonVersitTypeConfServicePin
+        };
+    }
+
+
+// --------------------------------------------------------------------------
+//  Selector for first name field
+// --------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_first_name_selector
+    {
+    versitProperties =
+        {
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameN;
+            subField = EVPbkVersitSubFieldGivenName;
+            }
+        };
+    }
+
+// --------------------------------------------------------------------------
+//  Selector for company name field
+// --------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_company_name_selector
+    {
+    versitProperties =
+        {
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameORG;
+            subField = EVPbkVersitSubFieldOrgName;
+            }
+        };
+    }
+
+// --------------------------------------------------------------------------
+//  Selector for VOIP number fields
+// --------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_voip_selector
+    {
+    versitProperties =
+        {
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameX;
+            parameters =
+                {
+                EVPbkVersitParamVOIP
+                };
+            extensionName = "X-SIP";
+            },
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameX;
+            extensionName = "X-SIP";
+            },
+        VBK_FIELD_VERSIT_PROPERTY		
+            {
+            name = EVPbkVersitNameTEL;
+            }
+        };
+    }
+
+// --------------------------------------------------------------------------
+//  Selector for email fields
+// --------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_email_selector
+    {
+    versitProperties =
+        {
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameEMAIL;
+            }
+        };
+    }
+
+// --------------------------------------------------------------------------
+//  Selector for Message (MMS & SMS) fields
+// --------------------------------------------------------------------------
+//
+RESOURCE VPBK_FIELD_TYPE_SELECTOR r_fsc_msg_selector
+    {
+    versitProperties =
+        {
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameTEL;
+            },
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameX;
+            extensionName = "X-ASSISTANT-TEL";
+            },            
+        VBK_FIELD_VERSIT_PROPERTY
+            {
+            name = EVPbkVersitNameEMAIL;
+            }
+        };
+    }
+
+// --------------------------------------------------------------------------
+//  Phone number select
+// --------------------------------------------------------------------------
+//
+RESOURCE FSC_ADDRESS_SELECT r_fsc_phone_number_select
+    {
+    selector = r_fsc_phonenumber_selector;
+    
+    noAddressesForNamePrompt = r_qtn_fs_note_no_number_to_name;
+    noAddressesPrompt = r_qtn_fs_note_no_number;
+    cba = R_AVKON_SOFTKEYS_SELECT_CANCEL__SELECT;
+    }
+// --------------------------------------------------------------------------
+//  Video number select
+// --------------------------------------------------------------------------
+//
+RESOURCE FSC_ADDRESS_SELECT r_fsc_video_number_select
+    {
+    selector = r_fsc_video_selector;
+    noAddressesForNamePrompt = r_qtn_fs_note_no_number_to_name;
+    noAddressesPrompt = r_qtn_fs_note_no_number;
+    cba = R_AVKON_SOFTKEYS_SELECT_CANCEL__SELECT;
+    }
+
+// --------------------------------------------------------------------------
+//  PTT number select
+// --------------------------------------------------------------------------
+//
+RESOURCE FSC_ADDRESS_SELECT r_fsc_ptt_select
+    {
+    selector = r_fsc_ptt_selector;
+    
+    noAddressesForNamePrompt = r_qtn_fs_note_no_poc_to_name;
+    noAddressesPrompt = r_qtn_fs_note_no_poc;
+    cba = R_AVKON_SOFTKEYS_SELECT_CANCEL__SELECT;
+    }
+
+// --------------------------------------------------------------------------
+//  VOIP number select
+// --------------------------------------------------------------------------
+//
+RESOURCE FSC_ADDRESS_SELECT r_fsc_voip_select
+    {
+    selector = r_fsc_voip_selector;
+
+    noAddressesForNamePrompt = r_qtn_fs_note_no_voip_to_name;
+    noAddressesPrompt = r_qtn_fs_note_no_voip;
+    cba = R_AVKON_SOFTKEYS_SELECT_CANCEL__SELECT;
+    }
+
+// --------------------------------------------------------------------------
+//  Email address select
+// --------------------------------------------------------------------------
+//
+RESOURCE FSC_ADDRESS_SELECT r_fsc_email_select
+    {
+    selector = r_fsc_email_selector;
+
+    noAddressesForNamePrompt = r_qtn_fs_note_no_email_to_name;
+    noAddressesPrompt = r_qtn_fs_note_no_email;
+    cba = R_AVKON_SOFTKEYS_SELECT_CANCEL__SELECT;
+    }
+
+// --------------------------------------------------------------------------
+//  Message address select
+// --------------------------------------------------------------------------
+//
+RESOURCE FSC_ADDRESS_SELECT r_fsc_msg_select
+    {
+    selector = r_fsc_msg_selector;
+
+    noAddressesForNamePrompt = r_qtn_fs_note_no_msg_to_name;
+    noAddressesPrompt = r_qtn_fs_note_no_msg;
+    cba = R_AVKON_SOFTKEYS_SELECT_CANCEL__SELECT;
+    }
+
+// --------------------------------------------------------------------------
+// Phonebook 2 field type icons.
+// --------------------------------------------------------------------------
+//
+RESOURCE PBK2_ICON_ARRAY r_fsc_fieldtype_icons
+    {
+    arrayId = EPbk2FieldTypeIconArrayId;
+    icons =
+        {
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_phone;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_mobile;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_fax;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_pager;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_email;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_address;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_url;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_date;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_note;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_tone;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_group_small;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_empty;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_indi_qdial_add;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_video;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_poc;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_swis;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_sip;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_assistant;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_car;
+            },
+        PHONEBOOK2_ICON_ID
+            {
+            ownerUid = KPbk2UID3;
+            id = EPbk2qgn_prop_nrtyp_voip;
+            }
+        };
+    }
+
+// ---------------------------------------------------------------------------
+// R_FSC_FIELDTYPE_PRESENTATION_ORDERS
+// An array of ordering items for field types
+// ---------------------------------------------------------------------------
+//
+RESOURCE ARRAY r_fsc_fieldtype_presentation_orders
+    {
+    items =
+        {
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_LASTNAME;
+            orderingItem = EPbk2OrderingItemSecondaryName;
+            addItemOrdering = EPbk2AddItemOrderLastName;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_LASTNAMEREADING;
+            orderingItem = EPbk2OrderingItemLastNameReading;
+            addItemOrdering = EPbk2AddItemOrderLastNameReading;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_FIRSTNAME;
+            orderingItem = EPbk2OrderingItemPrimaryName;
+            addItemOrdering = EPbk2AddItemOrderFirstName;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_FIRSTNAMEREADING;
+            orderingItem = EPbk2OrderingItemFirstNameReading;
+            addItemOrdering = EPbk2AddItemOrderFirstNameReading;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_PREFIX;
+            orderingItem = EPbk2OrderingItemPrefix;
+            addItemOrdering = EPbk2AddItemOrderPrefix;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_SUFFIX;
+            orderingItem = EPbk2OrderingItemSuffix;
+            addItemOrdering = EPbk2AddItemOrderSuffix;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_SECONDNAME;
+            orderingItem = EPbk2OrderingItemSecondName;
+            addItemOrdering = EPbk2AddItemOrderSecondName;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_LANDPHONEHOME;
+            orderingItem = EPbk2OrderingItemPhoneNumberHome;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_MOBILEPHONEHOME;
+            orderingItem = EPbk2OrderingItemPhoneNumberMobileHome;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberMobileHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_VIDEONUMBERHOME;
+            orderingItem = EPbk2OrderingItemPhoneNumberVideoHome;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberVideoHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_FAXNUMBERHOME;
+            orderingItem = EPbk2OrderingItemFaxNumberHome;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberFaxHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_VOIPHOME;
+            orderingItem = EPbk2OrderingItemPhoneNumberVOIPHome;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberVOIPHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_EMAILHOME;
+            orderingItem = EPbk2OrderingItemEmailAddressHome;
+            addItemOrdering = EPbk2AddItemOrderEmailHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_URLHOME;
+            orderingItem = EPbk2OrderingItemURLHome;
+            addItemOrdering = EPbk2AddItemOrderURLHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRLABELHOME;
+            orderingItem = EPbk2OrderingItemAddressHome;
+            addItemOrdering = EPbk2AddItemOrderHomeAddress;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRPOHOME;
+            orderingItem = EPbk2OrderingItemHomeAddressPOBox;
+            addItemOrdering = EPbk2AddItemOrderPOBoxHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDREXTHOME;
+            orderingItem = EPbk2OrderingItemHomeAddressExtension;
+            addItemOrdering = EPbk2AddItemOrderExtensionAddressHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRSTREETHOME;
+            orderingItem = EPbk2OrderingItemHomeAddressStreet;
+            addItemOrdering = EPbk2AddItemOrderStreetHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRPOSTCODEHOME;
+            orderingItem = EPbk2OrderingItemHomeAddressPostalCode;
+            addItemOrdering = EPbk2AddItemOrderPostalCodeHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRLOCALHOME;
+            orderingItem = EPbk2OrderingItemHomeAddressCity;
+            addItemOrdering = EPbk2AddItemOrderCityHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRREGIONHOME;
+            orderingItem = EPbk2OrderingItemHomeAddressState;
+            addItemOrdering = EPbk2AddItemOrderStateHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRCOUNTRYHOME;
+            orderingItem = EPbk2OrderingItemHomeAddressCountry;
+            addItemOrdering = EPbk2AddItemOrderCountryHome;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_JOBTITLE;
+            orderingItem = EPbk2OrderingItemJobTitle;
+            addItemOrdering = EPbk2AddItemOrderJobTitle;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_COMPANYNAME;
+            orderingItem = EPbk2OrderingItemCompanyName;
+            addItemOrdering = EPbk2AddItemOrderCompanyName;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_LANDPHONEWORK;
+            orderingItem = EPbk2OrderingItemPhoneNumberWork;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_MOBILEPHONEWORK;
+            orderingItem = EPbk2OrderingItemPhoneNumberMobileWork;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberMobileWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_VIDEONUMBERWORK;
+            orderingItem = EPbk2OrderingItemPhoneNumberVideoWork;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberVideoWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_FAXNUMBERWORK;
+            orderingItem = EPbk2OrderingItemFaxNumberWork;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberFaxWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_VOIPWORK;
+            orderingItem = EPbk2OrderingItemPhoneNumberVOIPWork;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberVOIPWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_EMAILWORK;
+            orderingItem = EPbk2OrderingItemEmailAddressWork;
+            addItemOrdering = EPbk2AddItemOrderEmailWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_URLWORK;
+            orderingItem = EPbk2OrderingItemURLWork;
+            addItemOrdering = EPbk2AddItemOrderURLWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRLABELWORK;
+            orderingItem = EPbk2OrderingItemAddressWork;
+            addItemOrdering = EPbk2AddItemOrderCompanyAddress;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRPOWORK;
+            orderingItem = EPbk2OrderingItemCompanyAddressPOBox;
+            addItemOrdering = EPbk2AddItemOrderPOBoxWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDREXTWORK;
+            orderingItem = EPbk2OrderingItemCompanyAddressExtension;
+            addItemOrdering = EPbk2AddItemOrderExtensionAddressWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRSTREETWORK;
+            orderingItem = EPbk2OrderingItemCompanyAddressStreet;
+            addItemOrdering = EPbk2AddItemOrderStreetWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRPOSTCODEWORK;
+            orderingItem = EPbk2OrderingItemCompanyAddressPostalCode;
+            addItemOrdering = EPbk2AddItemOrderPostalCodeWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRLOCALWORK;
+            orderingItem = EPbk2OrderingItemCompanyAddressCity;
+            addItemOrdering = EPbk2AddItemOrderCityWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRREGIONWORK;
+            orderingItem = EPbk2OrderingItemCompanyAddressState;
+            addItemOrdering = EPbk2AddItemOrderStateWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRCOUNTRYWORK;
+            orderingItem = EPbk2OrderingItemCompanyAddressCountry;
+            addItemOrdering = EPbk2AddItemOrderCountryWork;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_LANDPHONEGEN;
+            orderingItem = EPbk2OrderingItemPhoneNumberGeneral;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberGeneral;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_MOBILEPHONEGEN;
+            orderingItem = EPbk2OrderingItemPhoneNumberMobile;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberMobile;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_VIDEONUMBERGEN;
+            orderingItem = EPbk2OrderingItemPhoneNumberVideo;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberVideo;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_FAXNUMBERGEN;
+            orderingItem = EPbk2OrderingItemFaxNumber;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberFax;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_VOIPGEN;
+            orderingItem = EPbk2OrderingItemPhoneNumberVOIP;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberVOIP;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_POC;
+            orderingItem = EPbk2OrderingItemPhoneNumberPushToTalk;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberPushToTalk;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_SWIS;
+            orderingItem = EPbk2OrderingItemPhoneNumberShareView;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberShareView;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_SIP;
+            orderingItem = EPbk2OrderingItemPhoneNumberSIPID;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberSIPID;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_EMAILGEN;
+            orderingItem = EPbk2OrderingItemEmailAddress;
+            addItemOrdering = EPbk2AddItemOrderEmail;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_URLGEN;
+            orderingItem = EPbk2OrderingItemURL;
+            addItemOrdering = EPbk2AddItemOrderURL;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRLABELGEN;
+            orderingItem = EPbk2OrderingItemAddress;
+            addItemOrdering = EPbk2AddItemOrderPostalAddress;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRPOGEN;
+            orderingItem = EPbk2OrderingItemPostalAddressPOBox;
+            addItemOrdering = EPbk2AddItemOrderPOBox;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDREXTGEN;
+            orderingItem = EPbk2OrderingItemPostalAddressExtension;
+            addItemOrdering = EPbk2AddItemOrderExtensionAddress;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRSTREETGEN;
+            orderingItem = EPbk2OrderingItemPostalAddressStreet;
+            addItemOrdering = EPbk2AddItemOrderStreet;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRPOSTCODEGEN;
+            orderingItem = EPbk2OrderingItemPostalAddressPostalCode;
+            addItemOrdering = EPbk2AddItemOrderPostalCode;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRLOCALGEN;
+            orderingItem = EPbk2OrderingItemPostalAddressCity;
+            addItemOrdering = EPbk2AddItemOrderCity;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRREGIONGEN;
+            orderingItem = EPbk2OrderingItemPostalAddressState;
+            addItemOrdering = EPbk2AddItemOrderState;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ADDRCOUNTRYGEN;
+            orderingItem = EPbk2OrderingItemPostalAddressCountry;
+            addItemOrdering = EPbk2AddItemOrderCountry;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_PAGERNUMBER;
+            orderingItem = EPbk2OrderingItemPagerNumber;
+            addItemOrdering = EPbk2AddItemOrderPhoneNumberPager;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_DTMFSTRING;
+            orderingItem = EPbk2OrderingItemDTMFString;
+            addItemOrdering = EPbk2AddItemOrderDTMF;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_WVADDRESS;
+            orderingItem = EPbk2OrderingItemWVAddress;
+            addItemOrdering = EPbk2AddItemOrderWVAddress;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_DATE;
+            orderingItem = EPbk2OrderingItemDate;
+            addItemOrdering = EPbk2AddItemOrderDate;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_NOTE;
+            orderingItem = EPbk2OrderingItemNote;
+            addItemOrdering = EPbk2AddItemOrderNote;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_THUMBNAILPIC;
+            orderingItem = EPbk2OrderingItemThumbnailImage;
+            addItemOrdering = EPbk2AddItemOrderUndefined;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_RINGTONE;
+            orderingItem = EPbk2OrderingItemRingingTone;
+            addItemOrdering = EPbk2AddItemOrderUndefined;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_CALLEROBJIMG;
+            orderingItem = EPbk2OrderingItemCODImage;
+            addItemOrdering = EPbk2AddItemOrderCODImage;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_CALLEROBJTEXT;
+            orderingItem = EPbk2OrderingItemCODText;
+            addItemOrdering = EPbk2AddItemOrderCODText;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_MIDDLENAME;
+            orderingItem = EPbk2OrderingItemMiddleName;
+            addItemOrdering = EPbk2AddItemOrderMiddleName;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_DEPARTMENT;
+            orderingItem = EPbk2OrderingItemDepartment;
+            addItemOrdering = EPbk2AddItemOrderDepartment;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ASSTNAME;
+            orderingItem = EPbk2OrderingItemAssistantName;
+            addItemOrdering = EPbk2AddItemOrderAssistantName;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_SPOUSE;
+            orderingItem = EPbk2OrderingItemSpouse;
+            addItemOrdering = EPbk2AddItemOrderSpouse;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_CHILDREN;
+            orderingItem = EPbk2OrderingItemChildren;
+            addItemOrdering = EPbk2AddItemOrderChildren;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ASSTPHONE;
+            orderingItem = EPbk2OrderingItemAssistantPhone;
+            addItemOrdering = EPbk2AddItemOrderAssistantPhone;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_CARPHONE;
+            orderingItem = EPbk2OrderingItemCarPhone;
+            addItemOrdering = EPbk2AddItemOrderCarPhone;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_ANNIVERSARY;
+            orderingItem = EPbk2OrderingItemAnniversary;
+            addItemOrdering = EPbk2AddItemOrderAnniversary;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_SYNCCLASS;
+            orderingItem = EPbk2OrderingItemSynchronization;
+            addItemOrdering = EPbk2AddItemOrderSynchronization;
+            },
+        FSC_FIELDTYPE_PRESENTATION_ORDER
+            {
+            fieldTypeResId = R_VPBK_FIELD_TYPE_LOCPRIVACY;
+            orderingItem = EPbk2OrderingItemLocationPrivacy;
+            addItemOrdering = EPbk2AddItemOrderUndefined;
+            }
+        };
+    }
+
+// --------------------------------------------------------------------------
+// Field properties
+// --------------------------------------------------------------------------
+//
+RESOURCE PHONEBOOK2_FIELD_PROPERTY_ARRAY r_fsc_field_properties
+    {
+    items =
+        {
+        /// Last name
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_LASTNAME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagTemplateField | KPbk2FieldFlagUserCanAddField |
+                    KPbk2FieldFlagCanNotBeRemoved;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdLastName;
+            defaultLabel = qtn_phob_lbl_last_name;
+            },
+        /// Last name reading
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_LASTNAMEREADING;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeReadingEditor;
+            flags = KPbk2FieldFlagTemplateField | KPbk2FieldFlagUserCanAddField |
+                    KPbk2FieldFlagCanNotBeRemoved;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdLastName;
+            defaultLabel = qtn_phob_lbl_last_reading;
+            },
+        /// First name
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_FIRSTNAME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagTemplateField | KPbk2FieldFlagUserCanAddField |
+                    KPbk2FieldFlagCanNotBeRemoved;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdFirstName;
+            defaultLabel = qtn_phob_lbl_first_name;
+            },
+        /// First name reading
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_FIRSTNAMEREADING;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeReadingEditor;
+            flags = KPbk2FieldFlagTemplateField | KPbk2FieldFlagUserCanAddField |
+                    KPbk2FieldFlagCanNotBeRemoved;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdFirstName;
+            defaultLabel = qtn_phob_lbl_first_reading;
+            },
+        /// Prefix
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_PREFIX;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 10;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_prefix;
+            },
+        /// Suffix
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_SUFFIX;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 10;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_suffix;
+            },
+        /// Nick name
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_SECONDNAME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_simp_lbl_nick;
+            },
+        /// Landline phone (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_LANDPHONEHOME;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_phone;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationHome;
+            defaultLabel = qtn_phob_lbl_number_home;
+            },
+        /// Mobile phone (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_MOBILEPHONEHOME;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_mobile;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationHome;
+            defaultLabel = qtn_phob_lbl_number_mobile_home;
+            },
+        /// Video number (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_VIDEONUMBERHOME;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_video;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationHome;
+            defaultLabel = qtn_phob_lbl_video_home;
+            },
+        /// Fax number (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_FAXNUMBERHOME;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_fax;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationHome;
+            defaultLabel = qtn_phob_lbl_fax_home;
+            },
+        /// VOIP (Tel. Internet) (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_VOIPHOME;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 100;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_voip;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationHome;
+            defaultLabel = qtn_phob_lbl_voip_home;
+            },
+        /// Email address (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_EMAILHOME;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 150;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_email;
+                };
+            ctrlType = EPbk2FieldCtrlEmailEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationHome;
+            defaultLabel = qtn_phob_lbl_email_home;
+            },
+        /// URL (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_URLHOME;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 1000;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_url;
+                };
+            ctrlType = EPbk2FieldCtrlURLEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationHome;
+            defaultLabel = qtn_phob_lbl_url_home;
+            },
+        /// Address label (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRLABELHOME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 250;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_address;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagNull;
+            location = EPbk2FieldLocationHome;
+            defaultLabel = qtn_phob_lbl_address_home;
+            },
+        /// Address postoffice (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRPOHOME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 20;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_pobox_home;
+            location = EPbk2FieldLocationHome;
+            groupId = EPbk2FieldGroupIdHomeAddress;
+            defaultLabel = qtn_phob_lbl_pobox_home;
+            },
+        /// Address extension (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDREXTHOME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_extension_home;
+            location = EPbk2FieldLocationHome;
+            groupId = EPbk2FieldGroupIdHomeAddress;
+            defaultLabel = qtn_phob_lbl_extencion_home;
+            },
+        /// Address street (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRSTREETHOME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_street_home;
+            location = EPbk2FieldLocationHome;
+            groupId = EPbk2FieldGroupIdHomeAddress;
+            defaultLabel = qtn_phob_lbl_street_home;
+            },
+        /// Address city (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRLOCALHOME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_city_home;
+            location = EPbk2FieldLocationHome;
+            groupId = EPbk2FieldGroupIdHomeAddress;
+            defaultLabel = qtn_phob_lbl_city_home;
+            },
+        /// Address region (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRREGIONHOME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_state_home;
+            location = EPbk2FieldLocationHome;
+            groupId = EPbk2FieldGroupIdHomeAddress;
+            defaultLabel = qtn_phob_lbl_state_home;
+            },
+        /// Address postal code (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRPOSTCODEHOME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 20;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlPostalCodeEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_postal_code_home;
+            location = EPbk2FieldLocationHome;
+            groupId = EPbk2FieldGroupIdHomeAddress;
+            defaultLabel = qtn_phob_lbl_postal_code_home;
+            },
+        /// Address country (home)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRCOUNTRYHOME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_country_home;
+            location = EPbk2FieldLocationHome;
+            groupId = EPbk2FieldGroupIdHomeAddress;
+            defaultLabel = qtn_phob_lbl_country_home;
+            },
+        /// Job title
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_JOBTITLE;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_job_title;
+            },
+        /// Company name
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_COMPANYNAME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_company_name;
+            },
+
+        /// Landline phone (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_LANDPHONEWORK;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_phone;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationWork;
+            defaultLabel = qtn_phob_lbl_number_work;
+            },
+        /// Mobile phone (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_MOBILEPHONEWORK;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_mobile;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationWork;
+            defaultLabel = qtn_phob_lbl_number_mobile_work;
+            },
+        /// Video number (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_VIDEONUMBERWORK;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_video;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationWork;
+            defaultLabel = qtn_phob_lbl_video_work;
+            },
+        /// Fax number (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_FAXNUMBERWORK;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_fax;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationWork;
+            defaultLabel = qtn_phob_lbl_fax_work;
+            },
+        /// VOIP (Tel. Internet) (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_VOIPWORK;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 100;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_voip;
+                };
+            ctrlType = EPbk2FieldCtrlEmailEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationWork;
+            defaultLabel = qtn_phob_lbl_voip_work;
+            },
+        /// Email address (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_EMAILWORK;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 150;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_email;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationWork;
+            defaultLabel = qtn_phob_lbl_email_work;
+            },
+        /// URL (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_URLWORK;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 1000;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_url;
+                };
+            ctrlType = EPbk2FieldCtrlURLEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationWork;
+            defaultLabel = qtn_phob_lbl_url_work;
+            },
+        /// Address label (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRLABELWORK;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 250;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_address;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagNull;
+            location = EPbk2FieldLocationWork;
+            defaultLabel = qtn_phob_lbl_address_work;
+            },
+        /// Address postoffice (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRPOWORK;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 20;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_pobox_work;
+            location = EPbk2FieldLocationWork;
+            groupId = EPbk2FieldGroupIdCompanyAddress;
+            defaultLabel = qtn_phob_lbl_pobox_work;
+            },
+        /// Address extension (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDREXTWORK;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_extension_work;
+            location = EPbk2FieldLocationWork;
+            groupId = EPbk2FieldGroupIdCompanyAddress;
+            defaultLabel = qtn_phob_lbl_extencion_work;
+            },
+        /// Address street (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRSTREETWORK;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_street_work;
+            location = EPbk2FieldLocationWork;
+            groupId = EPbk2FieldGroupIdCompanyAddress;
+            defaultLabel = qtn_phob_lbl_street_work;
+            },
+        /// Address city (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRLOCALWORK;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_city_work;
+            location = EPbk2FieldLocationWork;
+            groupId = EPbk2FieldGroupIdCompanyAddress;
+            defaultLabel = qtn_phob_lbl_city_work;
+            },
+        /// Address region (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRREGIONWORK;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_state_work;
+            location = EPbk2FieldLocationWork;
+            groupId = EPbk2FieldGroupIdCompanyAddress;
+            defaultLabel = qtn_phob_lbl_state_work;
+            },
+        /// Address postal code (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRPOSTCODEWORK;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 20;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlPostalCodeEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_postal_code_work;
+            location = EPbk2FieldLocationWork;
+            groupId = EPbk2FieldGroupIdCompanyAddress;
+            defaultLabel = qtn_phob_lbl_postal_code_work;
+            },
+        /// Address country (work)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRCOUNTRYWORK;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_country_work;
+            location = EPbk2FieldLocationWork;
+            groupId = EPbk2FieldGroupIdCompanyAddress;
+            defaultLabel = qtn_phob_lbl_country_work;
+            },
+        /// Landline phone (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_LANDPHONEGEN;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_phone;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_number_standard;
+            },
+        /// Mobile phone (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_MOBILEPHONEGEN;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_mobile;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_number_mobile;
+            },
+        /// Video number (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_VIDEONUMBERGEN;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_video;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_video;
+            },
+        /// Fax number (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_FAXNUMBERGEN;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_fax;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_fax;
+            },
+        /// VOIP (Tel. Internet) (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_VOIPGEN;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 100;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_voip;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_voip;
+            },
+        /// PTT (POC)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_POC;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 100;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_poc;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_poc;
+            },
+        /// SWIS (Share view)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_SWIS;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 100;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_swis;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_swis;
+            },
+        /// SIP
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_SIP;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 100;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_sip;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_sip;
+            },
+
+        /// Email address (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_EMAILGEN;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 150;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_email;
+                };
+            ctrlType = EPbk2FieldCtrlEmailEditor;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_email;
+            },
+        /// URL (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_URLGEN;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 1000;
+            editMode = EPbk2FieldEditModeLatinOnly;
+            defaultCase = EPbk2FieldDefaultCaseLower;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_url;
+                };
+            ctrlType = EPbk2FieldCtrlURLEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_url;
+            },
+        /// Address label (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRLABELGEN;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 250;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_address;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagNull;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_address;
+            },
+        /// Address postoffice (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRPOGEN;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 20;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_pobox;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdPostalAddress;
+            defaultLabel = qtn_phob_lbl_address;
+            },
+        /// Address extension (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDREXTGEN;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_extension;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdPostalAddress;
+            defaultLabel = qtn_phob_lbl_extencion;
+            },
+        /// Address street (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRSTREETGEN;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_street;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdPostalAddress;
+            defaultLabel = qtn_phob_lbl_street;
+            },
+        /// Address city (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRLOCALGEN;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_city;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdPostalAddress;
+            defaultLabel = qtn_phob_lbl_city;
+            },
+        /// Address region (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRREGIONGEN;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_state;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdPostalAddress;
+            defaultLabel = qtn_phob_lbl_state;
+            },
+        /// Address postal code (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRPOSTCODEGEN;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 20;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlPostalCodeEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_postal_code;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdPostalAddress;
+            defaultLabel = qtn_phob_lbl_postal_code;
+            },
+        /// Address country (general)
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ADDRCOUNTRYGEN;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            addItemText = qtn_phob_lbl2_country;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdPostalAddress;
+            defaultLabel = qtn_phob_lbl_country;
+            },
+        /// Pager number
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_PAGERNUMBER;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_pager;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_pager;
+            },
+        /// DTMF string
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_DTMFSTRING;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 60;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeDTMFEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_dtmf;
+            },
+
+        /// Wv(IM) address field - will be inserted by PEC & IM
+
+        /// Date
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_DATE;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeDate;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_date;
+                };
+            ctrlType = EPbk2FieldCtrlTypeDateEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_date;
+            },
+        /// Note
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_NOTE;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 1000;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_note;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_note;
+            },
+        /// Thumbnail photo
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_THUMBNAILPIC;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 0;
+            editMode = EPbk2FieldEditModeSelector;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeNone;
+            flags = KPbk2FieldFlagDisableEdit |
+                    KPbk2FieldFlagHideFromDetailsView;
+            location = EPbk2FieldLocationNone;
+            },
+        /// Ringing tone
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_RINGTONE;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 0;
+            editMode = EPbk2FieldEditModeSelector;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_tone;
+                };
+            ctrlType = EPbk2FieldCtrlTypeNone;
+            flags = KPbk2FieldFlagDisableEdit;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_tone;
+            },
+        /// Caller object image
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_CALLEROBJIMG;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 0;
+            editMode = EPbk2FieldEditModeSelector;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeNone;
+            flags = KPbk2FieldFlagDisableEdit;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_image;
+            },
+        /// Caller object text
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_CALLEROBJTEXT;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 1000;
+            editMode = EPbk2FieldEditModeSelector;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeNone;
+            flags = KPbk2FieldFlagDisableEdit;
+            location = EPbk2FieldLocationNone;
+            defaultLabel = qtn_phob_lbl_text;
+            },
+        /// Middle name
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_MIDDLENAME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdLastName;
+            defaultLabel = qtn_phob_lbl_middle_name;
+            },
+        /// Department
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_DEPARTMENT;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_dept_name;
+            },
+        /// Assistant name
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ASSTNAME;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_assistant_name;
+            },
+        /// Spouse
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_SPOUSE;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_spouse;
+            },
+        /// Children
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_CHILDREN;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 50;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseText;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeTextEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_children;
+            },
+        /// Assistant phone
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ASSTPHONE;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_assistant;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_number_assistant;
+            },
+
+        /// Car phone
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_CARPHONE;
+            multiplicity = EPbk2FieldMultiplicityMany;
+            maxLength = 48;
+            editMode = EPbk2FieldEditModeNumeric;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_car;
+                };
+            ctrlType = EPbk2FieldCtrlTypePhoneNumberEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_car_tel;
+            },
+        /// Anniversary
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_ANNIVERSARY;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 0;
+            editMode = EPbk2FieldEditModeDate;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_date;
+                };
+            ctrlType = EPbk2FieldCtrlTypeDateEditor;
+            flags = KPbk2FieldFlagUserCanAddField;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_anniversary;
+            },
+        /// Synchronization
+        PHONEBOOK2_FIELD_PROPERTY
+            {
+            fieldTypeLink = R_VPBK_FIELD_TYPE_SYNCCLASS;
+            multiplicity = EPbk2FieldMultiplicityOne;
+            maxLength = 10;
+            editMode = EPbk2FieldEditModeAlpha;
+            defaultCase = EPbk2FieldDefaultCaseNone;
+            iconId = PHONEBOOK2_ICON_ID
+                {
+                ownerUid = KPbk2UID3;
+                id = EPbk2qgn_prop_nrtyp_empty;
+                };
+            ctrlType = EPbk2FieldCtrlTypeChoiceItems;
+            flags = KPbk2FieldFlagTemplateField |
+                    KPbk2FieldFlagCanNotBeRemoved |
+                    KPbk2FieldFlagHideFromDetailsView;
+            location = EPbk2FieldLocationNone;
+            groupId = EPbk2FieldGroupIdNone;
+            defaultLabel = qtn_phob_lbl_synchronization;
+            }
+        };
+    }
+
+// End of File
+

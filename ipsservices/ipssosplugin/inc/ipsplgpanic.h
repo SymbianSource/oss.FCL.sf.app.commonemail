@@ -15,6 +15,7 @@
 *
 */
 
+
 #ifndef IPSPLGPANIC_H
 #define IPSPLGPANIC_H
 
@@ -22,10 +23,6 @@
 #include <e32def.h>
 
 _LIT(KIpsPlgPanicCategory, "IpsPlgSos");
-// <qmail>
-_LIT( KIpsPlgIpsConnPanic, "IpsConn" );
-_LIT( KIpsPlgPopConnectPanic, "PopConnectOp" );
-// </qmail>
 
 enum TIpsPlgPanic {
     EIpsPlgInvalidMessageIndex,

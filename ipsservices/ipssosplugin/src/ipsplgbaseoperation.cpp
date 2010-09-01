@@ -15,8 +15,11 @@
 *
 */
 
+
+
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
+
 
 // ----------------------------------------------------------------------------
 // CIpsPlgBaseOperation::~CIpsPlgBaseOperation()
@@ -27,20 +30,21 @@ CIpsPlgBaseOperation::~CIpsPlgBaseOperation()
     FUNC_LOG;
     // Cancel() should be called in deriving classes;
     }
+
         
 // ----------------------------------------------------------------------------
 // CIpsPlgBaseOperation::CIpsPlgBaseOperation()
 // ----------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
+//
 CIpsPlgBaseOperation::CIpsPlgBaseOperation(
     CMsvSession& aMsvSession,
+    TInt aPriority,
     TRequestStatus& aObserverRequestStatus,
     TInt aFSRequestId,
     TFSMailMsgId aFSMailboxId )
     :
-    CMsvOperation( aMsvSession, EPriorityStandard, aObserverRequestStatus ),
-    iFSRequestId( aFSRequestId ), 
-    iFSMailboxId( aFSMailboxId )
+    CMsvOperation( aMsvSession, aPriority, aObserverRequestStatus ),
+    iFSRequestId( aFSRequestId ), iFSMailboxId( aFSMailboxId )
     {
     FUNC_LOG;
     }
@@ -65,4 +69,12 @@ TFSMailMsgId CIpsPlgBaseOperation::FSMailboxId() const
     return iFSMailboxId;
     }
 
-// <qmail> IpsOpType function body has been removed
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------    
+//   
+TInt CIpsPlgBaseOperation::IpsOpType() const
+    {
+    FUNC_LOG;
+    return EIpsOpTypeUnknown;
+    }
+

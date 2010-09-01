@@ -23,7 +23,7 @@
 #include <e32base.h>
 
 //<cmail>
-#include "CFSMailMessage.h"
+#include "cfsmailmessage.h"
 //</cmail>
 
 /**

@@ -30,9 +30,7 @@ class CIpsSosAOSmtpAgent;
 * CIpsSosAOSmtpSendWatcher
 *
 */
-//<Qmail>
-NONSHARABLE_CLASS (CIpsSosAOSmtpSendWatcher) : 
-//</Qmail>
+class CIpsSosAOSmtpSendWatcher : 
     public CActive
     {
     public:
@@ -96,9 +94,9 @@ NONSHARABLE_CLASS (CIpsSosAOSmtpSendWatcher) :
 		virtual TInt RunError( TInt aError );
 
 	protected: // Data
-		//<Qmail>
-	    CIpsSosAOSmtpAgent* iAgent;//owned
-        //</Qmail>
+	
+	    CIpsSosAOSmtpAgent* iAgent;
+        
         RProperty iProperty;
     };
     

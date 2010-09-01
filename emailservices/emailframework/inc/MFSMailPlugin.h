@@ -21,9 +21,9 @@
 
 //  INCLUDES
 //<cmail>
-#include "MFSMailRequestObserver.h"
-#include "MFSMailEventObserver.h"
-#include "CFSMailBox.h"
+#include "mfsmailrequestobserver.h"
+#include "mfsmaileventobserver.h"
+#include "cfsmailbox.h"
 //</cmail>
 
 // FORWARD DECLARATIONS

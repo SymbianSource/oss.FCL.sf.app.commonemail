@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -19,10 +19,8 @@
 #define EMAILMESSAGE_H
 
 #include <memailmessage.h>
-#include "CFSMailCommon.h"
+#include "cfsmailcommon.h"
 #include "emailapiutils.h"
-#include "MFSMailRequestObserver.h"
-#include <QEventLoop>
 
 using namespace EmailInterface;
 
@@ -36,7 +34,7 @@ class CEmailAttachment;
 class CEmailTextContent;
 class CEmailMultipart;
 
-NONSHARABLE_CLASS( CEmailMessage ) : public CBase, public MEmailMessage, public MFSMailRequestObserver
+NONSHARABLE_CLASS( CEmailMessage ) : public CBase, public MEmailMessage
     {
 public:
     /**
@@ -49,93 +47,89 @@ public:
     ~CEmailMessage();
 
 public: // from MEmailInterface
-    TEmailTypeId InterfaceId() const;
+    virtual TEmailTypeId InterfaceId() const;
     
-    void Release();
+    virtual void Release();
     
-public: // from MEmailMessage
-    /**@see MEmailMessage */
-    const TMessageId& MessageId() const;
-    
-    /**@see MEmailMessage */
-    MEmailAddress* SenderAddressL() const;
+public: // from MEmailAddress
+    virtual const TMessageId& MessageId() const;
     
     /**@see MEmailMessage */
-    MEmailAddress* ReplyToAddressL() const;
+    virtual MEmailAddress* SenderAddressL() const;
     
     /**@see MEmailMessage */
-    void SetReplyToAddressL( const MEmailAddress& aSender );
+    virtual MEmailAddress* ReplyToAddressL() const;
     
     /**@see MEmailMessage */
-    TInt GetRecipientsL( const MEmailAddress::TRole aRole,
+    virtual void SetReplyToAddressL( const MEmailAddress& aSender );
+    
+    /**@see MEmailMessage */
+    virtual TInt GetRecipientsL( const MEmailAddress::TRole aRole,
         REmailAddressArray& aRecipients ) const;            
     
     /**@see MEmailMessage */
-    void SetRecipientsL( const MEmailAddress::TRole aRole, REmailAddressArray& aRecipients );
+    virtual void SetRecipientsL( const MEmailAddress::TRole aRole, REmailAddressArray& aRecipients );
     
     /**@see MEmailMessage */
-    void RemoveRecipientL( const MEmailAddress& aRecipient );
+    virtual void RemoveRecipientL( const MEmailAddress& aRecipient );
     
     /**@see MEmailMessage */
-    TPtrC Subject() const;
+    virtual TPtrC Subject() const;
 
     /**@see MEmailMessage */
-    void  SetSubjectL( const TPtrC& aSubject );    
+    virtual void  SetSubjectL( const TPtrC& aSubject);    
     
     /**@see MEmailMessage */
-    TTime Date() const;
+    virtual TTime Date() const;
 
     /**@see MEmailMessage */
-    TInt Flags() const;
+    virtual TInt Flags() const;
     
     /**@see MEmailMessage */
-    void SetFlag( const TUint aFlag );
+    virtual void SetFlag( const TUint aFlag );
     
     /**@see MEmailMessage */
-    void ResetFlag( const TUint aFlag );
+    virtual void ResetFlag( const TUint aFlag );
 
     /**@see MEmailMessage */
-    MEmailMessageContent* ContentL() const;
+    virtual MEmailMessageContent* ContentL() const;
 
     /**@see MEmailMessage */
-    void SetContentL( const MEmailMessageContent* aContent );
+    virtual void SetContentL( const MEmailMessageContent* aContent );
     
     /**@see MEmailMessage */
-    void SetPlainTextBodyL( const TDesC& aPlainText );
+    virtual void SetPlainTextBodyL( const TDesC& aPlainText );
 
     /**@see MEmailMessage */
-    MEmailAttachment* AddAttachmentL( const TDesC& aFullPath );
+    virtual MEmailAttachment* AddAttachmentL( const TDesC& aFullPath );
     
     /**@see MEmailMessage */
-    MEmailAttachment* AddAttachmentL( RFile& aFile );
+    virtual MEmailAttachment* AddAttachmentL( RFile& aFile );
     
     /**@see MEmailMessage */
-    TInt GetAttachmentsL( REmailAttachmentArray& aAttachments );
+    virtual TInt GetAttachmentsL( REmailAttachmentArray& aAttachments );
     
     /**@see MEmailMessage */
-    void RemoveAttachmentL( const MEmailAttachment& aAttachment );
+    virtual void RemoveAttachmentL( const MEmailAttachment& aAttachment );
 
     /**@see MEmailMessage */
-    const TFolderId& ParentFolderId() const;
+    virtual const TFolderId& ParentFolderId() const;
 
     /**@see MEmailMessage */
-    void SaveChangesL();
+    virtual void SaveChangesL();
 
     /**@see MEmailMessage */
-    void SendL();
+    virtual void SendL();
 
     /**@see MEmailMessage */
-    void ShowMessageViewerL();
+    virtual void ShowMessageViewerL();
     
     /**@see MEmailMessage */
-    void ReplyToMessageL( const TBool aReplyToAll = ETrue );
+    virtual void ReplyToMessageL( const TBool aReplyToAll = ETrue );
     
     /**@see MEmailMessage */
-    void ForwardMessageL();
+    virtual void ForwardMessageL();
     
-protected: // From MFSMailRequestObserver
-    void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
-
 private:        
 
     // Copies/moves flag values from iPluginMessage's flags to local flag member variable
@@ -146,12 +140,10 @@ private:
     void ConstructL();
 							       
     void ConvertAddressArrayL( const MEmailAddress::TRole aRole, 
-                               const RPointerArray<CFSMailAddress>& aSrc, 
+                               RPointerArray<CFSMailAddress>& aSrc, 
                                REmailAddressArray& aDst ) const; 
     CEmailAddress* CreateAddressLC( const MEmailAddress::TRole aRole, CFSMailAddress& aFsAddress ) const;
     TUint MapFlags( const TUint& aFlag );
-    
-    TMessageContentId MessageContentId( TEntryId aContentId ) const;
         
 private:
     CPluginData&    iPluginData;
@@ -176,8 +168,6 @@ private:
     mutable CEmailMultipart* iContent;
     RPointerArray<CEmailAttachment> iAttachments;
     TDataOwner iOwner;
-    QEventLoop iEventLoop;
-    TInt iError;
 
     };
 //Class for compare email content type 

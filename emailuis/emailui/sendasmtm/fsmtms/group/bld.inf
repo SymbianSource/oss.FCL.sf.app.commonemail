@@ -1,0 +1,37 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for MTM components
+*
+*/
+
+
+#include "../client/group/bld.inf"
+#include "../server/group/bld.inf"
+#include "../ui/group/bld.inf"
+#include "../uidata/group/bld.inf"
+// Next 2 will be used only for post install version.
+#include "../install/group/bld.inf"
+#include "../remove/group/bld.inf"
+
+PRJ_PLATFORMS
+WINSCW ARMV5
+
+PRJ_EXPORTS
+//<cmail>
+../inc/fsmtmsconstants.h |../../../../../inc/fsmtmsconstants.h
+//</cmail>
+
+PRJ_MMPFILES
+
+

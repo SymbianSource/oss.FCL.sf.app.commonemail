@@ -25,8 +25,8 @@
 #include <f32file.h>
 #include <sysutil.h>
 
-#include "DebugLog.h"
-#include "DebugLogConst.h"
+#include "debuglog.h"
+#include "debuglogconst.h"
 
 // This takes a lot more memory to use, so it is defaulted to off.  If the code is crashing
 // in DoLogLeakedObjects then uncomment this line to help find the problem.  It is most likely
@@ -1162,7 +1162,7 @@ CLogFileHandler* CDebugLogTlsData::DoGetLogFileHandler( const TDesC& aDirectory,
     CLogFileHandler* handler = NULL;
     
     // Look for the log file handler for the given directory.
-    TInt index = 0;
+    TInt  index = 0;
     while( index < iFiles.Count() && ( !handler ) )
         {
         CLogFileHandler* currentHandler = iFiles[index];
@@ -1182,7 +1182,7 @@ CLogFileHandler* CDebugLogTlsData::DoGetLogFileHandler( const TDesC& aDirectory,
 
         if( handler )
             {            
-            iFiles.AppendL( handler );
+            iFiles.Append( handler );
             } // end if
         }
     
@@ -1194,11 +1194,11 @@ CLogFileHandler* CDebugLogTlsData::DoGetLogFileHandler( const TDesC& aDirectory,
 		if ( copyOfName )
 		    {       
             copyOfName->Des().Copy( aObject->ClassName8() );
-            handler->iObjectNames.AppendL( copyOfName );
+            handler->iObjectNames.Append( copyOfName );
 			}
 //#endif        
 
-        handler->iObjects.AppendL( aObject );
+        handler->iObjects.Append( aObject );
 	    } // end if
 	    
 	return handler;       
@@ -1212,7 +1212,7 @@ CLogFileHandler* CDebugLogTlsData::DoGetLogFileHandler( const TDesC& aDirectory,
 // ==========================================================================
 void CDebugLogTlsData::DoReleaseLogFileHandler( CLogFileHandler* aHandler, RDebugLog* aObject )
     {
-    TInt index = aHandler->iObjects.FindL( aObject );
+    TInt index = aHandler->iObjects.Find( aObject );
     
     if( index >= 0 )
         {

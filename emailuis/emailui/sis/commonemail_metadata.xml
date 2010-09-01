@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ad:metadata xmlns="http://nokia.com/arrow/repository/ia_component"
+  xmlns:ad="http://nokia.com/arrow/application_metadata">
+  <appResources>
+     <appResource>
+        <language>1</language>
+        <iacName>Nokia E-mail</iacName>
+        <iacDescription>Upgrade package for Nokia E-mail</iacDescription>
+     </appResource>
+  </appResources>
+  <swPlatformDep>
+     <platform>S60</platform>
+     <versionFrom>
+        <major>5</major>
+        <minor>0</minor>
+     </versionFrom>
+  </swPlatformDep>
+  <interDeps>
+     <interDep>
+        <sisxUid>0x20021377</sisxUid>
+        <versionFrom>
+           <major>3</major>
+           <minor>0</minor>
+           <build>1</build>
+        </versionFrom>
+     </interDep>
+  </interDeps>
+  <firmwareDependencies>
+  </firmwareDependencies>
+</ad:metadata>

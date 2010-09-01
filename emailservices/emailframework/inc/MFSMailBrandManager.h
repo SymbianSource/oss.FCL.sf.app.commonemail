@@ -21,7 +21,7 @@
 
 // INCLUDES
 //<cmail>
-#include "MailBrandManager.hrh"
+#include "mailbrandmanager.hrh"
 //</cmail>
 
 // FORWARD DECLARATIONS
@@ -158,4 +158,4 @@ class MFSMailBrandManager
 };
 
 
-#endif	// MFSMAILBRANDMANAGER_H
+#endif  // MFSMAILBRANDMANAGER_H

@@ -1,0 +1,3 @@
+EXPORTS
+	?NewL@CFsMtmUi@@SAPAV1@AAVCBaseMtm@@AAVCRegisteredMtmDll@@@Z @ 1 NONAME ; class CFsMtmUi * CFsMtmUi::NewL(class CBaseMtm &, class CRegisteredMtmDll &)
+

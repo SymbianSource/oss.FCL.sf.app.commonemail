@@ -23,7 +23,7 @@
 // ========
 #include <e32base.h>
 //<cmail>
-#include "DebugLogMacros.h"
+#include "debuglogmacros.h"
 //</cmail>
 
 class RMessageStoreSession;
@@ -33,7 +33,7 @@ class MMsgStoreSearchClient;
 // =============================
 // CLASS: CMsgStoreSearchHandler
 // =============================
-NONSHARABLE_CLASS ( CMsgStoreSearchHandler ): private CActive
+class CMsgStoreSearchHandler : private CActive
     {
     public:
     

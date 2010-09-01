@@ -20,7 +20,7 @@
 #define MSGSTORE_SORT_RESULT_ROWSET_
 
 #include "ContainerStoreSortingTable.h"
-#include "MsgStoreTypes.h"
+#include "msgstoretypes.h"
 
 // ==================================
 // CLASS: CMsgStoreSortResultRowSet

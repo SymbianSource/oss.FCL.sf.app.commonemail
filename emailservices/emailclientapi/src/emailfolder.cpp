@@ -1,5 +1,5 @@
 /*
-* Copyright (c)2010 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c)2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,10 +20,11 @@
 #include "emailapiutils.h"
 #include "messageiterator.h"
 #include "emailsorting.h"
-#include "CFSMailFolder.h"
-#include "CFSMailPlugin.h"
+#include "cfsmailfolder.h"
+#include "cfsmailplugin.h"
 #include "emailclientapi.hrh"
 #include "emailclientapiimpldefs.h"
+
 
 // -----------------------------------------------------------------------------
 // 
@@ -49,7 +50,7 @@ CEmailFolder* CEmailFolder::NewL(
     CFSMailFolder *aFolder )
     {
     CEmailFolder* self = CEmailFolder::NewLC( aPluginData, aFolderId, aFolder);
-    CleanupStack::Pop( self );
+    CleanupStack::Pop(); // self
     return self;
     }
 
@@ -74,8 +75,6 @@ CEmailFolder::CEmailFolder(
 void CEmailFolder::ConstructL()
     {
     iPlugin = iPluginData.ClaimInstance();
-    
-    User::LeaveIfNull( iFolder );
     
     const TFSFolderType fsType = iFolder->GetFolderType();
     switch ( fsType )
@@ -159,9 +158,7 @@ TFolderType CEmailFolder::FolderType() const
 // -----------------------------------------------------------------------------
 TPtrC CEmailFolder::Name() const
     {
-    if ( !iFolder )
-        return KNullDesC();
-    return TPtrC ( iFolder->GetFolderName() );
+    return TPtrC (iFolder->GetFolderName());
     }
 
 // -----------------------------------------------------------------------------
@@ -169,12 +166,10 @@ TPtrC CEmailFolder::Name() const
 // -----------------------------------------------------------------------------
 TInt CEmailFolder::GetSubfoldersL( RFolderArray& aSubfolders ) const
     {
-    User::LeaveIfNull( iFolder );
-
     RPointerArray<CFSMailFolder> folders;
     CleanupResetAndDestroy<RPointerArray<CFSMailFolder> >::PushL( folders );
 
-    iFolder->GetSubFoldersL( folders );
+    iFolder->GetSubFoldersL(folders);
     
     TInt res( folders.Count() );
     
@@ -183,33 +178,34 @@ TInt CEmailFolder::GetSubfoldersL( RFolderArray& aSubfolders ) const
         const CFSMailFolder* fsfolder = folders[i];
         const TEntryId id = fsfolder->GetFolderId().Id();
         const TFolderId folderId( id, iFolderId.iMailboxId.iId );
-        MEmailFolder* folder = CEmailFolder::NewL( iPluginData, folderId, folders[i] );
+        MEmailFolder* folder = CEmailFolder::NewLC( iPluginData, folderId, folders[i]);
         aSubfolders.AppendL( folder );
+        CleanupStack::Pop( folder ); // asubfolders took ownership
+        folders[i] = NULL;
         }
-    CleanupStack::Pop( &folders );
-    folders.Close();
+    CleanupStack::Pop( &folders );    // folders
+    folders.Close(); // aSubfolders took ownership
     return res;
     }
 
 // -----------------------------------------------------------------------------
 //  CEmailFolder::MessagesL
 // -----------------------------------------------------------------------------
-MMessageIterator* CEmailFolder::MessagesL(
+MMessageIterator* CEmailFolder::MessagesL(        
         const RSortCriteriaArray& aCriteria )
     {
     RArray<TFSMailSortCriteria> sortCriterias;
-    CleanupClosePushL( sortCriterias );
     CEmailFolder::ToFsSortCriteriaL( aCriteria, sortCriterias );
-
-    MFSMailIterator* fsIter = iFolder->ListMessagesL( EFSMsgDataEnvelope, sortCriterias );
+    
+    MFSMailIterator* fsIter = iFolder->ListMessagesL(EFSMsgDataEnvelope, sortCriterias);
     TUint count = iFolder->GetMessageCount();
-
-    CleanupStack::PopAndDestroy( &sortCriterias );
+    
     CMessageIterator* iter = CMessageIterator::NewL( 
         fsIter, iPluginData, count );
-
+    
+    sortCriterias.Reset();
     return iter;
-    }
+    }        
 
 // -----------------------------------------------------------------------------
 // 
@@ -224,16 +220,17 @@ void CEmailFolder::DeleteMessagesL( const REmailMessageIdArray& aMessageIds )
         TMessageId msgId = aMessageIds[i];
         if ( iFolderId != msgId.iFolderId )
             {
-            // not all messages in the same folder, plugin API doesn't accept this.
+            // not all messages in the same folder, plugin API doesn't accept
+            // this!
             User::Leave( KErrArgument );
             }
         fsArray.AppendL( FsMsgId( iPluginData, msgId ) );
-        }
+        }        
     iPlugin->DeleteMessagesByUidL( 
             FsMsgId( iPluginData, iFolderId.iMailboxId ), 
             FsMsgId( iPluginData, iFolderId ), 
             fsArray );
-    CleanupStack::PopAndDestroy( &fsArray );
+    CleanupStack::PopAndDestroy(); // fsArray
     }
 
 // -----------------------------------------------------------------------------
@@ -255,7 +252,7 @@ void CEmailFolder::ToFsSortCriteriaL(
         EFSMailSortByUnread,    
         EFSMailSortBySize,      
         EFSMailSortByAttachment };
-
+    
     for ( TInt i=0; i < aSortCriteria.Count(); i++ )
         {
         const TEmailSortCriteria& criteria  = aSortCriteria[i];
@@ -274,5 +271,5 @@ void CEmailFolder::ToFsSortCriteriaL(
         aFsCriteria.AppendL( fsCriteria );
         }
     }
-
-// End of file
+    
+// End of file.

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -20,7 +20,7 @@
 
 #include "emailinterfacefactoryimpl.h"
 #include "emailcontent.h"
-#include "CFSMailClient.h"
+#include "cfsmailclient.h"
 #include "emailclientapiimpldefs.h"
 #include "emailclientapiimpl.h"
 #include "emailaddress.h"
@@ -33,16 +33,18 @@ const TInt KEmailUidExtraBuffer = 2 * KEmailPlatformApiUidItemSize;
 // ---------------------------------------------------------------------------
 // Email client API panic wrapper
 // ---------------------------------------------------------------------------
+//
 void Panic( TEmailImplPanic aPanic )
     {
     User::Panic( KEmailImplPanic(), aPanic );
     }
-
+    
 // ======== MEMBER FUNCTIONS ========
 
 // ---------------------------------------------------------------------------
 // CEmailInterfaceFactoryImpl::NewL
 // ---------------------------------------------------------------------------
+//
 CEmailInterfaceFactoryImpl* CEmailInterfaceFactoryImpl::NewL()
     {
     CEmailInterfaceFactoryImpl* self = new (ELeave) CEmailInterfaceFactoryImpl();
@@ -51,10 +53,11 @@ CEmailInterfaceFactoryImpl* CEmailInterfaceFactoryImpl::NewL()
     CleanupStack::Pop( self );
     return self;
     }
-
+    
 // ---------------------------------------------------------------------------
 // CEmailInterfaceFactoryImpl::~CEmailInterfaceFactoryImpl
 // ---------------------------------------------------------------------------
+//
 CEmailInterfaceFactoryImpl::~CEmailInterfaceFactoryImpl()
     {
     TRAP_IGNORE( AppendOrRemoveUidL( EEmailUidModeRemove ) );
@@ -63,6 +66,7 @@ CEmailInterfaceFactoryImpl::~CEmailInterfaceFactoryImpl()
 // ---------------------------------------------------------------------------
 // CEmailInterfaceFactoryImpl::CEmailInterfaceFactoryImpl
 // ---------------------------------------------------------------------------
+//
 CEmailInterfaceFactoryImpl::CEmailInterfaceFactoryImpl() : 
     CEmailInterfaceFactory()
     {
@@ -71,6 +75,7 @@ CEmailInterfaceFactoryImpl::CEmailInterfaceFactoryImpl() :
 // ---------------------------------------------------------------------------
 // CEmailInterfaceFactoryImpl::ConstructL
 // ---------------------------------------------------------------------------
+//
 void CEmailInterfaceFactoryImpl::ConstructL()
     {
 	// This leaves if related P&S keys are not defined by EmailServerMonitor,
@@ -83,6 +88,7 @@ void CEmailInterfaceFactoryImpl::ConstructL()
 // ---------------------------------------------------------------------------
 // CEmailInterfaceFactoryImpl::InterfaceL
 // ---------------------------------------------------------------------------
+//
 MEmailInterface* CEmailInterfaceFactoryImpl::InterfaceL( const TInt aInterfaceId )
     {
     MEmailInterface* interface = NULL;
@@ -91,10 +97,11 @@ MEmailInterface* CEmailInterfaceFactoryImpl::InterfaceL( const TInt aInterfaceId
         case KEmailClientApiInterface:
             interface = CEmailClientApi::NewL();
             break;
+        case KEmailIFUidTextContent:
+            //interface = CEmailTextContent::NewL();
+            break;
         case KEmailIFUidAddress:
             interface = CEmailAddress::NewL( MEmailAddress::EUndefined, EClientOwns );
-            break;
-        case KEmailIFUidTextContent:
         default:
             break;
         }
@@ -108,6 +115,7 @@ MEmailInterface* CEmailInterfaceFactoryImpl::InterfaceL( const TInt aInterfaceId
 // ---------------------------------------------------------------------------
 // CEmailInterfaceFactoryImpl::AppendOrRemoveUidL
 // ---------------------------------------------------------------------------
+//
 void CEmailInterfaceFactoryImpl::AppendOrRemoveUidL(
         const TEmailUidAppendRemoveMode aMode )
     {
@@ -178,7 +186,7 @@ void CEmailInterfaceFactoryImpl::AppendOrRemoveUidL(
             writeLength += KEmailPlatformApiUidItemSize;
             }
         }
-
+    
     // If we are appending our UID and it wasn't found from the list,
     // write it to the stream
     if( aMode == EEmailUidModeAppend && !ownUidFound )
@@ -209,8 +217,8 @@ void CEmailInterfaceFactoryImpl::AppendOrRemoveUidL(
                         EEmailPsKeyPlatformApiAppsToCloseLength,
                         writeLength ) );
         }
-
+    
     CleanupStack::PopAndDestroy( 4, readBuf );
     }
 
-// End of file
+// End of file.

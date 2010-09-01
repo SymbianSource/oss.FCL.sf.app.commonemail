@@ -21,11 +21,11 @@
 
 #include <e32base.h>
 //<cmail>
-#include "MsgStoreTypes.h"
-#include "MsgStoreObserver.h"
-#include "MsgStoreMailBoxObserver.h"
+#include "msgstoretypes.h"
+#include "msgstoreobserver.h"
+#include "msgstoremailboxobserver.h"
 //</cmail>
-#include "RMessageStoreSession.h"
+#include "rmessagestoresession.h"
 #include "MessageStoreClientServer.h"
 
 const TUint KEventBufferLength  = 30;
@@ -84,7 +84,6 @@ class CMsgStoreObserverHandler : private CActive
 		RArray<MMsgStoreObserver*>                       iObservers;
 		RArray<TMailBoxObserverInfo>                     iMailBoxObservers;
 		TBuf8<sizeof(TMsgStoreEvent)*KEventBufferLength> iEventBuffer;
-		TBool                                            iObjectDeleted;
 		
 		__LOG_DECLARATION
 	

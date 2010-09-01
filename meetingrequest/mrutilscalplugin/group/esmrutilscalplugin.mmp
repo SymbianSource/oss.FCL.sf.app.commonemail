@@ -1,0 +1,61 @@
+/*
+* Copyright (c) 2005 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Project definition file for esmrutilscalplugin.dll.
+*
+*/
+
+
+#include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
+
+TARGET          esmrutilscalplugin.dll
+TARGETTYPE      PLUGIN
+
+UID             KEComRecognitionUID2 KESMRUtilsCalPluginDllUid3
+CAPABILITY      CAP_ECOM_PLUGIN
+VENDORID        VID_DEFAULT
+DEFFILE         ESMRUtilsCalPlugin.def
+
+SOURCEPATH      ../src
+SOURCE          esmrutilsmain.cpp
+SOURCE          cesmrutilsimpl.cpp
+
+USERINCLUDE     .
+USERINCLUDE     ../inc
+USERINCLUDE     ../../inc
+USERINCLUDE   ../../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+
+SOURCEPATH      ../data
+// <cmail> S60 UID update
+START RESOURCE  2001E27F.rss // <cmail>
+// </cmail> S60 UID update
+TARGET          esmrutilscalplugin.rsc
+END
+
+// ESMR libraries
+LIBRARY         esmrutils.lib
+
+// System libraries
+LIBRARY         euser.lib
+LIBRARY         ecom.lib
+
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
+
+// End of file

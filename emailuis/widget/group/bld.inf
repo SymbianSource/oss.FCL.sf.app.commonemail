@@ -1,0 +1,75 @@
+/*
+* Copyright (c) 2008 - 2010 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file
+*
+*/
+
+#include <platform_paths.hrh>
+
+#include "../emailwidgetsettings/group/bld.inf"
+
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_EXPORTS
+
+// Support for productization and Carbide.Ui customization
+//********************************************************
+../hsps/00/manifest.dat                 /epoc32/data/Z/resource/homescreen/emailwidget/hsps/manifest.dat
+../hsps/00/widgetconfiguration.xml      /epoc32/data/Z/resource/homescreen/emailwidget/hsps/widgetconfiguration.xml
+../hsps/00/emailwidgetconfiguration.dtd /epoc32/data/Z/resource/homescreen/emailwidget/hsps/emailwidgetconfiguration.dtd
+../xuikon/00/emailwidget.dat            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.dat
+../xuikon/00/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.css
+../xuikon/37/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/37/emailwidget.css
+../xuikon/50/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/50/emailwidget.css
+../xuikon/57/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/57/emailwidget.css
+../xuikon/94/emailwidget.css            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/94/emailwidget.css
+../xuikon/00/emailwidget.xml            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.xml
+// Variant creation still disabled (see also emailwidget.dat file)
+//../xuikon/00/emailwidget.dtd            /epoc32/data/Z/resource/homescreen/emailwidget/xuikon/emailwidget.dtd
+
+// Support for S60 localization
+//*****************************
+// export localizable loc files (engineering versions)
+../loc/emailwidgetconfiguration.loc     APP_LAYER_LOC_EXPORT_PATH(emailwidgetconfiguration.loc)
+../loc/emailwidget.loc                  APP_LAYER_LOC_EXPORT_PATH(emailwidget.loc)
+
+
+// Support for S60 builds
+//***********************
+// export iby files
+../rom/emailwidget_resources.iby        LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(emailwidget_resources.iby)
+../rom/emailwidget_customer.iby         CUSTOMER_APP_LAYER_IBY_EXPORT_PATH(emailwidget_customer.iby)
+../rom/emailwidget_variant.iby          CUSTOMER_APP_LAYER_IBY_EXPORT_PATH(emailwidget_variant.iby)
+../rom/emailwidget.iby                  CORE_APP_LAYER_IBY_EXPORT_PATH(emailwidget.iby)
+
+// Dtd-localization
+//*****************
+PRJ_EXTENSIONS
+START EXTENSION tools/dtd
+OPTION SWITCH_LOC_FILE_NAME emailwidget
+OPTION DTD_TYPE widget
+OPTION LOC_FOLDERS yes
+END
+// Email widget Home Screen content list icon
+START EXTENSION s60/mifconv
+OPTION TARGETFILE ${EPOCROOT}/epoc32/data/Z/resource/homescreen/emailwidget/hsps/emailwidgeticon.mif
+OPTION HEADERFILE emailwidgeticon.mbg
+OPTION SOURCES -c16,8 qgn_menu_cmail.svg
+END
+
+PRJ_MMPFILES
+
+
+// End of File

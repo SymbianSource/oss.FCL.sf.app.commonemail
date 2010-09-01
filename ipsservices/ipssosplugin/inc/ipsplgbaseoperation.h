@@ -18,7 +18,7 @@
 #ifndef IPSPLGBASEOPERATION_H
 #define IPSPLGBASEOPERATION_H
 
-// <qmail> CFSMailCommon include not needed
+#include "cfsmailcommon.h" // for TFSMailMsgId, TFSProgress
 
 class CMsvOperation;
 
@@ -27,63 +27,79 @@ class CMsvOperation;
 *
 * Common base class for email online operations.
 */
-NONSHARABLE_CLASS ( CIpsPlgBaseOperation ) : public CMsvOperation
+class CIpsPlgBaseOperation : public CMsvOperation
     {
 public:
+    /**
+    *
+    */
     virtual ~CIpsPlgBaseOperation();
 
-	// <qmail> ProgressL function has been removed
+    /**
+    *
+    */
+    virtual const TDesC8& ProgressL()=0;
 
     /**
     * For reporting if DoRunL leaves
-    * All operations must implement this
     */
     virtual const TDesC8& GetErrorProgressL(TInt aError) = 0;
 
     /**
-    * Returns pending asynchronous request status to caller
-    * All operations must implement this
+    * 
     */
     virtual TFSProgress GetFSProgressL() const = 0;
 
     /**
-    * returns request id
-    * (given by caller during instantiation)
-    * @return request id
+    *
     */
 	TInt FSRequestId() const;
 	
 	/**
-	* returns mailbox id that this operation is related to
-	* (given by caller during instantiation)
+	*
 	*/
 	TFSMailMsgId FSMailboxId() const;
-
-// <qmail>    
+    
     /**
-    * All concrete derived classes must have a type identifier
-    * @return operation type
+    *
     */
-    virtual TIpsOpType IpsOpType() const = 0;
-// </qmail>
+    virtual TInt IpsOpType() const;
 	
 protected:
 
-	/**
+    /**
     * C++ constructor
     */
-    // <qmail> priority parameter has been removed
+    // Construction.
     CIpsPlgBaseOperation(
         CMsvSession& aMsvSession,
+        TInt aPriority,
         TRequestStatus& aObserverRequestStatus,
         TInt aFSRequestId,
         TFSMailMsgId aFSMailboxId );
 
-//<qmail> DoCancel, RunL, RunError functions have been removed
 
+    /**
+    * From CActive
+    */
+    virtual void DoCancel()=0;
+
+    /**
+    * From CActive
+    */
+    virtual void RunL()=0;
+
+    /**
+    * From CActive
+    */
+    virtual TInt RunError( TInt aError )=0;
+
+        
 protected:
+        
     TInt            iFSRequestId;
     TFSMailMsgId    iFSMailboxId;
-    };
+        
 
-#endif // IPSPLGBASEOPERATION_H
+    };
+#endif//IPSPLGBASEOPERATION_H

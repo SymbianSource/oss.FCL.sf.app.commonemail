@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/" >
-        <file alias="gmail" >icons/gmail.svg</file>
-        <file alias="microsoft" >icons/microsoft.svg</file>
-        <file alias="ovi" >icons/ovi.svg</file>
-        <file alias="yahoo" >icons/yahoo.svg</file>
-    </qresource>
-</RCC>

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -32,19 +32,19 @@ public:
     ~CEmailAddress();
 
 public: // from MEmailInterface
-    TEmailTypeId InterfaceId() const;
+    virtual TEmailTypeId InterfaceId() const;
     
-    void Release();
+    virtual void Release();
 
 public: // from MEmailAddress
-    void SetAddressL( const TDesC& aAddress );
-    TPtrC Address() const;
+    virtual void SetAddressL( const TDesC& aAddress );
+    virtual TPtrC Address() const;
     
-    void SetDisplayNameL( const TDesC& aDisplayName );
-    TPtrC DisplayName() const;
+    virtual void SetDisplayNameL( const TDesC& aDisplayName );
+    virtual TPtrC DisplayName() const;
     
-    TRole Role() const;
-    void SetRole( const TRole aRole );
+    virtual TRole Role() const;
+    virtual void SetRole( const TRole aRole );
             
 private:        
         CEmailAddress( const TRole aRole, const TDataOwner aOwner );

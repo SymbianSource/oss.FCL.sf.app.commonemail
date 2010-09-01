@@ -1,0 +1,60 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  (ROM) Image description file for sendasmtm
+*
+*/
+
+#ifndef __FSSENDASMTM_IBY__
+#define __FSSENDASMTM_IBY__
+
+//<cmail>
+#ifdef FF_EMAIL_FRAMEWORK
+//</cmail>
+
+//#ifdef FF_ES_EMAIL_FRAMEWORK 
+//<cmail>
+//</cmail>
+
+file=ABI_DIR\BUILD_DIR\fssendashelper.dll          SHARED_LIB_DIR\fssendashelper.dll
+
+// MTM Registration Resource File. This is where the Installation file should be.
+data=DATAZ_\MTM_INFO_FILE_DIR\fsmtms.rsc           MTM_INFO_FILE_DIR\fsmtms.rsc
+
+file=ABI_DIR\BUILD_DIR\fsclientmtm.dll             SHARED_LIB_DIR\fsclientmtm.dll
+
+file=ABI_DIR\BUILD_DIR\fsservermtm.dll             SHARED_LIB_DIR\fsservermtm.dll
+
+file=ABI_DIR\BUILD_DIR\fsuimtm.dll                 SHARED_LIB_DIR\fsuimtm.dll
+data=DATAZ_\MTM_RESOURCE_DIR\fsuimtm.rsc           MTM_RESOURCE_DIR\fsuimtm.rsc
+
+file=ABI_DIR\BUILD_DIR\fsuidatamtm.dll             SHARED_LIB_DIR\fsuidatamtm.dll
+data=DATAZ_\MTM_RESOURCE_DIR\fsuidatamtm.rsc       MTM_RESOURCE_DIR\fsuidatamtm.rsc
+//</cmail>
+data=DATAZ_\APP_RESOURCE_DIR\fsuidatamtm.mif       APP_RESOURCE_DIR\fsuidatamtm.mif
+//</cmail>
+
+//<cmail>
+#endif //FF_EMAIL_FRAMEWORK
+//</cmail>
+
+//Delete this section
+//S60_APP_EXE(fsinstallmtm)
+//data=\epoc32\data\z\private\10003a3f\apps\fsinstallmtm_reg.RSC   \private\10003a3f\import\apps\fsinstallmtm_reg.RSC
+
+// S60_APP_EXE(fsremovemtm)
+// data=\epoc32\data\z\private\10003a3f\apps\fsremovemtm_reg.RSC    \private\10003a3f\import\apps\fsremovemtm_reg.RSC
+
+//#endif // FF_ES_EMAIL_FRAMEWORK 
+
+#endif // __FSSENDASMTM_IBY__

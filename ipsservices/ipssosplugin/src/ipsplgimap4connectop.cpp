@@ -16,33 +16,34 @@
 *
 */
 
+
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// <qmail> removed
 
-// <qmail> KIpsPlgIpsConnPanic removed
+_LIT( KIpsPlgIpsConnPanic, "IpsConn" ); 
 
 // ----------------------------------------------------------------------------
 // CIpsPlgImap4ConnectOp::NewL()
 // ----------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
-// <qmail> MFSMailRequestObserver& changed it to pointer
-// <qmail> aSignallingAllowed parameter has been removed
+// 
 CIpsPlgImap4ConnectOp* CIpsPlgImap4ConnectOp::NewL(
     CMsvSession& aMsvSession,
+	TInt aPriority,
     TRequestStatus& aObserverRequestStatus,
     TMsvId aService,
     CIpsPlgTimerOperation& aActivityTimer,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver* aFSOperationObserver,
+    MFSMailRequestObserver& aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler,
-    TBool aDoPlainConnect )
+    TBool aDoPlainConnect,
+    TBool aSignallingAllowed )
     {
     FUNC_LOG;
     CIpsPlgImap4ConnectOp* self = new (ELeave) CIpsPlgImap4ConnectOp(
         aMsvSession, 
+        aPriority, 
         aObserverRequestStatus,
         aService, 
         aActivityTimer,
@@ -50,6 +51,7 @@ CIpsPlgImap4ConnectOp* CIpsPlgImap4ConnectOp::NewL(
         aFSOperationObserver,
         aFSRequestId,
         aDoPlainConnect,
+        aSignallingAllowed,
         aEventHandler );
         
     CleanupStack::PushL( self );
@@ -61,32 +63,33 @@ CIpsPlgImap4ConnectOp* CIpsPlgImap4ConnectOp::NewL(
 // ----------------------------------------------------------------------------
 // CIpsPlgImap4ConnectOp::CIpsPlgImap4ConnectOp()
 // ----------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
-// <qmail> MFSMailRequestObserver& changed it to pointer
-// <qmail> aSignallingAllowed parameter has been removed
+// 
 CIpsPlgImap4ConnectOp::CIpsPlgImap4ConnectOp(
     CMsvSession& aMsvSession,
+	TInt aPriority,
     TRequestStatus& aObserverRequestStatus,
     TMsvId aService,
     CIpsPlgTimerOperation& aActivityTimer,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver* aFSOperationObserver,
+    MFSMailRequestObserver& aFSOperationObserver,
     TInt aFSRequestId,
     TBool aDoPlainConnect,
+    TBool aSignallingAllowed,
     CIpsPlgEventHandler* aEventHandler)
     :
     CIpsPlgOnlineOperation(
 	    aMsvSession,
+	    aPriority,
 	    aObserverRequestStatus,
 	    aActivityTimer,
 	    aFSMailBoxId,
 	    aFSOperationObserver,
-	    aFSRequestId ),
-    iState( EStateIdle ),
-    iSelection( NULL ),
+	    aFSRequestId,
+    	aSignallingAllowed ),
     iDoPlainConnect( aDoPlainConnect ),
     iEventHandler( aEventHandler ),
-    iIsSyncStartedSignaled( EFalse )
+    iIsSyncStartedSignaled( EFalse ),
+    iAlreadyConnected( EFalse )
     {
     FUNC_LOG;
     iService = aService;
@@ -101,7 +104,7 @@ CIpsPlgImap4ConnectOp::~CIpsPlgImap4ConnectOp()
     FUNC_LOG;
     Cancel();
     delete iSelection;
-    // <qmail> setting state in destructor makes no sense
+    iState = EStateIdle;
     }
 
 // ----------------------------------------------------------------------------
@@ -123,20 +126,20 @@ void CIpsPlgImap4ConnectOp::ConstructL()
         User::Panic( KIpsPlgIpsConnPanic, KErrNotSupported );
         }
     
-    // <qmail> moved here from StartL which was removed
-    if ( Connected() && iDoPlainConnect )
-        {
-        // trivial case: connect requested, but already connected
-        // (sync is done automatically on background)
-        iState = EStateIdle;
+    if ( tentry.Connected() )
+        {      
+        iState = EStateCompleted; 
+        iAlreadyConnected = ETrue;
+        SetActive();
+        CompleteThis();
         }
     else
         {
         iState = EStateStartConnect;
-        }
-    iStatus = KRequestPending;    
-    // <qmail> SetActive(); moved inside CompleteThis();
-    CompleteThis();
+        iStatus = KRequestPending;    
+        SetActive();
+       CompleteThis();
+        }    
     }
 
 // ----------------------------------------------------------------------------
@@ -150,9 +153,9 @@ const TDesC8& CIpsPlgImap4ConnectOp::ProgressL()
         {
         return GetErrorProgressL( iError );
         }
-    else if( iSubOperation )
+    else if(iOperation)
         {
-        return iSubOperation->ProgressL();
+        return iOperation->ProgressL();
         }
         
     TImap4CompoundProgress& prog = iProgressBuf();
@@ -184,7 +187,10 @@ TFSProgress CIpsPlgImap4ConnectOp::GetFSProgressL() const
     result.iError = KErrNone;
     switch( iState )
         {
-        // <qmail> cases EStateQueryingDetails/EStateQueryingDetailsBusy removed
+        case EStateQueryingDetails:
+        case EStateQueryingDetailsBusy:
+            result.iProgressStatus = TFSProgress::EFSStatus_Authenticating;
+            break;
         case EStateStartConnect:
             result.iProgressStatus = TFSProgress::EFSStatus_Started;
             break;
@@ -207,14 +213,27 @@ TFSProgress CIpsPlgImap4ConnectOp::GetFSProgressL() const
 // ----------------------------------------------------------------------------
 // CIpsPlgImap4ConnectOp::IpsOpType()
 // ----------------------------------------------------------------------------
-// <qmail> return type
-TIpsOpType CIpsPlgImap4ConnectOp::IpsOpType() const
+// 
+TInt CIpsPlgImap4ConnectOp::IpsOpType() const
     {
     FUNC_LOG;
     return EIpsOpTypeImap4SyncOp;
     }
 
-// <qmail> Connected() moved to baseclass
+// ----------------------------------------------------------------------------
+// CIpsPlgImap4ConnectOp::Connected()
+// ----------------------------------------------------------------------------
+// 
+TBool CIpsPlgImap4ConnectOp::Connected() const
+    {
+    FUNC_LOG;
+    TMsvEntry tentry;
+    TMsvId service;
+    iMsvSession.GetEntry(iService, service, tentry );
+    return tentry.Connected();
+    }
+
+
 // ----------------------------------------------------------------------------
 // CIpsPlgImap4ConnectOp::DoCancel()
 // ----------------------------------------------------------------------------
@@ -222,9 +241,9 @@ TIpsOpType CIpsPlgImap4ConnectOp::IpsOpType() const
 void CIpsPlgImap4ConnectOp::DoCancel()
     {
     FUNC_LOG;
-    if( iSubOperation )
+    if( iOperation )
         {
-        iSubOperation->Cancel();
+        iOperation->Cancel();
         }
     SignalSyncCompleted( KErrCancel );
     CompleteObserver( KErrCancel );
@@ -237,34 +256,37 @@ void CIpsPlgImap4ConnectOp::DoCancel()
 void CIpsPlgImap4ConnectOp::DoRunL()
     {
     FUNC_LOG;
-    TInt err( KErrNone );
-    __ASSERT_DEBUG( !(iSubOperation && iSubOperation->IsActive()),
-        User::Panic( KIpsPlgPanicCategory, KErrGeneral ) );
-    if ( iSubOperation )
+    TInt err = KErrNone;
+    __ASSERT_DEBUG( !(iOperation && iOperation->IsActive()), 
+            User::Panic( KIpsPlgPanicCategory, KErrGeneral ) );
+    if ( iOperation )
         {
-        err = iSubOperation->iStatus.Int();
-        delete iSubOperation;
-        iSubOperation = NULL;
+        err = iOperation->iStatus.Int();
+        delete iOperation;
+        iOperation = NULL;
         }
     
     switch( iState )
         {
-        // <qmail> removing case EStateQueryingDetails
-        case EStateStartConnect:
-            // <qmail> remove StartL() func and replace it directly with DoConnectOpL
+        case EStateQueryingDetails:
+            // querying pass finished - try to reconnect
             DoConnectOpL();
             break;
+        case EStateStartConnect:
+        	StartL();
+        	break;
         case EStateConnectAndSync:
             // Connection completed
-                
-            // <qmail> all errors should fail the op
-            if( err )
+
+            if ( err == KErrImapBadLogon )
                 {
-                iState = EStateIdle;
-                // <qmail> SetActive(); moved inside CompleteThis();
-                CompleteThis();
+                // Login details are wrong. Trying to ask for password
+                if ( QueryUserPassL() )
+                    {
+                    err = KErrNone;
+                    }
                 }
-            else
+            else if ( err == KErrNone )
                 {
                 // no errors in connection
                 if( !iDoPlainConnect )
@@ -275,28 +297,29 @@ void CIpsPlgImap4ConnectOp::DoRunL()
                     {
                     // Get on with others using this class for connection only
                     iState = EStateIdle;
-                    // <qmail> SetActive(); moved inside CompleteThis();
+                    SetActive();
                     CompleteThis();
                     }
                 }
             break;
         case EStatePopulateAllCompleted:
-            CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL( iMsvSession, iService );
+            CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL(
+                    iMsvSession, iService );
             // break command is intentially left out
         case EStateCompleted:
             if ( err == KErrNone )
                 {
                 iState = EStateIdle;
-                // <qmail> SetActive(); moved inside CompleteThis();
+                SetActive();
                 CompleteThis();
                 }
             break;
         case EStateIdle:
         default:
-            if ( iSubOperation )
+            if ( iOperation )
                 {
-                delete iSubOperation;
-                iSubOperation = NULL;
+                delete iOperation;
+                iOperation = NULL;
                 }
             CompleteObserver();
             break;
@@ -310,7 +333,33 @@ void CIpsPlgImap4ConnectOp::DoRunL()
         }
     }
 
-// <qmail> CIpsPlgImap4ConnectOp::HandleImapConnectionEvent() removed
+// ----------------------------------------------------------------------------
+// CIpsPlgImap4ConnectOp::HandleImapConnectionEvent()
+// ----------------------------------------------------------------------------
+// 
+void CIpsPlgImap4ConnectOp::HandleImapConnectionEvent(
+    TImapConnectionEvent aConnectionEvent )
+    {
+    FUNC_LOG;
+    switch ( aConnectionEvent )
+        {
+        case EConnectingToServer:
+            break;
+        case ESynchronisingFolderList:
+        case ESynchronisingInbox:
+		case ESynchronisingFolders:
+		    // send sync started event in any of these sync events
+		    SignalSyncStarted();
+		    break;
+		case ESynchronisationComplete:
+		    break;
+		case EDisconnecting:
+		    break;
+		case EConnectionCompleted:
+	    default:
+	        break;
+        }
+    }
 
 // ----------------------------------------------------------------------------
 // CIpsPlgImap4ConnectOp::RequestResponseL()
@@ -334,38 +383,40 @@ void CIpsPlgImap4ConnectOp::DoConnectOpL()
     iSelection->ResizeL(0);
     iSelection->AppendL(iService);
     
-    // <qmail>
-    iStatus = KRequestPending;
     if ( iDoPlainConnect && !Connected() )
         {
         TBuf8<1> parameter;
-        NM_COMMENT("CIpsPlgImap4ConnectOp: do plain connect");
+        iStatus = KRequestPending;
         // connect and synchronise starts background sync or idle
-        iSubOperation = iBaseMtm->InvokeAsyncFunctionL(
-            KIMAP4MTMConnect, *iSelection, parameter, iStatus);
+        iOperation = iBaseMtm->InvokeAsyncFunctionL(
+                KIMAP4MTMConnect, *iSelection, parameter, iStatus);
+        iState = EStateConnectAndSync;
+        SetActive();
         }
     else if ( Connected() )
         {
         // in this point cant use "connect and do something" commands,
         // use regular sync, when new mails is populated elsewhere.
         TBuf8<1> parameter;
-        NM_COMMENT("CIpsPlgImap4ConnectOp: full sync starting");
-        iSubOperation = iBaseMtm->InvokeAsyncFunctionL(
-            KIMAP4MTMFullSync, *iSelection, parameter, iStatus);
+        iStatus = KRequestPending;
+        iOperation = iBaseMtm->InvokeAsyncFunctionL(
+                KIMAP4MTMFullSync, *iSelection, parameter, iStatus);
+        // also set sync started
+        SignalSyncStarted();
+        iState = EStateConnectAndSync;
+        SetActive();
         }
     else
         {
-        // the used command requires an observer to be given even though we're not using it
-        NM_COMMENT("CIpsPlgImap4ConnectOp: connect and sync");
-        TPckg<MMsvImapConnectionObserver*> parameter( NULL );
-        iSubOperation = iBaseMtm->InvokeAsyncFunctionL(
-            KIMAP4MTMConnectAndSyncCompleteAfterFullSync, 
-            *iSelection, parameter, iStatus );
+        TPckg<MMsvImapConnectionObserver*> parameter(this);
+        // connect and synchronise starts background sync or idle
+        iStatus = KRequestPending;
+        iOperation = iBaseMtm->InvokeAsyncFunctionL(
+                KIMAP4MTMConnectAndSyncCompleteAfterFullSync, 
+                *iSelection, parameter, iStatus);
+        iState = EStateConnectAndSync;
+        SetActive();
         }
-    SignalSyncStarted();
-    iState = EStateConnectAndSync;
-    SetActive();
-    // </qmail>
 	}
 
 // ----------------------------------------------------------------------------
@@ -375,55 +426,140 @@ void CIpsPlgImap4ConnectOp::DoPopulateAllL()
     {
     FUNC_LOG;
     
-    NM_COMMENT("CIpsPlgImap4ConnectOp: populate all");
     // construct partial fetch info according to imap settings
-    // <qmail> new function to wrap settings loading
-    CImImap4Settings* settings = GetImapSettingsLC();
+    CImImap4Settings* settings = new ( ELeave ) CImImap4Settings();
+    CleanupStack::PushL( settings );
+    CEmailAccounts* accounts = CEmailAccounts::NewLC();
+    TImapAccount imapAcc;
+    accounts->GetImapAccountL(iService, imapAcc );
+    accounts->LoadImapSettingsL( imapAcc, *settings );
     TImImap4GetPartialMailInfo info;
-    ConstructImapPartialFetchInfo( info, *settings );
+    CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *settings );
     TPckgBuf<TImImap4GetPartialMailInfo> package(info);
-    CleanupStack::PopAndDestroy( settings );
-    settings = NULL;
+    CleanupStack::PopAndDestroy( 2, settings );
     
-    // do populate operation unless only headers should be fetched
     if ( info.iTotalSizeLimit != KIpsSetDataHeadersOnly )
         {
-        // Update iSelection (which will be given to populate op)
-        // <qmail> new function to wrap iSelection populating
-        CreateInboxMessagesSelectionL();
-        
+        SignalSyncStarted();
+        CMsvEntry* cEntry = iMsvSession.GetEntryL( iService );
+        CleanupStack::PushL( cEntry );
+        CMsvEntrySelection* childrenSelection = cEntry->ChildrenL();
+        CleanupStack::PushL( childrenSelection );
+        if ( childrenSelection->Count() )
+            {
+            // only inbox is set, do we have to populate other folders also
+            TMsvId id = (*childrenSelection)[0];
+            CMsvEntry* cEntry2 = iMsvSession.GetEntryL( id );
+            CleanupStack::PushL( cEntry2 );
+            delete iSelection;
+            iSelection = NULL;
+            iSelection = cEntry2->ChildrenWithTypeL( KUidMsvMessageEntry );
+            CleanupStack::PopAndDestroy( cEntry2 );
+            
+            }
+        CleanupStack::PopAndDestroy( childrenSelection );
+    
         iStatus = KRequestPending;
+        CIpsPlgTimerOperation* dummy = NULL;
         iBaseMtm->SwitchCurrentEntryL( iService );
-        // <qmail> priority parameter has been removed
-        iSubOperation = CIpsPlgImap4PopulateOp::NewL(
-            iMsvSession,
-            iStatus,
-            iService,
-            // <qmail> passing in activity timer; only place where NULL "reference" was used
-            // <qmail> -> can get rid of checking existence of a reference memeber...
-            *iActivityTimer,
-            info,
-            *iSelection,
-            iFSMailboxId,
-            NULL, // no observer for suboperation
-            0, // requestId can be 0
-            iEventHandler );
+        iOperation = CIpsPlgImap4PopulateOp::NewL(
+                iMsvSession,
+                this->iStatus,
+                CActive::EPriorityLow,
+                iService,
+                *dummy,
+                info,
+                *iSelection,
+                iFSMailboxId,
+                *this,
+                0,
+                iEventHandler );
         
         SetActive();
-        // <qmail> SignalSyncStarted signal moved to happen later in case something goes wrong
-        SignalSyncStarted();
+        CleanupStack::PopAndDestroy( cEntry );
         }
     else
         {
-        // <qmail> SetActive(); moved inside CompleteThis();
+        SetActive();
         CompleteThis();
         }
     iState = EStatePopulateAllCompleted;
     }
 
-// <qmail> removed CIpsPlgImap4ConnectOp::StartL()
-// <qmail> removed CIpsPlgImap4ConnectOp::QueryUserPwdL()
-// <qmail> removed CIpsPlgImap4ConnectOp::GetOperationErrorCodeL()
+// ----------------------------------------------------------------------------
+// CIpsPlgImap4ConnectOp::StartL()
+// ----------------------------------------------------------------------------    
+// 
+void CIpsPlgImap4ConnectOp::StartL()
+    {
+    FUNC_LOG;
+    if ( Connected() && iDoPlainConnect )
+        {
+        // sync is done background, no explicit supported
+        iState = EStateIdle;
+        SetActive();
+        CompleteThis();
+        }
+    else 
+        {
+        DoConnectOpL();
+        }
+    }    
+
+// ----------------------------------------------------------------------------
+// CIpsPlgImap4ConnectOp::QueryUserPwdL()
+// ----------------------------------------------------------------------------
+// 
+TBool CIpsPlgImap4ConnectOp::QueryUserPassL()
+    {
+    if ( iEventHandler )
+        {
+        // ask for credentials for imap account and wait for callback
+        if ( iEventHandler->QueryUsrPassL( iService, this ) )
+            {
+            iState = EStateQueryingDetails;
+            }
+        else
+            {
+            // another operation is waiting for password
+            iState = EStateQueryingDetailsBusy;
+            }
+
+        return ETrue;
+        }
+
+    return EFalse;
+    }
+
+    
+// ----------------------------------------------------------------------------
+// CIpsPlgImap4ConnectOp::GetOperationErrorCodeL()
+// ----------------------------------------------------------------------------    
+//     
+/*TInt CIpsPlgImap4ConnectOp::GetOperationErrorCodeL( )
+    {
+    if ( iAlreadyConnected )
+        {
+        // Connected state was set in CIpsPlgPop3ConnectOp::ConstructL()
+        // so iOperation is null
+        return KErrNone;
+        }
+        
+    if ( !iOperation )
+        {
+        return KErrNotFound;
+        }
+    if ( !iOperation->IsActive() && iOperation->iStatus.Int() != KErrNone )
+        {
+        return iOperation->iStatus.Int();
+        }
+     
+    TPckgBuf<TImap4CompoundProgress> paramPack;
+    paramPack.Copy( iOperation->ProgressL() );
+    const TImap4CompoundProgress& comProgg = paramPack();
+
+    return comProgg.iGenericProgress.iErrorCode;
+    }*/
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------       
@@ -435,7 +571,8 @@ void CIpsPlgImap4ConnectOp::SignalSyncStarted()
         // mark that sync is signaled to prevent 
         // sending necessary event
         iIsSyncStartedSignaled = ETrue;
-        iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncStarted, KErrNone );
+        iEventHandler->SetNewPropertyEvent( 
+                iService, KIpsSosEmailSyncStarted, KErrNone );
         }
     }
 
@@ -444,101 +581,45 @@ void CIpsPlgImap4ConnectOp::SignalSyncStarted()
 void CIpsPlgImap4ConnectOp::SignalSyncCompleted( TInt aError )
     {
     FUNC_LOG;
-    // <qmail> don't test for aError code; all situations should complete op
-    if ( iEventHandler )
+    if ( iEventHandler && aError == KErrImapBadLogon )
         {
-        iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncCompleted, aError );
+        /*
+        iEventHandler->SetNewPropertyEvent( 
+                iService, KIpsSosEmailSyncCompleted, aError );
+        */
         iIsSyncStartedSignaled = EFalse;
         }
     }
 
-// <qmail> Removing CIpsPlgImap4ConnectOp::CredientialsSetL 
 
-// <qmail> new functions added
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgImap4ConnectOp::ConstructImapPartialFetchInfo( 
-    TImImap4GetPartialMailInfo& aInfo, 
-    const CImImap4Settings& aImap4Settings )
+void CIpsPlgImap4ConnectOp::CredientialsSetL( TInt aEvent )
     {
     FUNC_LOG;
-    TInt sizeLimit = aImap4Settings.BodyTextSizeLimit();
-    
-    if ( sizeLimit == KIpsSetDataHeadersOnly )
+
+    if ( iState == EStateQueryingDetails )
         {
-        aInfo.iTotalSizeLimit = KIpsSetDataHeadersOnly;
+        // response for our operation`s query
+        if ( aEvent == EIPSSosCredientialsCancelled )
+            {
+            // user canceled operation
+            CompleteObserver( KErrCancel );
+            }
+
+        // password has been set, continue with operation
+        SetActive();
+        CompleteThis();
         }
-    else if ( sizeLimit == KIpsSetDataFullBodyAndAttas )
-        {        
-        aInfo.iTotalSizeLimit = KMaxTInt;
-        aInfo.iAttachmentSizeLimit = KMaxTInt;
-        aInfo.iBodyTextSizeLimit = KMaxTInt;
-        aInfo.iMaxEmailSize = KMaxTInt;
-        aInfo.iPartialMailOptions = ENoSizeLimits;
-        aInfo.iGetMailBodyParts = EGetImap4EmailBodyTextAndAttachments;
-        }
-    else if ( sizeLimit == KIpsSetDataFullBodyOnly )
+    else if ( iState == EStateQueryingDetailsBusy )
         {
-        aInfo.iTotalSizeLimit = KMaxTInt; 
-        aInfo.iAttachmentSizeLimit = 0;
-        aInfo.iBodyTextSizeLimit = KMaxTInt;
-        aInfo.iMaxEmailSize = KMaxTInt;
-        aInfo.iPartialMailOptions = EBodyAlternativeText;
-        aInfo.iGetMailBodyParts = EGetImap4EmailBodyAlternativeText;
-        }
-    else
-        {
-    //<qmail> include html in body
-        aInfo.iTotalSizeLimit = sizeLimit*1024; 
-        aInfo.iAttachmentSizeLimit = 0;
-        aInfo.iMaxEmailSize = sizeLimit*1024;
-        aInfo.iBodyTextSizeLimit = sizeLimit*1024;
-        aInfo.iPartialMailOptions = EBodyAlternativeText;
-        aInfo.iGetMailBodyParts = EGetImap4EmailBodyAlternativeText;
-    // </qmail>    
+        // response for other operation`s query
+        // we could try to ask for password now,
+        // but decision was made to cancel operation
+        CompleteObserver( KErrCancel );
+        SetActive();
+        CompleteThis();
         }
     }
+// End of File
 
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-CImImap4Settings* CIpsPlgImap4ConnectOp::GetImapSettingsLC()
-    {
-    FUNC_LOG;
-    CImImap4Settings* settings = new ( ELeave ) CImImap4Settings();
-    CleanupStack::PushL( settings );
-    CEmailAccounts* accounts = CEmailAccounts::NewLC();
-    TImapAccount imapAcc;
-    accounts->GetImapAccountL(iService, imapAcc );
-    accounts->LoadImapSettingsL( imapAcc, *settings );
-    CleanupStack::PopAndDestroy( accounts );
-    return settings;
-    }
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgImap4ConnectOp::CreateInboxMessagesSelectionL()
-    {
-    FUNC_LOG;
-    // get children of service entry 
-    CMsvEntry* cEntry = iMsvSession.GetEntryL( iService );
-    CleanupStack::PushL( cEntry );
-    CMsvEntrySelection* childrenSelection = cEntry->ChildrenL();
-    CleanupStack::PopAndDestroy( cEntry );
-    cEntry = NULL;
-    CleanupStack::PushL( childrenSelection );
-
-    if ( childrenSelection->Count() )
-        {
-        TMsvId id = (*childrenSelection)[0]; // index 0 == inbox
-        cEntry = iMsvSession.GetEntryL( id ); // reusing cEntry pointer for Inbox entry
-        CleanupStack::PushL( cEntry );
-        delete iSelection;
-        iSelection = NULL;
-        // get message-type children of inbox
-        iSelection = cEntry->ChildrenWithTypeL( KUidMsvMessageEntry );
-        CleanupStack::PopAndDestroy( cEntry );
-        }
-    CleanupStack::PopAndDestroy( childrenSelection );
-    }
-
-// </qmail>

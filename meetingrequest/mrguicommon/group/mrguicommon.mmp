@@ -1,0 +1,126 @@
+/*
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for project esmrgui
+*
+*/
+
+
+#include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
+
+
+// Target information
+TARGET          mrguicommon.dll
+TARGETTYPE      dll
+UID             KEPOCStaticDllUID2 KESMRDllUid3
+DEFFILE         mrguicommon.def
+
+CAPABILITY      CAP_GENERAL_DLL
+
+SOURCEPATH      ../src
+
+//the following contain dll exports
+SOURCE          cesmrglobalnote.cpp
+SOURCE          cesmrconfirmationquery.cpp
+SOURCE          cesmrlistquery.cpp
+SOURCE          cesmrsendui.cpp
+SOURCE          esmrvcalexport.cpp
+SOURCE          cesmrguilistquery.cpp
+SOURCE          cmrimage.cpp
+SOURCE          cmrbutton.cpp
+SOURCE          cmrlabel.cpp
+SOURCE          cesmrrecurrence.cpp
+SOURCE          cesmralarm.cpp
+SOURCE          resmrstatic.cpp
+SOURCE          cesmrcontactmenuhandler.cpp
+SOURCE          nmrlayoutmanager.cpp
+SOURCE          nmrbitmapmanager.cpp
+SOURCE          nmrcolormanager.cpp
+SOURCE          cmrstyluspopupmenu.cpp
+
+SOURCE          cesmrcontactlinkiterator.cpp
+SOURCE          cesmrcontactmenuurlhandler.cpp
+SOURCE          cesmrcontactmanagerhandler.cpp
+
+APP_LAYER_SYSTEMINCLUDE
+
+// Include paths
+USERINCLUDE     ../inc
+USERINCLUDE     ../../inc
+USERINCLUDE     ../../../inc
+
+// Dependencies to esmrui libraries
+LIBRARY esmrcommon.lib
+LIBRARY esmrservices.lib
+
+// Dependencies to Symbian/S60 OS components
+LIBRARY apparc.lib
+LIBRARY ecom.lib
+LIBRARY euser.lib
+LIBRARY apgrfx.lib
+LIBRARY apmime.lib
+LIBRARY cone.lib
+LIBRARY eikcoctl.lib
+LIBRARY egul.lib
+LIBRARY eikdlg.lib
+LIBRARY estor.lib
+LIBRARY eikctl.lib
+LIBRARY bafl.lib
+LIBRARY eikcore.lib
+LIBRARY efsrv.lib
+LIBRARY featmgr.lib
+LIBRARY pbkeng.lib
+LIBRARY vpbkeng.lib
+LIBRARY sendui.lib
+LIBRARY fontutils.lib
+LIBRARY aknskins.lib
+LIBRARY cenrepnotifhandler.lib
+LIBRARY centralrepository.lib
+LIBRARY aknnotify.lib
+LIBRARY favouritesengine.lib
+LIBRARY aknicon.lib
+LIBRARY sysutil.lib
+LIBRARY etext.lib
+LIBRARY calinterimapi.lib
+LIBRARY hlplch.lib
+LIBRARY commonengine.lib
+LIBRARY fbscli.lib
+LIBRARY avkon.lib
+LIBRARY calenimp.lib
+LIBRARY caleninterimutils2.lib
+LIBRARY lmkcommonui.lib
+LIBRARY eposlandmarks.lib
+LIBRARY aknphysics.lib
+LIBRARY touchfeedback.lib
+LIBRARY commonui.lib
+LIBRARY npdlib.lib
+LIBRARY lbs.lib
+LIBRARY platformenv.lib
+
+
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
+
+//needed by XML based LAF components
+LIBRARY         cdlengine.lib
+LIBRARY         aknlayout2.lib
+LIBRARY         aknlayout2scalable.lib
+
+// AIW
+LIBRARY servicehandler.lib //__PRINTING_FRAMEWORK_CALENDAR_PLUGIN
+
+// End of File

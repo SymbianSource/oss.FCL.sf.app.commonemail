@@ -21,10 +21,10 @@ PRJ_PLATFORMS
 DEFAULT
 
 PRJ_EXPORTS
-../inc/BasePlugin.h              |../../../../inc/BasePlugin.h
-../inc/SafePointerArray.h        |../../../../inc/SafePointerArray.h
-../inc/Map.inl                   |../../../../inc/Map.inl
-../inc/Map.h                     |../../../../inc/Map.h
+../inc/baseplugin.h              |../../../../inc/baseplugin.h
+../inc/safepointerarray.h        |../../../../inc/safepointerarray.h
+../inc/map.inl                   |../../../../inc/map.inl
+../inc/map.h                     |../../../../inc/map.h
 ../inc/basemrinfoobject.h        |../../../../inc/basemrinfoobject.h
 ../inc/baseplugincommonutils.h   |../../../../inc/baseplugincommonutils.h
 ../inc/baseplugindelayedops.h    |../../../../inc/baseplugindelayedops.h

@@ -26,8 +26,8 @@
 #include <driveinfo.h>
 #include <s32file.h>
 
-#include "MsgStoreTypes.h"
-#include "MsgStorePropertyKeys.h"
+#include "msgstoretypes.h"
+#include "msgstorepropertykeys.h"
 #include "emailstoreuids.hrh"
 #include "MessageStoreServer.h"
 #include "MessageStoreSession.h"
@@ -38,7 +38,7 @@
 #include "ImsPointsecMonitor.h"
 #include "ImsPointsecObserver.h"
 #include "emailstorepskeys.h" // Support for on-the-fly upgrade
-//<qmail> removing #include "emailshutdownconst.h"
+#include "emailshutdownconst.h"
 //</cmail>
 
 // =========
@@ -318,9 +318,19 @@ void CMessageStoreServer::ConstructL()
     // Support for on-the-fly upgrade
     // Watch for KProperty_EmailStore_Upgrade property. When set to our UID3/SECUREID,
     // then, this server should stop.
-
-    // <qmail> removed code to observe shutdown commands
-
+    RProcess process;
+	CleanupClosePushL( process ); //+process
+    TSecurityPolicy readPolicy( ECapabilityReadDeviceData );
+    TSecurityPolicy writePolicy( ECapabilityWriteDeviceData );
+    iUpgradePropertyWatcher = CPSIntPropertyWatcher::NewL( this );
+    iUpgradePropertyWatcher->StartL( KEmailShutdownPsCategory, 
+                                     EEmailPsKeyShutdownMsgStore,
+                                     KEmailShutterPsValue,
+                                     /*ETrue*/EFalse,
+                                     readPolicy,
+                                     writePolicy ); 
+    CleanupStack::PopAndDestroy(); //-process
+        
     __LOG_EXIT
     } // end ConstructL
 
@@ -369,10 +379,10 @@ CSession2* CMessageStoreServer::NewSessionL(const TVersion& aVersion, const RMes
 // A new session is being created
 // Cancel the shutdown timer if it was running
 // ==========================================================================
-void CMessageStoreServer::AddSessionL( CMessageStoreSession* aSession )
+void CMessageStoreServer::AddSession( CMessageStoreSession* aSession )
     {
     __LOG_ENTER( "AddSession" )
-    iSessions.AppendL( aSession );
+    iSessions.Append( aSession );
 
     // notify new session of current state
     TMsgStoreEvent event;

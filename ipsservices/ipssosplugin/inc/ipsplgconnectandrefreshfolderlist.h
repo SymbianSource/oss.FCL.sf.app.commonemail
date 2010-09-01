@@ -15,47 +15,56 @@
 *       folder refresh operation
 *
 */
-#ifndef IPSPLGCONNECTANDREFRESHFOLDERLIST_H
-#define IPSPLGCONNECTANDREFRESHFOLDERLIST_H
 
-// <qmail> AknWaitNoteWrapper include has been removed
+
+#if !defined(__IPSPLGCONNECTANDREFRESHFOLDERLIST_H__)
+#define __IPSPLGCONNECTANDREFRESHFOLDERLIST_H__
+
+#include <AknWaitNoteWrapper.h>
+// <cmail>
 #include <imapset.h>
+// </cmail>
 
 // Specific includes
 #include "ipsplgonlineoperation.h"
 
+
 /**
-* Operation that 1) goes online, 2) updates mailbox's folder list, and 3) disconnects again
+* Superoperation which wraps a UI around going online, updating
+* an IMAP service's folder list and disconnecting again.
 */
-// <qmail> MAknBackgroundProcess base class has been removed
-NONSHARABLE_CLASS ( CIpsPlgConnectAndRefreshFolderList ) : public CIpsPlgOnlineOperation
+class CIpsPlgConnectAndRefreshFolderList : public CIpsPlgOnlineOperation,
+                                           public MAknBackgroundProcess
     {
-// <qmail> removed 3 functions from MAknBackgroundProcess
+    
+public: // from MAknBackgroundProcess
+
+    /**
+     * Completes one cycle of the process.
+     */
+    virtual void StepL();
+
+    /**
+     * Return true when the process is done.
+     */
+    virtual TBool IsProcessDone() const;
+    
+    virtual void DialogDismissedL( TInt aButtonId );
+    
 public:
 
     /**
-    * Construction
-    * @param aSession session to the MsvServer
-    * @param aObserverRequestStatus caller's status
-    * @param aService service entry in use (related to mailbox)
-    * @param aMailboxId identifies the mailbox
-    * @param aSelection specifies selection (array) of entries that this op operates on
-    *        ownership is moved to the operation
-    * @param aFSObserver operation's observer
-    * @param aActivityTimer mailbox specific activity timer
-    * @return operation instance
+    * NewL()
+    * @param CMsvSession&
+    * @param TInt
+    * @param TRequestStatus&
+    * @param TMsvId
+    * @return CImapConnectAndRefreshFolderList*
     */
-    // <qmail> priority parameter has been removed
-    // <qmail> rename selection parameter, and changed it to pointer
-    // <qmail> removed EXPORT from this function
-    static CIpsPlgConnectAndRefreshFolderList* NewL(
-        CMsvSession& aSession,
-        TRequestStatus& aObserverRequestStatus,
-        TMsvId aService, 
-        TFSMailMsgId& aMailboxId, 
-        CMsvEntrySelection* aSelection,
-        MFSMailRequestObserver* aFSObserver, 
-        CIpsPlgTimerOperation& aActivityTimer );
+    IMPORT_C static CIpsPlgConnectAndRefreshFolderList* NewL(
+        CMsvSession& aSession, TInt aPriority, TRequestStatus& aObserverRequestStatus,
+        TMsvId aService, TFSMailMsgId& aMailboxId, CMsvEntrySelection& aMsvEntry,
+        MFSMailRequestObserver& aFSObserver, CIpsPlgTimerOperation& aTimer );
 
     /**
     * Destructor
@@ -64,34 +73,33 @@ public:
     virtual ~CIpsPlgConnectAndRefreshFolderList();
     
     /**
-    * From MsvOperation
-    * Gets information on the progress of the operation
-    * (see MsvOperation header)
+    *
     */
     const TDesC8& ProgressL();
 
     /**
-    * From CIpsPlgBaseOperation
-    * For reporting if DoRunL leaves
+    *
     */
     const TDesC8& GetErrorProgressL(TInt aError);
     
+    /**
+    * 
+    */
     TFSProgress GetFSProgressL() const;
 
-// <qmail> new func to this op
+protected:
+
+
     /**
-     * Returns operation type
-     */
-    TIpsOpType IpsOpType() const;
-// </qmail>
-
-protected: // From CActive
-
+    * From 
+    * DoRunL()
+    */
     virtual void DoRunL();
+
     virtual void DoCancel();
     
 private:
-    // internal states of this operation
+
     enum TIpsSetFolderRefreshStates
         {
         EIdle,
@@ -102,36 +110,29 @@ private:
         ECompleted
         };
 
-	/**
+    /**
     * C++ constructor
     * CIpsPlgConnectAndRefreshFolderList()
     */
-    // <qmail> rename selection parameter
-	// <qmail> MFSMailRequestObserver& changed to pointer
-	CIpsPlgConnectAndRefreshFolderList( 
-        CMsvSession& aSession,
-        TRequestStatus& aObserverRequestStatus, 
-        TMsvId aService, 
-        TFSMailMsgId& aMailboxId,
-        CMsvEntrySelection* aSelection,
-        MFSMailRequestObserver* aFSObserver, 
-        CIpsPlgTimerOperation& aTimer );
+    CIpsPlgConnectAndRefreshFolderList( CMsvSession& aSession, TInt aPriority,
+        TRequestStatus& aObserverRequestStatus, TMsvId aService, TFSMailMsgId& aMailboxId,
+        MFSMailRequestObserver& aFSObserver, CIpsPlgTimerOperation& aTimer );
 
     /**
     * ConstructL()
     */
-	// <qmail> aMsvEntry parameter has been removed
-    void ConstructL();
+    void ConstructL( CMsvEntrySelection& aMsvEntry );
 
-	// <qmail> DisplayLoginFailedDialogL function has been removed
+    void DisplayLoginFailedDialogL();
 
     //data
 private:
-    // <qmail> changes in members: iTimer, iAsyncWaitNote removed, iMsvEntry -> iSelection
-    TIpsSetFolderRefreshStates          iState;
-    CMsvEntrySelection*					iSelection; // owned
+
+    TInt                                iState;
+    CIpsPlgTimerOperation*				iTimer;
+    CMsvEntrySelection*					iMsvEntry;
     TPckgBuf<TImap4CompoundProgress>    iProgressBuf;
-    // </qmail>
+    CAknWaitNoteWrapper*                iAsyncWaitNote;
     };
 
-#endif // IPSPLGCONNECTANDREFRESHFOLDERLIST_H
+#endif

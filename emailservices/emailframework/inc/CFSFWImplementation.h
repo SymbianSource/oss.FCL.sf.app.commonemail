@@ -31,7 +31,7 @@ class CFSMailPluginManager;
  *  @lib FSFWCommonLib
  *  @since S60 v3.1
  */
-NONSHARABLE_CLASS ( CFSFWImplementation ) : public CBase
+class CFSFWImplementation : public CBase
 {
  public:
   	

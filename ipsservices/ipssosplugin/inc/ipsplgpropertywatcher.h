@@ -25,7 +25,7 @@ class CIpsPlgEventHandler;
 * CIpsPlgPropertyWatcher
 *
 */
-NONSHARABLE_CLASS ( CIpsPlgPropertyWatcher ) : 
+class CIpsPlgPropertyWatcher : 
     public CActive
     {
 public:

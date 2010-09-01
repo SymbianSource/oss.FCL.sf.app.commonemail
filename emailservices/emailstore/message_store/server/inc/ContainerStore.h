@@ -28,7 +28,7 @@
 #include <f32file.h>
 #include <e32cmn.h>
 //<cmail>
-#include "DebugLogMacros.h"
+#include "debuglogmacros.h"
 //</cmail>
 #include "MessageStoreClientServer.h"
 #include "EncryptableTable.h"
@@ -490,7 +490,6 @@ class CContainerStore : public CBase, public MSortingTableObserver, public MEncr
         // DELETE HANDLER SUPPORT FUNCTIONS
 		
         friend class CDeleteHandler; 
-
 		void FirstChildL( TContainerId  aId, 
 		                  TContainerId& aChildId, 
 		                  TDbBookmark&  aBookmark );

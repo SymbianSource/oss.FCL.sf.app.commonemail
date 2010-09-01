@@ -15,7 +15,12 @@
 *
 */
 
-#include "ipssosaopluginheaders.h"
+
+#include "emailtrace.h"
+#include <e32base.h>
+#include <ecom/implementationproxy.h>
+
+#include "IpsSosAOPluginEComInterface.h"
 
 //--------------------------------
 // Exported proxy for instantiation method resolution

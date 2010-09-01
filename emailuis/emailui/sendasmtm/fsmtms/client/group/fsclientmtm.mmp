@@ -1,0 +1,58 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for Freestyle Client MTM implementation
+*
+*/
+
+#include <platform_paths.hrh>
+#include <msvstd.hrh>                  // KUidMtmClientComponentVal
+
+#include "../../../inc/fsmtmsuids.h"      // KUidFsClientMtmVal
+#include "../../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../../../inc/emailtraceconfig.hrh"
+
+TARGET               fsclientmtm.dll
+TARGETTYPE           dll
+UID                  KUidMtmClientComponentVal KUidFsClientMtmVal
+VENDORID             VID_DEFAULT
+CAPABILITY           CAP_ECOM_PLUGIN
+
+SOURCEPATH           ../src
+SOURCE               cfsclientmtm.cpp
+
+VERSION              KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+APP_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE          ../inc
+USERINCLUDE          ../../inc
+USERINCLUDE          ../../../inc
+USERINCLUDE          ../../../../inc
+USERINCLUDE          ../../../../../../inc
+
+LIBRARY              euser.lib
+LIBRARY              msgs.lib               // CBaseMTM
+LIBRARY              bafl.lib               // CDesCArray
+LIBRARY              etext.lib              // CRichText
+LIBRARY              estor.lib              // Memstream
+LIBRARY              efsrv.lib
+LIBRARY              CentralRepository.lib  // CRepository
+LIBRARY              fssendashelper.lib
+LIBRARY              featmgr.lib
+LIBRARY              cmaillogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY             flogger.lib
+#endif // TRACE_INTO_FILE

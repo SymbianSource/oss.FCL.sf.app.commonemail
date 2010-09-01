@@ -15,10 +15,13 @@
 *
 */
 
+
+
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
+#include <baseplugincommonutils.h>     // CleanupResetAndDestroyPushL
 
-// <qmail> priority const has been removed
+const TInt KConnectOpPriority = CActive::EPriorityStandard;
 
 // ---------------------------------------------------------------------------
 // CIpsPlgImap4Plugin::CIpsPlgImap4Plugin()
@@ -31,6 +34,7 @@ CIpsPlgImap4Plugin::CIpsPlgImap4Plugin()
     // none
     }
 
+
 // ---------------------------------------------------------------------------
 // CIpsPlgImap4Plugin::ConstructL()
 // ---------------------------------------------------------------------------
@@ -40,6 +44,7 @@ void CIpsPlgImap4Plugin::ConstructL()
     FUNC_LOG;
     BaseConstructL();
     }
+
 
 // ---------------------------------------------------------------------------
 // CIpsPlgImap4Plugin::NewL()
@@ -52,6 +57,7 @@ EXPORT_C CIpsPlgImap4Plugin* CIpsPlgImap4Plugin::NewL()
     CleanupStack::Pop( self );
     return self;
     }
+
 
 // ---------------------------------------------------------------------------
 // CIpsPlgImap4Plugin::NewLC()
@@ -141,8 +147,7 @@ TInt CIpsPlgImap4Plugin::RefreshNowL( )
 void CIpsPlgImap4Plugin::RefreshNowL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
-    TInt aRequestId,
-    const TBool /*aSilentConnection*/ )
+    TInt aRequestId )
     {
     FUNC_LOG;
     
@@ -151,14 +156,14 @@ void CIpsPlgImap4Plugin::RefreshNowL(
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL( *this );
     CleanupStack::PushL( watcher );
     
-    // <qmail> priority parameter has been removed
     CIpsPlgBaseOperation* op = CIpsPlgImap4ConnectOp::NewL(
     		*iSession,
+    		KConnectOpPriority, 
     		watcher->iStatus, 
     		service,
     		ActivityTimerL( aMailBoxId ),
           	aMailBoxId, 
-          	&aOperationObserver,
+          	aOperationObserver,
           	aRequestId,
           	iEventHandler );
     
@@ -295,16 +300,16 @@ void CIpsPlgImap4Plugin::FetchMessagesL(
     info.iAttachmentSizeLimit = 0;
     info.iDestinationFolder = aFolderId.Id();
     
-    // <qmail> priority parameter has been removed
     CIpsPlgBaseOperation* op = CIpsPlgImap4PopulateOp::NewL( 
         *iSession, 
         watcher->iStatus,
+        CActive::EPriorityStandard,
         aMailBoxId.Id(),
         ActivityTimerL( aMailBoxId ),
         info,
         *sel,
         aMailBoxId, 
-        &aObserver,
+        aObserver,
         aRequestId,
         iEventHandler, 
         EFalse ); // do not filter mail selection
@@ -351,8 +356,12 @@ void CIpsPlgImap4Plugin::MoveMessagesL(
             {
             sel->AppendL( aMessageIds[i].Id() );
             }
-    	
-		// <qmail> TImImap4GetMailInfo options not needed
+
+        TPckgBuf<TImImap4GetMailInfo> optionsBuf;
+        TImImap4GetMailInfo& options = optionsBuf();
+        options.iMaxEmailSize = KMaxTInt32;
+        options.iGetMailBodyParts = EGetImap4EmailHeaders;
+        options.iDestinationFolder = aDestinationFolderId.Id();
 
         CIpsPlgImap4MoveRemoteOpObserver* observer =
             CIpsPlgImap4MoveRemoteOpObserver::NewL( *iSession, *iEventHandler,
@@ -360,16 +369,16 @@ void CIpsPlgImap4Plugin::MoveMessagesL(
         watcher->SetRequestObserver( observer );
 
         // Synchronous operation
-        // <qmail> following constructor's parameters have changed
-    	CIpsPlgBaseOperation* op = CIpsPlgImap4MoveRemoteOp::NewL(
+        CIpsPlgBaseOperation* op = CIpsPlgImap4MoveRemoteOp::NewL(
             *iSession, 
             watcher->iStatus,
+            KIMAP4MTMMoveMailSelectionWhenAlreadyConnected,
             service,
             ActivityTimerL( aMailBoxId ),
-            aDestinationFolderId.Id(),
+            options,
             *sel,
             aMailBoxId,
-            NULL, // no observer, async not supported
+            *observer, // async not supported
             0 ); // async not supported
 
         watcher->SetOperation( op );
@@ -433,17 +442,17 @@ TInt CIpsPlgImap4Plugin::MoveMessagesL(
         options.iGetMailBodyParts = EGetImap4EmailBodyTextAndAttachments;
         options.iDestinationFolder = aDestinationFolderId.Id();
 
-		// <qmail> following constructor's parameters have changed
-    	CIpsPlgBaseOperation* op = CIpsPlgImap4MoveRemoteOp::NewL(
+        CIpsPlgBaseOperation* op = CIpsPlgImap4MoveRemoteOp::NewL(
             *iSession, 
             watcher->iStatus,
+            KIMAP4MTMMoveMailSelectionWhenAlreadyConnected,
             service,
             ActivityTimerL( aMailBoxId ),
-            aDestinationFolderId.Id(),
+            options,
             *sel,
             aMailBoxId,
-            &aOperationObserver, // async not supported
-            0 ); // async not supported
+            aOperationObserver,
+            aRequestId ); 
 
         watcher->SetOperation( op );
         CleanupStack::PopAndDestroy( sel );
@@ -524,23 +533,21 @@ void CIpsPlgImap4Plugin::FetchMessagePartsL(
             }
         
         }
-       
-	// <qmail> TImImap4GetMailInfo options removed
+    
+    TPckgBuf<TImImap4GetMailInfo> optionsBuf;
+    TImImap4GetMailInfo& options = optionsBuf();
+    options.iMaxEmailSize = KMaxTInt32;
+    options.iGetMailBodyParts = EGetImap4EmailAttachments;
+    options.iDestinationFolder = 0; // not used
+    
     CIpsPlgBaseOperation* op = CIpsPlgImap4FetchAttachmentOp::NewL( 
-        *iSession, 
-        watcher->iStatus,
-        aMailBoxId.Id(),
-        ActivityTimerL( aMailBoxId ), 
-        sel, // ownership is transferred
-        aMailBoxId,
-        &aOperationObserver,
-        aRequestId );
+        *iSession, watcher->iStatus, KIMAP4MTMPopulate, aMailBoxId.Id(),
+        ActivityTimerL( aMailBoxId ), options, *sel, aMailBoxId,
+        aOperationObserver, aRequestId );
     
     watcher->SetOperation( op );
+    CleanupStack::PopAndDestroy( sel );
     iOperations.AppendL( watcher );
-// <qmail>
-    CleanupStack::Pop( sel );
-// </qmail>
     CleanupStack::Pop( watcher );
     }
 
@@ -578,15 +585,13 @@ void CIpsPlgImap4Plugin::PopulateNewMailL(
     accounts->GetImapAccountL( aMailboxId.Id(), imapAcc );
     accounts->LoadImapSettingsL( imapAcc, *settings );
     TImImap4GetPartialMailInfo info;
-// <qmail> Get TImImap4GetPartialMailInfo based on settings
-    CIpsPlgImap4ConnectOp::ConstructImapPartialFetchInfo( info, *settings );
+    CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *settings );
     CleanupStack::PopAndDestroy( 2, settings );
-
+    
     if ( info.iTotalSizeLimit == KIpsSetDataHeadersOnly )
         {
         return;
         }
-// </qmail>
     
     TPckgBuf<TImImap4GetPartialMailInfo> package(info);
     
@@ -598,17 +603,17 @@ void CIpsPlgImap4Plugin::PopulateNewMailL(
     sel->AppendL( aMailboxId.Id() );
     sel->AppendL( aNewId );
     
-    // <qmail> priority parameter has been removed
     CIpsPlgBaseOperation* op = CIpsPlgImap4PopulateOp::NewL( 
         *iSession, 
         watcher->iStatus,
+        KIMAP4MTMPopulateMailSelectionWhenAlreadyConnected,
         aMailboxId.Id(),
         ActivityTimerL( aMailboxId ),
         info,
         *sel,
         aMailboxId, 
-        NULL, // no operation observer
-        0,    // no use for requestId
+        *this,
+        KErrNotFound,
         iEventHandler,
         EFalse ); // do not block entry changed and created events
     

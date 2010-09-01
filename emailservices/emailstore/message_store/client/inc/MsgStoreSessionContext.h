@@ -21,10 +21,10 @@
 #define _MSG_STORE_SESSION_CONTEXT_H_
 
 //<cmail>
-#include "MsgStoreTypes.h"
-#include "DebugLogMacros.h"
+#include "msgstoretypes.h"
+#include "debuglogmacros.h"
 //</cmail>
-#include "RMessageStoreSession.h"
+#include "rmessagestoresession.h"
 
 class CMsgStoreObserverHandler;
 class CMsgStoreSearchHandler;
@@ -34,7 +34,7 @@ class MMsgStoreSearchClient;
 // CLASS: CMsgStoreSessionContext
 // NOTE: this is an internal class.
 // ==============================
-NONSHARABLE_CLASS ( CMsgStoreSessionContext ) : public CBase
+class CMsgStoreSessionContext : public CBase
 	{
 	public:
 	

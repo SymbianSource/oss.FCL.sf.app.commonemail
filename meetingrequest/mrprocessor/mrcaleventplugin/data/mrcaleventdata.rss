@@ -1,0 +1,121 @@
+/*
+* Copyright (c) 2009-2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Resource definitions for project bccalevent
+*
+*/
+
+
+#include <uikon.rh>
+#include "esmralarminfo.rh"
+#include "esmrdef.h"
+
+NAME    CALD
+
+RESOURCE RSS_SIGNATURE { }
+
+// ---------------------------------------------------------------------------
+// bccalevent_alarm_info_table
+// Business Calendar event relative alarm definitions
+// ---------------------------------------------------------------------------
+//
+RESOURCE ESMR_ALARM_INFO_TABLE mrcalevent_alarm_info_table
+    {
+    alarm_infos =
+        {
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmOff;
+            relatime_alarm_in_minutes = -1;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmZeroMinutes;
+            relatime_alarm_in_minutes = 0;
+            },
+        ESMR_ALARM_INFO            {
+            alarm_id = EAlarmFiveMinutes;
+            relatime_alarm_in_minutes = 5;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmFifteenMinutes;
+            relatime_alarm_in_minutes = 15;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmThirtyMinutes;
+            relatime_alarm_in_minutes = 30;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmOneHour;
+            relatime_alarm_in_minutes = 60;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmTwoHours;
+            relatime_alarm_in_minutes = 120;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmThreeHours;
+            relatime_alarm_in_minutes = 180;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmFourHours;
+            relatime_alarm_in_minutes = 240;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmFiveHours;
+            relatime_alarm_in_minutes = 300;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmSixHours;
+            relatime_alarm_in_minutes = 360;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmSevenHours;
+            relatime_alarm_in_minutes = 420;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmEightHours;
+            relatime_alarm_in_minutes = 480;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmTwelveHours;
+            relatime_alarm_in_minutes = 720;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmOneDay;
+            relatime_alarm_in_minutes = 1440;
+            },
+            ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmTwoDays;
+            relatime_alarm_in_minutes = 2880;
+            },
+        ESMR_ALARM_INFO
+            {
+            alarm_id = EAlarmOneWeek;
+            relatime_alarm_in_minutes = 10080;
+            }
+        };
+    }

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -24,20 +24,26 @@
 #include <viewcli.h>
 #include <vwsdef.h>
 #endif // SYMBIAN_ENABLE_SPLIT_HEADERS
+#include <coemain.h> // CCoeEnv
+#include <coeaui.h> // CCoeAppUi
 #include <centralrepository.h>
 #include "emailclientapiimpl.h"
 #include "emailapiutils.h"
 #include "emailmailbox.h"
 #include <memailaddress.h>
-#include "CFSMailPlugin.h"
-#include "CFSMailClient.h"
+#include "cfsmailplugin.h"
+#include "cfsclientapi.h"
 #include "emailclientapiimpldefs.h"
 #include "emailmailboxcache.h"
+#include "FreestyleEmailUiConstants.h"
 #include "emailclientapi.hrh"
+#include "freestyleemailcenrepkeys.h"
+#include "FreestyleEmailUiConstants.h"
 
 // ---------------------------------------------------------------------------
-//
+// CEmailClientApi::MailboxL
 // ---------------------------------------------------------------------------
+//
 MEmailMailbox* CEmailClientApi::MailboxL( const TMailboxId& aId )
     {
     UpdateMailboxInfoCacheL();
@@ -49,6 +55,7 @@ MEmailMailbox* CEmailClientApi::MailboxL( const TMailboxId& aId )
         }
     return mailbox;
     }
+
 
 // -----------------------------------------------------------------------------
 // 
@@ -77,9 +84,9 @@ MEmailMailbox* CEmailClientApi::MailboxL( const TPtrC& aAddress )
                 }
             }
         }
-    CleanupStack::PopAndDestroy( &mailboxes );
+    CleanupStack::PopAndDestroy();
     // find mailbox or leave KErrNotFound
-    if ( !mailbox )
+    if ( !mailbox)
         {
         User::Leave( KErrNotFound );
         }
@@ -109,8 +116,8 @@ TInt CEmailClientApi::GetMailboxesL( RMailboxPtrArray& aMailboxes )
     {
     REmailMailboxIdArray mailboxIdArray;
     CleanupClosePushL( mailboxIdArray );
-
-    // GetMailboxIdsL loads plugin and keeps loaded if it contains at
+    
+    // note! GetMailboxIdsL loads plugin and keeps loaded if it contains at
     // least one mailbox
     TInt count = GetMailboxIdsL( mailboxIdArray );
     while ( count-- )
@@ -125,17 +132,57 @@ TInt CEmailClientApi::GetMailboxesL( RMailboxPtrArray& aMailboxes )
     // ref count.
     ReleaseAllPlugins(); 
     
-    CleanupStack::PopAndDestroy( &mailboxIdArray );
+    CleanupStack::PopAndDestroy(); // mailboxIdArray
     return aMailboxes.Count();
     }
 
 // -----------------------------------------------------------------------------
-//
+// implement this
 // -----------------------------------------------------------------------------
-void CEmailClientApi::LaunchEmailL( const TLaunchPolicy /*aPolicy*/ )
+void CEmailClientApi::LaunchEmailL( const TLaunchPolicy aPolicy )
     {
-    User::Leave(KErrNotSupported);
-    }
+    if ( aPolicy == EShowLastUnseenMailbox)
+        {
+        CRepository* emailRepository = CRepository::NewL( KFreestyleEmailCenRep );
+        CleanupStack::PushL(emailRepository);
+        TInt numberOfMailboxes(0);
+        TInt inboxId(0);
+        TInt pluginId(0);
+        emailRepository->Get(KNumberOfMailboxesWithNewEmails,numberOfMailboxes);
+        if(numberOfMailboxes > 0)
+            {
+            emailRepository->Get(KNumberOfMailboxesWithNewEmails+(numberOfMailboxes*2-1),pluginId);            
+            emailRepository->Get(KNumberOfMailboxesWithNewEmails+(numberOfMailboxes*2),inboxId);
+           
+            TUid pluginUid = {pluginId};
+            TMailListActivationData activationData;
+    
+            activationData.iMailBoxId.SetId(inboxId);
+            activationData.iMailBoxId.SetPluginId(pluginUid);
+            activationData.iFolderId.SetPluginId(pluginUid);
+            TPckgBuf<TMailListActivationData> pkgBuf(activationData);
+    
+            CCoeEnv::Static()->AppUi()->CreateActivateViewEventL( 
+                    TVwsViewId(KFSEmailUiUid, MailListId), KStartListWithFolderId, 
+                    pkgBuf );
+            }
+        else
+            {
+            // We should never come here since the mailbox count should be more than 0 if launchemailL is called
+            // but just to be safe launch the email in launchergrid if something went wrong with the repository
+            const TUid dummy = {0};
+            CCoeEnv::Static()->AppUi()->CreateActivateViewEventL(TVwsViewId(KFSEmailUiUid, AppGridId),
+            dummy, KNullDesC8() );        
+            }
+        CleanupStack::PopAndDestroy();//emailRepository
+        }
+    else if ( aPolicy == EDefault )
+        {
+        const TUid dummy = {0};                    
+        CCoeEnv::Static()->AppUi()->CreateActivateViewEventL(TVwsViewId(KFSEmailUiUid, AppGridId),
+        dummy, KNullDesC8() );
+        }
+    }    
 
 // -----------------------------------------------------------------------------
 // 
@@ -156,18 +203,18 @@ CPluginData* CEmailClientApi::TPluginIterator::Next()
 CEmailClientApi* CEmailClientApi::NewL()
     {
     CEmailClientApi* instance = static_cast<CEmailClientApi*>( Dll::Tls() );
-
-    if ( !instance )
+    
+    if ( instance == NULL )
         {
         instance = new ( ELeave ) CEmailClientApi();
         CleanupStack::PushL( instance );
         instance->ConstructL();
         User::LeaveIfError( Dll::SetTls( instance ) );
-        CleanupStack::Pop( instance );
+        CleanupStack::Pop();
         }
 
     instance->iInstanceCounter++;
-
+        
     return instance;
     }
 
@@ -188,7 +235,7 @@ CEmailClientApi::~CEmailClientApi()
     iPluginDataArray.Close();
     iLoadedPluginsArray.Close();
     delete iMailboxCache;
-
+    delete iClientAPI;
     Dll::FreeTls();
     }
 
@@ -196,7 +243,7 @@ CEmailClientApi::~CEmailClientApi()
 // 
 // -----------------------------------------------------------------------------
 CEmailClientApi::CEmailClientApi() : iInstanceCounter( 0 )
-    {
+    {        
     }
 
 // -----------------------------------------------------------------------------
@@ -242,10 +289,11 @@ void CEmailClientApi::ConstructL()
             count = 0;
             }
         }
-    iMailClient =  CFSMailClient::NewL();
-    CleanupStack::PopAndDestroy( &implInfoArray );
+    iClientAPI = CFSClientAPI::NewL(this);
+    CleanupStack::PopAndDestroy(); // CleanupImplInfoPushL
     User::LeaveIfError( err );    
     }
+
 
 // -----------------------------------------------------------------------------
 // 
@@ -269,7 +317,7 @@ void CEmailClientApi::Release()
         this->iInstanceCounter--;
         }
     }
-
+       
 // -----------------------------------------------------------------------------
 // Returns plugin instance from plugin data. If we already have "claimed"
 // instance once, prevent increment of reference count 
@@ -297,7 +345,7 @@ CFSMailPlugin* CEmailClientApi::UsePlugin( CPluginData& aPluginData )
         }
     return pluginDataPtr->iPlugin;
     }
-
+    
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
@@ -330,7 +378,7 @@ void CEmailClientApi::ReleaseAllPlugins()
 // -----------------------------------------------------------------------------
 CEmailMailboxCache& CEmailClientApi::MailboxInfoCacheL()
     {
-    if ( !iMailboxCache)
+    if ( !iMailboxCache) 
         {
         iMailboxCache = CEmailMailboxCache::NewL();
         }
@@ -380,8 +428,8 @@ void CEmailClientApi::UpdateMailboxInfoCacheL()
                 }
             pluginData = iter.Next();
             }
-        mbcache.EndCachingPop();
-        }
+        mbcache.EndCachingPop();    
+        }    
     }
 
 // -----------------------------------------------------------------------------
@@ -397,11 +445,11 @@ TBool CEmailClientApi::CachePluginMailboxesL( CPluginData& aPluginData, CFSMailP
     while ( mailboxCount-- )
         {
         const TFSMailMsgId& mailboxId = pluginMailboxes[mailboxCount];
-        TMailboxId id( mailboxId.Id() );
+        TMailboxId id( mailboxId.Id() );                    
         MailboxInfoCacheL().AddMailboxL( aPluginData, id );
         containsMailbox = ETrue;
         }
-    CleanupStack::PopAndDestroy( &pluginMailboxes );
+    CleanupStack::PopAndDestroy();  // pluginMailboxes
     return containsMailbox;
     }
 
@@ -410,7 +458,7 @@ TBool CEmailClientApi::CachePluginMailboxesL( CPluginData& aPluginData, CFSMailP
 // -----------------------------------------------------------------------------
 TInt CEmailClientApi::IndexOfLoadedPluginData( const TPluginData& aPluginData ) const
     {
-    TIdentityRelation<TPluginData> relation( CEmailClientApi::PluginDataEquals );
+    TIdentityRelation<TPluginData> relation( CEmailClientApi::PluginDataEquals );    
     return iLoadedPluginsArray.Find( aPluginData, relation );
     }
 
@@ -422,4 +470,18 @@ TBool CEmailClientApi::PluginDataEquals( const TPluginData& a1, const TPluginDat
     return ( a1.iUid == a2.iUid );
     }
 
-// End of file
+CFSMailPlugin* CEmailClientApi::GetPluginByUid(TUid aUid)
+    {
+    CPluginData *p = NULL;
+    CFSMailPlugin* plugin = NULL;
+
+    TRAP_IGNORE( p = iMailboxCache->PluginDataL(aUid) );
+    if ( p )
+        {
+        plugin = p->ClaimInstance();       
+        p->ReleaseInstance();
+        }
+    return plugin;
+    }
+
+// End of file.

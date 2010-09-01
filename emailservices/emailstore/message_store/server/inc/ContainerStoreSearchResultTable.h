@@ -27,12 +27,12 @@
 #include <e32base.h>
 #include <d32dbms.h>  // database
 //<cmail>
-#include "DebugLogMacros.h"
+#include "debuglogmacros.h"
 //</cmail>
 
 #include "ContainerStoreTable.h"
 #include "ContainerStore.h"
-#include "MsgStoreTypes.h"
+#include "msgstoretypes.h"
 
 // =======
 // CLASSES

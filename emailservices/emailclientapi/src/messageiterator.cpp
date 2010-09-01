@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,10 +18,10 @@
 #include "emailmessage.h"
 #include "messageiterator.h"
 #include "emailapiutils.h"
-#include "CFSMailPlugin.h"
+#include "cfsmailplugin.h"
 #include "emailapiutils.h"
 #include "emailclientapi.hrh"
-#include "MFSMailIterator.h"
+#include "mfsmailiterator.h"
 
 // number of messages in chunk to retrive from protocol plugin. Actual chunk
 // size is one less because last element is used for reference to next chunk
@@ -29,7 +29,6 @@
 const TInt KMessageChunkSize = 5;
 
 const TInt KUndefined = -1;
-
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
@@ -51,7 +50,7 @@ CMessageIterator::~CMessageIterator()
     iPluginData.ReleaseInstance();
     TInt count = iMessageArray.Count();
     iMessageArray.ResetAndDestroy();
-    for ( TInt i = count; i < iFsMessageArray.Count(); i++ )
+    for (TInt i = count; i < iFsMessageArray.Count(); i++)
         {
         delete iFsMessageArray[i];
         }
@@ -74,7 +73,7 @@ void CMessageIterator::Release()
     {
     delete this;
     }
-
+                
 // -----------------------------------------------------------------------------
 // Returns next message
 // Messages are retrieved from protocol plugin in chunks of x messages and
@@ -91,7 +90,7 @@ MEmailMessage* CMessageIterator::NextL()
             // No messages found, 
             // Reset the cursor and return NULL
             iCursor = KUndefined;
-            iStartMsgId = TFSMailMsgId();
+            iStartMsgId = TFSMailMsgId();            
             return NULL;
             }
         // Items found, return the first item in the buffer
@@ -112,9 +111,9 @@ MEmailMessage* CMessageIterator::PreviousL()
     {
     if ( iCursor == KUndefined )
         {
-        iStartMsgId = TFSMailMsgId();
+        iStartMsgId = TFSMailMsgId();            
         // Buffer empty, client should first call NextL
-        return NULL;
+        return NULL; 
         }
     // Iterate to the previous item
     iCursor--;
@@ -124,19 +123,17 @@ MEmailMessage* CMessageIterator::PreviousL()
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-TBool CMessageIterator::ReadNextChunkL()
+TBool CMessageIterator::ReadNextChunkL( )
     {
-    User::LeaveIfNull( iIterator );
-    
     TBool chunkFound = EFalse;
 
     // Delete previous items if exist
     CleanCache();
     iHasMoreNextItems = iIterator->NextL(
             iStartMsgId,
-            KMessageChunkSize,
+            KMessageChunkSize, 
             iFsMessageArray );
-    if ( iFsMessageArray.Count() > 0 )
+    if ( iFsMessageArray.Count() > 0)
         {
         chunkFound = ETrue;
         // Set the cursor to the first item 
@@ -149,10 +146,8 @@ TBool CMessageIterator::ReadNextChunkL()
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-TBool CMessageIterator::ReadPreviousChunkL()
+TBool CMessageIterator::ReadPreviousChunkL( )
     {
-    User::LeaveIfNull( iIterator );
-
     TBool chunkFound = EFalse;
 
     // Delete previous items if exist
@@ -163,7 +158,7 @@ TBool CMessageIterator::ReadPreviousChunkL()
             KMessageChunkSize, 
             tmp );
     TInt count = tmp.Count();
-    if ( count > 0 )
+    if ( count > 0)
         {
         // It seems that items have been found
         // Set the cursor to the end of array
@@ -173,16 +168,17 @@ TBool CMessageIterator::ReadPreviousChunkL()
         // Revise the order of the buffer.
         // Create complete cache, so it is easier to iterate, 
         // as now we have to start from the end of cache
-        for ( TInt i = count; i > 0; i-- )
+        for (TInt i = count; i > 0; i--)
             {
             CFSMailMessage* msg = tmp[i-1];
             iFsMessageArray.AppendL( msg );
             AddToCacheL( msg );
-            }
+            }        
         }
-
+        
     return chunkFound;
     }
+
 
 // -----------------------------------------------------------------------------
 // 
@@ -211,7 +207,7 @@ MEmailMessage* CMessageIterator::ReadFromChunkL()
             iCursor--;
             return NULL;
             }
-        }
+        }            
     else if ( iCursor < 0 )
         {
         iStartMsgId = iFsMessageArray[0]->GetMessageId();
@@ -219,22 +215,22 @@ MEmailMessage* CMessageIterator::ReadFromChunkL()
             {
             if ( !ReadPreviousChunkL() )
                 {
-                // Buffer is empty now, client should call nextL,
+                // Buffer is empty now, client should call nextL, 
                 // and start reading from the start of the buffer
-                iCursor = KUndefined;
-                return NULL;
+                iCursor = KUndefined;   
+                return NULL;               
                 }
             }
         else
             {
-            // Buffer is empty now, client should call nextL,
+            // Buffer is empty now, client should call nextL, 
             // and start reading from the start of the buffer
             iCursor = KUndefined;   
             return NULL;
             }
         }
-
-    if ( iCursor < iFsMessageArray.Count() )
+   
+    if ( iCursor < iFsMessageArray.Count() ) 
         {
         /* There are items to read in the cache */
         if ( iCursor >= iMessageArray.Count() )
@@ -245,13 +241,14 @@ MEmailMessage* CMessageIterator::ReadFromChunkL()
         }
     else
         {
-        // No more items found,
+        // No more items found, 
         // set the cursor to the previous item,
         // and return NULL.
         iCursor--;
         return NULL;
         }
-    }
+    }    
+    
 
 // -----------------------------------------------------------------------------
 // 
@@ -259,7 +256,7 @@ MEmailMessage* CMessageIterator::ReadFromChunkL()
 void CMessageIterator::AddToCacheL( CFSMailMessage* aFsMsg )
     {
     CEmailMessage* message = CEmailMessage::NewL( iPluginData, aFsMsg, EAPIOwns );
-    iMessageArray.AppendL( message );
+    iMessageArray.AppendL(message);    
     }
 
 // -----------------------------------------------------------------------------
@@ -270,12 +267,12 @@ void CMessageIterator::CleanCache()
     // This is strange loop indeed
     // Both arrays has items that are deleted, iMessageArray has objects that point to iFsMessageArray
     // Index in both arrays goes syncronously
-    // To prevent double destruction, first delete iMessageArray onjects and then the rest of the iFsMessageArray
+    // To prevent double destruction, first delete iMessageArray onjects and then the rest of the iFsMessageArray 
     TInt count = iMessageArray.Count();
     iMessageArray.ResetAndDestroy();
-    for ( TInt i = count; i < iFsMessageArray.Count(); i++ )
+    for (TInt i = count; i < iFsMessageArray.Count(); i++)
         {
-        iFsMessageArray.Remove( count );
+        iFsMessageArray.Remove(count);
         }
     iFsMessageArray.Reset();    
     }
@@ -300,11 +297,11 @@ void CMessageIterator::ConstructL()
 // 
 // -----------------------------------------------------------------------------
 CMessageIterator::CMessageIterator( 
-    MFSMailIterator* aIterator,
+    MFSMailIterator* aIterator, 
     CPluginData& aPluginData,
-    TUint aCount ) :
-    iIterator( aIterator ),
-    iPluginData( aPluginData ),
+    TUint aCount ) : 
+    iIterator( aIterator ), 
+    iPluginData( aPluginData ), 
     iStartMsgId( TFSMailMsgId() ),
     iState( EReadNextMessageChunk ),
     iFsMessageArray( KMessageChunkSize ),
@@ -312,8 +309,8 @@ CMessageIterator::CMessageIterator(
     iCursor ( KUndefined ),
     iFirstMsgId( TFSMailMsgId() ),
     iHasMoreNextItems( ETrue ),
-    iHasMorePrevItems( ETrue )
+    iHasMorePrevItems( ETrue )    
     {
     }
-
-// End of file
+    
+// End of file.

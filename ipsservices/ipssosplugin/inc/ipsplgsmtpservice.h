@@ -32,8 +32,7 @@ class CIpsPlgMsgMapper;
  *  @lib ipssosplugin.lib
  *  @since FS 1.0
  */
-NONSHARABLE_CLASS( CIpsPlgSmtpService ) : 
-    public CBase
+NONSHARABLE_CLASS( CIpsPlgSmtpService ) : public CBase
     {
 
 public:
@@ -78,48 +77,25 @@ public:
         TFSMailMsgId aMailBoxId,
         CFSMailMessage& aMessage );
 
-    // <qmail> removing unused functions
-    // CreateNewSmtpMessageL
-    // CreateForwardSmtpMessageL
-    // CreateReplySmtpMessageL
-    // </qmail>
-            
-// <qmail> moved for public access
     /**
-     * Creates proper fs message object and set flags
-     * to correspond orginal message flags
+     * Creates new email message to message store
      *
+     * @param aMailBoxId msv entry id to mailbox which setting are used
+     * @param aSession Msv Session
      * @since FS 1.0
-     * @param aMessageId id of created message
-     * @param aOrginalMsgId id of orginal message
-     * @param aMailboxId mailbox id
-     * @param aCopyOriginalMsgProperties Copy properties from original message
-     * @return TMscId
+     * @return pointer created fs message object
      */
-    CFSMailMessage* CreateFSMessageAndSetFlagsL(
-       TMsvId aMessageId, 
-       TMsvId aOriginalMsgId, 
-       TMsvId aMailboxId,
-       TBool aCopyOriginalMsgProperties = EFalse );
+    CFSMailMessage* CreateNewSmtpMessageL(
+        const TFSMailMsgId& aMailBoxId );
 
-    /**
-     * Changes messages service id
-     *
-     * @since FS 1.0
-     * @param aEntry Original message entry 
-     * @return None
-     */
-    void ChangeServiceIdL( TMsvEntry& aEntry );
-	
-	 /**
-     * Changes messages service id to the given id
-     *
-     * @param aEntry message entry
-     * @param aServiceId new service id
-     * @return None
-     */
-    void ChangeServiceIdL( TMsvEntry& aEntry, TMsvId aServiceId );    
-// </qmail>
+    CFSMailMessage* CreateForwardSmtpMessageL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aOriginalMessageId );
+
+    CFSMailMessage* CreateReplySmtpMessageL(
+        const TFSMailMsgId& aMailBoxId,
+        const TFSMailMsgId& aOriginalMessageId,
+        TBool aReplyToAll );
 
 protected:
 
@@ -154,6 +130,37 @@ private:
     HBufC* CreateDisplayStringLC( const TDesC& aDisplayName, 
                               const TDesC& aEmailName );
 
+    /**
+     * Changes messages service id
+     *
+     * @since FS 1.0
+     * @param aEntry Original message entry 
+     * @return None
+     */
+    void ChangeServiceIdL( TMsvEntry& aEntry );
+    
+    /**
+     * Changes messages service id to the given id
+     *
+     * @param aEntry message entry
+     * @param aServiceId new service id
+     * @return None
+     */
+    void ChangeServiceIdL( TMsvEntry& aEntry, TMsvId aServiceId );
+
+    /**
+     * Creates proper fs message object and set flags
+     * to correspond orginal message flags
+     *
+     * @since FS 1.0
+     * @param aMessageId id of created message
+     * @param aOrginalMsgId id of orginal message
+     * @param aMailboxId mailbox id
+     * @return TMscId
+     */
+    CFSMailMessage* CreateFSMessageAndSetFlagsL(
+       TMsvId aMessageId, TMsvId aOriginalMsgId, TMsvId aMailboxId );
+    
     /**
      * Gets MsvId from msv operations final progress 
      * descriptor, leaves if msvId is null entry

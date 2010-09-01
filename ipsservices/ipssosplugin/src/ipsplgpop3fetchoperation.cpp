@@ -15,40 +15,36 @@
 *
 */
 
+
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// <qmail> priority const has been removed
+// Constants and defines
+const TInt KFetchOpPriority = CActive::EPriorityStandard;
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgPop3FetchOperation* CIpsPlgPop3FetchOperation::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
+    TInt aFunctionId,
     TMsvId aService,
     CIpsPlgTimerOperation& aActivityTimer,
     const TImPop3GetMailInfo& aGetMailInfo,
-    CMsvEntrySelection* aSelection,
+    const CMsvEntrySelection& aSel,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver* aFSOperationObserver,
+    MFSMailRequestObserver& aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler )
     {
     FUNC_LOG;
     CIpsPlgPop3FetchOperation* op = new(ELeave) CIpsPlgPop3FetchOperation(
-        aMsvSession,
-        aObserverRequestStatus, 
-        aService,
-        aActivityTimer, 
-        aGetMailInfo,
-        aSelection,
-        aFSMailBoxId, 
-        aFSOperationObserver,
-        aFSRequestId, 
-        aEventHandler );
+        aMsvSession, aObserverRequestStatus, aFunctionId, aService,
+        aActivityTimer, aGetMailInfo, aFSMailBoxId, aFSOperationObserver,
+        aFSRequestId, aEventHandler );
         
     CleanupStack::PushL(op);
-    op->ConstructL();
+    op->ConstructL(aSel);
     CleanupStack::Pop( op );
     return op;
     }
@@ -91,12 +87,14 @@ const TDesC8& CIpsPlgPop3FetchOperation::ProgressL()
 // ----------------------------------------------------------------------------
 // ConstructL
 // ----------------------------------------------------------------------------
-void CIpsPlgPop3FetchOperation::ConstructL()
+void CIpsPlgPop3FetchOperation::ConstructL(const CMsvEntrySelection& aSel)
     {
     FUNC_LOG;
 
     BaseConstructL( KUidMsgTypePOP3 );
-    // <qmail> 1st entry must be serviceId
+
+    iSelection = aSel.CopyL();
+
     iSelection->InsertL( 0, iService );
     // For Get Mail API, first selection element must be service.
 
@@ -106,7 +104,7 @@ void CIpsPlgPop3FetchOperation::ConstructL()
 
     TInt count = iSelection->Count();
 
-    for ( ; iEntryIndex < count && !iSubOperation; iEntryIndex++ )
+    for ( ; iEntryIndex < count && !iOperation; iEntryIndex++ )
         {
         delete iEntry;
         iEntry = NULL;
@@ -121,7 +119,7 @@ void CIpsPlgPop3FetchOperation::ConstructL()
             {
             entry.SetComplete( EFalse );
 
-            iSubOperation = iEntry->ChangeL( entry, iStatus );
+            iOperation = iEntry->ChangeL( entry, iStatus );
 
             SetActive();
             
@@ -129,7 +127,7 @@ void CIpsPlgPop3FetchOperation::ConstructL()
             }
         }
 
-    if ( !iSubOperation )
+    if ( !iOperation )
         {
         DoConnectL();
         }
@@ -145,23 +143,15 @@ void CIpsPlgPop3FetchOperation::DoConnectL()
 
     iState = EStateConnecting;
     iStatus = KRequestPending;
-    // <qmail>
+    
+    // when connecting for the fetch operation, don't let connect operation to do fetch,
+    // because we do it by ourself. That's why give 0 to connect operation.    
     CIpsPlgPop3ConnectOp* connOp = CIpsPlgPop3ConnectOp::NewL(
-        iMsvSession,
-        iStatus, 
-        iService, 
-        EFalse, // We do fetch by ourselves
-        *iActivityTimer,
-        iFSMailboxId, 
-        iFSOperationObserver, 
-        iFSRequestId, 
-        NULL,
-        EFalse, // Signalling not allowed
-        ETrue ); // Fetch will follow, let connection be open
+        iMsvSession, iStatus, iService, EFalse, *iActivityTimer,
+        iFSMailboxId, iFSOperationObserver, iFSRequestId, NULL,EFalse );
         
-    // </qmail>    
-    delete iSubOperation;
-    iSubOperation = connOp;
+    delete iOperation;
+    iOperation = connOp;
 
     SetActive();
     }
@@ -175,16 +165,15 @@ void CIpsPlgPop3FetchOperation::DoFetchL()
 
     iState = EStateFetching;
 
-    // <qmail> deletion of possible previous iSubOperaiton is handled in InvokeClientMtmAsyncFunctionL
-    // <qmail> delete iSubOperation;
-    // <qmail> iSubOperation = NULL;
+    // Switch operations.
+    delete iOperation;
+    iOperation = NULL;
     iStatus = KRequestPending;
 
     // Filters are not used when performing 'fetch' operation, use normal 
     // getmail info instead
     TPckg<TImPop3GetMailInfo> param( iGetMailInfo );
-    // <qmail> using constant functionId as its always the same
-    InvokeClientMtmAsyncFunctionL( KPOP3MTMCopyMailSelectionWhenAlreadyConnected, *iSelection, param );
+    InvokeClientMtmAsyncFunctionL( iFunctionId, *iSelection, iService, param );
     SetActive();
     
     if ( iEventHandler )
@@ -195,34 +184,26 @@ void CIpsPlgPop3FetchOperation::DoFetchL()
     
     }
 
+
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
-// <qmail> MFSMailRequestObserver& changed to pointer
-// <qmail> aFunctionId parameter has been removed
-// <qmail> aSelection parameter has been added
 CIpsPlgPop3FetchOperation::CIpsPlgPop3FetchOperation(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
+    TInt aFunctionId,
     TMsvId aService,
     CIpsPlgTimerOperation& aActivityTimer,
     const TImPop3GetMailInfo& aGetMailInfo,
-    CMsvEntrySelection* aSelection,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver* aFSOperationObserver,
+    MFSMailRequestObserver& aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler )
     : 
-    CIpsPlgOnlineOperation(
-        aMsvSession,
-        aObserverRequestStatus, 
-        aActivityTimer, 
-        aFSMailBoxId,
-        aFSOperationObserver, 
-        aFSRequestId ),
-    iGetMailInfo( aGetMailInfo ), 
-    iSelection( aSelection ),
-    iEventHandler( aEventHandler )
+    CIpsPlgOnlineOperation( aMsvSession, KFetchOpPriority,
+        aObserverRequestStatus, aActivityTimer, aFSMailBoxId,
+        aFSOperationObserver, aFSRequestId), iFunctionId( aFunctionId ),
+        iGetMailInfo( aGetMailInfo ), iEventHandler( aEventHandler )
     {
     FUNC_LOG;
     iService = aService;
@@ -236,7 +217,7 @@ void CIpsPlgPop3FetchOperation::RunL()
 
     TRAP( iError, DoRunL() );
     
-    if( iError )
+    if(iError != KErrNone)
         {        
         // Notify observer we have finished.
         CompleteObserver();
@@ -252,16 +233,14 @@ void CIpsPlgPop3FetchOperation::DoCancel()
     CIpsPlgOnlineOperation::DoCancel();
     if(iState == EStateFetching)
         {
-        // Stops any operations that a Server-side MTM for the specified service is running,
-        // and then unloads the Server-side MTM.
-        // The current operation and any queued operations are cancelled.
+        // Cancelled while fetching. Need to disconnect.
         iMsvSession.StopService( iService );
+        // Ignore return value, nothing we can do.
         }
     if ( iEventHandler )
         {
-        // <qmail>
-        iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncCompleted, KErrCancel );
-		// </qmail>
+        iEventHandler->SetNewPropertyEvent( 
+            iService, KIpsSosEmailSyncCompleted, KErrCancel );
         }
     }
 
@@ -277,8 +256,8 @@ void CIpsPlgPop3FetchOperation::DoRunL()
         case EStateClearCompleteFlag:
             {
             // First clean things
-            delete iSubOperation;
-            iSubOperation = NULL;
+            delete iOperation;
+            iOperation = NULL;
 
             delete iEntry;
             iEntry = NULL;
@@ -288,7 +267,7 @@ void CIpsPlgPop3FetchOperation::DoRunL()
             
             TInt count = iSelection->Count();
 
-            for ( ; iEntryIndex < count && !iSubOperation; iEntryIndex++ )
+            for ( ; iEntryIndex < count && !iOperation; iEntryIndex++ )
                 {
                 delete iEntry;
                 iEntry = NULL;
@@ -304,13 +283,13 @@ void CIpsPlgPop3FetchOperation::DoRunL()
                     {
                     entry.SetComplete( EFalse );
 
-                    iSubOperation = iEntry->ChangeL( entry, iStatus );
+                    iOperation = iEntry->ChangeL( entry, iStatus );
 
                     SetActive();
                     }
                 }
 
-            if ( !iSubOperation )
+            if ( !iOperation )
                 {
                 DoConnectL();
                 }
@@ -320,8 +299,9 @@ void CIpsPlgPop3FetchOperation::DoRunL()
         case EStateConnecting:
             {
             // Connect complete.
-            // <qmail> Connected() usage
-            if ( !Connected() )
+            TBool connected = 
+                STATIC_CAST( CIpsPlgPop3ConnectOp*, iOperation )->Connected();
+            if(!connected)
                 {
                 CompleteObserver( KErrCouldNotConnect );
                 return;
@@ -332,32 +312,26 @@ void CIpsPlgPop3FetchOperation::DoRunL()
         case EStateFetching:         
             {
             TInt err = iStatus.Int();
-			// <qmail>
-            if( err )
-			// </qmail>
+
+            if( KErrNone != err )
                 {
                 TPckgBuf<TPop3Progress> paramPack;
-                if ( iSubOperation )
+                if ( iOperation )
                     {
-                    paramPack.Copy( iSubOperation->ProgressL() );
+                    paramPack.Copy( iOperation->ProgressL() );
                     }
                 TPop3Progress& progress = paramPack();
                 progress.iErrorCode = err;
                 iFetchErrorProgress = paramPack.AllocL();
                 }
-            DoDisconnectL();
             
+            iState = EStateIdle;
+            CompleteObserver( err );
             if ( iEventHandler )
                 {
-				// <qmail>
-                iEventHandler->SetNewPropertyEvent( iService, KIpsSosEmailSyncCompleted, err );
-				// </qmail>
+                iEventHandler->SetNewPropertyEvent( 
+                    iService, KIpsSosEmailSyncCompleted, err );
                 }
-            }
-            break;
-        case EStateDisconnecting:
-            {
-            CompleteObserver( iStatus.Int() );
             }
             break;
             
@@ -382,7 +356,7 @@ TFSProgress CIpsPlgPop3FetchOperation::GetFSProgressL() const
     FUNC_LOG;
     // might not never called, but gives something reasonable if called
     TFSProgress result = { TFSProgress::EFSStatus_Waiting, 0, 0, KErrNone };
-    // <qmail> removed result.iError = KErrNone;
+    result.iError = KErrNone;
     switch( iState )
         {
         case EStateConnecting:
@@ -404,26 +378,14 @@ TFSProgress CIpsPlgPop3FetchOperation::GetFSProgressL() const
     return result;
     }
 
-// <qmail> new func to this op
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------    
-TIpsOpType CIpsPlgPop3FetchOperation::IpsOpType() const
+// CIpsPlgPop3FetchOperation::IpsOpType()
+// ----------------------------------------------------------------------------
+// 
+TInt CIpsPlgPop3FetchOperation::IpsOpType() const
     {
     FUNC_LOG;
-    return EIpsOpTypePop3FetchOp;
+    return EIpsOpTypePop3PopulateOp;
     }
-// </qmail>
-
-//<qmail> new function
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgPop3FetchOperation::DoDisconnectL()
-    {
-    FUNC_LOG;
-    iState = EStateDisconnecting;
-    InvokeClientMtmAsyncFunctionL( KPOP3MTMDisconnect, iService ); // <qmail> 1 param removed
-    SetActive();
-    }
-// </qmail>
-
+// EOF
 

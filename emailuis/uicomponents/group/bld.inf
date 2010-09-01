@@ -1,0 +1,171 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for project fs_generic
+*
+*/
+
+
+// <cmail>
+#include <platform_paths.hrh>
+// </cmail>
+// <cmail> exports to ADO inc + source directory name changes
+
+//<cmail>
+//#include "../layoutmanager/group/bld.inf"
+//</cmail>
+
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_EXPORTS
+//<cmail> removed __FS_ALFRED_SUPPORT flag 
+//../common/inc/fsconfig.h |../../../inc/fsconfig.h
+//</cmail> removed __FS_ALFRED_SUPPORT flag
+ 
+ PRJ_EXPORTS
+//<cmail>
+../inc/fslayoutmanager.h          |../../inc/fslayoutmanager.h
+//</cmail>
+
+ 
+//../fsscrollbarplugin/inc/fsscrollbarset.h |../../inc/fsscrollbarset.h
+//../fsscrollbarplugin/inc/fsscrollbarpluginconstants.h |../../inc/fsscrollbarpluginconstants.h
+//../fsscrollbarplugin/inc/fshuiscrollbarlayout.h |../../inc/fshuiscrollbarlayout.h
+../inc/fsalfscrollbarlayout.h |../../inc/fsalfscrollbarlayout.h
+//../fsscrollbarplugin/inc/fsscrollbarclet.h |../../../inc/fsscrollbarclet.h
+//../inc/fstextureobserver.h |../../../inc/fstextureobserver.h
+../inc/fsrichtext.h |../../inc/fsrichtext.h
+../inc/fscontrolbar.h |../../inc/fscontrolbar.h
+../inc/fscontrolbarobserver.h |../../inc/fscontrolbarobserver.h
+../inc/fscontrolbuttonobserver.h |../../inc/fscontrolbuttonobserver.h
+../inc/fscontrolbuttonconst.h |../../inc/fscontrolbuttonconst.h
+../inc/fscontrolbuttoninterface.h |../../inc/fscontrolbuttoninterface.h
+../inc/fscontrolbuttonvisualiser.h |../../inc/fscontrolbuttonvisualiser.h
+//../inc/fstriggeredcomponent.h |../../../inc/fstriggeredcomponent.h
+//../inc/fsfastaddressinglist.h |../../../inc/fsfastaddressinglist.h
+//../inc/fsfastaddressinglistobserver.h |../../../inc/fsfastaddressinglistobserver.h
+//../inc/fstextinputfieldobserver.h |../../../inc/fstextinputfieldobserver.h
+../inc/fstreelist.h |../../inc/fstreelist.h
+../inc/fstreelistconstants.h |../../inc/fstreelistconstants.h
+../inc/fstreelistobserver.h |../../inc/fstreelistobserver.h
+../inc/fstreeobserver.h |../../inc/fstreeobserver.h
+../inc/fstreevisualizer.h |../../inc/fstreevisualizer.h
+../inc/fstreevisualizerbase.h |../../inc/fstreevisualizerbase.h
+../inc/fstreeitemdata.h |../../inc/fstreeitemdata.h
+../inc/fstreeitemvisualizer.h |../../../inc/fstreeitemvisualizer.h
+../inc/fstreenodevisualizer.h |../../../inc/fstreenodevisualizer.h
+../inc/fstreeplainonelineitemdata.h |../../inc/fstreeplainonelineitemdata.h
+../inc/fstreeplainonelineitemvisualizer.h |../../inc/fstreeplainonelineitemvisualizer.h
+../inc/fstreeplainonelinenodedata.h |../../inc/fstreeplainonelinenodedata.h
+../inc/fstreeplainonelinenodevisualizer.h |../../inc/fstreeplainonelinenodevisualizer.h
+../inc/fstreeplaintwolineitemdata.h |../../inc/fstreeplaintwolineitemdata.h
+../inc/fstreeplaintwolineitemvisualizer.h |../../inc/fstreeplaintwolineitemvisualizer.h
+//../inc/fstreerichitemdata.h |../../../inc/fstreerichitemdata.h
+//../inc/fstreerichitemvisualizer.h |../../../inc/fstreerichitemvisualizer.h
+../inc/fstreeitemvisualizerbase.h |../../inc/fstreeitemvisualizerbase.h
+../inc/fstreenodevisualizerbase.h |../../inc/fstreenodevisualizerbase.h
+//../inc/fsmultilineitemdata.h |../../../inc/fsmultilineitemdata.h
+//../inc/fsmultilineitemvisualizer.h |../../../inc/fsmultilineitemvisualizer.h
+../inc/fsseparatordata.h |../../inc/fsseparatordata.h
+../inc/fsseparatorvisualizer.h |../../inc/fsseparatorvisualizer.h
+../inc/fstreevisualizerobserver.h |../../inc/fstreevisualizerobserver.h
+../inc/fsfadeeffectobserver.h |../../inc/fsfadeeffectobserver.h
+../inc/fsslideeffectobserver.h |../../inc/fsslideeffectobserver.h
+//../inc/fsactionmenudefines.h |../../..|../../../inc/fsactionmenudefines.h
+//../inc/fsactionmenu.h |../../..|../../../inc/fsactionmenu.h
+../inc/fstextviewer.h                |../../inc/fstextviewer.h
+../inc/fstextviewerobserver.h        |../../inc/fstextviewerobserver.h
+../inc/fssmileydictionary.h          |../../inc/fssmileydictionary.h
+../inc/fstextviewerwatermark.h       |../../inc/fstextviewerwatermark.h
+../inc/fstextviewerkeys.h            |../../inc/fstextviewerkeys.h
+../inc/tuicscrollbarmodel.h |../../inc/tuicscrollbarmodel.h
+../inc/muicscrollbar.h |../../inc/muicscrollbar.h
+
+../conf/fsgenericui_2001E280.confml APP_LAYER_CONFML(fsgenericui_2001E280.confml) 
+../conf/fsgenericui_2001E280.crml APP_LAYER_CRML(fsgenericui_2001E280.crml)
+
+../rom/fs_generic.iby CORE_APP_LAYER_IBY_EXPORT_PATH(fs_generic.iby)
+
+PRJ_MMPFILES
+fs_generic.mmp
+//../fsscrollbarplugin/group/fsscrollbarplugin.mmp
+
+#include "../fsscrollbarplugin/group/bld.inf"
+
+//<cmail> all are commented out because helium into use
+//PRJ_TESTMMPFILES
+//../internal/tsrc/fsscrollbartest/group/fsscrollbartest.mmp
+//../controlbar/internal/tsrc/fscontrolbar/group/fscontrolbar.mmp
+//../hierarchicallist/internal/tsrc/fsgenericlist/group/fsgenericlist.mmp
+//../textviewer/internal/tsrc/fstextviewer/group/fstextviewer.mmp
+//</cmail>
+
+PRJ_TESTEXPORTS
+//<cmail>
+//../internal/tsrc/fsscrollbartest/rom/fsscrollbar.iby            CORE_APP_LAYER_IBY_EXPORT_PATH(fsscrollbar.iby)
+//../controlbar/internal/tsrc/fscontrolbar/rom/fscontrolbar.iby  CORE_APP_LAYER_IBY_EXPORT_PATH(fscontrolbar.iby)
+//../hierarchicallist/internal/tsrc/fsgenericlist/rom/fsgenericlist.iby       CORE_APP_LAYER_IBY_EXPORT_PATH(fsgenericlist.iby)
+//../textviewer/internal/tsrc/fstextviewer/rom/fstextviewer.iby  CORE_APP_LAYER_IBY_EXPORT_PATH(fstextviewer.iby)
+//</cmail>
+//<cmail> all are commented out because helium into use
+//../controlbar/internal/tsrc/fscontrolbar/gfx/heading_old.png    /epoc32/release/winscw/udeb/z/resource/apps/heading_old.png
+//../controlbar/internal/tsrc/fscontrolbar/gfx/ikona.png          /epoc32/release/winscw/udeb/z/resource/apps/ikona.png
+//../controlbar/internal/tsrc/fscontrolbar/gfx/buttonbk.png       /epoc32/release/winscw/udeb/z/resource/apps/buttonbk.png
+//../controlbar/internal/tsrc/fscontrolbar/gfx/downbt.png         /epoc32/release/winscw/udeb/z/resource/apps/downbt.png
+
+//../internal/tsrc/data/fsscrollbar.png                            /epoc32/release/winscw/udeb/z/resource/apps/fsscrollbar.png
+//../internal/tsrc/data/fsscrollthumb.png                          /epoc32/release/winscw/udeb/z/resource/apps/fsscrollthumb.png
+
+//../addressinglist/internal/tsrc/fsfal/gfx/smile4.jpg     /epoc32/winscw/c/data/images/pictures/smile4.jpg
+//../addressinglist/internal/tsrc/fsfal/gfx/smile5.jpg     /epoc32/winscw/c/data/images/pictures/smile5.jpg
+
+//../textviewer/internal/tsrc/fstextviewer/gfx/tv01.mbm      		/epoc32/release/winscw/udeb/z/resource/apps/tv01.mbm
+//../textviewer/internal/tsrc/fstextviewer/gfx/tv02.mbm      	/epoc32/release/winscw/udeb/z/resource/apps/tv02.mbm
+//../textviewer/internal/tsrc/fstextviewer/gfx/tv03.mbm      		/epoc32/release/winscw/udeb/z/resource/apps/tv03.mbm
+//../textviewer/internal/tsrc/fstextviewer/gfx/tv04.mbm      	/epoc32/release/winscw/udeb/z/resource/apps/tv04.mbm
+//../textviewer/internal/tsrc/fstextviewer/gfx/tv05.mbm      		/epoc32/release/winscw/udeb/z/resource/apps/tv05.mbm
+//../textviewer/internal/tsrc/fstextviewer/gfx/tv06.mbm      	/epoc32/release/winscw/udeb/z/resource/apps/tv06.mbm
+//../textviewer/internal/tsrc/fstextviewer/gfx/tv07.mbm      	/epoc32/release/winscw/udeb/z/resource/apps/tv07.mbm
+//../textviewer/internal/tsrc/fstextviewer/gfx/frame.png      	/epoc32/release/winscw/udeb/z/resource/apps/frame.png
+//../textviewer/internal/tsrc/fstextviewer/gfx/buttonbk.bmp 	/epoc32/release/winscw/udeb/z/resource/apps/buttonbk.bmp
+//../textviewer/internal/tsrc/fstextviewer/gfx/menu_icon2.png	/epoc32/release/winscw/udeb/z/resource/apps/menu_icon2.png
+//../textviewer/internal/tsrc/fstextviewer/gfx/sbiggrin.gif	/epoc32/release/winscw/udeb/z/resource/apps/sbiggrin.gif
+//../textviewer/internal/tsrc/fstextviewer/gfx/sconfused.gif	/epoc32/release/winscw/udeb/z/resource/apps/sconfused.gif
+//../textviewer/internal/tsrc/fstextviewer/gfx/scool.gif	        /epoc32/release/winscw/udeb/z/resource/apps/scool.gif
+//../textviewer/internal/tsrc/fstextviewer/gfx/scry.gif   	/epoc32/release/winscw/udeb/z/resource/apps/scry.gif
+//../textviewer/internal/tsrc/fstextviewer/gfx/sdrool.gif	/epoc32/release/winscw/udeb/z/resource/apps/sdrool.gif
+
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/menu_icon.png           				/epoc32/release/winscw/udeb/z/resource/apps/menu_icon.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_border.png         				/epoc32/release/winscw/udeb/z/resource/apps/list_border.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/node_collapsed.png						/epoc32/release/winscw/udeb/z/resource/apps/node_collapsed.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/node_expanded.png						/epoc32/release/winscw/udeb/z/resource/apps/node_expanded.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/selector.png							/epoc32/release/winscw/udeb/z/resource/apps/selector.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/mark_icon.png          					/epoc32/release/winscw/udeb/z/resource/apps/mark_icon.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_folders/folder_inbox.png          	/epoc32/release/winscw/udeb/z/resource/apps/folder_inbox.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_folders/folder_outbox.png         	/epoc32/release/winscw/udeb/z/resource/apps/folder_outbox.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_folders/folder_junk_email.png     	/epoc32/release/winscw/udeb/z/resource/apps/folder_junk_email.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_folders/folder_default.png        	/epoc32/release/winscw/udeb/z/resource/apps/folder_default.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_folders/folder_deleted_items.png  	/epoc32/release/winscw/udeb/z/resource/apps/folder_deleted_items.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_folders/folder_drafts.png         	/epoc32/release/winscw/udeb/z/resource/apps/folder_drafts.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_inbox/email_read.png              	/epoc32/release/winscw/udeb/z/resource/apps/email_read.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_inbox/email_unread.png            	/epoc32/release/winscw/udeb/z/resource/apps/email_unread.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_inbox/email_unread_hiprio.png     	/epoc32/release/winscw/udeb/z/resource/apps/email_unread_hiprio.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/background.png     						/epoc32/release/winscw/udeb/z/resource/apps/background.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/watermark.png     							/epoc32/release/winscw/udeb/z/resource/apps/watermark.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/flag.png                              /epoc32/release/winscw/udeb/z/resource/apps/flag.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/high_prio.png                              /epoc32/release/winscw/udeb/z/resource/apps/high_prio.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/low_prio.png                              /epoc32/release/winscw/udeb/z/resource/apps/low_prio.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/item_bg.png                              /epoc32/release/winscw/udeb/z/resource/apps/item_bg.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_calendar/todo_checked.png             /epoc32/release/winscw/udeb/z/resource/apps/todo_checked.png
+//../hierarchicallist/internal/tsrc/fsgenericlist/data/list_calendar/todo_unchecked.png             /epoc32/release/winscw/udeb/z/resource/apps/todo_unchecked.png

@@ -1,0 +1,82 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for project Contact Action Service
+*
+*/
+
+
+PRJ_PLATFORMS
+ARMV5 WINSCW
+
+// <cmail> SF path change
+#include <platform_paths.hrh>
+// </cmail>
+
+//<cmail>
+#include "../callplugin/group/bld.inf"
+#include "../saveascontactplugin/group/bld.inf"
+#include "../pocplugin/group/bld.inf"
+#include "../sendplugin/group/bld.inf"
+//</cmail>
+
+PRJ_EXPORTS
+
+PRJ_EXPORTS
+//<cmail>
+// per component stubs are removed and replaced by one stub under emailui.
+//../data/fsccontactactionservicestub.sis  /epoc32/data/z/system/install/fsccontactactionservicestub.sis
+../rom/fsccontactactionservice.iby CORE_APP_LAYER_IBY_EXPORT_PATH(fsccontactactionservice.iby)
+../rom/fsccontactactionserviceresources.iby LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(fsccontactactionserviceresources.iby)
+
+// Generic configuration interface for component cenrep settings  
+// <cmail> S60 UID update
+// actionpriorities_2001FE0E implementation specifics for cenrep data
+// </cmail> S60 UID update
+../conf/actionpriorities.confml             APP_LAYER_CONFML(actionpriorities.confml)
+// <cmail> S60 UID update
+../conf/actionpriorities_2001FE0E.crml      APP_LAYER_CRML(actionpriorities_2001FE0E.crml)
+// </cmail> S60 UID update
+ 
+// from api/group/bld.inf (part of platformization)
+PRJ_EXPORTS
+../inc/fsccontactactionserviceuids.hrh      |../../../inc/fsccontactactionserviceuids.hrh
+../inc/fsccontactactionservicedefines.h     |../../../inc/fsccontactactionservicedefines.h
+../inc/cfsccontactactionservice.h           |../../../inc/cfsccontactactionservice.h
+../inc/cfsccontactactionservice.inl         |../../../inc/cfsccontactactionservice.inl
+../inc/cfsccontactactionplugin.h            |../../../inc/cfsccontactactionplugin.h
+../inc/cfsccontactactionplugin.inl          |../../../inc/cfsccontactactionplugin.inl
+../inc/tfsccontactactionqueryresult.h       |../../../inc/tfsccontactactionqueryresult.h
+../inc/tfsccontactactionvisibility.h        |../../../inc/tfsccontactactionvisibility.h
+../inc/mfsccontactaction.h                  |../../../inc/mfsccontactaction.h
+../inc/mfsccontactset.h                     |../../../inc/mfsccontactset.h
+../inc/mfscactionutils.h                    |../../../inc/mfscactionutils.h
+../inc/tfsccontactactionpluginparams.h      |../../../inc/tfsccontactactionpluginparams.h
+../inc/mfscreasoncallback.h                 |../../../inc/mfscreasoncallback.h
+../inc/mfsccontactlinkiterator.h            |../../../inc/mfsccontactlinkiterator.h
+../inc/mfsccontactactionserviceobserver.h   |../../../inc/mfsccontactactionserviceobserver.h
+../inc/mfsccontactactionpluginobserver.h    |../../../inc/mfsccontactactionpluginobserver.h
+../inc/mfsccontactsetobserver.h             |../../../inc/mfsccontactsetobserver.h
+../loc/fsccontactactionservice.loc          APP_LAYER_LOC_EXPORT_PATH(fsccontactactionservice.loc)
+//</cmail>
+
+//<cmail> Plugins
+../inc/fscactionpluginactionuids.h  |../../../inc/fscactionpluginactionuids.h
+../inc/fscactionplugincrkeys.h      |../../../inc/fscactionplugincrkeys.h
+../loc/fscplugin.loc                APP_LAYER_LOC_EXPORT_PATH(fscplugin.loc)
+//</cmail>
+
+PRJ_MMPFILES
+fsccontactactionservice.mmp
+
+PRJ_EXPORTS

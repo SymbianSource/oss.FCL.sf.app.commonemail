@@ -16,68 +16,67 @@
 *
 */
 
+
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// <qmail> priority parameter has been removed
+const TInt KMoveRemoteOpPriority = CActive::EPriorityStandard;
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> TImImap4GetMailInfo& -> TMsvId&, aFunctionId removed
-// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgImap4MoveRemoteOp* CIpsPlgImap4MoveRemoteOp::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
+    TInt aFunctionId,
     TMsvId aService,
     CIpsPlgTimerOperation& aActivityTimer,
-    const TMsvId& aDestinationFolderId,
-    const CMsvEntrySelection& aSelection,    
+    const TImImap4GetMailInfo& aGetMailInfo,
+    const CMsvEntrySelection& aSel,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver* aFSOperationObserver,
+    MFSMailRequestObserver& aFSOperationObserver,
     TInt aFSRequestId )
     {
     FUNC_LOG;
     CIpsPlgImap4MoveRemoteOp* op = new (ELeave) CIpsPlgImap4MoveRemoteOp(
         aMsvSession,
         aObserverRequestStatus,
+        aFunctionId,
         aService,
         aActivityTimer,
-        aDestinationFolderId,
+        aGetMailInfo,
         aFSMailBoxId,
         aFSOperationObserver,
         aFSRequestId );
         
     CleanupStack::PushL( op );
-    op->ConstructL( aSelection );
+    op->ConstructL( aSel );
     CleanupStack::Pop( op );
     return op;
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> TImImap4GetMailInfo& -> TMsvId&, aFunctionId removed, priority param removed
-// <qmail> MFSMailRequestObserver& changed to pointer
 CIpsPlgImap4MoveRemoteOp::CIpsPlgImap4MoveRemoteOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
+    TInt aFunctionId,
     TMsvId aService,
     CIpsPlgTimerOperation& aActivityTimer,
-    const TMsvId& aDestinationFolderId,
+    const TImImap4GetMailInfo& aGetMailInfo,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver* aFSOperationObserver,
+    MFSMailRequestObserver& aFSOperationObserver,
     TInt aFSRequestId )
     :
     CIpsPlgOnlineOperation(
-        aMsvSession,
-        aObserverRequestStatus,
-        aActivityTimer,
-        aFSMailBoxId,
-        aFSOperationObserver,
-        aFSRequestId ),
-// <qmail>
-    iState( EIdle ),
-    iDestinationFolderId( aDestinationFolderId )
-// </qmail>
+    aMsvSession,
+    KMoveRemoteOpPriority,
+    aObserverRequestStatus,
+    aActivityTimer,
+    aFSMailBoxId,
+    aFSOperationObserver,
+    aFSRequestId ),
+    iFunctionId(aFunctionId),
+    iGetMailInfo(aGetMailInfo)
     {
     FUNC_LOG;
     iService = aService;
@@ -89,9 +88,6 @@ CIpsPlgImap4MoveRemoteOp::~CIpsPlgImap4MoveRemoteOp()
     {
     FUNC_LOG;
     delete iRemoteSel;
-// <qmail>
-    delete iMoveErrorProgress;
-// </qmail>
     }
 
 // ----------------------------------------------------------------------------
@@ -112,20 +108,21 @@ void CIpsPlgImap4MoveRemoteOp::DoConnectL()
     iState = EConnecting;
     iStatus = KRequestPending;
 
-    // <qmail> priority parameter has been removed
     CIpsPlgImap4ConnectOp* connOp = CIpsPlgImap4ConnectOp::NewL(
         iMsvSession,
+        KMoveRemoteOpPriority,
         iStatus, 
         iService,
         *iActivityTimer,
         iFSMailboxId,
-        NULL, // no operationobserver for suboperation
-        0,    // no requestId needed
+        iFSOperationObserver,
+        iFSRequestId,
         NULL, // event handler not needed whin plain connect
-        ETrue ); // do only connect
+        ETrue,
+        EFalse );
         
-    delete iSubOperation;
-    iSubOperation = connOp;
+    delete iOperation;
+    iOperation = connOp;
 
     SetActive();
     }
@@ -206,8 +203,8 @@ void CIpsPlgImap4MoveRemoteOp::DoRunL()
         {
         case EConnecting:
             {
-            // <qmail> Connected() usage
-            if ( !Connected() )
+            TBool connected = STATIC_CAST(CIpsPlgImap4ConnectOp*, iOperation)->Connected();
+            if( !connected )
                 {
                 CompleteObserver( KErrCouldNotConnect );
                 return;
@@ -230,9 +227,9 @@ void CIpsPlgImap4MoveRemoteOp::DoRunL()
             break;
         case ERemoteMsgs:
             // Remote move complete.
-            if( err != KErrNone && iSubOperation )
+            if( err != KErrNone && iOperation )
                 {
-                iMoveErrorProgress = iSubOperation->ProgressL().AllocL();
+                iMoveErrorProgress = iOperation->ProgressL().AllocL();
                 }
             iState = EIdle;
             // to be considered
@@ -269,10 +266,10 @@ void CIpsPlgImap4MoveRemoteOp::SortMessageSelectionL(const CMsvEntrySelection& a
         err = iMsvSession.GetEntry( id, service, tEntry );
         if( KErrNone == err )
             {
-            iRemoteSel->AppendL( id );
+                iRemoteSel->AppendL( id );
+                }
             }
         }
-    }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -294,40 +291,41 @@ void CIpsPlgImap4MoveRemoteOp::DoMoveRemoteL()
     // followed by any messages
     if( iRemoteSel->Count() > 1 )
         {
-        // <qmail> deletion of iSubOperation is done inside InvokeClientMtmAsyncFunctionL </qmail>
+        // Switch operations.
+        delete iOperation;
+        iOperation = NULL;
     
         // Filters are not used when performing 'move' operation, use normal 
         // getmail info instead
-		// <qmail>
-        TPckgBuf<TImImap4GetMailInfo> paramBuf;
-        TImImap4GetMailInfo& mailInfo = paramBuf();
-        mailInfo.iMaxEmailSize = KMaxTInt32;
-        mailInfo.iGetMailBodyParts = EGetImap4EmailBodyTextAndAttachments;
-        mailInfo.iDestinationFolder = iDestinationFolderId;
-
-// <qmail> Parameters changed
-        InvokeClientMtmAsyncFunctionL( KIMAP4MTMMoveMailSelectionWhenAlreadyConnected, *iRemoteSel, paramBuf );
-// </qmail>
+        TPckg<TImImap4GetMailInfo> param( iGetMailInfo );
+        InvokeClientMtmAsyncFunctionL( iFunctionId, *iRemoteSel, iService, param );
         SetActive();
         }
     else
         {
-        // <qmail> SetActive(); moved inside CompleteThis();
-        CompleteThis();        
-        }    
+        SetActive();
+        CompleteThis();
+        }
     }
     
-// <qmail> removed CIpsPlgImap4MoveRemoteOp::GetEngineProgress( const TDesC8& aProgress )
-
-// <qmail> new func to this op
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------    
-TIpsOpType CIpsPlgImap4MoveRemoteOp::IpsOpType() const
+TInt CIpsPlgImap4MoveRemoteOp::GetEngineProgress( const TDesC8& aProgress )
     {
     FUNC_LOG;
-    return EIpsOpTypeMoveRemoteOp;
+    if( !aProgress.Length() )
+        {
+        return KErrNone;
+        }
+    else
+        {
+        TPckgBuf<TImap4CompoundProgress> paramPack;
+        paramPack.Copy( aProgress );
+        const TImap4GenericProgress& progress = paramPack().iGenericProgress;
+
+        return progress.iErrorCode;
+        }
     }
-// </qmail>	
 
 // class CIpsPlgImap4MoveRemoteOpObserver
 //

@@ -1,0 +1,28 @@
+EXPORTS
+	?Reset@CMRPolicyResourceIterator@@QAEXXZ @ 1 NONAME ; void CMRPolicyResourceIterator::Reset(void)
+	?PopPolicy@CESMRPolicyManager@@QAEPAVCESMRPolicy@@XZ @ 2 NONAME ; class CESMRPolicy * CESMRPolicyManager::PopPolicy(void)
+	?IsDefaultCommand@CESMRPolicy@@QBEHH@Z @ 3 NONAME ; int CESMRPolicy::IsDefaultCommand(int) const
+	?ViewMode@CESMRPolicy@@QBE?AW4TESMRViewMode@@XZ @ 4 NONAME ; enum TESMRViewMode CESMRPolicy::ViewMode(void) const
+	?Fields@CESMRPolicy@@QBEABV?$RArray@VTESMREntryField@@@@XZ @ 5 NONAME ; class RArray<class TESMREntryField> const & CESMRPolicy::Fields(void) const
+	??1CESMRPolicyManager@@UAE@XZ @ 6 NONAME ; CESMRPolicyManager::~CESMRPolicyManager(void)
+	?NewL@CESMRPolicy@@SAPAV1@AAVRResourceFile@@AAVTResourceReader@@@Z @ 7 NONAME ; class CESMRPolicy * CESMRPolicy::NewL(class RResourceFile &, class TResourceReader &)
+	?NewL@CESMRPolicyManager@@SAPAV1@XZ @ 8 NONAME ; class CESMRPolicyManager * CESMRPolicyManager::NewL(void)
+	?IsRoleIncluded@CESMRPolicy@@QBEHW4TESMRRole@@@Z @ 9 NONAME ; int CESMRPolicy::IsRoleIncluded(enum TESMRRole) const
+	??1CESMRPolicy@@UAE@XZ @ 10 NONAME ; CESMRPolicy::~CESMRPolicy(void)
+	?IsAdditionalCommand@CESMRPolicy@@QBEHH@Z @ 11 NONAME ; int CESMRPolicy::IsAdditionalCommand(int) const
+	?NextPolicyLC@CMRPolicyResourceIterator@@QAEPAVCESMRPolicy@@XZ @ 12 NONAME ; class CESMRPolicy * CMRPolicyResourceIterator::NextPolicyLC(void)
+	?HasNext@CMRPolicyResourceIterator@@QBEHXZ @ 13 NONAME ; int CMRPolicyResourceIterator::HasNext(void) const
+	?PushPolicyL@CESMRPolicyManager@@QAEXXZ @ 14 NONAME ; void CESMRPolicyManager::PushPolicyL(void)
+	?NewL@CESMRPolicy@@SAPAV1@XZ @ 15 NONAME ; class CESMRPolicy * CESMRPolicy::NewL(void)
+	?CurrentPolicy@CESMRPolicyManager@@QAEAAVCESMRPolicy@@XZ @ 16 NONAME ; class CESMRPolicy & CESMRPolicyManager::CurrentPolicy(void)
+	?ResolvePolicyL@CESMRPolicyManager@@QAEXABVTESMRScenarioData@@AAVMESMRCalEntry@@PAVMMRPolicyResolver@@@Z @ 17 NONAME ; void CESMRPolicyManager::ResolvePolicyL(class TESMRScenarioData const &, class MESMRCalEntry &, class MMRPolicyResolver *)
+	?FieldL@CESMRPolicy@@QBEABVTESMREntryField@@W4TESMREntryFieldId@@@Z @ 18 NONAME ; class TESMREntryField const & CESMRPolicy::FieldL(enum TESMREntryFieldId) const
+	?ReadFromResourceL@CESMRPolicy@@QAEXAAVRResourceFile@@AAVTResourceReader@@@Z @ 19 NONAME ; void CESMRPolicy::ReadFromResourceL(class RResourceFile &, class TResourceReader &)
+	?IsFieldIncluded@CESMRPolicy@@QBEHW4TESMREntryFieldId@@@Z @ 20 NONAME ; int CESMRPolicy::IsFieldIncluded(enum TESMREntryFieldId) const
+	?NextPolicyL@CMRPolicyResourceIterator@@QAEPAVCESMRPolicy@@XZ @ 21 NONAME ; class CESMRPolicy * CMRPolicyResourceIterator::NextPolicyL(void)
+	?AllowedApp@CESMRPolicy@@QBE?AW4TESMRUsingApp@@XZ @ 22 NONAME ; enum TESMRUsingApp CESMRPolicy::AllowedApp(void) const
+	??1CMRPolicyResourceIterator@@UAE@XZ @ 23 NONAME ; CMRPolicyResourceIterator::~CMRPolicyResourceIterator(void)
+	?EventType@CESMRPolicy@@QBE?AW4TESMRCalendarEventType@@XZ @ 24 NONAME ; enum TESMRCalendarEventType CESMRPolicy::EventType(void) const
+	?PolicyId@CESMRPolicy@@QBE?AW4TESMRPolicyID@@XZ @ 25 NONAME ; enum TESMRPolicyID CESMRPolicy::PolicyId(void) const
+	?NewL@CMRPolicyResourceIterator@@SAPAV1@ABVTDesC16@@H@Z @ 26 NONAME ; class CMRPolicyResourceIterator * CMRPolicyResourceIterator::NewL(class TDesC16 const &, int)
+

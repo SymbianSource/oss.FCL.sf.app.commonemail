@@ -581,13 +581,13 @@ TInt CMsgStoreStringSortResultRowSet::GroupCountL( RArray<TUint>& aItemsInGroup 
 	        if ( nextGroupId != curGroupId )
 	        	{
 	        	//found a new group
-	            aItemsInGroup.AppendL( i - curPos );
+	            aItemsInGroup.Append( i - curPos );
 	            curPos = i;
 	            curGroupId = nextGroupId; 
 	        	}	        
 	        }
 	    //last group
-        aItemsInGroup.AppendL( i - curPos );
+        aItemsInGroup.Append( i - curPos );
     	}    
     
     return aItemsInGroup.Count();
@@ -611,7 +611,7 @@ void CMsgStoreStringSortResultRowSet::SortedIdsL( RArray<TContainerId>& aIdArray
         TRAP( err, msgId = NextL() );
 		if ( err == KErrNone )
 			{
-			aIdArray.AppendL( msgId );
+			aIdArray.Append( msgId );
 			}
 		else if ( err == KErrOverflow )
 			{
@@ -1126,8 +1126,8 @@ void CMsgStoreStringSortResultRowSet::SlideL()
     
     //now we can reset to initial state
     InitState();
-    iSortedResultArray.AppendL( iCenterRow );
-    iSortedIdArray.AppendL( iCenterRow );
+    iSortedResultArray.Append( iCenterRow );
+    iSortedIdArray.Append( iCenterRow );
     
     iState = EStateSliding;
     

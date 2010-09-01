@@ -18,11 +18,11 @@
 
 
 //<cmail>
-#include "MsgStore.h"
-#include "MsgStoreFolder.h"
+#include "msgstore.h"
+#include "msgstorefolder.h"
 //</cmail>
 
-#include "BasePlugin.h"
+#include "baseplugin.h"
 #include "baseplugincommonutils.h"
 
 
@@ -545,9 +545,7 @@ EXPORT_C /*protected virtual*/ void CBasePlugin::ReportRequestStatusL(
         CleanupStack::PopAndDestroy( part );
         CleanupStack::PopAndDestroy( msg );
 
-//<qmail>
-        TFSProgress progress = TFSProgress();
-//</qmail>
+        TFSProgress progress;
         progress.iError = KErrNone;
         progress.iMaxCount = size;
         progress.iCounter = fetchedSize;

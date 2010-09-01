@@ -17,8 +17,8 @@
 */
 
 
-#ifndef IPSSOSAOIMAPPOPLOGIC_H
-#define IPSSOSAOIMAPPOPLOGIC_H
+#ifndef IPSSOSAOIMAPPOPLOGIC_H_
+#define IPSSOSAOIMAPPOPLOGIC_H_
 
 #include <e32base.h> 
 #include <msvapi.h>
@@ -39,9 +39,7 @@ _LIT( KIpsSosAOPanicLit, "AO");
 * 
 * lib ipssosaoplugin.lib
 */
-//<Qmail>
-NONSHARABLE_CLASS (CIpsSosAOImapPopLogic) : public CBase
-//</Qmail>
+class CIpsSosAOImapPopLogic : public CBase
     {
 
 public:
@@ -134,11 +132,6 @@ private:
      */
     inline TInt GetMailboxLogicIndex( TMsvId aMailboxId );
 
-    /**
-     * Removes orphaned logics. (mailbox has been deleted but logic has not been )
-     */
-    void RemoveOrphanLogicsL();
-    
 private:
     
     CMsvSession&                        iSession;
@@ -148,13 +141,11 @@ private:
     RPointerArray<CIpsSosAOMBoxLogic>   iMailboxLogics;
     
     CIpsSosAOEMNResolver*               iEmnResolver;
-	//<QMail>
-
-	//</QMail>
+    CIpsSetDataApi*                     iDataApi;
     // flag is set true when NoNWOpsAllowed (NW = network)
     // event is received, false when NWOpsAllowed is received
     TBool                               iNoNWOpsAllowed;
     
     };
 
-#endif /* IPSSOSAOIMAPPOPLOGIC_H*/
+#endif /* IPSSOSAOIMAPPOPLOGIC_H_*/

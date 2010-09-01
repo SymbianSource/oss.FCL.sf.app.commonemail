@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,8 +22,8 @@
 #include <memailmessagesearch.h>
 #include <emailsorting.h>
 
-#include "CFSMailClient.h"
-#include "MFSMailBoxSearchObserver.h"
+#include "cfsmailclient.h"
+#include "mfsmailboxsearchobserver.h"
 #include "emailapiutils.h"
 
 using namespace EmailInterface;
@@ -50,9 +50,9 @@ public:
     ~CEmailMessageSearchAsync();
     
 public: // from MEmailInterface
-    TEmailTypeId InterfaceId() const;
+    virtual TEmailTypeId InterfaceId() const;
     
-    void Release();
+    virtual void Release();
     
 
 public: // from MEmailMessageSearchAsync
@@ -60,35 +60,35 @@ public: // from MEmailMessageSearchAsync
     * Sets sort order for search results.
     * Leaves KErrNotReady if search is ongoing.
     */
-    void SetSortCriteriaL( const TEmailSortCriteria& aCriteria );
+    virtual void SetSortCriteriaL( const TEmailSortCriteria& aCriteria );
     
     /**
     * Adds a search key. Leaves KErrNotReady if search is ongoing.
     */
-    void AddSearchKeyL( const TDesC& aSearchKey );
+    virtual void AddSearchKeyL( const TDesC& aSearchKey );
                                                                   
     /**
     * Enables/disables search from remote email server.
     * Leaves KErrNotReady if search is ongoing.
     */
-    void SetRemoteSearchL( TBool aRemote );                                                               
+    virtual void SetRemoteSearchL( TBool aRemote );                                                               
     
     /**
     * Indicates whether remote search is enabled.
     */
-    TBool IsRemoteSearch() const;
+    virtual TBool IsRemoteSearch() const;
     
     /**
      * Starts search, all methods affecting search attribures leave
      * KErrNotReady while search is ongoing.
      * @param aObserver called when results are available.
      */     
-    void StartSearchL( MEmailSearchObserver& aObserver );
+    virtual void StartSearchL( MEmailSearchObserver& aObserver );
 
     /**
      * Cancels search.
      */
-    void Cancel();
+    virtual void Cancel();
                                              
     /** returns search status 
       * @return search status:
@@ -99,12 +99,12 @@ public: // from MEmailMessageSearchAsync
       *         implementation and may vary.
       *     KErrNone : initial state, or search has finished
       */
-    TInt Status() const;
+    virtual TInt Status() const;
     
     /**
      * Resets all search attribures. Cancels search if ongoing. 
      */
-    void Reset();
+    virtual void Reset();
     
 public:  // From MFSMailBoxSearchObserver
     /** 
@@ -114,19 +114,19 @@ public:  // From MFSMailBoxSearchObserver
      *         Ownership is transfered to the observer.
      *
      */
-     void MatchFoundL( CFSMailMessage* aMatchMessage );
+     virtual void MatchFoundL( CFSMailMessage* aMatchMessage );
 
     /**
      * Notifies the email search API client that the search has completed
      *
      */
-     void SearchCompletedL();
+     virtual void SearchCompletedL();
 
 //
     /**
     * Asks client if search engine should change search priority 
   	*/
-    void ClientRequiredSearchPriority(TInt *apRequiredSearchPriority); 
+    virtual void ClientRequiredSearchPriority(TInt *apRequiredSearchPriority); 
 //
 
     
@@ -140,11 +140,6 @@ private:
 
     void ConstructL();
     
-    /**
-     * Function leaves if search is going on. Otherwise it doesn't do anything.
-     */
-    inline void IsSearchGoingOnL() const; 
-
 private:
     
     CPluginData&    iPluginData;
@@ -160,11 +155,7 @@ private:
     MEmailSearchObserver* iObserver;
     
     mutable RSemaphore iGate;
-
     TBool iRemote;
 };
 
-#endif // EMAILMESSAGESEARCHASYNCIMPL_H_
-
-// End of file
-
+#endif /* EMAILMESSAGESEARCHASYNCIMPL_H_ */

@@ -14,22 +14,42 @@
 * Description:  Image description file for project FreestyleIpsServices
 *
 */
+
+
 #ifndef FREESTYLEIPSSERVICES_IBY
 #define FREESTYLEIPSSERVICES_IBY
 
 #include <data_caging_paths_for_iby.hrh>
-#include <bldvariant.hrh>
 
+//<cmail>
+//#ifdef FF_ES_EMAIL_IPS_SERVICES
+//</cmail>
+
+//<cmail>
 #ifdef FF_EMAIL_FRAMEWORK
-
+//</cmail>
 ECOM_PLUGIN( ipssosplugin.dll, ipssosplugin.rsc )
+ECOM_PLUGIN( ipssossettings.dll, ipssossettings.rsc )
 ECOM_PLUGIN( IPSSosAOPlugin.dll, IPSSosAOPlugin.rsc )
 
-file=ABI_DIR\BUILD_DIR\nmipsmtms.dll		SHARED_LIB_DIR\nmipsmtms.dll        PAGED
-data=DATAZ_\MTM_INFO_FILE_DIR\smtp.rsc           MTM_INFO_FILE_DIR\smtp.rsc
-data=DATAZ_\MTM_INFO_FILE_DIR\pop3.rsc           MTM_INFO_FILE_DIR\pop3.rsc
-data=DATAZ_\MTM_INFO_FILE_DIR\imap4.rsc          MTM_INFO_FILE_DIR\imap4.rsc
+//<cmail>
+//#endif // FF_ES_EMAIL_IPS_SERVICES
+//</cmail>
 
+//<cmail> per component stubs are removed and replaced by one stub under emailui.
+// stub sis-file is included even if FF_ES_EMAIL_IPS_SERVICES flag is not defined.
+//data=DATAZ_\system\install\freestyleipsservices_stub.sis  system\install\freestyleipsservices_stub.sis
+//</cmail>
+
+// <cmail> backup registration
+data=DATAZ_\private\2000E53C\backup_registration.xml    private\2000E53C\backup_registration.xml
+// </cmail>
+
+//<cmail>
 #endif //FF_EMAIL_FRAMEWORK
+//</cmail>
+
+//<cmail>
+//</cmail>
 
 #endif // FREESTYLEIPSSERVICES_IBY

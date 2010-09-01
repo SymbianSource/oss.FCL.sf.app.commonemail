@@ -32,7 +32,7 @@ struct TIpsPlgEvent
 /**
 * Event timer. When timer expires, it passes it's event to FS framework
 */
-NONSHARABLE_CLASS( CIpsPlgEventTimer ) : public CMsvOperation
+class CIpsPlgEventTimer : public CMsvOperation
     {
     public:
         

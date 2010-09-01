@@ -1,0 +1,4 @@
+EXPORTS
+	_ZN11CmailLogger5CloseEv @ 1 NONAME
+	_ZN11CmailLogger5WriteERK6TDesC8 @ 2 NONAME
+

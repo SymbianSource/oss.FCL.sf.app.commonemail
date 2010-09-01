@@ -27,7 +27,7 @@
 #include <e32base.h>
 #include <e32property.h>
 //<cmail>
-#include "DebugLogMacros.h"
+#include "debuglogmacros.h"
 //</cmail>
 
 // =======

@@ -1,0 +1,47 @@
+/*
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for project esmrservices
+*
+*/
+
+
+#include <bldvariant.hrh>
+
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_EXPORTS
+../inc/esmrcommands.h               |../../../inc/esmrcommands.h
+../inc/mruiuids.h                   |../../../inc/mruiuids.h
+
+../inc/mruiuids.h                   |../../inc/mruiuids.h
+../inc/esmrdef.h                    |../../inc/esmrdef.h
+../inc/mruidomaincrkeys.h           |../../inc/mruidomaincrkeys.h
+../inc/esmrinternaluid.h            |../../inc/esmrinternaluid.h
+../inc/mruiprivatecrkeys.h          |../../inc/mruiprivatecrkeys.h
+../inc/esmrservices.rh              |../../inc/esmrservices.rh
+../inc/tesmrscenariodata.h          |../../inc/tesmrscenariodata.h
+../inc/esmrconfig.hrh       	    |../../inc/esmrconfig.hrh
+../inc/tesmrinputparams.h           |../../inc/tesmrinputparams.h
+../inc/tmroutputparams.h            |../../inc/tmroutputparams.h
+../inc/esmrhelper.h                 |../../inc/esmrhelper.h
+../inc/esmrentryhelper.h            |../../inc/esmrentryhelper.h
+../inc/cesmrfeaturesettings.h       |../../inc/cesmrfeaturesettings.h
+../inc/nmrglobalfeaturesettings.h   |../../inc/nmrglobalfeaturesettings.h
+../inc/cmractivitymanager.h         |../../inc/cmractivitymanager.h
+
+PRJ_MMPFILES
+esmrcommon.mmp
+
+// EOF

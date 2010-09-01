@@ -22,7 +22,7 @@
 #include "ipsplgsosbaseplugin.h"
 
 class CPop3ClientMtm;
-NONSHARABLE_CLASS( CIpsPlgPop3Plugin ) : public CIpsPlgSosBasePlugin
+class CIpsPlgPop3Plugin : public CIpsPlgSosBasePlugin
 {
 public:
 
@@ -52,8 +52,7 @@ public: // From CFSMailPlugin
     void RefreshNowL(
         const TFSMailMsgId& aMailBoxId,
         MFSMailRequestObserver& aOperationObserver,
-        TInt aRequestId,
-        const TBool aSilentConnection=EFalse );
+        TInt aRequestId );
 
     void ListFoldersL(
         const TFSMailMsgId& aMailBoxId,

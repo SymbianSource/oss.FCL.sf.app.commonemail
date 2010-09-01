@@ -1,0 +1,80 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for Freestyle UI MTM implementation
+*
+*/
+
+
+#include <platform_paths.hrh>
+
+#include <data_caging_paths.hrh>  // MTM_INFO_FILE_DIR
+#include <msvstd.hrh>             // KUidMtmUiComponentVal
+
+#include "../../../inc/fsmtmsuids.h"
+#include "../../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../../../inc/emailtraceconfig.hrh"
+
+TARGET               fsuimtm.dll
+TARGETTYPE           DLL
+UID                  KUidMtmUiComponentVal KUidFsUiMtmVal
+VENDORID             VID_DEFAULT
+
+VERSION              KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+// MTM Dlls must have maximum capabilities so that they are available
+// for all clients:
+CAPABILITY           CAP_ECOM_PLUGIN
+
+SOURCEPATH           ../src
+SOURCE               cfsuimtm.cpp
+
+START RESOURCE       ../data/fsuimtm.rss
+TARGETPATH           MTM_RESOURCE_DIR
+HEADER
+END
+
+
+// The MTM registration file.
+// NOTE: This resource file only uses the branded application name.  
+// Therefore, we don't need to generate the resource for all 42 languages.
+// Due to this section the Freestyle is coming under Create message when
+// Emulator is started.
+START RESOURCE       ../../data/fsmtms.rss
+TARGET               fsmtms.rsc
+TARGETPATH           MTM_INFO_FILE_DIR  // #define  MTM_INFO_FILE_DIR resource/messaging/mtm
+LANGUAGE_IDS
+END
+
+USERINCLUDE          ../inc
+USERINCLUDE          ../../inc
+USERINCLUDE          ../../data
+USERINCLUDE          ../../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE ../../../../../../inc
+
+LIBRARY              euser.lib
+LIBRARY              msgs.lib // CBaseMtm                   
+LIBRARY              mtur.lib // CBaseMtmUi
+LIBRARY              efsrv.lib
+LIBRARY              fssendashelper.lib
+LIBRARY              cone.lib
+LIBRARY              cmaillogger.lib
+#ifdef TRACE_INTO_FILE
+LIBRARY             flogger.lib
+#endif // TRACE_INTO_FILE
+
+nostrictdef

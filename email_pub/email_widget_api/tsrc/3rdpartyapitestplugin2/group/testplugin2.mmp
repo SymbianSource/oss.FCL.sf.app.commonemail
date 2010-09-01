@@ -1,0 +1,50 @@
+/*
+* Copyright (c) 2009 - 2010 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for 3rd party api testplugin
+*
+*/
+
+
+#include <platform_paths.hrh>       // APP_LAYER_SYSTEMINCLUDE
+#include <data_caging_paths.hrh>    // ECOM_RESOURCE_DIR
+
+#include "../inc/t_testpluginconst.hrh"
+
+TARGET              testplugin2.dll
+TARGETTYPE          PLUGIN
+UID                 0x10009D8D KTestPlugin2Uid3
+
+CAPABILITY          CAP_GENERAL_DLL
+VENDORID            VID_DEFAULT
+
+USERINCLUDE         . ../inc
+USERINCLUDE         ../../../../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+
+START RESOURCE ../data/2002C324.rss
+TARGET          testplugin2
+END
+
+LIBRARY             euser.lib
+LIBRARY             ecom.lib
+LIBRARY             cmaillogger.lib
+
+SOURCEPATH          ../src
+SOURCE              t_testpluginproxy.cpp
+SOURCE              t_testpluginimpl.cpp
+SOURCE              emaildataimpl.cpp
+SOURCE              mailboxdataimpl.cpp
+SOURCE              applaunchdataimpl.cpp
+SOURCE              messagedataimpl.cpp

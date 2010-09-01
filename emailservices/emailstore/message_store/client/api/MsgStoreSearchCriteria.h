@@ -21,7 +21,7 @@
 #define __MSG_STORE_SEARCH_CRITERIA_H__
 
 //<cmail>
-#include "MsgStoreTypes.h"
+#include "msgstoretypes.h"
 //</cmail>
 
 /** This class represents the criteria for a search request

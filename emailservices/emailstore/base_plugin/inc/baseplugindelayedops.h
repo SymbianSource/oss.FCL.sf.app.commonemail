@@ -21,13 +21,10 @@
 
 
 #include <e32base.h>
-#include "CFSMailCommon.h"
-#include "BasePlugin.h"
-#include "DebugLogMacros.h"
+#include "cfsmailcommon.h"
+#include "baseplugin.h"
+#include "debuglogmacros.h"
 
-//<qmail>
-#include "baseplugindef.h"
-//</qmail>
 
 class CBasePlugin;
 class CDelayedOp;
@@ -71,47 +68,45 @@ public:
  * The base class for the delayed operations. All of the delayed operations must
  * derive from it.
  */
-class BASEPLUGIN_EXPORT CDelayedOp : public CActive
+class CDelayedOp : public CActive
     {
 
 public:
+
+    IMPORT_C virtual ~CDelayedOp();
     
-     virtual ~CDelayedOp();
-    
-     void SetContext(
+    IMPORT_C void SetContext(
         CBasePlugin& aPlugin,
         MDelayedOpsManager& aManager );
-    
-	 void StartOp();
+
+    IMPORT_C void StartOp();
+
     /**
      * Derived classes must implement their asynchronous processing in this
      * method. The GetPlugin method can only be used from within this method.
+     * Returns boolean: ETrue if op is yielding and needs to be called again, or EFalse if op is done.
      */
     virtual TBool ExecuteOpL() = 0;
 
 protected:
     
-     CDelayedOp();
+    IMPORT_C CDelayedOp();
     
     /**
      * Returns the plugin instance associated with this operation. Available
      * only from within the ExecuteOpL method.
      */
-     CBasePlugin& GetPlugin();
+    IMPORT_C CBasePlugin& GetPlugin();
     
     
 private:
     
-     virtual void RunL();
-     virtual void DoCancel();
+    IMPORT_C virtual void RunL();
+    IMPORT_C virtual void DoCancel();
 
 private:
     MDelayedOpsManager* iManager;   //not owned
     CBasePlugin* iPlugin;           //not owned
-    
-public:
-    TInt iRequestId;
-    MFSMailRequestObserver* iOperationObserver;
     
     __LOG_DECLARATION
     };

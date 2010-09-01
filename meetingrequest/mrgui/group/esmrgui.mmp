@@ -1,0 +1,172 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for project esmrgui
+*
+*/
+
+
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
+#include "../../inc/esmrconfig.hrh"
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
+
+// Target information
+TARGET          esmrgui.dll
+TARGETTYPE      dll
+UID             KEPOCStaticDllUID2 KESMRDllUid3
+DEFFILE         ESMRGUI.def
+
+CAPABILITY      CAP_GENERAL_DLL
+
+SOURCEPATH      ../src
+
+//the following contain dll exports
+SOURCE          cesmruifactory.cpp
+
+//internal classes
+SOURCE          cesmrview.cpp
+SOURCE          cesmrtitlepane.cpp
+
+SOURCE          cesmrfieldstorage.cpp
+SOURCE          cesmreditorfieldstorage.cpp
+SOURCE          cesmrviewerfieldstorage.cpp
+SOURCE          cesmrmixedfieldstorage.cpp
+
+SOURCE          cesmreditordialog.cpp
+SOURCE          cesmrviewerdialog.cpp
+SOURCE          cesmrresponsedialog.cpp
+SOURCE          cmrresponsedialogview.cpp
+SOURCE          cesmrtrackingviewdialog.cpp
+
+SOURCE          cesmrvalidatorfactory.cpp
+SOURCE          cesmrmeetingtimevalidator.cpp
+SOURCE          cesmrtodotimevalidator.cpp
+SOURCE          cesmrmemotimevalidator.cpp
+SOURCE          cesmrannivtimevalidator.cpp
+SOURCE          cesmrtitlepanehandler.cpp
+SOURCE          cesmrlocationpluginhandler.cpp
+SOURCE          cesmrdynamicitemselectionlist.cpp
+SOURCE          cesmraddressinfohandler.cpp
+
+SOURCE          cesmrlocationhistoryitem.cpp
+SOURCE          cesmrlocationhistoryitemfactory.cpp
+SOURCE          cesmrlocationhistorymanager.cpp
+
+SOURCE          cesmrfieldeventqueue.cpp
+
+SOURCE          cmrlistpane.cpp
+SOURCE          tnavipaneclearer.cpp
+SOURCE          cmrlistpanephysics.cpp
+SOURCE          cmrtoolbar.cpp
+SOURCE          cmrasynchcmd.cpp
+SOURCE          cesmrtrackingview.cpp
+SOURCE          cmrfieldcontainer.cpp
+SOURCE          cmrnaviarrow.cpp
+SOURCE          cmrfocusstrategybase.cpp
+SOURCE          cmrfocusstrategyeditor.cpp
+SOURCE          cmrfocusstrategyviewer.cpp
+
+SOURCE          cmrsystemnotifier.cpp
+SOURCE          cmrattachmentindicator.cpp
+
+// Resources
+SOURCEPATH      ../data
+START RESOURCE  esmrgui.rss
+HEADER
+TARGETPATH      RESOURCE_FILES_DIR
+LANGUAGE_IDS
+END
+
+APP_LAYER_SYSTEMINCLUDE
+
+// Include paths
+USERINCLUDE     ../inc
+USERINCLUDE     ../../inc
+USERINCLUDE     ../../../inc
+
+// Dependencies to esmrui libraries
+LIBRARY esmrcommon.lib
+LIBRARY esmrpolicy.lib
+LIBRARY esmrservices.lib
+LIBRARY esmrfieldevent.lib
+LIBRARY mrguicommon.lib
+LIBRARY esmrfieldbuildercommon.lib
+
+// Dependencies to Symbian/S60 OS components
+LIBRARY apparc.lib
+LIBRARY ecom.lib
+LIBRARY euser.lib
+LIBRARY apgrfx.lib
+LIBRARY apmime.lib
+LIBRARY cone.lib
+LIBRARY eikcoctl.lib
+LIBRARY egul.lib
+LIBRARY eikdlg.lib
+LIBRARY estor.lib
+LIBRARY eikctl.lib
+LIBRARY bafl.lib
+LIBRARY eikcore.lib
+LIBRARY efsrv.lib
+LIBRARY pbkeng.lib
+LIBRARY vpbkeng.lib
+LIBRARY sendui.lib
+LIBRARY fontutils.lib
+LIBRARY aknskins.lib
+LIBRARY cenrepnotifhandler.lib
+LIBRARY centralrepository.lib
+LIBRARY aknnotify.lib
+LIBRARY favouritesengine.lib
+LIBRARY aknicon.lib
+LIBRARY sysutil.lib
+LIBRARY etext.lib
+LIBRARY calinterimapi.lib
+LIBRARY hlplch.lib
+LIBRARY commonengine.lib
+LIBRARY fbscli.lib
+LIBRARY avkon.lib
+LIBRARY calenimp.lib
+LIBRARY caleninterimutils2.lib
+LIBRARY lmkcommonui.lib
+LIBRARY eposlandmarks.lib
+LIBRARY aknphysics.lib
+LIBRARY touchfeedback.lib
+LIBRARY commonui.lib
+LIBRARY npdlib.lib
+LIBRARY lbs.lib
+LIBRARY featdiscovery.lib
+LIBRARY gdi.lib
+
+#ifdef RD_USE_MYLOCATIONUI
+LIBRARY mylocationui.lib
+#endif // RD_USE_MYLOCATIONUI
+
+LIBRARY platformenv.lib
+LIBRARY bitgdi.lib
+
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+LIBRARY cmaillogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
+
+//needed by XML based LAF components
+LIBRARY cdlengine.lib
+LIBRARY aknlayout2.lib
+LIBRARY aknlayout2scalable.lib
+
+// AIW
+LIBRARY servicehandler.lib //__PRINTING_FRAMEWORK_CALENDAR_PLUGIN
+
+// End of File

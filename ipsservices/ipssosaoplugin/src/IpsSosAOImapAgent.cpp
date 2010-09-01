@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -16,7 +16,30 @@
 *
 */
 
-#include "ipssosaopluginheaders.h"
+
+#include "emailtrace.h"
+#include <cemailaccounts.h>
+#include <imapcmds.h>
+#include <miutset.h>
+#include <impcmtm.h>
+#include <msvapi.h>
+#include <AlwaysOnlineManagerCommon.h>
+//<cmail>
+#include "cfsmailcommon.h"
+//</cmail>
+
+
+#include "IpsSosAOImapAgent.h"
+#include "IpsSosAOImapPopLogic.h"
+
+
+// from settings
+#include "ipssetdataapi.h"
+#include "ipssetutilsconsts.h"
+
+// from ipsplugin
+#include "ipsplgimap4populateop.h"
+#include "ipsplgcommon.h"
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -44,9 +67,7 @@ CIpsSosAOImapAgent::~CIpsSosAOImapAgent()
     delete iOngoingOp;
     delete iImapClientMtm;
     delete iMtmReg;
-	//<QMail>
-
-	//</QMail>
+    delete iDataApi;
     iFoldersArray.Close();
 
     }
@@ -77,9 +98,7 @@ void CIpsSosAOImapAgent::ConstructL()
     iMtmReg = CClientMtmRegistry::NewL( iSession );
     CBaseMtm* bmtm = iMtmReg->NewMtmL( KUidMsgTypeIMAP4 );
     iImapClientMtm = static_cast<CImap4ClientMtm*>(bmtm);
-	//<QMail>
-    
-	//</QMail>
+    iDataApi = CIpsSetDataApi::NewL( iSession );
     iState = EStateIdle; 
     }
  
@@ -162,15 +181,7 @@ void CIpsSosAOImapAgent::RunL()
              StartSyncL();
              break;
          case EStateRefreshFolderArray:
-			 //<QMail>
-             {
-             CIpsSosAOSettingsHandler* settings = 
-                     CIpsSosAOSettingsHandler::NewL(iSession, iServiceId);
-             CleanupStack::PushL(settings);
-             settings->GetSubscribedImapFoldersL( iServiceId , iFoldersArray );
-             CleanupStack::PopAndDestroy(settings);
-             }             
-			 //</QMail>
+             iDataApi->GetSubscribedImapFoldersL( iServiceId , iFoldersArray );
              iState = EStatePopulateAll;
              SetActiveAndCompleteThis();
              break;
@@ -185,7 +196,6 @@ void CIpsSosAOImapAgent::RunL()
          case EStateFetchOnHold:
              break;
          case EStateDisconnect:
-             NM_COMMENT("CIpsSosAOImapAgent: disconnecting");
              if ( !iDoNotDisconnect )
                  {
                  CancelAllAndDisconnectL();
@@ -197,7 +207,6 @@ void CIpsSosAOImapAgent::RunL()
                  }
              break;
          case EStateCompleted:
-             NM_COMMENT("CIpsSosAOImapAgent: completed");
              TRAP_IGNORE( iOpResponse.OperationCompletedL( iError ) );
              SignalSyncCompleted( iServiceId, iError );
              iError = KErrNone;
@@ -310,7 +319,6 @@ void CIpsSosAOImapAgent::StartSyncL()
     LoadSettingsL( );
     if ( !IsConnected() )
         {
-        NM_COMMENT("CIpsSosAOImapAgent: starting sync");
         TPckg<MMsvImapConnectionObserver*> parameter(this);
         // connect and synchronise starts background sync or idle
         CMsvEntrySelection* sel = new ( ELeave ) CMsvEntrySelection();
@@ -326,11 +334,10 @@ void CIpsSosAOImapAgent::StartSyncL()
         }
     else
         {
-        NM_COMMENT("CIpsSosAOImapAgent: already connected do not sync");
         // do not do anything if we are connected, especially do never
         // try to sync if sync is is already started (ex. from ips plugin)
         // that cause problems with imap flags etc.
-        iError = KErrCancel;
+        iError = KErrNone;
         iState = EStateCompleted;
         SetActiveAndCompleteThis();
         }
@@ -350,16 +357,10 @@ void CIpsSosAOImapAgent::StartFetchMessagesL(
 void CIpsSosAOImapAgent::CancelAllAndDisconnectL()
     {
     FUNC_LOG;
-    // if we are already idle state, do nothing,
-    // completing in idle state might cause unvanted events to ui
-    if (iState == EStateIdle) 
-        {
-        return;
-        }
-    
     iDoNotDisconnect = EFalse;
     iState = EStateCompleted;
     iFoldersArray.Reset();
+
     if ( IsActive() )
         {
         Cancel();
@@ -467,23 +468,15 @@ void CIpsSosAOImapAgent::PopulateAllL()
     {
     FUNC_LOG;
     TImImap4GetPartialMailInfo info;
-    //<QMail>
-    CIpsSosAOSettingsHandler* settings = 
-             CIpsSosAOSettingsHandler::NewL(iSession, iServiceId);
-     CleanupStack::PushL(settings);
-     settings->ConstructImapPartialFetchInfo( info, *iImapSettings );
-     CleanupStack::PopAndDestroy(settings);	
-	//</QMail>
+    CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *iImapSettings );
     
     if ( !IsConnected() )
         {
         SignalSyncCompleted( iServiceId, iError );
         CancelAllAndDisconnectL();
         }
-	//<QMail>
     else if ( iFoldersArray.Count() > 0 && info.iTotalSizeLimit 
             != KIpsSetDataHeadersOnly )
-	//</QMail>
          {
 
          // only inbox is set, do we have to populate other folders also
@@ -500,19 +493,19 @@ void CIpsSosAOImapAgent::PopulateAllL()
          iImapClientMtm->SwitchCurrentEntryL( iServiceId );
          TFSMailMsgId mbox( KIpsPlgImap4PluginUidValue, iServiceId );
          iStatus = KRequestPending;
-		 //<Qmail>
          iOngoingOp = CIpsPlgImap4PopulateOp::NewL(
                  iSession,
                  this->iStatus,
+                 CActive::EPriorityLow,
                  iServiceId,
                  *dummy,
                  info,
                  *sel,
                  mbox,
-                 this,
+                 *this,
                  0,
                  NULL );
-         //</Qmail>
+         
          iFoldersArray.Remove( 0 );
          SetActive();
          iState = EStatePopulateAll;

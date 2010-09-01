@@ -21,7 +21,7 @@
 
 //  INCLUDES
 //<cmail>
-#include "CFSMailMessage.h"
+#include "cfsmailmessage.h"
 //</cmail>
 
 /**

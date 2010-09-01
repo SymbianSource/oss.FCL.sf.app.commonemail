@@ -1,0 +1,122 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Definition for status indicator
+*
+*/ 
+
+
+#ifndef __FREESTYLEEMAILUI_AKN_STATUS_INDICATOR_H__
+#define __FREESTYLEEMAILUI_AKN_STATUS_INDICATOR_H__
+
+#include <coecntrl.h>
+
+#include "FreestyleEmailUiUtilities.h"  // FSEmailUiGenericTimer
+
+const TInt KStatusIndicatorAutomaticHidingDuration = 3000;
+const TInt KStatusIndicatorDefaultDuration = -1;
+
+class CFreestyleEmailUiAknStatusIndicator : public CCoeControl,
+                                            protected MFSEmailUiGenericTimerCallback
+    {
+public:
+    IMPORT_C static CFreestyleEmailUiAknStatusIndicator* NewL( const TRect& aRect, const CCoeControl* aParent = NULL );
+    
+    IMPORT_C static CFreestyleEmailUiAknStatusIndicator* NewLC( const TRect& aRect, const CCoeControl* aParent = NULL );
+    
+    ~CFreestyleEmailUiAknStatusIndicator();
+    
+    // The ownships of aBitmap, aMaskBitmap and aText are transferred in.
+    // The status indicator is display for aDuration millisecond if aDuration is not negative;
+    // otherwise, it is diplayed forever until it is manually hidden.
+    void ShowIndicatorL( CFbsBitmap* aBitmap, 
+                         CFbsBitmap* aMaskBitmap,
+                         TDesC* aText,
+                         TInt aDuration,
+                         const TBool aAnimate = EFalse );
+
+    void HideIndicator( TInt aDelayBeforeHidingInMs = 0 );
+    void StartTimer( const TInt aTimeOut );
+    
+    // The ownship of aText is transferred in.
+    void SetTextL( TDesC* aText );
+    
+    // CCoeControl
+    CCoeControl* ComponentControl( TInt aIndex ) const;
+    TInt CountComponentControls() const;
+    void Draw( const TRect& aRect ) const;
+    void SizeChanged();
+    
+    inline const CFbsBitmap* Image() const 
+        {
+        return iBitmap;
+        }
+    
+    inline const CFbsBitmap* ImageMask() const 
+        {
+        return iMaskBitmap;
+        }
+    
+    inline const TDesC* Text() const
+        {
+        return iText;
+        }
+    
+protected:    
+    CFreestyleEmailUiAknStatusIndicator();
+    void ConstructL( const TRect& aRect, const CCoeControl* aParent );
+
+    void TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer );
+
+private:
+    TRect ImageRect( const TRect& aRect ) const;
+    TRect TextRect( const TRect& aRect ) const;
+    void CalculateLayout( const TRect& aRect ) const;
+    
+    void SetTextFont() const;
+    void CalculateVisualText() const;
+
+    TRgb BackgroundColor() const;
+    TRgb BorderColor() const;
+    TRgb FontColor() const;
+
+    void DrawBoundary( const TRect& aRect ) const;
+    void DrawImage( const TRect& aRect ) const;
+    void DrawText( const TRect& aRect ) const;
+    
+    void SetImage( CFbsBitmap* aBitmap, CFbsBitmap* aMaskBitmap );
+    void ScaleImage() const;
+    
+    void ClearImage();
+    void ClearText();
+    
+private:
+    CFbsBitmap*                 iBitmap; 
+    CFbsBitmap*                 iMaskBitmap;
+    TDesC*                      iText;
+
+    CFSEmailUiGenericTimer*     iTimer;
+    
+    mutable TRect               iImageRect;
+    mutable TRect               iTextRect;
+    
+    mutable HBufC*              iVisualText;
+    mutable CFont*              iTextFont;
+    mutable TInt                iVisualTextWidth;            
+    
+    TInt iHideTimeout;
+    TInt iAngle;
+    TBool iAnimate;
+    };
+
+#endif // __FREESTYLEEMAILUI_AKN_STATUS_INDICATOR_H__

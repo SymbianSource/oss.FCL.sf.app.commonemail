@@ -1,0 +1,10 @@
+EXPORTS
+	?SetPhoneOwnerL@CESMRFsMailboxUtils@@QAEHAAVCCalEntry@@AAVCFSMailClient@@AAVCFSMailMessage@@@Z @ 1 NONAME ; int CESMRFsMailboxUtils::SetPhoneOwnerL(class CCalEntry &, class CFSMailClient &, class CFSMailMessage &)
+	?FSEmailPluginForEntryL@CESMRFsMailboxUtils@@QAE?AW4TESMRMailPlugin@@ABVCCalEntry@@@Z @ 2 NONAME ; enum TESMRMailPlugin CESMRFsMailboxUtils::FSEmailPluginForEntryL(class CCalEntry const &)
+	?SetPhoneOwnerL@CESMRFsMailboxUtils@@QAEHAAVCCalEntry@@J@Z @ 3 NONAME ; int CESMRFsMailboxUtils::SetPhoneOwnerL(class CCalEntry &, long)
+	??1CESMRMeetingRequestEntry@@UAE@XZ @ 4 NONAME ; CESMRMeetingRequestEntry::~CESMRMeetingRequestEntry(void)
+	?NewL@CESMRFsMailboxUtils@@SAPAV1@AAVCMRMailboxUtils@@@Z @ 5 NONAME ; class CESMRFsMailboxUtils * CESMRFsMailboxUtils::NewL(class CMRMailboxUtils &)
+	??1CESMRFsMailboxUtils@@UAE@XZ @ 6 NONAME ; CESMRFsMailboxUtils::~CESMRFsMailboxUtils(void)
+	?NewL@CESMRMeetingRequestEntry@@SAPAV1@ABVCCalEntry@@AAVCMRMailboxUtils@@AAVMESMRCalDbMgr@@HPAVTESMRInputParams@@@Z @ 7 NONAME ; class CESMRMeetingRequestEntry * CESMRMeetingRequestEntry::NewL(class CCalEntry const &, class CMRMailboxUtils &, class MESMRCalDbMgr &, int, class TESMRInputParams *)
+	?DefaultMailboxSupportCapabilityL@CESMRFsMailboxUtils@@QAEHW4TMRMailboxCapability@1@@Z @ 8 NONAME ; int CESMRFsMailboxUtils::DefaultMailboxSupportCapabilityL(enum CESMRFsMailboxUtils::TMRMailboxCapability)
+

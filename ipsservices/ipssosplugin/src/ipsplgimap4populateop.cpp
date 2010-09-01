@@ -18,21 +18,22 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 
-// <qmail> priority const has been removed
+// Constants and defines
+const TInt KFetchOpPriority = CActive::EPriorityStandard;
+const TInt KIpsPlgSelectionGra = 16;
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
-// <qmail> MFSMailRequestObserver& changed to pointer
 EXPORT_C CIpsPlgImap4PopulateOp* CIpsPlgImap4PopulateOp::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
+    TInt aPriority,
     TMsvId aService,
     CIpsPlgTimerOperation& aActivityTimer,
     const TImImap4GetPartialMailInfo& aPartialMailInfo,
     const CMsvEntrySelection& aSel,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver* aFSOperationObserver,
+    MFSMailRequestObserver& aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler,
     TBool aDoFilterSelection )
@@ -41,6 +42,7 @@ EXPORT_C CIpsPlgImap4PopulateOp* CIpsPlgImap4PopulateOp::NewL(
     CIpsPlgImap4PopulateOp* op = new (ELeave) CIpsPlgImap4PopulateOp(
         aMsvSession,
         aObserverRequestStatus,
+        aPriority,
         aService,
         aActivityTimer,
         aPartialMailInfo,
@@ -57,31 +59,29 @@ EXPORT_C CIpsPlgImap4PopulateOp* CIpsPlgImap4PopulateOp::NewL(
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> priority parameter has been removed
 CIpsPlgImap4PopulateOp::CIpsPlgImap4PopulateOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
+    TInt aPriority,
     TMsvId aService,
     CIpsPlgTimerOperation& aActivityTimer,
     const TImImap4GetPartialMailInfo& aPartialMailInfo,
     TFSMailMsgId aFSMailBoxId,
-    MFSMailRequestObserver* aFSOperationObserver,
+    MFSMailRequestObserver& aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler )
     :
     CIpsPlgOnlineOperation(
-        aMsvSession,
-        aObserverRequestStatus,
-        aActivityTimer,
-        aFSMailBoxId,
-        aFSOperationObserver,
-        aFSRequestId ),
-    iState( EStateIdle ),
+    aMsvSession,
+    aPriority,
+    aObserverRequestStatus,
+    aActivityTimer,
+    aFSMailBoxId,
+    aFSOperationObserver,
+    aFSRequestId),
     iPartialMailInfo(aPartialMailInfo),
-    iSelection( NULL ),
-    iTempSelection( NULL ),
-    iEventHandler( aEventHandler ),
-    iFetchErrorProgress( NULL )
+    iSelection( KIpsPlgSelectionGra ),
+    iEventHandler( aEventHandler )
     {
     FUNC_LOG;
     iService = aService;
@@ -92,12 +92,14 @@ CIpsPlgImap4PopulateOp::CIpsPlgImap4PopulateOp(
 CIpsPlgImap4PopulateOp::~CIpsPlgImap4PopulateOp()
     {
     FUNC_LOG;
-    delete iSelection;
+    
+    Cancel();
+    iSelection.Close();
 
     if ( iTempSelection )
     	{
     	iTempSelection->Reset();
-   		delete iTempSelection;
+   	delete iTempSelection;
     	}
     }
 
@@ -110,32 +112,27 @@ void CIpsPlgImap4PopulateOp::ConstructL(
     FUNC_LOG;
     BaseConstructL( KUidMsgTypeIMAP4 );
     
-    // <qmail> instantiation moved here
-    iSelection = new ( ELeave ) CMsvEntrySelection();
-    iTempSelection = new ( ELeave ) CMsvEntrySelection();
-
     if ( aDoFilterSelection )
         {
         FilterSelectionL( aSel );
         }
-    else // no filtering; populate all
+    else
         {
-        // first entry in selection is serviceId
         for ( TInt i = 1; i < aSel.Count(); i++ )
             {
             if ( aSel[i] != iService )
                 {
-                iSelection->AppendL( aSel.At(i) );
+                iSelection.AppendL( aSel.At(i) );
                 }
             }
         }
+    iTempSelection = new ( ELeave ) CMsvEntrySelection();
     DoConnectL();
     }
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-// <qmail> return type changed: TInt -> TIpsOpType
-TIpsOpType CIpsPlgImap4PopulateOp::IpsOpType() const
+TInt CIpsPlgImap4PopulateOp::IpsOpType() const
     {
     FUNC_LOG;
     return EIpsOpTypeImap4PopulateOp;
@@ -149,20 +146,21 @@ void CIpsPlgImap4PopulateOp::DoConnectL()
     iState = EStateConnecting;
     iStatus = KRequestPending;
 
-    // <qmail> priority parameter has been removed
     CIpsPlgImap4ConnectOp* connOp = CIpsPlgImap4ConnectOp::NewL(
         iMsvSession,
+        KFetchOpPriority,
         iStatus, 
         iService,
         *iActivityTimer,
         iFSMailboxId,
-        NULL, // no observer for suboperations
-        0,    // requestId not needed
+        iFSOperationObserver,
+        iFSRequestId,
         iEventHandler,
-        ETrue ); // Do plain connect
+        ETrue, // Do plain connect
+        EFalse );
         
-    delete iSubOperation;
-    iSubOperation = connOp;
+    delete iOperation;
+    iOperation = connOp;
 
     SetActive();
     }
@@ -186,8 +184,8 @@ void CIpsPlgImap4PopulateOp::DoRunL()
     {
     FUNC_LOG;
     TInt err = iStatus.Int();
-    delete iSubOperation;
-    iSubOperation = NULL;
+    delete iOperation;
+    iOperation = NULL;
     
     switch( iState )
         {
@@ -206,17 +204,33 @@ void CIpsPlgImap4PopulateOp::DoRunL()
             }
         case EStateFetching:         
             {
-            if( err != KErrNone && iSubOperation )
+            if( err != KErrNone && iOperation )
                 {
-                iFetchErrorProgress = iSubOperation->ProgressL().AllocL();
+                iFetchErrorProgress = iOperation->ProgressL().AllocL();
                 iState = EStateIdle;
                 Complete();
+                }
+            else
+                {
+                
                 }
             break;
             }
         case EStateInfoEntryChange:
             {
-            DoPopulateL();
+            TMsvEntry tentry;
+            TMsvId service;
+            iMsvSession.GetEntry( iService, service, tentry );
+          
+            if( err == KErrNone && tentry.Connected() )
+            	{
+            	DoPopulateL();  
+            	}  
+            else
+            	{
+            	iState = EStateIdle;
+            	CompleteObserver( err );
+            	}            
             break;
             }
         case EStateIdle:
@@ -230,9 +244,9 @@ void CIpsPlgImap4PopulateOp::DoRunL()
 void CIpsPlgImap4PopulateOp::DoCancel()
     {
     FUNC_LOG;
-    if( iSubOperation )
+    if( iOperation )
         {
-        iSubOperation->Cancel();
+        iOperation->Cancel();
         }
     CompleteObserver( KErrCancel );
     }
@@ -246,16 +260,13 @@ const TDesC8& CIpsPlgImap4PopulateOp::ProgressL()
         {
         // Completed, but with an error during fetch.
         return *iFetchErrorProgress;
-        }
-    else
-        {
-        TImap4SyncProgress progg;
-    	progg.iFoldersNotFound = 0;
-        progg.iErrorCode = KErrNone;
-        TPckgBuf<TImap4SyncProgress> param(progg);
-        iSyncProgress.Copy(param);
-        return iSyncProgress;
-        }
+        }        
+    TImap4SyncProgress progg;
+    progg.iFoldersNotFound = 0;
+    progg.iErrorCode = KErrNone;
+    TPckgBuf<TImap4SyncProgress> param(progg);
+    iSyncProgress.Copy(param);
+    return iSyncProgress; 
     }
 
 // ----------------------------------------------------------------------------
@@ -293,7 +304,23 @@ TFSProgress CIpsPlgImap4PopulateOp::GetFSProgressL() const
     return result;
     }
 
-// <qmail> removed CIpsPlgImap4PopulateOp::GetEngineProgress( const TDesC8& aProgress )
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------    
+TInt CIpsPlgImap4PopulateOp::GetEngineProgress( const TDesC8& aProgress )
+    {
+    FUNC_LOG;
+    if( !aProgress.Length() )
+        {
+        return KErrNone;
+        }
+    else
+        {
+        TPckgBuf<TImap4CompoundProgress> paramPack;
+        paramPack.Copy( aProgress );
+        const TImap4GenericProgress& progress = paramPack().iGenericProgress;
+        return progress.iErrorCode;        
+        }    
+    }    
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -306,10 +333,11 @@ void CIpsPlgImap4PopulateOp::Complete()
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgImap4PopulateOp::FilterSelectionL( const CMsvEntrySelection& aSelection )
+void CIpsPlgImap4PopulateOp::FilterSelectionL( 
+        const CMsvEntrySelection& aSelection )
     {
     FUNC_LOG;
-    iSelection->Reset();
+    iSelection.Reset();
     TMsvId messageId;
     // NOTE: this code is taken from symbian os source IMPCMTM.CPP
     // filter selection is in here because messages are
@@ -321,7 +349,7 @@ void CIpsPlgImap4PopulateOp::FilterSelectionL( const CMsvEntrySelection& aSelect
         messageId = (aSelection)[i];
         if ( messageId == iService )
             {
-            continue; // ignore serviceId
+            continue;
             }
         TMsvEmailEntry entry;
         TMsvId service = KMsvNullIndexEntryId;          
@@ -341,11 +369,11 @@ void CIpsPlgImap4PopulateOp::FilterSelectionL( const CMsvEntrySelection& aSelect
               && !isComplete
               && entry.iType == KUidMsvMessageEntry )
             {
-            iSelection->AppendL( messageId ); 
+            iSelection.AppendL(messageId); 
             }
         else if ( isMsgEntry && isSizeUnderMax && !isParentComp )
             {
-            iSelection->AppendL( messageId );
+            iSelection.AppendL(messageId);
             }
         }
     }
@@ -354,15 +382,20 @@ void CIpsPlgImap4PopulateOp::FilterSelectionL( const CMsvEntrySelection& aSelect
 // ----------------------------------------------------------------------------
 TBool CIpsPlgImap4PopulateOp::IsPartialPopulate( )
     {
-    // <qmail> cleaned up code and took one "always true" condition out from the if statement
     FUNC_LOG;
     // NOTE: this code is taken from symbian os source IMPCMTM.CPP
     // code is modified to this class purpose 
-    TBool isPartialPopulate( EFalse );
-    if ( iPartialMailInfo.iPartialMailOptions == ENoSizeLimits &&
-         iPartialMailInfo.iTotalSizeLimit == KMaxTInt &&
-         iPartialMailInfo.iBodyTextSizeLimit == KMaxTInt && 
-         iPartialMailInfo.iAttachmentSizeLimit == KMaxTInt )
+    
+    TBool isPartialPopulate = EFalse;
+    if(iPartialMailInfo.iPartialMailOptions == ENoSizeLimits &&
+       iPartialMailInfo.iTotalSizeLimit == KMaxTInt &&
+       iPartialMailInfo.iBodyTextSizeLimit == KMaxTInt && 
+       iPartialMailInfo.iAttachmentSizeLimit == KMaxTInt && 
+        (iPartialMailInfo.iGetMailBodyParts == EGetImap4EmailHeaders || 
+         iPartialMailInfo.iGetMailBodyParts == EGetImap4EmailBodyText ||
+         iPartialMailInfo.iGetMailBodyParts == EGetImap4EmailBodyTextAndAttachments ||
+         iPartialMailInfo.iGetMailBodyParts == EGetImap4EmailAttachments ||
+         iPartialMailInfo.iGetMailBodyParts == EGetImap4EmailBodyAlternativeText) )
         {
         isPartialPopulate = EFalse;
         }
@@ -370,6 +403,7 @@ TBool CIpsPlgImap4PopulateOp::IsPartialPopulate( )
         {
         isPartialPopulate = ETrue;
         }
+
     return isPartialPopulate;
     }
 
@@ -378,34 +412,50 @@ TBool CIpsPlgImap4PopulateOp::IsPartialPopulate( )
 void CIpsPlgImap4PopulateOp::DoPopulateL( )
     {
     FUNC_LOG;
-    if ( iSelection->Count() > 0 )
+    if ( iSelection.Count() > 0 )
         {
         TMsvEmailEntry tEntry;
         TMsvId dummy;
-        TInt lastIndex = iSelection->Count()-1;
-        User::LeaveIfError( iMsvSession.GetEntry( iSelection->At(lastIndex), dummy, tEntry ) );
+        TInt lastIndex = iSelection.Count()-1;
+        User::LeaveIfError( iMsvSession.GetEntry(
+                iSelection[lastIndex], dummy, tEntry ) );
         
         iState = EStateFetching;
 
         iTempSelection->Reset();
         iTempSelection->AppendL( iService );
-        iTempSelection->AppendL( iSelection->At( lastIndex ) );
-        iSelection->Delete( lastIndex );
-            
+        iTempSelection->AppendL( iSelection[lastIndex] );
+        iSelection.Remove(lastIndex);
+        
+        
+        iStatus = KRequestPending;
+    
         // Filters are not used when performing 'fetch'
         // operation, use normal getmail info instead
-        TPckg<TImImap4GetPartialMailInfo> param( iPartialMailInfo );
+        TPckg<TImImap4GetPartialMailInfo> param(iPartialMailInfo);
         iBaseMtm->SwitchCurrentEntryL( iService );
-        iSubOperation = iBaseMtm->InvokeAsyncFunctionL(
-            KIMAP4MTMPopulateMailSelectionWhenAlreadyConnected, 
-            *iTempSelection, param, iStatus );
+        iOperation = iBaseMtm->InvokeAsyncFunctionL(
+                KIMAP4MTMPopulateMailSelectionWhenAlreadyConnected, 
+                *iTempSelection, param, this->iStatus);
         iState = EStateInfoEntryChange;
         SetActive();
+        
+        if ( iEventHandler )
+              {
+              iEventHandler->SetNewPropertyEvent( 
+                      iService, KIpsSosEmailSyncStarted, KErrNone );
+              } 
         }
     else
         {
         iState = EStateIdle;
         CompleteObserver();
+        
+        if ( iEventHandler )
+            {
+            iEventHandler->SetNewPropertyEvent( 
+                iService, KIpsSosEmailSyncCompleted, KErrNone );
+            }               
         }
     }
 

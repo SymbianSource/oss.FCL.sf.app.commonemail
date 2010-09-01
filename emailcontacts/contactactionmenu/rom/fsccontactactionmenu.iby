@@ -1,0 +1,37 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Contact Action Menu's rom file definitions.
+ *
+*/
+
+#ifndef __FSCCONTACTACTIONMENU_IBY__
+#define __FSCCONTACTACTIONMENU_IBY__
+
+//<cmail>
+#ifdef FF_EMAIL_FRAMEWORK
+//</cmail>
+
+// Main service files
+ECOM_PLUGIN( fsccontactactionmenu.dll, fsccontactactionmenu.rsc )
+
+//<cmail> per component stubs are removed and replaced by one stub under emailui.
+//data=DATAZ_\system\install\fsccontactactionmenustub.sis  system\install\fsccontactactionmenustub.sis
+//</cmail>
+//<cmail>
+#endif //FF_EMAIL_FRAMEWORK
+//</cmail>
+
+#endif // __FSCCONTACTACTIONMENU_IBY__
+
+// End of file

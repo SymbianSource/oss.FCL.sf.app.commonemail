@@ -35,20 +35,11 @@ const TUid KCRUidExtendedSettingsUid   = { IPS_EXTENDED_SETTINGS_UID };
 const TUid KIpsPlgPropertyCatUid  = { IPS_PROPERTY_CAT_UID };
 
 const TInt KIpsPlgMaxPhoneIdLength  = 50;
-//<qmail>
-const TInt KIpsSetDataHeadersOnly           = -2;
-const TInt KIpsSetDataFullBodyAndAttas      = -1;
-const TInt KIpsSetDataFullBodyOnly          = -3;
-//</qmail>
+
 const TInt KContinueInterval = 3000000; // 3 sec
 
 static _LIT_SECURITY_POLICY_PASS( KAllowAllPolicy );
 static _LIT_SECURITY_POLICY_C1( KAllowWriteDeviceDataPolicy, ECapabilityWriteDeviceData );
-
-//<qmail>
-_LIT( KIpsPlgReplySubjectFormat, "%S" );
-_LIT( KIpsPlgForwardSubjectFormat, "%S" );
-//</qmail>
 
 /**
  * class TIpsMailboxState

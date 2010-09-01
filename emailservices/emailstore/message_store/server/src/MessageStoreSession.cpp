@@ -21,8 +21,8 @@
 // INCLUDES
 // ========
 
-#include "MsgStoreTypes.h"
-#include "MsgStorePropertyKeys.h"
+#include "msgstoretypes.h"
+#include "msgstorepropertykeys.h"
 
 #include "MessageStoreSession.h"
 #include "MessageStoreServer.h"
@@ -112,23 +112,10 @@ void CMessageStoreSession::CreateL()
     {
     __LOG_ENTER( "CreateL" )
     
-    iServer.AddSessionL( this );
+    iServer.AddSession( this );
 
     // This could leave if a session is created while the store is unavailable.
-    TRAPD( err, iServer.MessageStoreL().ObserveL( this ) );
-    
-    // We need to leave the Session active in the case of KErrInUse.  This is
-    // because if the observer is dropped during KErrInUse, they cannot
-    // re-establish connection, and they will not know when MS in no longer busy.
-    // As a result, they will retry for many seconds to connect, then permanently
-    // give up.  This is avoided by trapping KErrInUse.
-    // Thus, only dropSession and Leave for other errors
-    
-    if( err != KErrNone && err != KErrInUse )
-    {
-        iServer.DropSession( this );
-        User::Leave( err );
-    }
+    TRAP_IGNORE( iServer.MessageStoreL().ObserveL( this ) );
     
     __LOG_EXIT
     } // end CreateL
@@ -707,16 +694,12 @@ void CMessageStoreSession::SendEventToObserver( TMsgStoreEvent aEvent )
         	event.iOtherId     = KMsgStoreInvalidId;
         	event.iFlags       = KMsgStoreFlagsNotFound;
 
-        	// return value can be ignored because queueing is very rare
-        	// case anyway and appending T-class into RArray should succeed
-    		TInt ignore = iEventQueue.Append( event );
+    		iEventQueue.Append( event );		
 		    }
 		else
 		    {
     		__LOG_WRITE_INFO( "event queued" )
-            // return value can be ignored because queueing is very rare
-            // case anyway and appending T-class into RArray should succeed
-            TInt ignore = iEventQueue.Append( aEvent );
+    		iEventQueue.Append( aEvent );		
 		    } // end if		
 		}
 	else
@@ -1081,7 +1064,7 @@ void CMessageStoreSession::MatchFound( TContainerId aMessageId, TContainerId aFo
 void CMessageStoreSession::DoMatchFoundL( TContainerId aMessageId, TContainerId aFolderId, const TDesC8& aPropertyBuf )
     {
     CSearchResult* result = CSearchResult::NewL( aMessageId, aFolderId, aPropertyBuf );
-    iMatchMessages.AppendL( result );
+    iMatchMessages.Append( result );
 
     SendMatchesToClient();
     } // end MatchFound
@@ -2202,7 +2185,7 @@ void CMessageStoreSession::DoStartSortingL( const RMessage2& aMessage )
     TBool inMemorySort = aMessage.Int3();
 
     TContainerId sessionId = iServer.MessageStoreL().StartSortingL( sortCriteria, iPropertyNames, inMemorySort );
-    iSortSessionIds.AppendL( sessionId );
+    iSortSessionIds.Append( sessionId );
     
     TPckg<TContainerId> sessionIdPckg( sessionId );
     aMessage.WriteL( 0, sessionIdPckg );
@@ -2599,7 +2582,7 @@ void CMessageStoreSession::DoSetMruAddressListL( const RMessage2& aMessage )
         
         CMruAddress* mruAddress = CMruAddress::NewL(0, addressDes, dispNameDes );
         
-        iMruAddressArray.AppendL( mruAddress );
+        iMruAddressArray.Append( mruAddress );
         
         } // end while
     
@@ -2804,7 +2787,7 @@ void CMessageStoreSession::ReadIdArrayL( const RMessage2& aMessage, TInt aIndex,
     for( position = 0; position < aMessage.GetDesLengthL( aIndex ); position += idPckg.Length() )
         {
         aMessage.ReadL( aIndex, idPckg, position );      
-        aArray.AppendL( id );
+        aArray.Append( id );
         } // end for
     }
 

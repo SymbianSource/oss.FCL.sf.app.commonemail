@@ -1,0 +1,71 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for Freestyle UI Data MTM implementation
+*
+*/
+
+#include <platform_paths.hrh>
+#include <msvstd.hrh>
+#include <data_caging_paths.hrh>
+
+#include "../../../inc/fsmtmsuids.h"
+#include "../../../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../../../inc/emailtraceconfig.hrh"
+
+TARGET               fsuidatamtm.dll
+TARGETTYPE           dll
+UID                  KUidMtmUiDataComponentVal KUidFsUiDataMtmVal
+VENDORID             VID_DEFAULT
+
+//MTM Dlls must have maximum capabilities so that they are available
+//for all clients:
+CAPABILITY           CAP_ECOM_PLUGIN
+
+VERSION       KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+START RESOURCE       ../data/fsuidatamtm.rss
+TARGETPATH           MTM_RESOURCE_DIR
+HEADER
+END
+
+SOURCEPATH           ../src
+SOURCE               cfsuidatamtm.cpp
+
+USERINCLUDE          ../inc
+USERINCLUDE          ../../inc           //for fsmtms.loc
+USERINCLUDE          ../../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE ../../../../../../inc
+
+LIBRARY              euser.lib
+LIBRARY              mtur.lib            // CBaseMtmUiData
+LIBRARY              ws32.lib            //for CWsBitmap
+LIBRARY              aknicon.lib
+library              efsrv.lib
+LIBRARY              FSMailFramework.lib
+LIBRARY              FSFWCommonLib.lib
+LIBRARY              ecom.lib
+LIBRARY              egul.lib
+LIBRARY              cmaillogger.lib
+
+#ifdef TRACE_INTO_FILE
+LIBRARY             flogger.lib
+#endif // TRACE_INTO_FILE
+
+LANGUAGE_IDS
+
+NOSTRICTDEF

@@ -18,7 +18,7 @@
 
 
 #include "ContainerStoreSortingTable.h"
-#include "MsgStoreTypes.h"
+#include "msgstoretypes.h"
 #include "MessageStoreClientServer.h"
 #include "ContainerStoreDefs.h"
 #include "MsgStoreSortResultRowSet.h"

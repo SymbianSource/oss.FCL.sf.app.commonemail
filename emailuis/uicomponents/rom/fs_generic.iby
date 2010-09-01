@@ -1,0 +1,67 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Image description file for project fs_generic.
+*
+*/
+
+
+#ifndef __FS_GENERIC_IBY
+#define __FS_GENERIC_IBY
+//If test applications are wanted in image following tag must be defined
+//<cmail> not used in cmail
+//#undef __GEN_UI_TESTAPPS
+//</cmail>
+
+#include <data_caging_paths_for_iby.hrh>
+
+//<cmail>
+#ifdef FF_EMAIL_FRAMEWORK
+//</cmail>
+
+// Main dll
+file=ABI_DIR\BUILD_DIR\fs_generic.dll             SHARED_LIB_DIR\fs_generic.dll
+
+// Scrollbar plugin
+ECOM_PLUGIN(fsscrollbarplugin.dll,fsscrollbarplugin.rsc)
+data=DATAZ_\resource\plugins\fsscrollbarplugin.rsc resource\plugins\fsscrollbarplugin.rsc
+
+// Stub sis-file
+//<cmail> per component stubs are removed and replaced by one stub under emailui.
+//data=DATAZ_\system\install\fs_generic_stub.sis    system\install\fs_generic_stub.sis
+//</cmail>
+//<cmail>
+#endif //FF_EMAIL_FRAMEWORK
+//</cmail>
+
+// <cmail> S60 platform layout change
+// Layout manager
+//ECOM_PLUGIN(2001E284.dll,2001E284.rsc)
+//data=DATAZ_\resource\cdl\2001E284_cdl_detail.rsc	Resource\Cdl\2001E284_cdl_detail.rsc
+// </cmail> S60 platform layout change
+
+#include <alfred.iby>
+
+//<cmail> not used in cmail
+//#ifdef __GEN_UI_TESTAPPS
+//#include <fsscrollbar.iby>
+//#include <fscontrolbar.iby>
+//#include <fsgenericlist.iby>
+//#include <fstextviewer.iby>
+//#endif // __GEN_UI_TESTAPPS
+//</cmail>
+
+
+#endif // __FS_GENERIC_IBY
+
+

@@ -27,19 +27,15 @@ const TInt KIpsSmtpOperationCharMoreThan = '>';
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
-// <qmail> aPriority, aUsePublishSubscribe parameters removed, aOperationObserver, aRequestId added
 EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewL( 
     CMsvSession& aMsvSession, 
-    TRequestStatus& aObserverRequestStatus,
-    MFSMailRequestObserver* aOperationObserver,
-    TInt aRequestId )
+    TInt aPriority, TRequestStatus& 
+    aObserverRequestStatus,
+    TBool /*aUsePublishSubscribe*/ )
     {
     FUNC_LOG;
     CIpsPlgSmtpOperation* self = CIpsPlgSmtpOperation::NewLC(
-        aMsvSession,
-        aObserverRequestStatus,
-        aOperationObserver,
-        aRequestId );
+        aMsvSession, aPriority, aObserverRequestStatus, ETrue );
     CleanupStack::Pop( self );
     return self;
     }
@@ -47,19 +43,15 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewL(
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 //
-// <qmail> aPriority, aUsePublishSubscribe parameters removed, aOperationObserver, aRequestId added
 EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewLC( 
     CMsvSession& aMsvSession, 
+    TInt aPriority, 
     TRequestStatus& aObserverRequestStatus,
-    MFSMailRequestObserver* aOperationObserver,
-    TInt aRequestId )
+    TBool /*aUsePublishSubscribe*/ )
     {
     FUNC_LOG;
     CIpsPlgSmtpOperation* self = new( ELeave ) CIpsPlgSmtpOperation(
-        aMsvSession,
-        aObserverRequestStatus,
-        aOperationObserver,
-        aRequestId );
+        aMsvSession, aPriority, aObserverRequestStatus );
     CleanupStack::PushL( self );
     self->ConstructL();
     return self;
@@ -67,19 +59,17 @@ EXPORT_C CIpsPlgSmtpOperation* CIpsPlgSmtpOperation::NewLC(
    
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-// <qmail> aPriority parameter removed, aOperationObserver, aRequestId added
+//
 CIpsPlgSmtpOperation::CIpsPlgSmtpOperation( 
     CMsvSession& aMsvSession, 
-    TRequestStatus& aObserverRequestStatus,
-    MFSMailRequestObserver* aFSOperationObserver,
-    TInt aFSRequestId ) :
-    CIpsPlgBaseOperation( aMsvSession, aObserverRequestStatus, aFSRequestId, TFSMailMsgId() ),
+    TInt aPriority, 
+    TRequestStatus& aObserverRequestStatus ) :
+    CMsvOperation( aMsvSession, aPriority, aObserverRequestStatus ),
     iSmtpMtm( NULL ),
     iOperation( NULL ),
     iSelection( NULL ),  
     iMtmRegistry( NULL ),
     iState( EIdle ),
-    iFSOperationObserver( aFSOperationObserver ),
     iEventHandler( NULL )
     {
     FUNC_LOG;
@@ -159,49 +149,49 @@ void CIpsPlgSmtpOperation::RunL()
             TPckg<TImSmtpProgress> param(prog);
             param.Copy( iOperation->FinalProgress() );
 
-// <qmail> Removed login error handling
+            if ( prog.Error() == KSmtpLoginRefused )
+                {
+                // Login details are wrong. Trying to ask for password
+                if ( !QueryUserPassL() )
+                    {
+                    CompleteObserver( prog.Error() );
+                    }
+                }
+            else if ( prog.Error() == KSmtpUnknownErr )
+                {
+                // try to handle empty password problem
+                CEmailAccounts* accounts = CEmailAccounts::NewLC();
+                CImSmtpSettings* smtpSettings = new(ELeave) CImSmtpSettings();
+                CleanupStack::PushL( smtpSettings );
+                TSmtpAccount smtpAccount;
+                accounts->GetSmtpAccountL( iSmtpService, smtpAccount );
+                accounts->LoadSmtpSettingsL( smtpAccount, *smtpSettings );
 
-// <qmail>
-	        if ( iFSOperationObserver )
-	            {
-	            iFSProgress.iProgressStatus =
-	                TFSProgress::EFSStatus_RequestComplete;
-	            iFSProgress.iError = prog.Error();
-
-	            TRAP_IGNORE( iFSOperationObserver->RequestResponseL(
-	                iFSProgress, iFSRequestId ) );
-	            }
-	        TRequestStatus* status = &iObserverRequestStatus;
-	        User::RequestComplete( status, prog.Error() );
-    		break;
-// <qmail>
+                if ( smtpSettings->Password().Length() == 0 )
+                    {
+                    if ( !QueryUserPassL() )
+                        {
+                        CompleteObserver( prog.Error() );
+                        }
+                    }
+                CleanupStack::PopAndDestroy( 2, accounts );
+                }
+            else
+                {
+                CompleteObserver( prog.Error() );
+                }
+            break;
+            }
+        case EQueryingDetails:
+            {
+            delete iOperation;
+            iOperation = NULL;
+            // querying pass finished - try to resend mail
+            CallSendL();
+            break;
             }
         }
-	}
-
-// <qmail>
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------
-//
-TInt CIpsPlgSmtpOperation::RunError( TInt aError )
-    {
-    FUNC_LOG;
-
-    if ( iFSOperationObserver )
-        {
-        iFSProgress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
-        iFSProgress.iError = aError;
-
-        TRAP_IGNORE( iFSOperationObserver->RequestResponseL(
-			iFSProgress, iFSRequestId ) );
-        }
-
-    TRequestStatus* status = &iObserverRequestStatus;
-    User::RequestComplete( status, aError );
-    
-    return KErrNone;
     }
-// </qmail>
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -215,9 +205,6 @@ void CIpsPlgSmtpOperation::DoCancel()
         iOperation->Cancel();
         }
 
-    // It is not relevant to inform FS observer. Cancelling is initiated
-    // either by the observer or the engine destructor when the application
-    // exits.
     CompleteObserver( KErrCancel );
     }
 
@@ -234,39 +221,6 @@ const TDesC8& CIpsPlgSmtpOperation::ProgressL()
         }
     return KNullDesC8;
     }
-
-// <qmail>
-// ---------------------------------------------------------------------------
-// CIpsPlgSmtpOperation::GetErrorProgressL
-// ---------------------------------------------------------------------------
-//   
-const TDesC8& CIpsPlgSmtpOperation::GetErrorProgressL( TInt /*aError*/ )
-    {
-    FUNC_LOG;
-    
-    return KNullDesC8; // error progress info not supported
-    }
-
-// ---------------------------------------------------------------------------
-// CIpsPlgSmtpOperation::GetFSProgressL
-// ---------------------------------------------------------------------------
-//   
-TFSProgress CIpsPlgSmtpOperation::GetFSProgressL() const
-    {
-    FUNC_LOG;
-    
-    return iFSProgress;
-    }
-
-// ---------------------------------------------------------------------------
-// ---------------------------------------------------------------------------    
-// <qmail> return type
-TIpsOpType CIpsPlgSmtpOperation::IpsOpType() const
-    {
-    FUNC_LOG;
-    return EIpsOpTypeSmtp;
-    }
-// </qmail>
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -370,14 +324,14 @@ EXPORT_C TInt CIpsPlgSmtpOperation::EmptyOutboxFromPendingMessagesL(
             // is it safe to change flag from suspended to waiting?
             if ( sendState == KMsvSendStateSuspended )
                 {
-                // <qmail> remove activeschedulerwait
                 CMsvEntry* cEntry = CMsvEntry::NewL(
                     iMsvSession, entry.Id(), TMsvSelectionOrdering() );
                 CleanupStack::PushL( cEntry );
+                CIpsPlgOperationWait* wait = CIpsPlgOperationWait::NewLC( );
                 entry.SetSendingState( KMsvSendStateWaiting );
-                cEntry->ChangeL( entry );
-                CleanupStack::PopAndDestroy( cEntry ); // cEntry
-                // </qmail>
+                cEntry->ChangeL( entry, wait->iStatus );
+                wait->Start();
+                CleanupStack::PopAndDestroy(2, cEntry ); // wait, cEntry
                 }
             // add to send list
             iSelection->AppendL( entry.Id() );
@@ -487,14 +441,13 @@ void CIpsPlgSmtpOperation::ValidateAddressArrayL( const CDesCArray& aRecipients 
             fullName.Set( aRecipients[i].Mid( start, ( end - start ) ) );
             }
         // make basic sanity checks for email address
-// <qmail>
-        //if( !IpsSetUtils::IsValidEmailAddressL( fullName ) )
-        //    {
-        //    User::Leave( KErrBadName );
-        //    }
-// </qmail>
+        if( !IpsSetUtils::IsValidEmailAddressL( fullName ) )
+            {
+            User::Leave( KErrBadName );
+            }
         }
     }
+
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 // 
@@ -502,8 +455,66 @@ void CIpsPlgSmtpOperation::SetEventHandler( TAny* aEventHandler )
     {
     iEventHandler = aEventHandler;
     }
-// <qmail> TBool CIpsPlgSmtpOperation::QueryUserPassL() removed
-// <qmail> void CIpsPlgSmtpOperation::CredientialsSetL( TInt aEvent )
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
+TBool CIpsPlgSmtpOperation::QueryUserPassL()
+    {
+    if ( iEventHandler )
+        {
+        CIpsPlgEventHandler* eventHandler = static_cast<CIpsPlgEventHandler*>(iEventHandler);
+        TMsvEntry entry;
+        TMsvId service;
+        User::LeaveIfError( iMsvSession.GetEntry( iSmtpService, service, entry ) );
+
+        // ask for credentials for smtp account and wait for callback
+        if ( eventHandler->QueryUsrPassL( entry.iRelatedId, this, EFalse ) )
+            {
+            iState = EQueryingDetails;
+            }
+        else
+            {
+            // another operation is waiting for password
+            iState = EQueryingDetailsBusy;
+            }
+
+        return ETrue;
+        }
+
+    return EFalse;
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgSmtpOperation::CredientialsSetL( TInt aEvent )
+    {
+    FUNC_LOG;
+
+    if ( iState == EQueryingDetails )
+        {
+        // response for our operation`s query
+        if ( aEvent == EIPSSosCredientialsCancelled )
+            {
+            // user canceled operation
+            CompleteObserver( KErrCancel );
+            }
+
+        // password has been set, continue with operation
+        SetActive();
+        CompleteThis();
+        }
+    else if ( iState == EQueryingDetailsBusy )
+        {
+        // response for other operation`s query
+        // we could try to ask for password now,
+        // but decision was made to cancel operation
+        CompleteObserver( KErrCancel );
+        SetActive();
+        CompleteThis();
+        }
+    }
 
 // End of File
 

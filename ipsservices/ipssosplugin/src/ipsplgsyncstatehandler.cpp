@@ -69,11 +69,12 @@ void CIpsPlgSyncStateHandler::HandlePropertyEventL(
         TInt aEvent, TInt aMailbox, TInt aPluginId ,TInt /*aError*/ )
     {
     FUNC_LOG;
-    // <qmail> removed sync-on-hold state
-    if ( ( iPlugin.PluginId() == aPluginId ) &&
-        ( aEvent == KIpsSosEmailSyncStarted || aEvent == KIpsSosEmailSyncCompleted ) )
+    if ( iPlugin.PluginId() == aPluginId &&
+            ( aEvent == KIpsSosEmailSyncStarted || 
+              aEvent == KIpsSosEmailSyncCompleted ||
+              aEvent == KIpsSosEmailSyncOnHold ) )
         {
-        AppendMailboxToSyncingMailboxL( aMailbox, aEvent );
+        AppendMailboxToSyncingMailbox( aMailbox, aEvent );
         }
     }
 
@@ -113,8 +114,6 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
             }
         }
 
-#ifndef RD_101_EMAIL    
-// <cmail> RD_IPS_AO_PLUGIN flaf removed
     RAlwaysOnlineClientSession aosession;
     
     err = aosession.Connect();
@@ -134,9 +133,6 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
             }
         }
     aosession.Close();
-#endif
-    
-// </cmail> 
    
    // found correct operation
    for ( TInt i = 0; i < iOperationsRef.Count(); i++ )
@@ -145,6 +141,7 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
        
        if ( baseOp && baseOp->FSMailboxId() == aMailboxId &&
             ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp ||
+              baseOp->IpsOpType() == EIpsOpTypePop3PopulateOp ||		
               baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp ||
               baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
            {
@@ -172,6 +169,7 @@ TBool CIpsPlgSyncStateHandler::ConnOpRunning( const TFSMailMsgId& aMailBoxId  )
 
        if ( baseOp && baseOp->FSMailboxId() == aMailBoxId &&
               ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp
+               || baseOp->IpsOpType() == EIpsOpTypePop3PopulateOp		  
                || baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp
                || baseOp->IpsOpType() == EIpsOpTypeOnlineOp
                || baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
@@ -210,10 +208,7 @@ TInt CIpsPlgSyncStateHandler::FindSyncingMailbox( TMsvId aMailbox )
             {
             ipsState = KIpsSosEmailSyncCompleted;
             }
-        // the next call, FindMailbox, handles the case
-        // if .Append is failing, thus the return value can
-        // be ignored
-        TInt ignore = iSyncingMailboxes.Append( 
+        TInt count = iSyncingMailboxes.Append( 
                 TIpsMailboxState( aMailbox, ipsState ) );
         index = FindMailbox( aMailbox );
         }
@@ -240,14 +235,14 @@ TInt CIpsPlgSyncStateHandler::FindMailbox( TMsvId aMailbox )
 
 // ---------------------------------------------------------------------------
 // --------------------------------------------------------------------------- 
-void CIpsPlgSyncStateHandler::AppendMailboxToSyncingMailboxL( 
+void CIpsPlgSyncStateHandler::AppendMailboxToSyncingMailbox( 
         TMsvId aMailbox, TInt aState )
     {
     FUNC_LOG;
     TInt index = FindMailbox( aMailbox );
     if ( index == KErrNotFound )
         {
-        iSyncingMailboxes.AppendL( TIpsMailboxState( aMailbox, aState ) );
+        iSyncingMailboxes.Append( TIpsMailboxState( aMailbox, aState ) );
         }
     else
         {
@@ -302,25 +297,24 @@ TInt CIpsPlgSyncStateHandler::SolveOpProtocolType( )
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 void CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL( 
-        CMsvSession& /*aSession*/, TMsvId /*aService*/ )
+        CMsvSession& aSession, TMsvId aService )
     {
     FUNC_LOG;
     TTime now;
     now.HomeTime();
-// <qmail>
-    //CIpsSetDataExtension* extendedSettings = CIpsSetDataExtension::NewLC();
-    //CIpsSetDataApi* dataApi = CIpsSetDataApi::NewL( aSession );
-    //CleanupStack::PushL( dataApi );
-    //dataApi->LoadExtendedSettingsL( aService, *extendedSettings );
-    //TAOInfo info;
-    //info.iLastSuccessfulUpdate = now;
-    //info.iUpdateSuccessfulWithCurSettings = ETrue;
-    //extendedSettings->SetLastUpdateInfo( info );
+    CIpsSetDataExtension* extendedSettings = CIpsSetDataExtension::NewLC();
+    CIpsSetDataApi* dataApi = CIpsSetDataApi::NewL( aSession );
+    CleanupStack::PushL( dataApi );
+    dataApi->LoadExtendedSettingsL( aService, *extendedSettings );
+    TAOInfo info;
+    info.iLastSuccessfulUpdate = now;
+    info.iUpdateSuccessfulWithCurSettings = ETrue;
+    info.iLastUpdateFailed = EFalse;
+    extendedSettings->SetLastUpdateInfo( info );
     // clear flag
-    //extendedSettings->SetEmnReceivedButNotSyncedFlag( EFalse );
-    //dataApi->SaveExtendedSettingsL( *extendedSettings );
-    //CleanupStack::PopAndDestroy( 2, extendedSettings );
-// </qmail>
+    extendedSettings->SetEmnReceivedButNotSyncedFlag( EFalse );
+    dataApi->SaveExtendedSettingsL( *extendedSettings );
+    CleanupStack::PopAndDestroy( 2, extendedSettings );
     }
 
 

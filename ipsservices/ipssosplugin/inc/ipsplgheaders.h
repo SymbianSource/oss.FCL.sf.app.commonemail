@@ -19,9 +19,6 @@
 #define IPSPLGHEADERS_H
 
 // System includes
-// <qmail>
-#include <nmcommonheaders.h>
-// </qmail>
 #include <e32cmn.h>
 #include <e32def.h>
 #include <e32base.h>
@@ -29,16 +26,19 @@
 
 #include <f32file.h>
 
-// <qmail> eikenv, eikrutil, coemain includes removed
+#include <eikenv.h>  // for rich text para and char format layer
+#include <eikrutil.h>
+
+#include <coemain.h> // for rich text para and char format layer
 
 #include <charconv.h>
 
 // cenrep
 #include <centralrepository.h>
 // ecom
-#include <implementationproxy.h>
+#include <ecom/implementationproxy.h>
 // mtm
-// <qmail> MTMStore include removed
+#include <MTMStore.h>
 #include <mtmuibas.h>
 // mtcl
 #include <mtclbase.h>
@@ -54,9 +54,6 @@
 #include <miut_err.h>   // KErrImapServerBusy
 #include <miutmsg.h>
 #include <miutconv.h>
-// <qmail>
-#include <timrfc822datefield.h> // KUidMsvEmailTextEntry, KUidMsvEmailHtmlEntry 
-// </qmail>
 // imap
 #include <imapset.h>
 #include <imapcmds.h>
@@ -66,21 +63,26 @@
 // smtp
 #include <smtpset.h>
 
+#ifndef FF_CMAIL_INTEGRATION
+#include <timrfc822datefield.h>
+#endif // FF_CMAIL_INTEGRATION
+
 #include <cmsvattachment.h>           // CMsvAttachment
 #include <mmsvattachmentmanager.h>    // MMsvAttachmentManager
 // cfsmail
 //<cmail>
-#include <CFSMailCommon.h>
-#include <CFSMailMessage.h>
-#include <CFSMailFolder.h>
+#include "cfsmailcommon.h"
+#include "cfsmailmessage.h"
+#include "cemailsettingsextensionimpl.h"
+
 // sendui
 #include <SendUiConsts.h>
 #include <SenduiMtmUids.h>
 
-// <qmail> fsmailserverconst include removed
+#include "fsmailserverconst.h"
 // mfsmail
-#include "MFSMailBoxSearchObserver.h"
-#include "MFSMailEventObserver.h"
+#include "mfsmailboxsearchobserver.h"
+#include "mfsmaileventobserver.h"
 //</cmail>
 // alwaysonline
 #include <AlwaysOnlineManagerClient.h>
@@ -92,8 +94,6 @@
 //</cmail>
 
 #include <cemailaccounts.h>
-
-#include <in_sock.h>
 
 // Internal headers
 
@@ -143,7 +143,15 @@
 #include "ipsplgsearchop.h"
 #include "ipsplgtextsearcher.h"
 
-// <qmail> setting-related includes removed
+// settings
+#include "ipsplgsettingsobserver.h"
+#include "ipssetdataapi.h"
+#include "ipssetdatastorer.h"
+#include "ipssetdata.h"
+#include "ipssetdataextension.h"
+#include "ipssetutils.h"
+#include "ipssetutilsconsts.hrh"
+
 // mrulist
 #include "ipsplgmrulist.h"
 
@@ -154,7 +162,7 @@
 #include "ipsplgsyncstatehandler.h"
 
 // observers
-#include "MFSMailRequestObserver.h"
+#include "mfsmailrequestobserver.h"
 #include "ipsplgsettingsobserver.h"
 #include "ipsplgpropertywatcher.h"
 
@@ -165,23 +173,25 @@
 
 // operations
 #include "ipsplgtimeroperation.h"
-// <qmail> removing #include "ipsplgoperationwait.h"
+#include "ipsplgoperationwait.h"
 #include "ipsplgonlineoperation.h"
-// <qmail>
-#include "ipsplgcreatemessageoperation.h"
-#include "ipsplgcreateforwardmessageoperation.h"
-#include "ipsplgcreatereplymessageoperation.h"
-#include "ipsplgnewchildpartfromfileoperation.h"
-#include "ipsplgremovechildpartoperation.h"
-#include "ipsplgmailstoreroperation.h"
-#include "ipsplgmessagepartstoreroperation.h"
-// </qmail>
 #include "ipsplgdisconnectop.h"
 #include "ipsplgservicedeletionop.h"
-// <qmail> name changed
-#include "ipsplgdeleteoperation.h"
-// </qmail>
+#include "ipsplgdeleteremote.h"
 #include "ipsplgdeletelocal.h"
 #include "ipsplgsingleopwatcher.h"
 
+
+
+
+
+
+
+
+
+// #include "ipsplgheaders.h"
+
 #endif //IPSPLGHEADERS_H
+
+
+

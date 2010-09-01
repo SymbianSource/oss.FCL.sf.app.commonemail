@@ -15,14 +15,11 @@
 *
 */
 
-#include "emailtrace.h"
 
-//<qmail>
-#include <nmcommonheaders.h>
-//</qmail>
-#include "CFSMailPluginManager.h"
-#include "CFSMailRequestObserver.h"
-#include "CFSMailRequestHandler.h"
+#include "emailtrace.h"
+#include "cfsmailpluginmanager.h"
+#include "cfsmailrequestobserver.h"
+#include "cfsmailrequesthandler.h"
 
 // ================= MEMBER FUNCTIONS ==========================================
 // -----------------------------------------------------------------------------
@@ -30,7 +27,8 @@
 // -----------------------------------------------------------------------------
 CFSMailPluginManager::CFSMailPluginManager()
 {
-    NM_FUNCTION;
+    FUNC_LOG;
+
 }
 
 // -----------------------------------------------------------------------------
@@ -38,8 +36,7 @@ CFSMailPluginManager::CFSMailPluginManager()
 // -----------------------------------------------------------------------------
 CFSMailPluginManager::~CFSMailPluginManager()
 {
-    NM_FUNCTION;
-    
+    FUNC_LOG;
 	iPluginInfo.ResetAndDestroy();
 }
 
@@ -49,12 +46,11 @@ CFSMailPluginManager::~CFSMailPluginManager()
 // -----------------------------------------------------------------------------
 CFSMailPluginManager* CFSMailPluginManager::NewLC(TInt aConfiguration)
 {
-    NM_FUNCTION;
-    
-    CFSMailPluginManager* pluginManager = new (ELeave) CFSMailPluginManager();
-    CleanupStack:: PushL(pluginManager);
-    pluginManager->ConstructL(aConfiguration);
-    return pluginManager;
+    FUNC_LOG;
+  CFSMailPluginManager* pluginManager = new (ELeave) CFSMailPluginManager();
+  CleanupStack:: PushL(pluginManager);
+  pluginManager->ConstructL(aConfiguration);
+  return pluginManager;
 } 
 
 // -----------------------------------------------------------------------------
@@ -62,11 +58,10 @@ CFSMailPluginManager* CFSMailPluginManager::NewLC(TInt aConfiguration)
 // -----------------------------------------------------------------------------
 CFSMailPluginManager* CFSMailPluginManager::NewL(TInt aConfiguration)
 {
-    NM_FUNCTION;
-    
-    CFSMailPluginManager* pluginManager =  CFSMailPluginManager::NewLC(aConfiguration);
-    CleanupStack:: Pop(pluginManager);
-    return pluginManager;
+    FUNC_LOG;
+  CFSMailPluginManager* pluginManager =  CFSMailPluginManager::NewLC(aConfiguration);
+  CleanupStack:: Pop(pluginManager);
+  return pluginManager;
 }
 
 // -----------------------------------------------------------------------------
@@ -74,7 +69,7 @@ CFSMailPluginManager* CFSMailPluginManager::NewL(TInt aConfiguration)
 // -----------------------------------------------------------------------------
 void CFSMailPluginManager::ConstructL(TInt aConfiguration)
 {
-    NM_FUNCTION;
+    FUNC_LOG;
 
 	// list plugin implementations
 
@@ -113,7 +108,8 @@ void CFSMailPluginManager::ConstructL(TInt aConfiguration)
 // -----------------------------------------------------------------------------
 void CFSMailPluginManager::LoadPluginL( TUid /*aPlugin*/ )
 {
-    NM_FUNCTION;
+    FUNC_LOG;
+
 }
 	
 // -----------------------------------------------------------------------------
@@ -121,8 +117,7 @@ void CFSMailPluginManager::LoadPluginL( TUid /*aPlugin*/ )
 // -----------------------------------------------------------------------------
 CFSMailPlugin* CFSMailPluginManager::GetPluginByIndex(TUint aIndex)
 	{
-    NM_FUNCTION;
-    
+    FUNC_LOG;
 	return iPluginList[aIndex]->iPlugin;
 	}
 
@@ -131,8 +126,7 @@ CFSMailPlugin* CFSMailPluginManager::GetPluginByIndex(TUint aIndex)
 // -----------------------------------------------------------------------------
 TUid CFSMailPluginManager::GetPluginIdByIndex(TUint aIndex)
 	{
-    NM_FUNCTION;
-    
+    FUNC_LOG;
 	return iPluginList[aIndex]->iPluginId;
 	}
 
@@ -141,10 +135,46 @@ TUid CFSMailPluginManager::GetPluginIdByIndex(TUint aIndex)
 // -----------------------------------------------------------------------------
 TUint CFSMailPluginManager::GetPluginCount( )
 	{
-    NM_FUNCTION;
-    
+    FUNC_LOG;
 	return iPluginList.Count();
 	}
 	
+// -----------------------------------------------------------------------------
+// CFSMailPluginManager::RecheckPlugins
+// -----------------------------------------------------------------------------
 
-
+void CFSMailPluginManager::RecheckPlugins( )
+    {
+    FUNC_LOG;
+    
+    CFSMailPlugin* plugin = NULL;
+    
+    TInt tempCount = iPluginInfo.Count();
+    
+    for ( TInt i = 0; i < tempCount; i++ )
+        {
+        TUid id = iPluginInfo[i]->ImplementationUid();
+        TBool found = false;
+        
+        // check if plugin is already in plugin list
+        for ( TInt j = 0; j < iPluginList.Count(); j++)
+            {
+            
+            if ( iPluginList[j]->iPluginId == id )
+                {
+                found = true;
+                break;
+                }
+            }
+        // if plugin is not found try to create it and add it to plugin list.
+        if ( !found )
+            {
+            TRAPD(err,plugin = CFSMailPlugin::NewL( id ));
+            CFSMailPlugin::Close();
+            if ( err == KErrNone && plugin != NULL )
+                {
+                AddPluginL(id,plugin);
+                }
+            }
+        }
+    }

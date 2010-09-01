@@ -26,7 +26,7 @@
 
 #include <e32base.h>
 //<cmail>
-#include "DebugLogMacros.h"
+#include "debuglogmacros.h"
 #include "ImsPointsecObserver.h"
 #include "ImsPointsecMonitor.h"
 #include "StoreDriveMonitor.h"
@@ -125,7 +125,7 @@ class CMessageStoreServer : private CPolicyServer,
 
         static CMessageStoreServer* NewLC();
 
-        void AddSessionL( CMessageStoreSession* aSession );
+        void AddSession( CMessageStoreSession* aSession );
 
         void DropSession( CMessageStoreSession* aSession );
 

@@ -18,42 +18,35 @@
 
 //MsgStore.
 //<cmail>
-#include "MsgStore.h"
-#include "MsgStoreAccount.h"
-#include "MsgStoreMailBox.h"
-#include "MsgStoreMessage.h"
-#include "MsgStoreFolder.h"
-#include "MsgStorePropertyContainer.h"
-#include "MsgStorePropertyKeys.h"
-#include "MsgStoreSortCriteria.h"
-#include "MsgStoreSortResultIterator.h"
+#include "msgstore.h"
+#include "msgstoreaccount.h"
+#include "msgstoremailbox.h"
+#include "msgstoremessage.h"
+#include "msgstorefolder.h"
+#include "msgstorepropertycontainer.h"
+#include "msgstorepropertykeys.h"
+#include "msgstoresortcriteria.h"
+#include "msgstoresortresultiterator.h"
 //Freestyle.
-#include "CFSMailCommon.h"
-#include "CFSMailMessage.h"
+#include "cfsmailcommon.h"
+#include "cfsmailmessage.h"
 #include "cmrcalendarinfo.h" 
 //</cmail>
 //Base plugin.
-#include "BasePlugin.h"
-#include "BasePluginPanic.h"
+#include "baseplugin.h"
+#include "basepluginpanic.h"
 #include "baseplugincommonutils.h"
-#include "MailIterator.h"
+#include "mailiterator.h"
 #include "baseplugindelayedopsprivate.h"
-
-//<qmail>
-#include "CFSMailFolder.h"
-#include "baseplugindef.h"
-//</qmail>
-
 // Other
 #include <e32base.h>
 #include <utf.h>
 #include <calsession.h>
 
-//<qmail>
 //<cmail>
-//#include "freestyleemailuiconstants.h" // removed from 10.1
+#include "FreestyleEmailUiConstants.h"
 //</cmail>
-//</qmail>
+
 //size of the read buffer when reading body content from the quoted
 //message when replying/forwarding.
 const TInt KQuotedReadBufferSize = 1024*64;
@@ -84,7 +77,7 @@ CBasePlugin* CBasePlugin::NewL()
 /**
  *
  */
- void CBasePlugin::ConstructL()
+EXPORT_C void CBasePlugin::ConstructL()
     {
     __LOG_CONSTRUCT( "baseplugin", "CBasePlugin" )
 
@@ -100,7 +93,7 @@ CBasePlugin* CBasePlugin::NewL()
 /**
  *
  */
- CBasePlugin::CBasePlugin()
+EXPORT_C CBasePlugin::CBasePlugin()
 : iMailboxes( RMap<TInt, CMailboxInfo>::CompareInt )
    {
    }
@@ -109,7 +102,7 @@ CBasePlugin* CBasePlugin::NewL()
 /**
  *
  */
-CBasePlugin::~CBasePlugin()
+EXPORT_C CBasePlugin::~CBasePlugin()
     {
     //needs to be first thing to do as it might force execution of operations
     //that depend on the plugin's current state.
@@ -118,9 +111,7 @@ CBasePlugin::~CBasePlugin()
     iMailboxes.ResetAndDestroy();
     iMailboxes.Close();
 
-//<qmail>
-    if ( iObservers.Count() > 0 && iMsgStore )
-//</qmail>
+    if ( iObservers.Count() > 0 )
         {
         TRAP_IGNORE( iMsgStore->RemoveObserverL( this ) );
         }
@@ -130,12 +121,7 @@ CBasePlugin::~CBasePlugin()
 
     iReqs.ResetAndDestroy();
     iReqs.Close();
-//<qmail>
-    // Note that all the ops in iDelayedOpReqs array (if any) have already been
-    // deleted in the destructor of CDelayedOpsManager class.
-    iDelayedOpReqs.Reset();
-    iDelayedOpReqs.Close();
-//</qmail>
+    
     ResetCache();
 
     __LOG_DESTRUCT
@@ -149,7 +135,7 @@ CBasePlugin::~CBasePlugin()
  * Note that as the msgstore performs the delete immediately the observer will get
  * called from within this method.
  */
- void CBasePlugin::DeleteMailBoxByUidL(
+EXPORT_C void CBasePlugin::DeleteMailBoxByUidL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
 	const TInt aRequestId )
@@ -202,7 +188,7 @@ CBasePlugin::~CBasePlugin()
 /**
  *
  */
- void CBasePlugin::ListMailBoxesL( RArray<TFSMailMsgId>& aMailboxes )
+EXPORT_C void CBasePlugin::ListMailBoxesL( RArray<TFSMailMsgId>& aMailboxes )
     {
     __LOG_ENTER( "ListMailBoxesL" )
     
@@ -244,7 +230,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aMailBoxId if not found leaves with KErrNotFound.
  */
- CFSMailBox* CBasePlugin::GetMailBoxByUidL( const TFSMailMsgId& aMailBox )
+EXPORT_C CFSMailBox* CBasePlugin::GetMailBoxByUidL( const TFSMailMsgId& aMailBox )
     {
     __LOG_ENTER( "GetMailBoxByUidL" )
 
@@ -318,7 +304,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aMailBoxId if not found leaves with KErrNotFound.
  */
- TFSMailMsgId CBasePlugin::GetStandardFolderIdL(
+EXPORT_C TFSMailMsgId CBasePlugin::GetStandardFolderIdL(
     const TFSMailMsgId& aMailBoxId,
     const TFSFolderType aFolderType )
     
@@ -346,7 +332,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aMailBoxId if not found leaves with KErrNotFound.
  */
- CFSMailFolder* CBasePlugin::GetFolderByUidL(
+EXPORT_C CFSMailFolder* CBasePlugin::GetFolderByUidL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aFolderId )
 
@@ -417,7 +403,7 @@ CBasePlugin::~CBasePlugin()
  * @param aMailBoxId if not found leaves with KErrNotFound.
  * @return if the folder already exists returns the existing one.
  */
- CFSMailFolder* CBasePlugin::CreateFolderL(
+EXPORT_C CFSMailFolder* CBasePlugin::CreateFolderL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aParentFolderId,
     const TDesC& aFolderName,
@@ -463,7 +449,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aMailBoxId if not found leaves with KErrNotFound.
  */
- void CBasePlugin::DeleteFolderByUidL(
+EXPORT_C void CBasePlugin::DeleteFolderByUidL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aFolder )
     
@@ -479,7 +465,7 @@ CBasePlugin::~CBasePlugin()
 /**
  *
  */
- void CBasePlugin::ListFoldersL(
+EXPORT_C void CBasePlugin::ListFoldersL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aFolderId,
     RPointerArray<CFSMailFolder>& aFolderList )
@@ -504,7 +490,7 @@ CBasePlugin::~CBasePlugin()
 /**
  *
  */
- void CBasePlugin::ListFoldersL(
+EXPORT_C void CBasePlugin::ListFoldersL(
     const TFSMailMsgId& aMailBoxId,
     RPointerArray<CFSMailFolder>& aFolderList )
     
@@ -522,7 +508,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aMailBoxId if not found leaves with KErrNotFound.
  */
- MFSMailIterator* CBasePlugin::ListMessagesL(
+EXPORT_C MFSMailIterator* CBasePlugin::ListMessagesL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aFolderId,
     const TFSMailDetails aDetails,
@@ -601,7 +587,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aMailBoxId if not found leaves with KErrNotFound.
  */
- CFSMailMessage* CBasePlugin::GetMessageByUidL(
+EXPORT_C CFSMailMessage* CBasePlugin::GetMessageByUidL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& /*aFolderId*/,
     const TFSMailMsgId& aMessageId,
@@ -626,7 +612,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aMailBoxId if not found leaves with KErrNotFound.
  */
- void CBasePlugin::DeleteMessagesByUidL(
+EXPORT_C void CBasePlugin::DeleteMessagesByUidL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aFolderId,
     const RArray<TFSMailMsgId>& aMessages )
@@ -648,7 +634,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aMailBoxId if not found leaves with KErrNotFound.
  */
- CFSMailMessage* CBasePlugin::CreateMessageToSendL(
+EXPORT_C CFSMailMessage* CBasePlugin::CreateMessageToSendL(
     const TFSMailMsgId& aMailBox )
     
     {
@@ -752,28 +738,6 @@ CBasePlugin::~CBasePlugin()
         {
         CleanupStack::PopAndDestroy( signature );
         }
-    
-//<qmail> 
-    //create the text/html part.
-    props = CMsgStorePropertyContainer::NewL();
-    CleanupStack::PushL( props );
-    
-	props->AddPropertyL(
-        KMsgStorePropertyContentType, KFSMailContentTypeTextHtml );
-	
-    props->AddPropertyL( KMsgStorePropertyCharset, KMessageBodyCharset );
-
-    props->AddPropertyL(
-        KMsgStorePropertyContentDisposition, KMessageBodyDisposition );
-    
-    CMsgStoreMessagePart* htmlPlain = bodyPart->AddChildPartL( *props );
-    CleanupStack::PopAndDestroy( props );         
-    CleanupStack::PushL( htmlPlain );
-    htmlPlain->AppendToContentL(KNullDesC8);
-    CleanupStack::PopAndDestroy( htmlPlain );
-//</qmail>
-    
-    //delete body part
     CleanupStack::PopAndDestroy( bodyPart );
 	
 	//done.
@@ -793,26 +757,11 @@ CBasePlugin::~CBasePlugin()
     return result;
     }
 
- // <qmail>
- /**
-  *
-  */
- void CBasePlugin::CreateMessageToSendL(
-    const TFSMailMsgId& aMailBoxId,
-    MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId)
-    {
-     CDelayedMessageToSendOp* delayedOp = CDelayedMessageToSendOp::NewLC(
-    *this,aMailBoxId,aOperationObserver,aRequestId);
-    iDelayedOpsManager->EnqueueOpL( delayedOp );
-    iDelayedOpReqs.AppendL(delayedOp);
-    CleanupStack::Pop( delayedOp );      
-    }
- // </qmail> 
+
 /**
  *
  */
- CFSMailMessage* CBasePlugin::CreateForwardMessageL(
+EXPORT_C CFSMailMessage* CBasePlugin::CreateForwardMessageL(
     const TFSMailMsgId& aMailBox,
     const TFSMailMsgId& aOriginal,
     const TDesC& aHeaderDescriptor )
@@ -824,7 +773,7 @@ CBasePlugin::~CBasePlugin()
 /**
  * Relying on the UI for the subject and recipients.
  */
- CFSMailMessage* CBasePlugin::CreateReplyMessageL(
+EXPORT_C CFSMailMessage* CBasePlugin::CreateReplyMessageL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aOriginalMessageId,
     const TBool aReplyToAll,
@@ -837,7 +786,7 @@ CBasePlugin::~CBasePlugin()
 /**
  *
  */
- CFSMailMessage* CBasePlugin::CreateMrReplyMessageL(
+EXPORT_C CFSMailMessage* CBasePlugin::CreateMrReplyMessageL(
     const TFSMailMsgId& aMailBoxId,
     MMRInfoObject& /*aMeetingRequest*/,
     const TFSMailMsgId& aOriginalMessageId )
@@ -850,7 +799,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aMailBoxId if not found leaves with KErrNotFound.
  */
- void CBasePlugin::StoreMessageL(
+EXPORT_C void CBasePlugin::StoreMessageL(
     const TFSMailMsgId& aMailBoxId,
     CFSMailMessage& aMessage )
     
@@ -892,62 +841,12 @@ CBasePlugin::~CBasePlugin()
     __LOG_EXIT
     }
 
-// <qmail>
-/**
- *
- * @param aMailBoxId Mailbox id.
- * @param aOperationObserver Operation observer.
- * @param aRequestId The request id.
- */
- void CBasePlugin::StoreMessagesL(
-    const TFSMailMsgId& aMailBox,
-    RPointerArray<CFSMailMessage> &messages,
-    MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId )
-    
-    {
-    __LOG_ENTER( "StoreMessagesL" )
-    
-    CDelayedMessageStorerOp* delayedOp = CDelayedMessageStorerOp::NewLC(
-    aMailBox,messages,aOperationObserver,aRequestId);
-    iDelayedOpsManager->EnqueueOpL( delayedOp );
-    CleanupStack::Pop( delayedOp );
-   
-     
-    __LOG_EXIT
-    }
-// </qmail>
-
-
-// <qmail>
-/**
- * Asynchronous message part storing
- *
- * @param aMessagePart email parts data to be stored
- * @param aOperationObserver Observer for the operation 
- * @param aRequestId id of the operation
- */
- void CBasePlugin::StoreMessagePartsL(
-    RPointerArray<CFSMailMessagePart>& aMessageParts,
-    MFSMailRequestObserver& aOperationObserver,
-    const TInt aRequestId)
-{
-    __LOG_ENTER( "StoreMessagePartsL" )
-            
-    CDelayedMessageStorerOp* delayedOp = CDelayedMessageStorerOp::NewLC(
-    aMessageParts,aOperationObserver,aRequestId);
-    iDelayedOpsManager->EnqueueOpL( delayedOp );
-    CleanupStack::Pop( delayedOp );
-    
-    __LOG_EXIT
-}
-// <//qmail>
 
 /**
  * Async operation, starts fetching.
  * @param aRequestId
  */
- void CBasePlugin::FetchMessagesL(
+EXPORT_C void CBasePlugin::FetchMessagesL(
     const TFSMailMsgId& /*aMailBox*/,
     const TFSMailMsgId& /*aFolder*/,
     const RArray<TFSMailMsgId>& /*aMessageIds*/,
@@ -963,7 +862,7 @@ CBasePlugin::~CBasePlugin()
 /**
  *
  */
- void CBasePlugin::GetMessagesL(
+EXPORT_C void CBasePlugin::GetMessagesL(
     const TFSMailMsgId& /*aMailBoxId*/,
     const TFSMailMsgId& /*aParentFolderId*/,
     const RArray<TFSMailMsgId>& /*aMessageIds*/,
@@ -978,7 +877,7 @@ CBasePlugin::~CBasePlugin()
 /**
  * CFSMailPlugin::SendMessageL
  */
- void CBasePlugin::SendMessageL( CFSMailMessage& aMessage )    
+EXPORT_C void CBasePlugin::SendMessageL( CFSMailMessage& aMessage )    
     {
     __LOG_ENTER( "SendMessageL1" )
 
@@ -1008,7 +907,7 @@ CBasePlugin::~CBasePlugin()
  * This allows for optimizing away of unnecessary writes to the msgstore.
  * @param aSentTime the sent time you want set for the message.
  */
- void CBasePlugin::SendMessageL(
+EXPORT_C void CBasePlugin::SendMessageL(
     CMsgStoreMailBox& aMailBox,
     CMsgStoreMessage& aMsg,
     const TTime& aSentTime )    
@@ -1040,7 +939,7 @@ CBasePlugin::~CBasePlugin()
 /**
  *
  */
- void CBasePlugin::MoveMessagesL(
+EXPORT_C void CBasePlugin::MoveMessagesL(
     const TFSMailMsgId& aMailBoxId,
     const RArray<TFSMailMsgId>& aMessageIds,
     const TFSMailMsgId& aSourceFolderId,
@@ -1063,7 +962,7 @@ CBasePlugin::~CBasePlugin()
 /**
  *
  */
- void CBasePlugin::CopyMessagesL(
+EXPORT_C void CBasePlugin::CopyMessagesL(
     const TFSMailMsgId& aMailBoxId,
     const RArray<TFSMailMsgId>& aMessageIds,
     RArray<TFSMailMsgId>& aNewMessages,
@@ -1097,7 +996,7 @@ CBasePlugin::~CBasePlugin()
  *
  * @param aId mailbox id, if none can be found leaves with KErrNotFound.
  */
- CMailboxInfo& CBasePlugin::GetMailboxInfoL(
+EXPORT_C CMailboxInfo& CBasePlugin::GetMailboxInfoL(
     TMsgStoreId aId )
     {
     
@@ -1257,7 +1156,7 @@ void CBasePlugin::DoListFoldersL(
  * This methoed must be called before destruction of 
  * CBasePlugin derived class. To fix bug EIZU-7XVF2Z.
  */
-void CBasePlugin::DeleteDelayedOpsManager()
+EXPORT_C void CBasePlugin::DeleteDelayedOpsManager()
     {
     delete iDelayedOpsManager;
     iDelayedOpsManager = NULL;
@@ -1297,7 +1196,7 @@ CFSMailAddress* CBasePlugin::FetchEmailAddressL(
 /**
  *
  */
- CMsgStoreMessagePart* CBasePlugin::GetBodyPartL(
+EXPORT_C CMsgStoreMessagePart* CBasePlugin::GetBodyPartL(
     CMsgStoreMessage& aMessage,
     const TDesC& aContentType )
     {
@@ -1357,7 +1256,7 @@ CFSMailAddress* CBasePlugin::FetchEmailAddressL(
 /**
  *
  */
- CFSMailMessage* CBasePlugin::CreateForwardReplyMessageL(
+EXPORT_C CFSMailMessage* CBasePlugin::CreateForwardReplyMessageL(
     const TFSMailMsgId& aMailBox,
     const TFSMailMsgId& aOriginal,
     const TBool aReplyToAll,
@@ -1671,7 +1570,7 @@ CFSMailAddress* CBasePlugin::FetchEmailAddressL(
  * RefreshMailboxCacheL - This will refresh the mailbox instance cache maintained within the base plugin.  
  *
  */
- CMailboxInfo& CBasePlugin::RefreshMailboxCacheL( TMsgStoreId aMailBoxId )
+EXPORT_C CMailboxInfo& CBasePlugin::RefreshMailboxCacheL( TMsgStoreId aMailBoxId )
     {
     //save the observers
     CMailboxInfo& oldMailBox = GetMailboxInfoL( aMailBoxId );

@@ -1,0 +1,106 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Opearation code definitions
+*
+*/
+
+
+#ifndef ESMRICALVIEWEROPCODES_HRH
+#define ESMRICALVIEWEROPCODES_HRH
+
+//<cmail>
+#include "esmrcommands.h"
+//</cmail>
+
+/**
+ * ESMRIcalViewer operations
+ */
+enum TESMRIcalViewerOperationType
+    {
+    // Meeting Request operations
+    // View launch operation
+    EESMRViewLaunch         = 1,
+    // Response to MR operation
+    EESMRResponseToMR       = 2,
+    // Remove MR from Calendar operation
+    EESMRRemoveMR           = 3,
+    // Resolve MR method operation
+    EESMRResolveMRMethod    = 4,
+    // Resolve, if message can be viewed with MR viewer
+    EESMRCanViewMR = 5,
+    // Resolve MR method operation
+    EESMRResolveMRMethodSync = 6,
+
+    // ESMRIcalViewer command ids
+    // Loads meeting request data
+    EESMRLoadMRData          = 100,
+    EESMRLoadMRInfoData      = 101,
+    EESMRLoadImapData        = 102,
+    EESMRFetchMailContent    = 103,
+    EESMRLoadMRIcalData      = 104,
+    EESMREmailCommand        = 105,
+    EESMRLaunchUI            = 106,
+    EESMRFetchAttachmentInfo = 107,
+
+    /**
+     * FS Email specific commands
+     */
+    // Trys to open attachment in propriate viewer, async
+    EESMRCmdOpenAttachment              = EESMRFirstFSMailCommand,
+    // Opens attachment list view directly, async
+    EESMRCmdOpenAttachmentView,
+    // Start attachment download, async
+    EESMRCmdDownloadAttachment,
+    EESMRCmdDownloadAllAttachments,
+    // Cancel attachment download, async
+    EESMRCmdCancelDownload,
+    EESMRCmdCancelAllDownloads,
+    // Save attachments
+    EESMRCmdSaveAttachment,
+    EESMRCmdSaveAllAttachments,
+    // MR messsage is marked unread, sync
+    EESMRCmdMailMarkUnread,
+    // MR message is marked read, sync
+    EESMRCmdMailMarkRead,
+    // MR message is deleted, async
+    EESMRCmdMailDelete,
+    // MR message is forwarded as email message, async
+    EESMRCmdMailForwardAsMessage,
+    // MR message is moved to another folder, async
+    EESMRCmdMailMoveMessage,
+    // MR message is copied to another folder, async
+    EESMRCmdMailCopyMessage,
+    // MR message is flagges, sync
+    EESMRCmdMailFlagMessage,
+    // Message composer is launched, async
+    EESMRCmdMailComposeMessage,
+    // MR message details is shown, async
+    EESMRCmdMailMessageDetails,
+    // Show previous message, async
+    EESMRCmdMailPreviousMessage,
+    // Show next message, async
+    EESMRCmdMailNextMessage,
+    // Move message to drafts, async
+    EESMRCmdMailMoveMessageToDrafts,
+    // Open download manager, async
+    EESMRCmdDownloadManager,
+    // Replys to message sender, async
+    EESMRCmdMailReply,
+    // Replys to all recipients in the message, async
+    EESMRCmdMailReplyAll
+    };
+
+#endif // MESMRICALVIEWEROPCODES_HRH
+
+// End of file

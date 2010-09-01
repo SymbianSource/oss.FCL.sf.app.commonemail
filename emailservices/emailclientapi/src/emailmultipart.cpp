@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,9 +22,11 @@
 #include "emailmessage.h"
 #include "emailclientapi.hrh"
 
+
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 CEmailMultipart* CEmailMultipart::NewL( 
         CPluginData& aPluginData,
         const TMessageContentId& aMsgContentId,
@@ -34,13 +36,14 @@ CEmailMultipart* CEmailMultipart::NewL(
     CEmailMultipart* self = new ( ELeave ) CEmailMultipart( aOwner );
     CleanupStack::PushL( self );
     self->ConstructL( aPluginData, aMsgContentId, aPart );
-    CleanupStack::Pop( self );
+    CleanupStack::Pop();
     return self;
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::ConstructL(
         CPluginData& aPluginData,
         const TMessageContentId& aMsgContentId,
@@ -52,6 +55,7 @@ void CEmailMultipart::ConstructL(
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 CEmailMultipart::~CEmailMultipart()
     {
     delete iEmailMsgContent;
@@ -61,57 +65,56 @@ CEmailMultipart::~CEmailMultipart()
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
-CEmailMultipart::CEmailMultipart( const TDataOwner aOwner ) : iOwner( aOwner )
+//
+CEmailMultipart::CEmailMultipart( const TDataOwner aOwner ) : iOwner( aOwner )        
     {
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TInt CEmailMultipart::PartCountL()
     {
     iChildParts.Reset();
     RPointerArray<CFSMailMessagePart> childParts;
-    CleanupResetAndDestroyPushL( childParts );
+    CleanupResetAndDestroyPushL( childParts );    
     iEmailMsgContent->Part().ChildPartsL( childParts );
     iChildPartCount = childParts.Count();
-
-    for ( TInt i = 0; i < iChildPartCount; i++ )
+    
+    for (TInt i = 0; i < iChildPartCount; i++)
         {
         TFSMailMsgId id = childParts[i]->GetPartId();
         iChildParts.AppendL( id );
         }
-    CleanupStack::PopAndDestroy( &childParts );
+    CleanupStack::PopAndDestroy();
     return iChildPartCount;
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 MEmailMessageContent* CEmailMultipart::PartByIndexL( const TUint aIndex ) const
     {
-    if ( aIndex >= iChildPartCount )
+    if (aIndex >= iChildPartCount)
         {
-        User::Leave( KErrArgument );
+        User::Leave( KErrArgument );        
         }
     MEmailMessageContent* content = NULL;
     TFSMailMsgId partId = iChildParts[aIndex];
     CFSMailMessagePart* copy = iEmailMsgContent->Part().ChildPartL( partId );
-    if ( !copy )
-        return content;
-
-    TContentType contentType( copy->GetContentType() );
+    TContentType contentType( copy->GetContentType() ); 
     TMessageContentId msgContentId = TMessageContentId( 
             copy->GetPartId().Id(),
             Id().iMessageId.iId,
             Id().iMessageId.iFolderId.iId,
-            Id().iMessageId.iFolderId.iMailboxId );
-
+            Id().iMessageId.iFolderId.iMailboxId ); 
+   
     if ( contentType.Equals( KFSMailContentTypeTextPlain ) || 
          contentType.Equals( KFSMailContentTypeTextHtml ) )
-        {
-        content = CEmailTextContent::NewL( 
-            iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
+        {                                
+        content = CEmailTextContent::NewL( iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
         }
     else if ( contentType.Equals( KFSMailContentTypeMultipartMixed ) ||
               contentType.Equals( KFSMailContentTypeMultipartAlternative ) ||
@@ -119,25 +122,24 @@ MEmailMessageContent* CEmailMultipart::PartByIndexL( const TUint aIndex ) const
               contentType.Equals( KFSMailContentTypeMultipartRelated ) ||
               contentType.Equals( KFSMailContentTypeMultipartParallel ) )
         {
-        content = CEmailMultipart::NewL( 
-            iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
+        content = CEmailMultipart::NewL( iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
         }
     else 
         {
-        content = CEmailAttachment::NewL( 
-            iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
-        } 
-    return content;
+        content = CEmailAttachment::NewL( iEmailMsgContent->PluginData(), msgContentId, copy, EClientOwns );
+        }                    
+    return content;    
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::DeletePartL( const TUint aIndex )
     {
-    if ( aIndex >= iChildPartCount )
+    if (aIndex >= iChildPartCount)
         {
-        User::Leave( KErrArgument );
+        User::Leave( KErrArgument );        
         }
     
     TFSMailMsgId partId = iChildParts[aIndex];
@@ -149,50 +151,52 @@ void CEmailMultipart::DeletePartL( const TUint aIndex )
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::AddPartL(
         const MEmailMessageContent& aPart,
         const TUint aPos )
     {
-    if ( aPos > iChildPartCount )
+    if (aPos > iChildPartCount)
         {
-        User::Leave( KErrArgument );
+        User::Leave( KErrArgument );        
         }
-
+    
     TFSMailMsgId insertBefore = TFSMailMsgId();
-    if ( aPos <  iChildPartCount )
+    if (aPos <  iChildPartCount)
         {
         insertBefore = iChildParts[aPos];
         }
     const TDesC& contentType = aPart.ContentType();
 
-    CFSMailMessagePart* newPart = 
-        iEmailMsgContent->Part().NewChildPartL( insertBefore, contentType );
+    CFSMailMessagePart* newPart = iEmailMsgContent->Part().NewChildPartL( insertBefore, contentType );
     CleanupStack::PushL( newPart );
     TFSMailMsgId newPartId = newPart->GetPartId(); 
     iChildParts.InsertL( newPartId, aPos );
     iChildPartCount = iChildParts.Count();
-    CleanupStack::Pop( newPart );
+    CleanupStack::Pop();
     
 
-
+    
     return;
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TEmailTypeId CEmailMultipart::InterfaceId() const
     {
     return KEmailIFUidMultipart;
     }
-
+    
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::Release()
     {
     if ( iOwner == EClientOwns )
-        {
+        {    
         delete this;
         }
     }
@@ -200,6 +204,7 @@ void CEmailMultipart::Release()
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TMessageContentId CEmailMultipart::Id() const
     {
     return iEmailMsgContent->Id(); 
@@ -208,6 +213,7 @@ TMessageContentId CEmailMultipart::Id() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TPtrC CEmailMultipart::ContentType() const
     {
     return iEmailMsgContent->ContentType();
@@ -216,6 +222,7 @@ TPtrC CEmailMultipart::ContentType() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::SetContentType( const TDesC& aContentType )
     {
     iEmailMsgContent->SetContentType( aContentType );
@@ -224,38 +231,43 @@ void CEmailMultipart::SetContentType( const TDesC& aContentType )
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TPtrC CEmailMultipart::ContentId() const
     {
-    return iEmailMsgContent->ContentId();
+    return iEmailMsgContent->ContentId();    
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::SetContentId( const TDesC& aContentId )
     {
-    iEmailMsgContent->SetContentId( aContentId );
+    iEmailMsgContent->SetContentId(aContentId);
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TPtrC CEmailMultipart::ContentDescription() const
     {
-    return iEmailMsgContent->ContentDescription();
+    return iEmailMsgContent->ContentDescription();    
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::SetContentDescription( const TDesC& aContentDescription )
     {
-    iEmailMsgContent->SetContentDescription( aContentDescription );
+    iEmailMsgContent->SetContentDescription(aContentDescription);
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TPtrC CEmailMultipart::ContentDisposition() const
     {
     return iEmailMsgContent->ContentDisposition();
@@ -264,14 +276,16 @@ TPtrC CEmailMultipart::ContentDisposition() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::SetContentDisposition( const TDesC& aContentDisposition )
     {
-    iEmailMsgContent->SetContentDisposition( aContentDisposition );
+    iEmailMsgContent->SetContentDisposition(aContentDisposition);
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TPtrC CEmailMultipart::ContentClass() const
     {
     return iEmailMsgContent->ContentClass();
@@ -280,14 +294,16 @@ TPtrC CEmailMultipart::ContentClass() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::SetContentClass( const TDesC& aContentClass )
     {
-    iEmailMsgContent->SetContentClass( aContentClass );
+    iEmailMsgContent->SetContentClass(aContentClass);
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TInt CEmailMultipart::AvailableSize() const
     {
     return iEmailMsgContent->AvailableSize();
@@ -296,6 +312,7 @@ TInt CEmailMultipart::AvailableSize() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TInt CEmailMultipart::TotalSize() const
     {
     return iEmailMsgContent->TotalSize();
@@ -304,6 +321,7 @@ TInt CEmailMultipart::TotalSize() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 TPtrC CEmailMultipart::ContentL() const
     {
     User::Leave(KErrNotSupported);
@@ -313,6 +331,7 @@ TPtrC CEmailMultipart::ContentL() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::SetContentL( const TDesC& aContent )
     {
     iEmailMsgContent->SetContentL( aContent );
@@ -321,14 +340,16 @@ void CEmailMultipart::SetContentL( const TDesC& aContent )
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::FetchL( MEmailFetchObserver& aObserver )
     {
-    iEmailMsgContent->FetchL( aObserver );
+    iEmailMsgContent->FetchL(aObserver);
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::CancelFetch()
     {
     iEmailMsgContent->CancelFetch();
@@ -337,23 +358,26 @@ void CEmailMultipart::CancelFetch()
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::SaveToFileL( const TDesC& aPath )
     {
-    iEmailMsgContent->SaveToFileL( aPath );
+    iEmailMsgContent->SaveToFileL(aPath);
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 MEmailMultipart* CEmailMultipart::AsMultipartOrNull() const
-    {
+    {    
     const MEmailMultipart* ptr = this;
-    return const_cast<MEmailMultipart*>( ptr );
+    return const_cast<MEmailMultipart*>(ptr);
     }
 
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 MEmailTextContent* CEmailMultipart::AsTextContentOrNull() const
     {
     return NULL;
@@ -362,6 +386,7 @@ MEmailTextContent* CEmailMultipart::AsTextContentOrNull() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 MEmailAttachment* CEmailMultipart::AsAttachmentOrNull() const
     {
     return NULL;
@@ -370,9 +395,8 @@ MEmailAttachment* CEmailMultipart::AsAttachmentOrNull() const
 // -----------------------------------------------------------------------------
 // 
 // -----------------------------------------------------------------------------
+//
 void CEmailMultipart::SetOwner( const TDataOwner aOwner )
     {
     iOwner = aOwner;
     }
-
-// End of file

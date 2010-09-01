@@ -21,8 +21,8 @@
 #define __MSG_STORE_FOLDER_H__
 
 //<cmail>
-#include "MsgStoreTypes.h"
-#include "MsgStoreWritablePropertyContainer.h"
+#include "msgstoretypes.h"
+#include "msgstorewritablepropertycontainer.h"
 //</cmail>
 
 //forward declaration

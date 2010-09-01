@@ -1,0 +1,221 @@
+;
+; Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+; All rights reserved.
+; This component and the accompanying materials are made available
+; under the terms of "Eclipse Public License v1.0"
+; which accompanies this distribution, and is available
+; at the URL "http://www.eclipse.org/legal/epl-v10.html".
+;
+; Initial Contributors:
+; Nokia Corporation - initial contribution.
+;
+; Contributors:
+;
+; Description: Stub package file for commonemail
+;
+; commonemailstub.pkg
+;
+;Language - standard language definitions
+&EN
+
+; standard SIS file header
+#{"Email"},(0x2001E277), 3,0,0, TYPE=SA
+
+;Localized Vendor Name 
+%{"Symbian"}
+
+;Unique Vendor name 
+:"Symbian"
+
+; File list in this stub pkg is out-of-date. Current assumption is that we can
+; always use so called SU type certificates when signing our sisx-packages and
+; in that case there is no need to list the files in stub sis anymore. If it
+; becomes evident that this assumption is wrong, then this file list needs to
+; be updated based on the current content of the normal pkg-file(s).
+; 
+; Even if the assumption is correct, this file and the actual stub sis file
+; are still needed and the version number need to be up-to-date for IAD to
+; work correctly.
+
+; emailuis / emailui 
+""-"z:\sys\bin\FreestyleEmailUi.exe"
+""-"z:\private\10003a3f\import\apps\FreestyleEmailUi_reg.r*"
+""-"z:\resource\apps\FreestyleEmailUi.r*"
+""-"z:\resource\apps\freestyleemailui_aif.mif"
+""-"z:\resource\apps\freestyleemailui.mif"
+""-"z:\private\2001E277\HtmlFile\attachment.gif"
+""-"z:\private\2001E277\HtmlFile\email.html"
+""-"z:\private\2001E277\HtmlFile\email_rtl.html"
+""-"z:\private\2001E277\HtmlFile\header.js"
+""-"z:\private\2001E277\HtmlFile\plus.gif"
+""-"z:\private\2001E277\HtmlFile\minus.gif"
+""-"z:\private\2001E277\HtmlFile\follow_up.png"
+""-"z:\private\2001E277\HtmlFile\follow_up_complete.png"
+""-"z:\private\2001E277\HtmlFile\todo_high_add.png"
+""-"z:\private\2001E277\HtmlFile\todo_low_add.png"
+
+
+; emailuis / gsemailsettings
+""-"z:\sys\bin\GSEmailSettingsPluginDll.dll"
+""-"z:\resource\apps\GSEmailSettingsPlugin.r*"
+""-"z:\resource\plugins\GSEmailSettingsPluginDll.r*"
+               
+; emailuis / uicomponents
+""-"z:\sys\bin\fs_generic.dll"
+""-"z:\sys\bin\fsscrollbarplugin.dll"
+""-"z:\resource\plugins\fsscrollbarplugin.r*"
+
+; emailuis / emailui / sendasmtm
+""-"z:\sys\bin\fssendashelper.dll"
+""-"z:\resource\messaging\mtm\fsmtms.r*"
+""-"z:\sys\bin\fsclientmtm.dll"
+""-"z:\sys\bin\fsservermtm.dll"
+""-"z:\sys\bin\fsuimtm.dll"
+""-"z:\resource\messaging\fsuimtm.r*"
+""-"z:\sys\bin\fsuidatamtm.dll"
+""-"z:\resource\messaging\fsuidatamtm.r*"
+""-"z:\resource\apps\fsuidatamtm.mif"
+
+; emailuis / widget
+""-"z:\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"
+""-"z:\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd"
+""-"z:\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"
+""-"z:\private\200159c0\install\emailwidget\hsps\00\manifest.dat"
+
+; emailservices / emailframework
+""-"z:\sys\bin\FSMailFramework.dll"
+""-"z:\sys\bin\FSFWCommonLib.dll"
+""-"z:\resource\fsmailbrandmanager.r*"
+""-"z:\resource\apps\*_brand_graphics.mif"
+
+; emailservices / psmruadapter
+""-"z:\sys\bin\PsMruAdapter.dll"
+""-"z:\resource\plugins\PsMruAdapter.rsc"
+
+; emailstore
+""-"z:\sys\bin\baseplugin.dll"
+""-"z:\sys\bin\MessageStoreClient.dll"
+""-"z:\sys\bin\MessageStoreServer.dll"
+""-"z:\sys\bin\MessageStoreExe.exe"
+""-"z:\sys\bin\ImsPointSecMonitor.dll"
+""-"z:\sys\bin\EmailStorePreInstall.exe"
+
+; emailserver
+""-"z:\resource\apps\fsmailserver.r*"
+""-"z:\sys\bin\fsmailserver.exe"
+""-"z:\private\10003a3f\import\apps\fsmailserver_reg.r*"
+""-"z:\sys\bin\fsmailserverautostart.exe"
+
+; emailserver / cmailhandlerplugin
+""-"z:\sys\bin\cmailhandlerplugin.dll"
+""-"z:\resource\plugins\cmailhandlerplugin.r*"
+""-"z:\resource\apps\cmailhandlerplugin.mif"
+""-"z:\resource\plugins\emailwidget.r*"
+
+; ipservices
+""-"z:\sys\bin\ipssosplugin.dll"
+""-"z:\sys\bin\ipssossettings.dll"
+""-"z:\sys\bin\ipssosaoplugin.dll"
+""-"z:\resource\plugins\ipssosplugin.r*"
+""-"z:\resource\plugins\IpsSosAOPlugin.r*"
+""-"z:\resource\ipssossettings.r*"
+
+; emailcontacts / contactactionservice
+""-"z:\sys\bin\fsccontactactionmenu.dll"
+""-"z:\resource\plugins\fsccontactactionmenu.r*"
+""-"z:\sys\bin\fsccontactactionservice.dll"
+""-"z:\resource\plugins\fsccontactactionservice.r*"
+""-"z:\resource\plugins\fscactionutils.r*"
+
+; emailcontacts / contactactionservice / pocplugin
+""-"z:\sys\bin\fscpocplugin.dll"
+""-"z:\resource\plugins\fscpocplugin.r*"
+""-"z:\resource\apps\fscpocplugin.r*"
+""-"z:\resource\apps\fscpocplugin.mif"
+
+; emailcontacts / contactactionservice / callplugin
+""-"z:\sys\bin\fsccallplugin.dll"
+""-"z:\resource\plugins\fsccallplugin.r*"
+""-"z:\resource\apps\fsccallplugin.r*"
+""-"z:\resource\apps\fsccallplugin.mif"
+
+; emailcontacts / contactactionservice / saveascontactplugin
+""-"z:\sys\bin\fscsaveascontactplugin.dll"
+""-"z:\resource\plugins\fscsaveascontactplugin.r*"
+""-"z:\resource\apps\fscsaveascontactplugin.r*"
+""-"z:\resource\apps\fscsaveascontactplugin.mif"
+
+; emailcontacts / contactactionservice / sendplugin
+""-"z:\sys\bin\fscsendplugin.dll"
+""-"z:\resource\plugins\fscsendplugin.r*"
+""-"z:\resource\apps\fscsendplugin.r*"
+""-"z:\resource\apps\fscsendplugin.mif"
+
+; emailcontacts / remotecontactlookup
+""-"z:\sys\bin\pbkxrclservice.dll"
+""-"z:\resource\plugins\pbkxrclservice.r*"
+""-"z:\sys\bin\pbkxrclengine.dll"
+""-"z:\resource\apps\pbkxrclengine.r*"
+""-"z:\sys\bin\fscrclsetting.dll"
+""-"z:\resource\plugins\fscrclsetting.r*"
+""-"z:\resource\plugins\fscrclsettingres.r*"
+""-"z:\resource\apps\pbkxrclengine.mif"
+
+; Help files 
+""-"z:\resource\xhtml\01\0x2001E277\*.*"
+""-"z:\resource\xhtml\02\0x2001E277\*.*"
+""-"z:\resource\xhtml\03\0x2001E277\*.*"
+""-"z:\resource\xhtml\04\0x2001E277\*.*"
+""-"z:\resource\xhtml\05\0x2001E277\*.*"
+""-"z:\resource\xhtml\06\0x2001E277\*.*"
+""-"z:\resource\xhtml\07\0x2001E277\*.*"
+""-"z:\resource\xhtml\08\0x2001E277\*.*"
+""-"z:\resource\xhtml\09\0x2001E277\*.*"
+""-"z:\resource\xhtml\10\0x2001E277\*.*"
+""-"z:\resource\xhtml\11\0x2001E277\*.*"
+""-"z:\resource\xhtml\12\0x2001E277\*.*"
+""-"z:\resource\xhtml\13\0x2001E277\*.*"
+""-"z:\resource\xhtml\14\0x2001E277\*.*"
+""-"z:\resource\xhtml\15\0x2001E277\*.*"
+""-"z:\resource\xhtml\16\0x2001E277\*.*"
+""-"z:\resource\xhtml\17\0x2001E277\*.*"
+""-"z:\resource\xhtml\18\0x2001E277\*.*"
+""-"z:\resource\xhtml\25\0x2001E277\*.*"
+""-"z:\resource\xhtml\26\0x2001E277\*.*"
+""-"z:\resource\xhtml\27\0x2001E277\*.*"
+""-"z:\resource\xhtml\28\0x2001E277\*.*"
+""-"z:\resource\xhtml\29\0x2001E277\*.*"
+""-"z:\resource\xhtml\30\0x2001E277\*.*"
+""-"z:\resource\xhtml\31\0x2001E277\*.*"
+""-"z:\resource\xhtml\32\0x2001E277\*.*"
+""-"z:\resource\xhtml\33\0x2001E277\*.*"
+""-"z:\resource\xhtml\37\0x2001E277\*.*"
+""-"z:\resource\xhtml\39\0x2001E277\*.*"
+""-"z:\resource\xhtml\42\0x2001E277\*.*"
+""-"z:\resource\xhtml\44\0x2001E277\*.*"
+""-"z:\resource\xhtml\45\0x2001E277\*.*"
+""-"z:\resource\xhtml\49\0x2001E277\*.*"
+""-"z:\resource\xhtml\50\0x2001E277\*.*"
+""-"z:\resource\xhtml\51\0x2001E277\*.*"
+""-"z:\resource\xhtml\54\0x2001E277\*.*"
+""-"z:\resource\xhtml\57\0x2001E277\*.*"
+""-"z:\resource\xhtml\58\0x2001E277\*.*"
+""-"z:\resource\xhtml\59\0x2001E277\*.*"
+""-"z:\resource\xhtml\67\0x2001E277\*.*"
+""-"z:\resource\xhtml\68\0x2001E277\*.*"
+""-"z:\resource\xhtml\70\0x2001E277\*.*"
+""-"z:\resource\xhtml\76\0x2001E277\*.*"
+""-"z:\resource\xhtml\78\0x2001E277\*.*"
+""-"z:\resource\xhtml\79\0x2001E277\*.*"
+""-"z:\resource\xhtml\83\0x2001E277\*.*"
+""-"z:\resource\xhtml\93\0x2001E277\*.*"
+""-"z:\resource\xhtml\94\0x2001E277\*.*"
+""-"z:\resource\xhtml\96\0x2001E277\*.*"
+""-"z:\resource\xhtml\129\0x2001E277\*.*"
+""-"z:\resource\xhtml\157\0x2001E277\*.*"
+""-"z:\resource\xhtml\158\0x2001E277\*.*"
+""-"z:\resource\xhtml\159\0x2001E277\*.*"
+""-"z:\resource\xhtml\161\0x2001E277\*.*"
+""-"z:\resource\xhtml\326\0x2001E277\*.*"
+""-"z:\resource\xhtml\401\0x2001E277\*.*"
+""-"z:\resource\xhtml\402\0x2001E277\*.*"

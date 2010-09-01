@@ -1,0 +1,85 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for project Contact Action Service Core
+*
+*/
+
+
+#include <platform_paths.hrh>
+#include <data_caging_paths.hrh>
+
+#include "../../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../../inc/emailtraceconfig.hrh"
+#include "../../inc/fsccontactactionserviceuids.hrh"
+#include "../../inc/pbkxcontactactionservicedebug.hrh"
+
+
+TARGET                  fscsaveascontactplugin.dll
+EPOCSTACKSIZE           0x5000
+TARGETTYPE              PLUGIN
+UID                     0x10009D8D KFscSaveAsContactPluginImplDllUid
+
+CAPABILITY              CAP_ECOM_PLUGIN
+
+VENDORID                VID_DEFAULT
+
+VERSION                 KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH              ../src
+SOURCE                  cfscsaveascontactpluginimpl.cpp
+
+USERINCLUDE             ../inc
+USERINCLUDE             ../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+
+USERINCLUDE             ../../../../inc
+
+LIBRARY                 avkon.lib 
+LIBRARY                 aknicon.lib eikcore.lib
+LIBRARY                 efsrv.lib 
+LIBRARY                 euser.lib 
+LIBRARY                 ecom.lib
+LIBRARY                 egul.lib
+LIBRARY                 commonengine.lib
+LIBRARY                 bafl.lib
+LIBRARY                 cone.lib 
+LIBRARY                 VPbkEng.lib
+LIBRARY                 fbscli.lib
+LIBRARY                 ws32.lib
+LIBRARY                 aknskins.lib
+LIBRARY                 centralrepository.lib
+LIBRARY                 Pbk2Presentation.lib
+LIBRARY cmaillogger.lib
+#if (PBKX_DEBUG_LEVEL > 0)
+LIBRARY                 pbkxdebug.lib
+#endif
+
+#ifdef TRACE_INTO_FILE
+LIBRARY                 flogger.lib
+#endif // TRACE_INTO_FILE
+
+SOURCEPATH              ../data
+START RESOURCE	        200025B2.rss
+TARGET                  fscsaveascontactplugin.rsc
+END
+
+START RESOURCE	        fscsaveascontactplugin.rss
+HEADER
+TARGETPATH              APP_RESOURCE_DIR
+LANGUAGE_IDS
+END
+
+//EXPORTUNFROZEN

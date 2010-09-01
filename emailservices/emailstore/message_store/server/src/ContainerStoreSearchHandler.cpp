@@ -29,7 +29,7 @@
 #include "MsgStoreSortResultRowSet.h"
 #include "PropertiesSerializer.h"
 //<cmail>
-#include "MsgStorePropertyKeys.h"
+#include "msgstorepropertykeys.h"
 //</cmail>
 
 // =========
@@ -274,13 +274,13 @@ void CContainerStoreSearchHandler::InitializeL( TMsgStoreSearchCmdParams& aCmdPa
     iFolderIds.Reset();
     for( TInt i = 0 ; i < aFolderIds.Count() ; i++ )
         {
-        iFolderIds.AppendL( aFolderIds[i] );
+        iFolderIds.Append( aFolderIds[i] );
         }
 
     iPropertyNames.ResetAndDestroy();
     for ( TInt i = 0 ; i < aPropertyNames.Count() ; i++ )
         {
-        iPropertyNames.AppendL( aPropertyNames[i] );
+        iPropertyNames.Append( aPropertyNames[i] );
         }
     aPropertyNames.Reset();
     
@@ -466,7 +466,7 @@ void CContainerStoreSearchHandler::CreateSearchPatternL( RPointerArray<HBufC>&  
         __LOG_WRITE_FORMAT1_INFO( "search string =%S", &searchStringPtr );
         
         HBufC* pattern = HBufC::NewL( searchString->Length() + 2 );
-        aSearchPatterns.AppendL( pattern );
+        aSearchPatterns.Append( pattern );
         TPtr seartStringPrt( pattern->Des() );
         
         //we are using MatchC(), so we need to add * to the start and end of the search pattern

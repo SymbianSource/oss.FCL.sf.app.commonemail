@@ -16,7 +16,15 @@
 *
 */
 
-#include "ipssosaopluginheaders.h"
+#include "emailtrace.h"
+#include <e32base.h>
+
+#include <AlwaysOnlineManagerCommon.h>
+#include <AlwaysOnlineManagerClient.h>
+
+#include "IpsSosAOPluginEComInterface.h"
+#include "IpsSosAOSmtpSendWatcher.h"
+#include "IpsSosAOImapPopLogic.h"
 
 const TInt KIpsSosAOPluginCommandBufferGra = 1;
 

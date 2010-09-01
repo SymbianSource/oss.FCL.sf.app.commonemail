@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<!DOCTYPE SystemDefinition SYSTEM "sysdef_1_4_0.dtd" [
+  <!ENTITY layer_real_source_path "s60/app/commonemail" >
+]>
+
+<SystemDefinition name="commonemail.50" schema="1.4.0">
+  <systemModel>
+    <layer name="app_layer">
+      <module name="commonemail.50">
+        <unit unitID="EDo.commonemail.50" mrp="" bldFile="&layer_real_source_path;/group" name="commonemail.50" />
+      </module>
+    </layer>
+  </systemModel>
+</SystemDefinition>

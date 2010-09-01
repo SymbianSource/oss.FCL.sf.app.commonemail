@@ -16,8 +16,15 @@
 *
 */
 
+
 // INCLUDE FILES
-#include "ipssosaopluginheaders.h"
+#include "emailtrace.h"
+#include <e32base.h>
+#include <AlwaysOnlineManagerCommon.h>
+
+#include "IpsSosAOEMNResolver.h"
+#include "IpsSosAOMboxLogic.h"
+#include "IpsSosAOBaseAgent.h"
 
 // Literals used when trying to match a mailbox 
 // to a received EMN message

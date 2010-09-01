@@ -1,0 +1,46 @@
+/*
+* Copyright (c) 2005 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for project esmrgui
+*
+*/
+
+
+#include <bldvariant.hrh>
+#include <platform_paths.hrh>
+
+PRJ_EXPORTS
+../inc/cesmrconfirmationquery.h     	|../../inc/cesmrconfirmationquery.h
+../inc/cesmrlistquery.h             	|../../inc/cesmrlistquery.h
+../inc/cesmrguilistquery.h          	|../../inc/cesmrguilistquery.h
+../inc/resmrstatic.h	            	|../../inc/resmrstatic.h
+../inc/nmrlayoutmanager.h               |../../inc/nmrlayoutmanager.h
+../inc/nmrcolormanager.h                |../../inc/nmrcolormanager.h
+../inc/cesmrglobalnote.h                |../../inc/cesmrglobalnote.h
+../inc/nmrbitmapmanager.h               |../../inc/nmrbitmapmanager.h
+../inc/cmrimage.h                       |../../inc/cmrimage.h
+../inc/cmrlabel.h                       |../../inc/cmrlabel.h
+../inc/cmrbutton.h                      |../../inc/cmrbutton.h
+../inc/cesmrsendui.h                    |../../inc/cesmrsendui.h
+../inc/cesmrcontactmanagerhandler.h     |../../inc/cesmrcontactmanagerhandler.h
+../inc/cesmrcontactmenuhandler.h        |../../inc/cesmrcontactmenuhandler.h
+../inc/cesmralarm.h                     |../../inc/cesmralarm.h
+../inc/cesmrrecurrence.h                |../../inc/cesmrrecurrence.h
+../inc/cmrstyluspopupmenu.h             |../../inc/cmrstyluspopupmenu.h
+../inc/mmrcontactmenuobserver.h	        |../../inc/mmrcontactmenuobserver.h
+
+PRJ_MMPFILES
+mrguicommon.mmp
+
+PRJ_EXTENSIONS
+

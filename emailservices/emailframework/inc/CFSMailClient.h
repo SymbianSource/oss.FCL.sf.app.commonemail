@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -22,13 +22,12 @@
 #include <e32std.h>
 #include <e32base.h>
 
-#include "CFSMailClient.hrh"
+#include "cfsmailclient.hrh"
 #include "cemailextensionbase.h"
 
-//<cmail>
-#include "MFSMailBrandManager.h"
-#include "CFSMailPlugin.h"
-//</cmail>
+#include "mfsmailbrandmanager.h"
+#include "cfsmailplugin.h"
+
 
 class CFSFWImplementation;
 class CFSMailPluginManager;
@@ -390,17 +389,7 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
       * @param aMailboxName new name for the mailbox
       */
      IMPORT_C void SetMailboxName( const TFSMailMsgId aMailboxId, const TDesC& aMailboxName );
-
-
-//<qmail>
-     /**
-      * increments reference count to framework singleton
-	  * visibility change to public by Qmail
-      */
-     IMPORT_C TInt IncReferenceCount();
-//</qmail>
      
-	 
      /**
       * Prepares and sets the MR description by converting HTML body to Plain text
       *
@@ -409,15 +398,6 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
       */     
      IMPORT_C virtual void PrepareMrDescriptionL( const TFSMailMsgId& aMailBoxId,
                                                   const TFSMailMsgId& aMessageId );
-// <qmail>
-     /**
-      * Gets the signature for the given mailbox.
-      * 
-      * @param aMailBoxId mailbox id
-      */
-     IMPORT_C HBufC* GetSignatureL( const TFSMailMsgId& aMailBoxId );
-// </qmail>
- 
 public: // from  CExtendableEmail
 
     /**
@@ -457,6 +437,11 @@ public: // from  CExtendableEmail
      * returns framework singleton instance if exists
      */
      static CFSMailClient* Instance();
+
+    /**
+     * increments reference count to framework singleton
+     */
+     TInt IncReferenceCount();
 
     /**
      * decrements reference count to framework singleton

@@ -15,39 +15,38 @@
 *     Contains mailbox specified always online logic
 *
 */
-//<Qmail>
-#ifndef IPSSOSAOMBOXLOGIC_H
-#define IPSSOSAOMBOXLOGIC_H
-//</Qmail>
+
+#ifndef IPSSOSAOMBOXLOGIC_CPP_
+#define IPSSOSAOMBOXLOGIC_CPP_
+
 #include <e32base.h> 
 #include <msvapi.h>
 
+//<cmail> removing internal dependency
+/*#ifdef _DEBUG
+#include "../../internal/IpsSosAOPluginTester/inc/IpsSosAOPluginTester.hrh"
+#endif // _DEBUG*/
+//</cmail>
 
 #include "IpsSosAOBaseAgent.h"
-//<QMail>
-
-//</QMail>
+#include "ipssetdataextension.h"
 #include "IpsSosAOPluginTimer.h"
+//<cmail>
+//</cmail>
 
-//<QMail>
-
-//</QMail>
+class CIpsSetDataApi;
 class CIpsSosAOBaseAgent;
-//<QMail>
-
-//</QMail>
+class CIpsSetDataExtension;
 class CIpsSosAOImapPopLogic;
 
 /**
 * class CIpsSosAOImapPopLogic;
 *
 */
-//<Qmail>
-NONSHARABLE_CLASS (CIpsSosAOMBoxLogic) : 
-//</Qmail>
+class CIpsSosAOMBoxLogic : 
     public CBase, 
-    public MIpsSosAOPluginTimerCallBack,
-    public MIpsSosAOAgentOperationResponse
+                           public MIpsSosAOPluginTimerCallBack,
+                           public MIpsSosAOAgentOperationResponse
     {
 
 public:
@@ -183,14 +182,18 @@ public:
      * mailbox settings
      * @param aNewValue new value of flag
      */
+     //<cmail>
     void SetEmnReceivedFlagL( TBool aNewValue );
+    //</cmail>
     
     /*
      * Gets mailbox roaming stopped status
      * @return ETrue if roaming and mailbox logic is stopped during roaming
      */
+     //<cmail>
     TBool IsMailboxRoamingStoppedL();
-    
+    //</cmail>
+
 	/**
      * Has mailbox ever received and OMA EMN
      */
@@ -256,7 +259,9 @@ private:
     /*
      * checks is operation completion error fatal and should timed sync swithc off
      */
+     //<cmail>
     TBool IsErrorFatalL( TInt aError );
+    //</cmail>
     
     /*
      * Suspends ongoing sync (or fetch) and swiths logic to suspend state
@@ -294,6 +299,11 @@ private:
      */
     TBool CanConnectIfRoamingL();
 
+// <cmail> removing flags    
+/*#ifdef IPSSOSIMAPPOLOGGING_ON
+    void WriteDebugData( TInt aEvent );
+#endif*/
+//</cmail>
     
 private:
     
@@ -302,19 +312,13 @@ private:
     TMBoxLogicState                 iState;
     TInt                            iErrorCounter;
     TInt                            iError;
-	//<Qmail>
-    CIpsSosAOPluginTimer*           iTimer;//owned
+    CIpsSosAOPluginTimer*           iTimer;
     // message fetch is not currently used
-    RArray<TMsvId>                  iFetchMsgArray;//owned
-	//<QMail>
-
-	//</QMail>
-    CIpsSosAOBaseAgent*             iAgent;//owned
-	//</Qmail>
-	//<QMail>
-
-	//</QMail>
+    RArray<TMsvId>                  iFetchMsgArray;
+    CIpsSetDataApi*                 iDataApi;
+    CIpsSosAOBaseAgent*             iAgent;
+    CIpsSetDataExtension*           iExtendedSettings;
     TBool                           iIsRoaming;
     };
 
-#endif /*IPSSOSAOMBOXLOGIC_H*/
+#endif /*IPSSOSAOMBOXLOGIC_CPP_*/

@@ -1,0 +1,1155 @@
+;
+; Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies).
+; All rights reserved.
+; This component and the accompanying materials are made available
+; under the terms of "Eclipse Public License v1.0"
+; which accompanies this distribution, and is available
+; at the URL "http://www.eclipse.org/legal/epl-v10.html".
+;
+; Initial Contributors:
+; Nokia Corporation - initial contribution.
+;
+; Contributors:
+;
+; Description: Package file for commonemail
+;
+; commonemail.pkg
+;
+;Language - standard language definitions
+&EN
+
+; standard SIS file header 
+#{"Email"},(0x2001E277), 3,0,1, TYPE=SA,RU
+
+;Localized Vendor Name 
+%{"Symbian"}
+
+;Unique Vendor name 
+:"Symbian"
+
+;Supports S60 v 5.0
+[0x1028315F], 0, 0, 0, {"S60ProductID"}
+
+;-----------------------------------------------------------------------------
+; Email installation initiator, need to be as a separate embedded sis-package
+; to get it run as first. Initiates process shutdown and holds installation
+; until all processes have been closed.
+;-------------------------
+@"..\..\..\emailservices\emailinstallationinitiator\sis\emailinstallationinitiator_udeb.sisx",(0x20026FF4)
+
+;-----------------------------------------------------------------------------
+; MfE plugin installed as embedded sisx-package
+;-------------------------
+@"\ext\app\eas\sis\eas_engine_udeb_loc.sisx",(0x20012BE9)
+
+;-----------------------------------------------------------------------------
+; Actual common email files to be installed
+;-------------------------
+
+; Emailuis / emailui 
+"\epoc32\release\armv5\udeb\FreestyleEmailUi.exe"                - "c:\sys\bin\FreestyleEmailUi.exe"
+"\epoc32\data\z\private\10003a3f\apps\FreestyleEmailUi_reg.rsc"  - "c:\private\10003a3f\import\apps\FreestyleEmailUi_reg.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\apps\FreestyleEmailUi.rsc"              - "c:\resource\apps\FreestyleEmailUi.rsc"
+"\epoc32\data\z\resource\apps\FreestyleEmailUi_aif.mif"          - "c:\resource\apps\freestyleemailui_aif.mif"
+"\epoc32\data\z\resource\apps\FreestyleEmailUi.mif"              - "c:\resource\apps\freestyleemailui.mif"
+"\epoc32\data\Z\private\10202BE9\2001E277.txt"                   - "c:\private\10202be9\2001E277.txt"
+"\epoc32\data\Z\private\2001E277\backup_registration.xml"        - "c:\private\2001E277\backup_registration.xml"
+
+; HTML viewer
+"\epoc32\data\z\private\2001E277\HtmlFile\email.html"               - "c:\private\2001E277\HtmlFile\email.html"
+"\epoc32\data\z\private\2001E277\HtmlFile\email_rtl.html"           - "c:\private\2001E277\HtmlFile\email_rtl.html"
+"\epoc32\data\z\private\2001E277\HtmlFile\header.js"                - "c:\private\2001E277\HtmlFile\header.js"
+"\epoc32\data\z\private\2001E277\HtmlFile\header.css"               - "c:\private\2001E277\HtmlFile\header.css"
+"\epoc32\data\z\private\2001E277\HtmlFile\email.js"                 - "c:\private\2001E277\HtmlFile\email.js"
+"\epoc32\data\z\private\2001E277\HtmlFile\follow_up.png"            - "c:\private\2001E277\HtmlFile\follow_up.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\follow_up_complete.png"   - "c:\private\2001E277\HtmlFile\follow_up_complete.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\btn_right.png"            - "c:\private\2001E277\HtmlFile\btn_right.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\btn_left.png"             - "c:\private\2001E277\HtmlFile\btn_left.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\priority_high.png"        - "c:\private\2001E277\HtmlFile\priority_high.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\priority_low.png"         - "c:\private\2001E277\HtmlFile\priority_low.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\attachment.png"           - "c:\private\2001E277\HtmlFile\attachment.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\hidden.png"               - "c:\private\2001E277\HtmlFile\hidden.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\expand.png"               - "c:\private\2001E277\HtmlFile\expand.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\collapse.png"             - "c:\private\2001E277\HtmlFile\collapse.png"
+
+; Emailuis / gsemailsettings
+"\epoc32\release\armv5\udeb\GSEmailSettingsPluginDll.dll"        - "c:\sys\bin\GSEmailSettingsPluginDll.dll"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\apps\GSEmailSettingsPlugin.rsc"         - "c:\resource\apps\GSEmailSettingsPlugin.rsc"
+"\epoc32\data\Z\Resource\Plugins\GSEmailSettingsPluginDll.rsc"   - "c:\resource\plugins\GSEmailSettingsPluginDll.rsc"
+               
+; Emailuis / uicomponents
+"\epoc32\release\armv5\udeb\fs_generic.dll"                      - "c:\sys\bin\fs_generic.dll"
+"\epoc32\release\armv5\udeb\fsscrollbarplugin.dll"               - "c:\sys\bin\fsscrollbarplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\fsscrollbarplugin.rsc"          - "c:\resource\plugins\fsscrollbarplugin.rsc"
+"\epoc32\data\Z\private\10202BE9\2001E280.txt"                   - "c:\private\10202be9\2001E280.txt"
+
+; Emailuis / emailui / sendasmtm
+"\epoc32\release\armv5\udeb\fssendashelper.dll"                  - "c:\sys\bin\fssendashelper.dll"
+"\epoc32\data\z\resource\messaging\mtm\fsmtms.rsc"               - "c:\resource\messaging\mtm\fsmtms.rsc"
+"\epoc32\release\armv5\udeb\fsclientmtm.dll"                     - "c:\sys\bin\fsclientmtm.dll"
+"\epoc32\release\armv5\udeb\fsservermtm.dll"                     - "c:\sys\bin\fsservermtm.dll"
+"\epoc32\release\armv5\udeb\fsuimtm.dll"                         - "c:\sys\bin\fsuimtm.dll"
+"\epoc32\data\z\resource\messaging\fsuidatamtm.rsc"              - "c:\resource\messaging\fsuimtm.rsc"
+"\epoc32\release\armv5\udeb\fsuidatamtm.dll"                     - "c:\sys\bin\fsuidatamtm.dll"
+"\epoc32\data\Z\resource\messaging\fsuidatamtm.rsc"              - "c:\resource\messaging\fsuidatamtm.rsc"
+"\epoc32\data\z\resource\apps\fsuidatamtm.mif"                   - "c:\resource\apps\fsuidatamtm.mif"
+
+; emailservices / emailframework
+"\epoc32\release\armv5\udeb\FSMailFramework.dll"                 - "c:\sys\bin\FSMailFramework.dll"
+"\epoc32\release\armv5\udeb\FSFWCommonLib.dll"                   - "c:\sys\bin\FSFWCommonLib.dll"
+"\epoc32\data\z\resource\fsmailbrandmanager.rsc"                 - "c:\resource\fsmailbrandmanager.rsc"
+"\epoc32\data\z\resource\apps\aol_brand_graphics.mif"            - "c:\resource\apps\aol_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\google_brand_graphics.mif"         - "c:\resource\apps\google_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\microsoft_brand_graphics.mif"      - "c:\resource\apps\microsoft_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\ovi_brand_graphics.mif"            - "c:\resource\apps\ovi_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\yahoo_brand_graphics.mif"          - "c:\resource\apps\yahoo_brand_graphics.mif"
+"\epoc32\data\z\resource\apps\mail_for_exchange_brand_graphics.mif"  - "c:\resource\apps\mail_for_exchange_brand_graphics.mif"
+
+; emailservices / psmruadapter
+"\epoc32\release\armv5\udeb\PsMruAdapter.dll"                    - "c:\sys\bin\PsMruAdapter.dll"
+"\epoc32\data\z\resource\plugins\PsMruAdapter.rsc"               - "c:\resource\plugins\PsMruAdapter.rsc"
+
+; emailstore
+"\epoc32\release\armv5\udeb\baseplugin.dll"                      - "c:\sys\bin\baseplugin.dll"
+"\epoc32\release\armv5\udeb\MessageStoreClient.dll"              - "c:\sys\bin\MessageStoreClient.dll"
+"\epoc32\release\armv5\udeb\MessageStoreServer.dll"              - "c:\sys\bin\MessageStoreServer.dll"
+"\epoc32\release\armv5\udeb\MessageStoreExe.exe"                 - "c:\sys\bin\MessageStoreExe.exe"
+"\epoc32\release\armv5\udeb\ImsPointSecMonitor.dll"              - "c:\sys\bin\ImsPointSecMonitor.dll"
+"\epoc32\release\armv5\udeb\DebugLog.dll"                        - "c:\sys\bin\DebugLog.dll"
+
+; emailserver
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\apps\fsmailserver.rsc"                  - "c:\resource\apps\fsmailserver.rsc"
+"\epoc32\release\armv5\udeb\fsmailserver.exe"                    - "c:\sys\bin\fsmailserver.exe"
+"\epoc32\data\z\private\10003a3f\apps\fsmailserver_reg.rsc"      - "c:\private\10003a3f\import\apps\fsmailserver_reg.rsc"
+"\epoc32\release\armv5\udeb\cmailhandlerplugin.dll"              - "c:\sys\bin\cmailhandlerplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\cmailhandlerplugin.rsc"         - "c:\resource\plugins\cmailhandlerplugin.rsc"
+"\epoc32\data\z\resource\apps\cmailhandlerplugin.mif"            - "c:\resource\apps\cmailhandlerplugin.mif"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\Z\resource\apps\emailwidget.rsc"                   - "c:\resource\apps\emailwidget.rsc"
+
+; emailservices / emailclientapi
+"\epoc32\release\armv5\udeb\emailclientapi.dll"                  - "c:\sys\bin\emailclientapi.dll"
+"\epoc32\data\z\resource\plugins\emailclientapi.rsc"             - "c:\resource\plugins\emailclientapi.rsc"
+
+; ipservices
+"\epoc32\release\armv5\udeb\ipssosplugin.dll"                    - "c:\sys\bin\ipssosplugin.dll"
+"\epoc32\release\armv5\udeb\ipssossettings.dll"                  - "c:\sys\bin\ipssossettings.dll"
+"\epoc32\release\armv5\udeb\IPSSosAOPlugin.dll"                  - "c:\sys\bin\IpsSosAOPlugin.dll"
+"\epoc32\data\z\resource\plugins\ipssosplugin.rsc"               - "c:\resource\plugins\ipssosplugin.rsc"
+"\epoc32\data\z\resource\plugins\IPSSosAOPlugin.rsc"             - "c:\resource\plugins\IpsSosAOPlugin.rsc"
+"\epoc32\data\z\resource\plugins\IpsSosSettings.rsc"             - "c:\resource\plugins\ipssossettings.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\IpsSosSettings.rsc"                     - "c:\resource\ipssossettings.rsc"
+"\epoc32\data\Z\private\10202BE9\20010128.txt"                   - "c:\private\10202be9\20010128.txt"
+"\epoc32\data\Z\private\2000E53C\backup_registration.xml"        - "c:\private\2000E53C\backup_registration.xml"
+
+; emailcontacts / contactactionservice
+"\epoc32\release\armv5\udeb\fsccontactactionmenu.dll"            - "c:\sys\bin\fsccontactactionmenu.dll"
+"\epoc32\data\Z\Resource\Plugins\fsccontactactionmenu.rsc"       - "c:\resource\plugins\fsccontactactionmenu.rsc"
+"\epoc32\release\armv5\udeb\fsccontactactionservice.dll"         - "c:\sys\bin\fsccontactactionservice.dll"
+"\epoc32\data\Z\Resource\Plugins\fsccontactactionservice.rsc"    - "c:\resource\plugins\fsccontactactionservice.rsc"
+"\epoc32\data\z\resource\FscActionUtils.rsc"                     - "c:\resource\plugins\fscactionutils.rsc"
+"\epoc32\data\Z\private\10202BE9\2001FE0E.txt"                   - "c:\private\10202be9\2001FE0E.txt"
+
+; emailcontacts / contactactionservice / pocplugin
+"\epoc32\release\armv5\udeb\fscpocplugin.dll"                    - "c:\sys\bin\fscpocplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\fscpocplugin.rsc"               - "c:\resource\plugins\fscpocplugin.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\apps\fscpocplugin.rsc"                  - "c:\resource\apps\fscpocplugin.rsc"
+"\epoc32\data\z\resource\apps\fscpocplugin.mif"                  - "c:\resource\apps\fscpocplugin.mif"
+
+; emailcontacts / contactactionservice / callplugin
+"\epoc32\release\armv5\udeb\fsccallplugin.dll"                   - "c:\sys\bin\fsccallplugin.dll"
+"\epoc32\data\z\resource\plugins\fsccallplugin.rsc"              - "c:\resource\plugins\fsccallplugin.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\apps\fsccallplugin.rsc"                 - "c:\resource\apps\fsccallplugin.rsc"
+"\epoc32\data\z\resource\apps\fsccallplugin.mif"                 - "c:\resource\apps\fsccallplugin.mif"
+
+; emailcontacts / contactactionservice / saveascontactplugin
+"\epoc32\release\armv5\udeb\fscsaveascontactplugin.dll"          - "c:\sys\bin\fscsaveascontactplugin.dll"
+"\epoc32\data\z\resource\plugins\fscsaveascontactplugin.rsc"     - "c:\resource\plugins\fscsaveascontactplugin.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\apps\fscsaveascontactplugin.rsc"        - "c:\resource\apps\fscsaveascontactplugin.rsc"
+"\epoc32\data\z\resource\apps\fscsaveascontactplugin.mif"        - "c:\resource\apps\fscsaveascontactplugin.mif"
+
+; emailcontacts / contactactionservice / sendplugin
+"\epoc32\release\armv5\udeb\fscsendplugin.dll"                   - "c:\sys\bin\fscsendplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\fscsendplugin.rsc"              - "c:\resource\plugins\fscsendplugin.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\apps\fscsendplugin.rsc"                 - "c:\resource\apps\fscsendplugin.rsc"
+"\epoc32\data\z\resource\apps\fscsendplugin.mif"                 - "c:\resource\apps\fscsendplugin.mif"
+
+; meetingrequest
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\esmrgui.rsc"                            - "c:\resource\esmrgui.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\esmrtasks.rsc"                          - "c:\resource\esmrtasks.rsc"
+"\epoc32\data\z\resource\esmrpolicies.rsc"                       - "c:\resource\esmrpolicies.rsc"
+"\epoc32\data\z\resource\esmralarminfo.rsc"                      - "c:\resource\esmralarminfo.rsc"
+"\epoc32\data\z\resource\esmragnversit2strings.rsc"              - "c:\resource\esmragnversit2strings.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\esmrcasplugindata.rsc"                  - "c:\resource\esmrcasplugindata.rsc"
+"\epoc32\release\armv5\udeb\esmragnversit2.dll"                  - "c:\sys\bin\esmragnversit2.dll"
+"\epoc32\data\Z\Resource\Plugins\esmragnversit2.rsc"             - "c:\resource\plugins\esmragnversit2.rsc"
+"\epoc32\data\Z\Resource\Plugins\esmricalviewer.rsc"             - "c:\resource\plugins\esmricalviewer.rsc"
+"\epoc32\release\armv5\udeb\esmrfieldbuilderplugin.dll"          - "c:\sys\bin\esmrfieldbuilderplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrfieldbuilderplugin.rsc"     - "c:\resource\plugins\esmrfieldbuilderplugin.rsc"
+"\epoc32\release\armv5\udeb\esmrfieldbuilderpluginextension.dll" - "c:\sys\bin\esmrfieldbuilderpluginextension.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrfieldbuilderpluginextension.rsc" - "c:\resource\plugins\esmrfieldbuilderpluginextension.rsc"
+"\epoc32\release\armv5\udeb\esmrcasplugin.dll"                   - "c:\sys\bin\esmrcasplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrcasplugin.rsc"              - "c:\resource\plugins\esmrcasplugin.rsc"
+"\epoc32\release\armv5\udeb\esmricalviewer.dll"                  - "c:\sys\bin\esmricalviewer.dll"
+"\epoc32\release\armv5\udeb\esmrviewer.dll"                      - "c:\sys\bin\esmrviewer.dll"
+"\epoc32\release\armv5\udeb\esmrutils.dll"                       - "c:\sys\bin\esmrutils.dll"
+"\epoc32\release\armv5\udeb\esmrentry.dll"                       - "c:\sys\bin\esmrentry.dll"
+"\epoc32\release\armv5\udeb\esmrpolicy.dll"                      - "c:\sys\bin\esmrpolicy.dll"
+"\epoc32\release\armv5\udeb\esmrcommon.dll"                      - "c:\sys\bin\esmrcommon.dll"
+"\epoc32\release\armv5\udeb\esmrdb.dll"                          - "c:\sys\bin\esmrdb.dll"
+"\epoc32\release\armv5\udeb\esmrservices.dll"                    - "c:\sys\bin\esmrservices.dll"
+"\epoc32\release\armv5\udeb\esmrgui.dll"                         - "c:\sys\bin\esmrgui.dll"
+"\epoc32\release\armv5\udeb\esmrtasks.dll"                       - "c:\sys\bin\esmrtasks.dll"
+"\epoc32\release\armv5\udeb\esmrversit2.dll"                     - "c:\sys\bin\esmrversit2.dll"
+"\epoc32\release\armv5\udeb\esmrfieldbuildercommon.dll"          - "c:\sys\bin\esmrfieldbuildercommon.dll"
+"\epoc32\release\armv5\udeb\esmrfieldevent.dll"                  - "c:\sys\bin\esmrfieldevent.dll"
+"\epoc32\data\z\resource\apps\esmrgui.mif"                       - "c:\resource\apps\esmrgui.mif"
+"\epoc32\data\z\resource\apps\esmrcasplugin.mif"                 - "c:\resource\apps\esmrcasplugin.mif"
+
+; meetingrequest / esmrviewer calendar plug-in 
+"\epoc32\release\armv5\udeb\esmrviewercalplugin.dll"             - "c:\sys\bin\esmrviewercalplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrviewercalplugin.rsc"        - "c:\resource\plugins\esmrviewercalplugin.rsc"
+
+; meetingrequest / esmrutils calendar plug-in 
+"\epoc32\release\armv5\udeb\esmrutilscalplugin.dll"              - "c:\sys\bin\esmrutilscalplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrutilscalplugin.rsc"         - "c:\resource\plugins\esmrutilscalplugin.rsc"
+
+; meetingrequest / location integration plugin
+"\epoc32\release\armv5\udeb\esmrlocationplugin.dll"              - "c:\sys\bin\esmrlocationplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrlocationplugin.rsc"         - "c:\resource\plugins\esmrlocationplugin.rsc"
+
+; meetingrequest / location url parser plugin
+"\epoc32\release\armv5\udeb\esmrurlparserplugin.dll"             - "c:\sys\bin\esmrurlparserplugin.dll"
+"\epoc32\data\Z\resource\Plugins\esmrurlparserplugin.rsc"        - "c:\resource\plugins\esmrurlparserplugin.rsc"
+;"\epoc32\data\z\resource\esmrurlparserplugindata.rsc"            - "c:\resource\esmrurlparserplugindata.rsc"
+
+; meetingrequest / cenrep
+"\epoc32\data\Z\private\10202BE9\2001E610.txt"                   - "c:\private\10202be9\2001E610.txt"
+"\epoc32\data\Z\private\10202BE9\2001E611.txt"                   - "c:\private\10202be9\2001E611.txt"
+
+; Emailuis / emailwidgetsettings
+"\epoc32\release\armv5\udeb\emailwidgetsettings.exe"               - "c:\sys\bin\emailwidgetsettings.exe"
+"\epoc32\data\z\private\10003a3f\apps\emailwidgetsettings_reg.rsc" - "c:\private\10003a3f\import\apps\emailwidgetsettings_reg.rsc"
+; Following line is localized, so this Engineering English line is commented out
+;"\epoc32\data\z\resource\apps\emailwidgetsettings.rsc"             - "c:\resource\apps\emailwidgetsettings.rsc"
+"\epoc32\data\z\resource\apps\emailwidgetsettings.mif"             - "c:\resource\apps\emailwidgetsettings.mif"
+
+; Emailuis / widget
+; Non-localized files:
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"      - "c:\private\200159c0\install\emailwidget\hsps\00\widgetconfiguration.xml"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\manifest.dat"                 - "c:\private\200159c0\install\emailwidget\hsps\00\manifest.dat"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\emailwidgeticon.mif"          - "c:\private\200159c0\install\emailwidget\hsps\00\emailwidgeticon.mif"
+; Localized files (need to be clarified how these really work):
+"\epoc32\data\Z\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"                   - "c:\private\200159c0\install\emailwidget\xuikon\00\EW.o0000"
+"\epoc32\data\Z\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd" - "c:\private\200159c0\install\emailwidget\hsps\00\emailwidgetconfiguration.dtd"
+
+IF EXISTS( "z:\resource\avkon.r01" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r01"              - "c:\resource\apps\freestyleemailui.r01"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r01"         - "c:\resource\apps\gsemailsettingsplugin.r01"
+    "\epoc32\data\z\resource\apps\fsmailserver.r01"                  - "c:\resource\apps\fsmailserver.r01"
+    "\epoc32\data\z\resource\apps\emailwidget.r01"                   - "c:\resource\apps\emailwidget.r01"
+    "\epoc32\data\z\resource\ipssossettings.r01"                     - "c:\resource\ipssossettings.r01"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r01"                  - "c:\resource\apps\fscpocplugin.r01"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r01"                 - "c:\resource\apps\fsccallplugin.r01"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r01"        - "c:\resource\apps\fscsaveascontactplugin.r01"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r01"                 - "c:\resource\apps\fscsendplugin.r01"
+    "\epoc32\data\z\resource\esmrgui.r01"                            - "c:\resource\esmrgui.r01"
+    "\epoc32\data\z\resource\esmrtasks.r01"                          - "c:\resource\esmrtasks.r01"
+    "\epoc32\data\z\resource\esmrcasplugindata.r01"                  - "c:\resource\esmrcasplugindata.r01"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r01"             - "c:\resource\apps\emailwidgetsettings.r01"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r02" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r02"              - "c:\resource\apps\freestyleemailui.r02"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r02"         - "c:\resource\apps\gsemailsettingsplugin.r02"
+    "\epoc32\data\z\resource\apps\fsmailserver.r02"                  - "c:\resource\apps\fsmailserver.r02"
+    "\epoc32\data\z\resource\apps\emailwidget.r02"                   - "c:\resource\apps\emailwidget.r02"
+    "\epoc32\data\z\resource\ipssossettings.r02"                     - "c:\resource\ipssossettings.r02"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r02"                  - "c:\resource\apps\fscpocplugin.r02"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r02"                 - "c:\resource\apps\fsccallplugin.r02"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r02"        - "c:\resource\apps\fscsaveascontactplugin.r02"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r02"                 - "c:\resource\apps\fscsendplugin.r02"
+    "\epoc32\data\z\resource\esmrgui.r02"                            - "c:\resource\esmrgui.r02"
+    "\epoc32\data\z\resource\esmrtasks.r02"                          - "c:\resource\esmrtasks.r02"
+    "\epoc32\data\z\resource\esmrcasplugindata.r02"                  - "c:\resource\esmrcasplugindata.r02"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r02"             - "c:\resource\apps\emailwidgetsettings.r02"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r03" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r03"              - "c:\resource\apps\freestyleemailui.r03"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r03"         - "c:\resource\apps\gsemailsettingsplugin.r03"
+    "\epoc32\data\z\resource\apps\fsmailserver.r03"                  - "c:\resource\apps\fsmailserver.r03"
+    "\epoc32\data\z\resource\apps\emailwidget.r03"                   - "c:\resource\apps\emailwidget.r03"
+    "\epoc32\data\z\resource\ipssossettings.r03"                     - "c:\resource\ipssossettings.r03"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r03"                  - "c:\resource\apps\fscpocplugin.r03"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r03"                 - "c:\resource\apps\fsccallplugin.r03"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r03"        - "c:\resource\apps\fscsaveascontactplugin.r03"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r03"                 - "c:\resource\apps\fscsendplugin.r03"
+    "\epoc32\data\z\resource\esmrgui.r03"                            - "c:\resource\esmrgui.r03"
+    "\epoc32\data\z\resource\esmrtasks.r03"                          - "c:\resource\esmrtasks.r03"
+    "\epoc32\data\z\resource\esmrcasplugindata.r03"                  - "c:\resource\esmrcasplugindata.r03"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r03"             - "c:\resource\apps\emailwidgetsettings.r03"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r04" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r04"              - "c:\resource\apps\freestyleemailui.r04"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r04"         - "c:\resource\apps\gsemailsettingsplugin.r04"
+    "\epoc32\data\z\resource\apps\fsmailserver.r04"                  - "c:\resource\apps\fsmailserver.r04"
+    "\epoc32\data\z\resource\apps\emailwidget.r04"                   - "c:\resource\apps\emailwidget.r04"
+    "\epoc32\data\z\resource\ipssossettings.r04"                     - "c:\resource\ipssossettings.r04"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r04"                  - "c:\resource\apps\fscpocplugin.r04"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r04"                 - "c:\resource\apps\fsccallplugin.r04"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r04"        - "c:\resource\apps\fscsaveascontactplugin.r04"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r04"                 - "c:\resource\apps\fscsendplugin.r04"
+    "\epoc32\data\z\resource\esmrgui.r04"                            - "c:\resource\esmrgui.r04"
+    "\epoc32\data\z\resource\esmrtasks.r04"                          - "c:\resource\esmrtasks.r04"
+    "\epoc32\data\z\resource\esmrcasplugindata.r04"                  - "c:\resource\esmrcasplugindata.r04"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r04"             - "c:\resource\apps\emailwidgetsettings.r04"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r05" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r05"              - "c:\resource\apps\freestyleemailui.r05"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r05"         - "c:\resource\apps\gsemailsettingsplugin.r05"
+    "\epoc32\data\z\resource\apps\fsmailserver.r05"                  - "c:\resource\apps\fsmailserver.r05"
+    "\epoc32\data\z\resource\apps\emailwidget.r05"                   - "c:\resource\apps\emailwidget.r05"
+    "\epoc32\data\z\resource\ipssossettings.r05"                     - "c:\resource\ipssossettings.r05"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r05"                  - "c:\resource\apps\fscpocplugin.r05"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r05"                 - "c:\resource\apps\fsccallplugin.r05"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r05"        - "c:\resource\apps\fscsaveascontactplugin.r05"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r05"                 - "c:\resource\apps\fscsendplugin.r05"
+    "\epoc32\data\z\resource\esmrgui.r05"                            - "c:\resource\esmrgui.r05"
+    "\epoc32\data\z\resource\esmrtasks.r05"                          - "c:\resource\esmrtasks.r05"
+    "\epoc32\data\z\resource\esmrcasplugindata.r05"                  - "c:\resource\esmrcasplugindata.r05"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r05"             - "c:\resource\apps\emailwidgetsettings.r05"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r06" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r06"              - "c:\resource\apps\freestyleemailui.r06"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r06"         - "c:\resource\apps\gsemailsettingsplugin.r06"
+    "\epoc32\data\z\resource\apps\fsmailserver.r06"                  - "c:\resource\apps\fsmailserver.r06"
+    "\epoc32\data\z\resource\apps\emailwidget.r06"                   - "c:\resource\apps\emailwidget.r06"
+    "\epoc32\data\z\resource\ipssossettings.r06"                     - "c:\resource\ipssossettings.r06"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r06"                  - "c:\resource\apps\fscpocplugin.r06"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r06"                 - "c:\resource\apps\fsccallplugin.r06"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r06"        - "c:\resource\apps\fscsaveascontactplugin.r06"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r06"                 - "c:\resource\apps\fscsendplugin.r06"
+    "\epoc32\data\z\resource\esmrgui.r06"                            - "c:\resource\esmrgui.r06"
+    "\epoc32\data\z\resource\esmrtasks.r06"                          - "c:\resource\esmrtasks.r06"
+    "\epoc32\data\z\resource\esmrcasplugindata.r06"                  - "c:\resource\esmrcasplugindata.r06"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r06"             - "c:\resource\apps\emailwidgetsettings.r06"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r07" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r07"              - "c:\resource\apps\freestyleemailui.r07"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r07"         - "c:\resource\apps\gsemailsettingsplugin.r07"
+    "\epoc32\data\z\resource\apps\fsmailserver.r07"                  - "c:\resource\apps\fsmailserver.r07"
+    "\epoc32\data\z\resource\apps\emailwidget.r07"                   - "c:\resource\apps\emailwidget.r07"
+    "\epoc32\data\z\resource\ipssossettings.r07"                     - "c:\resource\ipssossettings.r07"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r07"                  - "c:\resource\apps\fscpocplugin.r07"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r07"                 - "c:\resource\apps\fsccallplugin.r07"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r07"        - "c:\resource\apps\fscsaveascontactplugin.r07"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r07"                 - "c:\resource\apps\fscsendplugin.r07"
+    "\epoc32\data\z\resource\esmrgui.r07"                            - "c:\resource\esmrgui.r07"
+    "\epoc32\data\z\resource\esmrtasks.r07"                          - "c:\resource\esmrtasks.r07"
+    "\epoc32\data\z\resource\esmrcasplugindata.r07"                  - "c:\resource\esmrcasplugindata.r07"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r07"             - "c:\resource\apps\emailwidgetsettings.r07"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r08" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r08"              - "c:\resource\apps\freestyleemailui.r08"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r08"         - "c:\resource\apps\gsemailsettingsplugin.r08"
+    "\epoc32\data\z\resource\apps\fsmailserver.r08"                  - "c:\resource\apps\fsmailserver.r08"
+    "\epoc32\data\z\resource\apps\emailwidget.r08"                   - "c:\resource\apps\emailwidget.r08"
+    "\epoc32\data\z\resource\ipssossettings.r08"                     - "c:\resource\ipssossettings.r08"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r08"                  - "c:\resource\apps\fscpocplugin.r08"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r08"                 - "c:\resource\apps\fsccallplugin.r08"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r08"        - "c:\resource\apps\fscsaveascontactplugin.r08"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r08"                 - "c:\resource\apps\fscsendplugin.r08"
+    "\epoc32\data\z\resource\esmrgui.r08"                            - "c:\resource\esmrgui.r08"
+    "\epoc32\data\z\resource\esmrtasks.r08"                          - "c:\resource\esmrtasks.r08"
+    "\epoc32\data\z\resource\esmrcasplugindata.r08"                  - "c:\resource\esmrcasplugindata.r08"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r08"             - "c:\resource\apps\emailwidgetsettings.r08"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r09" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r09"              - "c:\resource\apps\freestyleemailui.r09"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r09"         - "c:\resource\apps\gsemailsettingsplugin.r09"
+    "\epoc32\data\z\resource\apps\fsmailserver.r09"                  - "c:\resource\apps\fsmailserver.r09"
+    "\epoc32\data\z\resource\apps\emailwidget.r09"                   - "c:\resource\apps\emailwidget.r09"
+    "\epoc32\data\z\resource\ipssossettings.r09"                     - "c:\resource\ipssossettings.r09"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r09"                  - "c:\resource\apps\fscpocplugin.r09"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r09"                 - "c:\resource\apps\fsccallplugin.r09"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r09"        - "c:\resource\apps\fscsaveascontactplugin.r09"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r09"                 - "c:\resource\apps\fscsendplugin.r09"
+    "\epoc32\data\z\resource\esmrgui.r09"                            - "c:\resource\esmrgui.r09"
+    "\epoc32\data\z\resource\esmrtasks.r09"                          - "c:\resource\esmrtasks.r09"
+    "\epoc32\data\z\resource\esmrcasplugindata.r09"                  - "c:\resource\esmrcasplugindata.r09"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r09"             - "c:\resource\apps\emailwidgetsettings.r09"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r10" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r10"              - "c:\resource\apps\freestyleemailui.r10"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r10"         - "c:\resource\apps\gsemailsettingsplugin.r10"
+    "\epoc32\data\z\resource\apps\fsmailserver.r10"                  - "c:\resource\apps\fsmailserver.r10"
+    "\epoc32\data\z\resource\apps\emailwidget.r10"                   - "c:\resource\apps\emailwidget.r10"
+    "\epoc32\data\z\resource\ipssossettings.r10"                     - "c:\resource\ipssossettings.r10"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r10"                  - "c:\resource\apps\fscpocplugin.r10"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r10"                 - "c:\resource\apps\fsccallplugin.r10"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r10"        - "c:\resource\apps\fscsaveascontactplugin.r10"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r10"                 - "c:\resource\apps\fscsendplugin.r10"
+    "\epoc32\data\z\resource\esmrgui.r10"                            - "c:\resource\esmrgui.r10"
+    "\epoc32\data\z\resource\esmrtasks.r10"                          - "c:\resource\esmrtasks.r10"
+    "\epoc32\data\z\resource\esmrcasplugindata.r10"                  - "c:\resource\esmrcasplugindata.r10"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r10"             - "c:\resource\apps\emailwidgetsettings.r10"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r13" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r13"              - "c:\resource\apps\freestyleemailui.r13"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r13"         - "c:\resource\apps\gsemailsettingsplugin.r13"
+    "\epoc32\data\z\resource\apps\fsmailserver.r13"                  - "c:\resource\apps\fsmailserver.r13"
+    "\epoc32\data\z\resource\apps\emailwidget.r13"                   - "c:\resource\apps\emailwidget.r13"
+    "\epoc32\data\z\resource\ipssossettings.r13"                     - "c:\resource\ipssossettings.r13"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r13"                  - "c:\resource\apps\fscpocplugin.r13"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r13"                 - "c:\resource\apps\fsccallplugin.r13"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r13"        - "c:\resource\apps\fscsaveascontactplugin.r13"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r13"                 - "c:\resource\apps\fscsendplugin.r13"
+    "\epoc32\data\z\resource\esmrgui.r13"                            - "c:\resource\esmrgui.r13"
+    "\epoc32\data\z\resource\esmrtasks.r13"                          - "c:\resource\esmrtasks.r13"
+    "\epoc32\data\z\resource\esmrcasplugindata.r13"                  - "c:\resource\esmrcasplugindata.r13"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r13"             - "c:\resource\apps\emailwidgetsettings.r13"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r14" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r14"              - "c:\resource\apps\freestyleemailui.r14"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r14"         - "c:\resource\apps\gsemailsettingsplugin.r14"
+    "\epoc32\data\z\resource\apps\fsmailserver.r14"                  - "c:\resource\apps\fsmailserver.r14"
+    "\epoc32\data\z\resource\apps\emailwidget.r14"                   - "c:\resource\apps\emailwidget.r14"
+    "\epoc32\data\z\resource\ipssossettings.r14"                     - "c:\resource\ipssossettings.r14"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r14"                  - "c:\resource\apps\fscpocplugin.r14"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r14"                 - "c:\resource\apps\fsccallplugin.r14"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r14"        - "c:\resource\apps\fscsaveascontactplugin.r14"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r14"                 - "c:\resource\apps\fscsendplugin.r14"
+    "\epoc32\data\z\resource\esmrgui.r14"                            - "c:\resource\esmrgui.r14"
+    "\epoc32\data\z\resource\esmrtasks.r14"                          - "c:\resource\esmrtasks.r14"
+    "\epoc32\data\z\resource\esmrcasplugindata.r14"                  - "c:\resource\esmrcasplugindata.r14"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r14"             - "c:\resource\apps\emailwidgetsettings.r14"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r15" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r15"              - "c:\resource\apps\freestyleemailui.r15"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r15"         - "c:\resource\apps\gsemailsettingsplugin.r15"
+    "\epoc32\data\z\resource\apps\fsmailserver.r15"                  - "c:\resource\apps\fsmailserver.r15"
+    "\epoc32\data\z\resource\apps\emailwidget.r15"                   - "c:\resource\apps\emailwidget.r15"
+    "\epoc32\data\z\resource\ipssossettings.r15"                     - "c:\resource\ipssossettings.r15"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r15"                  - "c:\resource\apps\fscpocplugin.r15"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r15"                 - "c:\resource\apps\fsccallplugin.r15"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r15"        - "c:\resource\apps\fscsaveascontactplugin.r15"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r15"                 - "c:\resource\apps\fscsendplugin.r15"
+    "\epoc32\data\z\resource\esmrgui.r15"                            - "c:\resource\esmrgui.r15"
+    "\epoc32\data\z\resource\esmrtasks.r15"                          - "c:\resource\esmrtasks.r15"
+    "\epoc32\data\z\resource\esmrcasplugindata.r15"                  - "c:\resource\esmrcasplugindata.r15"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r15"             - "c:\resource\apps\emailwidgetsettings.r15"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r16" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r16"              - "c:\resource\apps\freestyleemailui.r16"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r16"         - "c:\resource\apps\gsemailsettingsplugin.r16"
+    "\epoc32\data\z\resource\apps\fsmailserver.r16"                  - "c:\resource\apps\fsmailserver.r16"
+    "\epoc32\data\z\resource\apps\emailwidget.r16"                   - "c:\resource\apps\emailwidget.r16"
+    "\epoc32\data\z\resource\ipssossettings.r16"                     - "c:\resource\ipssossettings.r16"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r16"                  - "c:\resource\apps\fscpocplugin.r16"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r16"                 - "c:\resource\apps\fsccallplugin.r16"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r16"        - "c:\resource\apps\fscsaveascontactplugin.r16"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r16"                 - "c:\resource\apps\fscsendplugin.r16"
+    "\epoc32\data\z\resource\esmrgui.r16"                            - "c:\resource\esmrgui.r16"
+    "\epoc32\data\z\resource\esmrtasks.r16"                          - "c:\resource\esmrtasks.r16"
+    "\epoc32\data\z\resource\esmrcasplugindata.r16"                  - "c:\resource\esmrcasplugindata.r16"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r16"             - "c:\resource\apps\emailwidgetsettings.r16"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r17" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r17"              - "c:\resource\apps\freestyleemailui.r17"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r17"         - "c:\resource\apps\gsemailsettingsplugin.r17"
+    "\epoc32\data\z\resource\apps\fsmailserver.r17"                  - "c:\resource\apps\fsmailserver.r17"
+    "\epoc32\data\z\resource\apps\emailwidget.r17"                   - "c:\resource\apps\emailwidget.r17"
+    "\epoc32\data\z\resource\ipssossettings.r17"                     - "c:\resource\ipssossettings.r17"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r17"                  - "c:\resource\apps\fscpocplugin.r17"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r17"                 - "c:\resource\apps\fsccallplugin.r17"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r17"        - "c:\resource\apps\fscsaveascontactplugin.r17"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r17"                 - "c:\resource\apps\fscsendplugin.r17"
+    "\epoc32\data\z\resource\esmrgui.r17"                            - "c:\resource\esmrgui.r17"
+    "\epoc32\data\z\resource\esmrtasks.r17"                          - "c:\resource\esmrtasks.r17"
+    "\epoc32\data\z\resource\esmrcasplugindata.r17"                  - "c:\resource\esmrcasplugindata.r17"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r17"             - "c:\resource\apps\emailwidgetsettings.r17"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r18" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r18"              - "c:\resource\apps\freestyleemailui.r18"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r18"         - "c:\resource\apps\gsemailsettingsplugin.r18"
+    "\epoc32\data\z\resource\apps\fsmailserver.r18"                  - "c:\resource\apps\fsmailserver.r18"
+    "\epoc32\data\z\resource\apps\emailwidget.r18"                   - "c:\resource\apps\emailwidget.r18"
+    "\epoc32\data\z\resource\ipssossettings.r18"                     - "c:\resource\ipssossettings.r18"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r18"                  - "c:\resource\apps\fscpocplugin.r18"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r18"                 - "c:\resource\apps\fsccallplugin.r18"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r18"        - "c:\resource\apps\fscsaveascontactplugin.r18"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r18"                 - "c:\resource\apps\fscsendplugin.r18"
+    "\epoc32\data\z\resource\esmrgui.r18"                            - "c:\resource\esmrgui.r18"
+    "\epoc32\data\z\resource\esmrtasks.r18"                          - "c:\resource\esmrtasks.r18"
+    "\epoc32\data\z\resource\esmrcasplugindata.r18"                  - "c:\resource\esmrcasplugindata.r18"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r18"             - "c:\resource\apps\emailwidgetsettings.r18"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r25" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r25"              - "c:\resource\apps\freestyleemailui.r25"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r25"         - "c:\resource\apps\gsemailsettingsplugin.r25"
+    "\epoc32\data\z\resource\apps\fsmailserver.r25"                  - "c:\resource\apps\fsmailserver.r25"
+    "\epoc32\data\z\resource\apps\emailwidget.r25"                   - "c:\resource\apps\emailwidget.r25"
+    "\epoc32\data\z\resource\ipssossettings.r25"                     - "c:\resource\ipssossettings.r25"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r25"                  - "c:\resource\apps\fscpocplugin.r25"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r25"                 - "c:\resource\apps\fsccallplugin.r25"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r25"        - "c:\resource\apps\fscsaveascontactplugin.r25"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r25"                 - "c:\resource\apps\fscsendplugin.r25"
+    "\epoc32\data\z\resource\esmrgui.r25"                            - "c:\resource\esmrgui.r25"
+    "\epoc32\data\z\resource\esmrtasks.r25"                          - "c:\resource\esmrtasks.r25"
+    "\epoc32\data\z\resource\esmrcasplugindata.r25"                  - "c:\resource\esmrcasplugindata.r25"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r25"             - "c:\resource\apps\emailwidgetsettings.r25"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r26" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r26"              - "c:\resource\apps\freestyleemailui.r26"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r26"         - "c:\resource\apps\gsemailsettingsplugin.r26"
+    "\epoc32\data\z\resource\apps\fsmailserver.r26"                  - "c:\resource\apps\fsmailserver.r26"
+    "\epoc32\data\z\resource\apps\emailwidget.r26"                   - "c:\resource\apps\emailwidget.r26"
+    "\epoc32\data\z\resource\ipssossettings.r26"                     - "c:\resource\ipssossettings.r26"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r26"                  - "c:\resource\apps\fscpocplugin.r26"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r26"                 - "c:\resource\apps\fsccallplugin.r26"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r26"        - "c:\resource\apps\fscsaveascontactplugin.r26"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r26"                 - "c:\resource\apps\fscsendplugin.r26"
+    "\epoc32\data\z\resource\esmrgui.r26"                            - "c:\resource\esmrgui.r26"
+    "\epoc32\data\z\resource\esmrtasks.r26"                          - "c:\resource\esmrtasks.r26"
+    "\epoc32\data\z\resource\esmrcasplugindata.r26"                  - "c:\resource\esmrcasplugindata.r26"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r26"             - "c:\resource\apps\emailwidgetsettings.r26"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r27" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r27"              - "c:\resource\apps\freestyleemailui.r27"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r27"         - "c:\resource\apps\gsemailsettingsplugin.r27"
+    "\epoc32\data\z\resource\apps\fsmailserver.r27"                  - "c:\resource\apps\fsmailserver.r27"
+    "\epoc32\data\z\resource\apps\emailwidget.r27"                   - "c:\resource\apps\emailwidget.r27"
+    "\epoc32\data\z\resource\ipssossettings.r27"                     - "c:\resource\ipssossettings.r27"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r27"                  - "c:\resource\apps\fscpocplugin.r27"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r27"                 - "c:\resource\apps\fsccallplugin.r27"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r27"        - "c:\resource\apps\fscsaveascontactplugin.r27"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r27"                 - "c:\resource\apps\fscsendplugin.r27"
+    "\epoc32\data\z\resource\esmrgui.r27"                            - "c:\resource\esmrgui.r27"
+    "\epoc32\data\z\resource\esmrtasks.r27"                          - "c:\resource\esmrtasks.r27"
+    "\epoc32\data\z\resource\esmrcasplugindata.r27"                  - "c:\resource\esmrcasplugindata.r27"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r27"             - "c:\resource\apps\emailwidgetsettings.r27"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r28" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r28"              - "c:\resource\apps\freestyleemailui.r28"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r28"         - "c:\resource\apps\gsemailsettingsplugin.r28"
+    "\epoc32\data\z\resource\apps\fsmailserver.r28"                  - "c:\resource\apps\fsmailserver.r28"
+    "\epoc32\data\z\resource\apps\emailwidget.r28"                   - "c:\resource\apps\emailwidget.r28"
+    "\epoc32\data\z\resource\ipssossettings.r28"                     - "c:\resource\ipssossettings.r28"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r28"                  - "c:\resource\apps\fscpocplugin.r28"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r28"                 - "c:\resource\apps\fsccallplugin.r28"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r28"        - "c:\resource\apps\fscsaveascontactplugin.r28"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r28"                 - "c:\resource\apps\fscsendplugin.r28"
+    "\epoc32\data\z\resource\esmrgui.r28"                            - "c:\resource\esmrgui.r28"
+    "\epoc32\data\z\resource\esmrtasks.r28"                          - "c:\resource\esmrtasks.r28"
+    "\epoc32\data\z\resource\esmrcasplugindata.r28"                  - "c:\resource\esmrcasplugindata.r28"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r28"             - "c:\resource\apps\emailwidgetsettings.r28"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r29" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r29"              - "c:\resource\apps\freestyleemailui.r29"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r29"         - "c:\resource\apps\gsemailsettingsplugin.r29"
+    "\epoc32\data\z\resource\apps\fsmailserver.r29"                  - "c:\resource\apps\fsmailserver.r29"
+    "\epoc32\data\z\resource\apps\emailwidget.r29"                   - "c:\resource\apps\emailwidget.r29"
+    "\epoc32\data\z\resource\ipssossettings.r29"                     - "c:\resource\ipssossettings.r29"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r29"                  - "c:\resource\apps\fscpocplugin.r29"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r29"                 - "c:\resource\apps\fsccallplugin.r29"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r29"        - "c:\resource\apps\fscsaveascontactplugin.r29"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r29"                 - "c:\resource\apps\fscsendplugin.r29"
+    "\epoc32\data\z\resource\esmrgui.r29"                            - "c:\resource\esmrgui.r29"
+    "\epoc32\data\z\resource\esmrtasks.r29"                          - "c:\resource\esmrtasks.r29"
+    "\epoc32\data\z\resource\esmrcasplugindata.r29"                  - "c:\resource\esmrcasplugindata.r29"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r29"             - "c:\resource\apps\emailwidgetsettings.r29"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r30" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r30"              - "c:\resource\apps\freestyleemailui.r30"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r30"         - "c:\resource\apps\gsemailsettingsplugin.r30"
+    "\epoc32\data\z\resource\apps\fsmailserver.r30"                  - "c:\resource\apps\fsmailserver.r30"
+    "\epoc32\data\z\resource\apps\emailwidget.r30"                   - "c:\resource\apps\emailwidget.r30"
+    "\epoc32\data\z\resource\ipssossettings.r30"                     - "c:\resource\ipssossettings.r30"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r30"                  - "c:\resource\apps\fscpocplugin.r30"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r30"                 - "c:\resource\apps\fsccallplugin.r30"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r30"        - "c:\resource\apps\fscsaveascontactplugin.r30"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r30"                 - "c:\resource\apps\fscsendplugin.r30"
+    "\epoc32\data\z\resource\esmrgui.r30"                            - "c:\resource\esmrgui.r30"
+    "\epoc32\data\z\resource\esmrtasks.r30"                          - "c:\resource\esmrtasks.r30"
+    "\epoc32\data\z\resource\esmrcasplugindata.r30"                  - "c:\resource\esmrcasplugindata.r30"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r30"             - "c:\resource\apps\emailwidgetsettings.r30"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r31" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r31"              - "c:\resource\apps\freestyleemailui.r31"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r31"         - "c:\resource\apps\gsemailsettingsplugin.r31"
+    "\epoc32\data\z\resource\apps\fsmailserver.r31"                  - "c:\resource\apps\fsmailserver.r31"
+    "\epoc32\data\z\resource\apps\emailwidget.r31"                   - "c:\resource\apps\emailwidget.r31"
+    "\epoc32\data\z\resource\ipssossettings.r31"                     - "c:\resource\ipssossettings.r31"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r31"                  - "c:\resource\apps\fscpocplugin.r31"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r31"                 - "c:\resource\apps\fsccallplugin.r31"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r31"        - "c:\resource\apps\fscsaveascontactplugin.r31"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r31"                 - "c:\resource\apps\fscsendplugin.r31"
+    "\epoc32\data\z\resource\esmrgui.r31"                            - "c:\resource\esmrgui.r31"
+    "\epoc32\data\z\resource\esmrtasks.r31"                          - "c:\resource\esmrtasks.r31"
+    "\epoc32\data\z\resource\esmrcasplugindata.r31"                  - "c:\resource\esmrcasplugindata.r31"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r31"             - "c:\resource\apps\emailwidgetsettings.r31"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r32" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r32"              - "c:\resource\apps\freestyleemailui.r32"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r32"         - "c:\resource\apps\gsemailsettingsplugin.r32"
+    "\epoc32\data\z\resource\apps\fsmailserver.r32"                  - "c:\resource\apps\fsmailserver.r32"
+    "\epoc32\data\z\resource\apps\emailwidget.r32"                   - "c:\resource\apps\emailwidget.r32"
+    "\epoc32\data\z\resource\ipssossettings.r32"                     - "c:\resource\ipssossettings.r32"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r32"                  - "c:\resource\apps\fscpocplugin.r32"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r32"                 - "c:\resource\apps\fsccallplugin.r32"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r32"        - "c:\resource\apps\fscsaveascontactplugin.r32"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r32"                 - "c:\resource\apps\fscsendplugin.r32"
+    "\epoc32\data\z\resource\esmrgui.r32"                            - "c:\resource\esmrgui.r32"
+    "\epoc32\data\z\resource\esmrtasks.r32"                          - "c:\resource\esmrtasks.r32"
+    "\epoc32\data\z\resource\esmrcasplugindata.r32"                  - "c:\resource\esmrcasplugindata.r32"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r32"             - "c:\resource\apps\emailwidgetsettings.r32"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r33" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r33"              - "c:\resource\apps\freestyleemailui.r33"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r33"         - "c:\resource\apps\gsemailsettingsplugin.r33"
+    "\epoc32\data\z\resource\apps\fsmailserver.r33"                  - "c:\resource\apps\fsmailserver.r33"
+    "\epoc32\data\z\resource\apps\emailwidget.r33"                   - "c:\resource\apps\emailwidget.r33"
+    "\epoc32\data\z\resource\ipssossettings.r33"                     - "c:\resource\ipssossettings.r33"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r33"                  - "c:\resource\apps\fscpocplugin.r33"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r33"                 - "c:\resource\apps\fsccallplugin.r33"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r33"        - "c:\resource\apps\fscsaveascontactplugin.r33"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r33"                 - "c:\resource\apps\fscsendplugin.r33"
+    "\epoc32\data\z\resource\esmrgui.r33"                            - "c:\resource\esmrgui.r33"
+    "\epoc32\data\z\resource\esmrtasks.r33"                          - "c:\resource\esmrtasks.r33"
+    "\epoc32\data\z\resource\esmrcasplugindata.r33"                  - "c:\resource\esmrcasplugindata.r33"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r33"             - "c:\resource\apps\emailwidgetsettings.r33"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r37" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r37"              - "c:\resource\apps\freestyleemailui.r37"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r37"         - "c:\resource\apps\gsemailsettingsplugin.r37"
+    "\epoc32\data\z\resource\apps\fsmailserver.r37"                  - "c:\resource\apps\fsmailserver.r37"
+    "\epoc32\data\z\resource\apps\emailwidget.r37"                   - "c:\resource\apps\emailwidget.r37"
+    "\epoc32\data\z\resource\ipssossettings.r37"                     - "c:\resource\ipssossettings.r37"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r37"                  - "c:\resource\apps\fscpocplugin.r37"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r37"                 - "c:\resource\apps\fsccallplugin.r37"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r37"        - "c:\resource\apps\fscsaveascontactplugin.r37"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r37"                 - "c:\resource\apps\fscsendplugin.r37"
+    "\epoc32\data\z\resource\esmrgui.r37"                            - "c:\resource\esmrgui.r37"
+    "\epoc32\data\z\resource\esmrtasks.r37"                          - "c:\resource\esmrtasks.r37"
+    "\epoc32\data\z\resource\esmrcasplugindata.r37"                  - "c:\resource\esmrcasplugindata.r37"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r37"             - "c:\resource\apps\emailwidgetsettings.r37"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r39" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r39"              - "c:\resource\apps\freestyleemailui.r39"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r39"         - "c:\resource\apps\gsemailsettingsplugin.r39"
+    "\epoc32\data\z\resource\apps\fsmailserver.r39"                  - "c:\resource\apps\fsmailserver.r39"
+    "\epoc32\data\z\resource\apps\emailwidget.r39"                   - "c:\resource\apps\emailwidget.r39"
+    "\epoc32\data\z\resource\ipssossettings.r39"                     - "c:\resource\ipssossettings.r39"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r39"                  - "c:\resource\apps\fscpocplugin.r39"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r39"                 - "c:\resource\apps\fsccallplugin.r39"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r39"        - "c:\resource\apps\fscsaveascontactplugin.r39"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r39"                 - "c:\resource\apps\fscsendplugin.r39"
+    "\epoc32\data\z\resource\esmrgui.r39"                            - "c:\resource\esmrgui.r39"
+    "\epoc32\data\z\resource\esmrtasks.r39"                          - "c:\resource\esmrtasks.r39"
+    "\epoc32\data\z\resource\esmrcasplugindata.r39"                  - "c:\resource\esmrcasplugindata.r39"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r39"             - "c:\resource\apps\emailwidgetsettings.r39"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r42" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r42"              - "c:\resource\apps\freestyleemailui.r42"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r42"         - "c:\resource\apps\gsemailsettingsplugin.r42"
+    "\epoc32\data\z\resource\apps\fsmailserver.r42"                  - "c:\resource\apps\fsmailserver.r42"
+    "\epoc32\data\z\resource\apps\emailwidget.r42"                   - "c:\resource\apps\emailwidget.r42"
+    "\epoc32\data\z\resource\ipssossettings.r42"                     - "c:\resource\ipssossettings.r42"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r42"                  - "c:\resource\apps\fscpocplugin.r42"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r42"                 - "c:\resource\apps\fsccallplugin.r42"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r42"        - "c:\resource\apps\fscsaveascontactplugin.r42"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r42"                 - "c:\resource\apps\fscsendplugin.r42"
+    "\epoc32\data\z\resource\esmrgui.r42"                            - "c:\resource\esmrgui.r42"
+    "\epoc32\data\z\resource\esmrtasks.r42"                          - "c:\resource\esmrtasks.r42"
+    "\epoc32\data\z\resource\esmrcasplugindata.r42"                  - "c:\resource\esmrcasplugindata.r42"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r42"             - "c:\resource\apps\emailwidgetsettings.r42"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r44" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r44"              - "c:\resource\apps\freestyleemailui.r44"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r44"         - "c:\resource\apps\gsemailsettingsplugin.r44"
+    "\epoc32\data\z\resource\apps\fsmailserver.r44"                  - "c:\resource\apps\fsmailserver.r44"
+    "\epoc32\data\z\resource\apps\emailwidget.r44"                   - "c:\resource\apps\emailwidget.r44"
+    "\epoc32\data\z\resource\ipssossettings.r44"                     - "c:\resource\ipssossettings.r44"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r44"                  - "c:\resource\apps\fscpocplugin.r44"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r44"                 - "c:\resource\apps\fsccallplugin.r44"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r44"        - "c:\resource\apps\fscsaveascontactplugin.r44"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r44"                 - "c:\resource\apps\fscsendplugin.r44"
+    "\epoc32\data\z\resource\esmrgui.r44"                            - "c:\resource\esmrgui.r44"
+    "\epoc32\data\z\resource\esmrtasks.r44"                          - "c:\resource\esmrtasks.r44"
+    "\epoc32\data\z\resource\esmrcasplugindata.r44"                  - "c:\resource\esmrcasplugindata.r44"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r44"             - "c:\resource\apps\emailwidgetsettings.r44"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r45" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r45"              - "c:\resource\apps\freestyleemailui.r45"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r45"         - "c:\resource\apps\gsemailsettingsplugin.r45"
+    "\epoc32\data\z\resource\apps\fsmailserver.r45"                  - "c:\resource\apps\fsmailserver.r45"
+    "\epoc32\data\z\resource\apps\emailwidget.r45"                   - "c:\resource\apps\emailwidget.r45"
+    "\epoc32\data\z\resource\ipssossettings.r45"                     - "c:\resource\ipssossettings.r45"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r45"                  - "c:\resource\apps\fscpocplugin.r45"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r45"                 - "c:\resource\apps\fsccallplugin.r45"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r45"        - "c:\resource\apps\fscsaveascontactplugin.r45"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r45"                 - "c:\resource\apps\fscsendplugin.r45"
+    "\epoc32\data\z\resource\esmrgui.r45"                            - "c:\resource\esmrgui.r45"
+    "\epoc32\data\z\resource\esmrtasks.r45"                          - "c:\resource\esmrtasks.r45"
+    "\epoc32\data\z\resource\esmrcasplugindata.r45"                  - "c:\resource\esmrcasplugindata.r45"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r45"             - "c:\resource\apps\emailwidgetsettings.r45"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r49" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r49"              - "c:\resource\apps\freestyleemailui.r49"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r49"         - "c:\resource\apps\gsemailsettingsplugin.r49"
+    "\epoc32\data\z\resource\apps\fsmailserver.r49"                  - "c:\resource\apps\fsmailserver.r49"
+    "\epoc32\data\z\resource\apps\emailwidget.r49"                   - "c:\resource\apps\emailwidget.r49"
+    "\epoc32\data\z\resource\ipssossettings.r49"                     - "c:\resource\ipssossettings.r49"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r49"                  - "c:\resource\apps\fscpocplugin.r49"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r49"                 - "c:\resource\apps\fsccallplugin.r49"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r49"        - "c:\resource\apps\fscsaveascontactplugin.r49"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r49"                 - "c:\resource\apps\fscsendplugin.r49"
+    "\epoc32\data\z\resource\esmrgui.r49"                            - "c:\resource\esmrgui.r49"
+    "\epoc32\data\z\resource\esmrtasks.r49"                          - "c:\resource\esmrtasks.r49"
+    "\epoc32\data\z\resource\esmrcasplugindata.r49"                  - "c:\resource\esmrcasplugindata.r49"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r49"             - "c:\resource\apps\emailwidgetsettings.r49"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r50" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r50"              - "c:\resource\apps\freestyleemailui.r50"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r50"         - "c:\resource\apps\gsemailsettingsplugin.r50"
+    "\epoc32\data\z\resource\apps\fsmailserver.r50"                  - "c:\resource\apps\fsmailserver.r50"
+    "\epoc32\data\z\resource\apps\emailwidget.r50"                   - "c:\resource\apps\emailwidget.r50"
+    "\epoc32\data\z\resource\ipssossettings.r50"                     - "c:\resource\ipssossettings.r50"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r50"                  - "c:\resource\apps\fscpocplugin.r50"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r50"                 - "c:\resource\apps\fsccallplugin.r50"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r50"        - "c:\resource\apps\fscsaveascontactplugin.r50"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r50"                 - "c:\resource\apps\fscsendplugin.r50"
+    "\epoc32\data\z\resource\esmrgui.r50"                            - "c:\resource\esmrgui.r50"
+    "\epoc32\data\z\resource\esmrtasks.r50"                          - "c:\resource\esmrtasks.r50"
+    "\epoc32\data\z\resource\esmrcasplugindata.r50"                  - "c:\resource\esmrcasplugindata.r50"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r50"             - "c:\resource\apps\emailwidgetsettings.r50"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r51" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r51"              - "c:\resource\apps\freestyleemailui.r51"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r51"         - "c:\resource\apps\gsemailsettingsplugin.r51"
+    "\epoc32\data\z\resource\apps\fsmailserver.r51"                  - "c:\resource\apps\fsmailserver.r51"
+    "\epoc32\data\z\resource\apps\emailwidget.r51"                   - "c:\resource\apps\emailwidget.r51"
+    "\epoc32\data\z\resource\ipssossettings.r51"                     - "c:\resource\ipssossettings.r51"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r51"                  - "c:\resource\apps\fscpocplugin.r51"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r51"                 - "c:\resource\apps\fsccallplugin.r51"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r51"        - "c:\resource\apps\fscsaveascontactplugin.r51"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r51"                 - "c:\resource\apps\fscsendplugin.r51"
+    "\epoc32\data\z\resource\esmrgui.r51"                            - "c:\resource\esmrgui.r51"
+    "\epoc32\data\z\resource\esmrtasks.r51"                          - "c:\resource\esmrtasks.r51"
+    "\epoc32\data\z\resource\esmrcasplugindata.r51"                  - "c:\resource\esmrcasplugindata.r51"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r51"             - "c:\resource\apps\emailwidgetsettings.r51"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r54" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r54"              - "c:\resource\apps\freestyleemailui.r54"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r54"         - "c:\resource\apps\gsemailsettingsplugin.r54"
+    "\epoc32\data\z\resource\apps\fsmailserver.r54"                  - "c:\resource\apps\fsmailserver.r54"
+    "\epoc32\data\z\resource\apps\emailwidget.r54"                   - "c:\resource\apps\emailwidget.r54"
+    "\epoc32\data\z\resource\ipssossettings.r54"                     - "c:\resource\ipssossettings.r54"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r54"                  - "c:\resource\apps\fscpocplugin.r54"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r54"                 - "c:\resource\apps\fsccallplugin.r54"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r54"        - "c:\resource\apps\fscsaveascontactplugin.r54"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r54"                 - "c:\resource\apps\fscsendplugin.r54"
+    "\epoc32\data\z\resource\esmrgui.r54"                            - "c:\resource\esmrgui.r54"
+    "\epoc32\data\z\resource\esmrtasks.r54"                          - "c:\resource\esmrtasks.r54"
+    "\epoc32\data\z\resource\esmrcasplugindata.r54"                  - "c:\resource\esmrcasplugindata.r54"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r54"             - "c:\resource\apps\emailwidgetsettings.r54"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r57" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r57"              - "c:\resource\apps\freestyleemailui.r57"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r57"         - "c:\resource\apps\gsemailsettingsplugin.r57"
+    "\epoc32\data\z\resource\apps\fsmailserver.r57"                  - "c:\resource\apps\fsmailserver.r57"
+    "\epoc32\data\z\resource\apps\emailwidget.r57"                   - "c:\resource\apps\emailwidget.r57"
+    "\epoc32\data\z\resource\ipssossettings.r57"                     - "c:\resource\ipssossettings.r57"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r57"                  - "c:\resource\apps\fscpocplugin.r57"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r57"                 - "c:\resource\apps\fsccallplugin.r57"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r57"        - "c:\resource\apps\fscsaveascontactplugin.r57"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r57"                 - "c:\resource\apps\fscsendplugin.r57"
+    "\epoc32\data\z\resource\esmrgui.r57"                            - "c:\resource\esmrgui.r57"
+    "\epoc32\data\z\resource\esmrtasks.r57"                          - "c:\resource\esmrtasks.r57"
+    "\epoc32\data\z\resource\esmrcasplugindata.r57"                  - "c:\resource\esmrcasplugindata.r57"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r57"             - "c:\resource\apps\emailwidgetsettings.r57"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r59" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r59"              - "c:\resource\apps\freestyleemailui.r59"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r59"         - "c:\resource\apps\gsemailsettingsplugin.r59"
+    "\epoc32\data\z\resource\apps\fsmailserver.r59"                  - "c:\resource\apps\fsmailserver.r59"
+    "\epoc32\data\z\resource\apps\emailwidget.r59"                   - "c:\resource\apps\emailwidget.r59"
+    "\epoc32\data\z\resource\ipssossettings.r59"                     - "c:\resource\ipssossettings.r59"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r59"                  - "c:\resource\apps\fscpocplugin.r59"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r59"                 - "c:\resource\apps\fsccallplugin.r59"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r59"        - "c:\resource\apps\fscsaveascontactplugin.r59"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r59"                 - "c:\resource\apps\fscsendplugin.r59"
+    "\epoc32\data\z\resource\esmrgui.r59"                            - "c:\resource\esmrgui.r59"
+    "\epoc32\data\z\resource\esmrtasks.r59"                          - "c:\resource\esmrtasks.r59"
+    "\epoc32\data\z\resource\esmrcasplugindata.r59"                  - "c:\resource\esmrcasplugindata.r59"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r59"             - "c:\resource\apps\emailwidgetsettings.r59"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r67" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r67"              - "c:\resource\apps\freestyleemailui.r67"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r67"         - "c:\resource\apps\gsemailsettingsplugin.r67"
+    "\epoc32\data\z\resource\apps\fsmailserver.r67"                  - "c:\resource\apps\fsmailserver.r67"
+    "\epoc32\data\z\resource\apps\emailwidget.r67"                   - "c:\resource\apps\emailwidget.r67"
+    "\epoc32\data\z\resource\ipssossettings.r67"                     - "c:\resource\ipssossettings.r67"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r67"                  - "c:\resource\apps\fscpocplugin.r67"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r67"                 - "c:\resource\apps\fsccallplugin.r67"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r67"        - "c:\resource\apps\fscsaveascontactplugin.r67"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r67"                 - "c:\resource\apps\fscsendplugin.r67"
+    "\epoc32\data\z\resource\esmrgui.r67"                            - "c:\resource\esmrgui.r67"
+    "\epoc32\data\z\resource\esmrtasks.r67"                          - "c:\resource\esmrtasks.r67"
+    "\epoc32\data\z\resource\esmrcasplugindata.r67"                  - "c:\resource\esmrcasplugindata.r67"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r67"             - "c:\resource\apps\emailwidgetsettings.r67"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r68" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r68"              - "c:\resource\apps\freestyleemailui.r68"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r68"         - "c:\resource\apps\gsemailsettingsplugin.r68"
+    "\epoc32\data\z\resource\apps\fsmailserver.r68"                  - "c:\resource\apps\fsmailserver.r68"
+    "\epoc32\data\z\resource\apps\emailwidget.r68"                   - "c:\resource\apps\emailwidget.r68"
+    "\epoc32\data\z\resource\ipssossettings.r68"                     - "c:\resource\ipssossettings.r68"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r68"                  - "c:\resource\apps\fscpocplugin.r68"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r68"                 - "c:\resource\apps\fsccallplugin.r68"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r68"        - "c:\resource\apps\fscsaveascontactplugin.r68"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r68"                 - "c:\resource\apps\fscsendplugin.r68"
+    "\epoc32\data\z\resource\esmrgui.r68"                            - "c:\resource\esmrgui.r68"
+    "\epoc32\data\z\resource\esmrtasks.r68"                          - "c:\resource\esmrtasks.r68"
+    "\epoc32\data\z\resource\esmrcasplugindata.r68"                  - "c:\resource\esmrcasplugindata.r68"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r68"             - "c:\resource\apps\emailwidgetsettings.r68"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r70" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r70"              - "c:\resource\apps\freestyleemailui.r70"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r70"         - "c:\resource\apps\gsemailsettingsplugin.r70"
+    "\epoc32\data\z\resource\apps\fsmailserver.r70"                  - "c:\resource\apps\fsmailserver.r70"
+    "\epoc32\data\z\resource\apps\emailwidget.r70"                   - "c:\resource\apps\emailwidget.r70"
+    "\epoc32\data\z\resource\ipssossettings.r70"                     - "c:\resource\ipssossettings.r70"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r70"                  - "c:\resource\apps\fscpocplugin.r70"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r70"                 - "c:\resource\apps\fsccallplugin.r70"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r70"        - "c:\resource\apps\fscsaveascontactplugin.r70"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r70"                 - "c:\resource\apps\fscsendplugin.r70"
+    "\epoc32\data\z\resource\esmrgui.r70"                            - "c:\resource\esmrgui.r70"
+    "\epoc32\data\z\resource\esmrtasks.r70"                          - "c:\resource\esmrtasks.r70"
+    "\epoc32\data\z\resource\esmrcasplugindata.r70"                  - "c:\resource\esmrcasplugindata.r70"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r70"             - "c:\resource\apps\emailwidgetsettings.r70"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r76" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r76"              - "c:\resource\apps\freestyleemailui.r76"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r76"         - "c:\resource\apps\gsemailsettingsplugin.r76"
+    "\epoc32\data\z\resource\apps\fsmailserver.r76"                  - "c:\resource\apps\fsmailserver.r76"
+    "\epoc32\data\z\resource\apps\emailwidget.r76"                   - "c:\resource\apps\emailwidget.r76"
+    "\epoc32\data\z\resource\ipssossettings.r76"                     - "c:\resource\ipssossettings.r76"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r76"                  - "c:\resource\apps\fscpocplugin.r76"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r76"                 - "c:\resource\apps\fsccallplugin.r76"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r76"        - "c:\resource\apps\fscsaveascontactplugin.r76"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r76"                 - "c:\resource\apps\fscsendplugin.r76"
+    "\epoc32\data\z\resource\esmrgui.r76"                            - "c:\resource\esmrgui.r76"
+    "\epoc32\data\z\resource\esmrtasks.r76"                          - "c:\resource\esmrtasks.r76"
+    "\epoc32\data\z\resource\esmrcasplugindata.r76"                  - "c:\resource\esmrcasplugindata.r76"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r76"             - "c:\resource\apps\emailwidgetsettings.r76"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r78" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r78"              - "c:\resource\apps\freestyleemailui.r78"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r78"         - "c:\resource\apps\gsemailsettingsplugin.r78"
+    "\epoc32\data\z\resource\apps\fsmailserver.r78"                  - "c:\resource\apps\fsmailserver.r78"
+    "\epoc32\data\z\resource\apps\emailwidget.r78"                   - "c:\resource\apps\emailwidget.r78"
+    "\epoc32\data\z\resource\ipssossettings.r78"                     - "c:\resource\ipssossettings.r78"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r78"                  - "c:\resource\apps\fscpocplugin.r78"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r78"                 - "c:\resource\apps\fsccallplugin.r78"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r78"        - "c:\resource\apps\fscsaveascontactplugin.r78"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r78"                 - "c:\resource\apps\fscsendplugin.r78"
+    "\epoc32\data\z\resource\esmrgui.r78"                            - "c:\resource\esmrgui.r78"
+    "\epoc32\data\z\resource\esmrtasks.r78"                          - "c:\resource\esmrtasks.r78"
+    "\epoc32\data\z\resource\esmrcasplugindata.r78"                  - "c:\resource\esmrcasplugindata.r78"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r78"             - "c:\resource\apps\emailwidgetsettings.r78"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r79" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r79"              - "c:\resource\apps\freestyleemailui.r79"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r79"         - "c:\resource\apps\gsemailsettingsplugin.r79"
+    "\epoc32\data\z\resource\apps\fsmailserver.r79"                  - "c:\resource\apps\fsmailserver.r79"
+    "\epoc32\data\z\resource\apps\emailwidget.r79"                   - "c:\resource\apps\emailwidget.r79"
+    "\epoc32\data\z\resource\ipssossettings.r79"                     - "c:\resource\ipssossettings.r79"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r79"                  - "c:\resource\apps\fscpocplugin.r79"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r79"                 - "c:\resource\apps\fsccallplugin.r79"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r79"        - "c:\resource\apps\fscsaveascontactplugin.r79"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r79"                 - "c:\resource\apps\fscsendplugin.r79"
+    "\epoc32\data\z\resource\esmrgui.r79"                            - "c:\resource\esmrgui.r79"
+    "\epoc32\data\z\resource\esmrtasks.r79"                          - "c:\resource\esmrtasks.r79"
+    "\epoc32\data\z\resource\esmrcasplugindata.r79"                  - "c:\resource\esmrcasplugindata.r79"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r79"             - "c:\resource\apps\emailwidgetsettings.r79"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r83" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r83"              - "c:\resource\apps\freestyleemailui.r83"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r83"         - "c:\resource\apps\gsemailsettingsplugin.r83"
+    "\epoc32\data\z\resource\apps\fsmailserver.r83"                  - "c:\resource\apps\fsmailserver.r83"
+    "\epoc32\data\z\resource\apps\emailwidget.r83"                   - "c:\resource\apps\emailwidget.r83"
+    "\epoc32\data\z\resource\ipssossettings.r83"                     - "c:\resource\ipssossettings.r83"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r83"                  - "c:\resource\apps\fscpocplugin.r83"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r83"                 - "c:\resource\apps\fsccallplugin.r83"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r83"        - "c:\resource\apps\fscsaveascontactplugin.r83"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r83"                 - "c:\resource\apps\fscsendplugin.r83"
+    "\epoc32\data\z\resource\esmrgui.r83"                            - "c:\resource\esmrgui.r83"
+    "\epoc32\data\z\resource\esmrtasks.r83"                          - "c:\resource\esmrtasks.r83"
+    "\epoc32\data\z\resource\esmrcasplugindata.r83"                  - "c:\resource\esmrcasplugindata.r83"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r83"             - "c:\resource\apps\emailwidgetsettings.r83"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r93" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r93"              - "c:\resource\apps\freestyleemailui.r93"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r93"         - "c:\resource\apps\gsemailsettingsplugin.r93"
+    "\epoc32\data\z\resource\apps\fsmailserver.r93"                  - "c:\resource\apps\fsmailserver.r93"
+    "\epoc32\data\z\resource\apps\emailwidget.r93"                   - "c:\resource\apps\emailwidget.r93"
+    "\epoc32\data\z\resource\ipssossettings.r93"                     - "c:\resource\ipssossettings.r93"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r93"                  - "c:\resource\apps\fscpocplugin.r93"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r93"                 - "c:\resource\apps\fsccallplugin.r93"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r93"        - "c:\resource\apps\fscsaveascontactplugin.r93"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r93"                 - "c:\resource\apps\fscsendplugin.r93"
+    "\epoc32\data\z\resource\esmrgui.r93"                            - "c:\resource\esmrgui.r93"
+    "\epoc32\data\z\resource\esmrtasks.r93"                          - "c:\resource\esmrtasks.r93"
+    "\epoc32\data\z\resource\esmrcasplugindata.r93"                  - "c:\resource\esmrcasplugindata.r93"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r93"             - "c:\resource\apps\emailwidgetsettings.r93"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r94" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r94"              - "c:\resource\apps\freestyleemailui.r94"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r94"         - "c:\resource\apps\gsemailsettingsplugin.r94"
+    "\epoc32\data\z\resource\apps\fsmailserver.r94"                  - "c:\resource\apps\fsmailserver.r94"
+    "\epoc32\data\z\resource\apps\emailwidget.r94"                   - "c:\resource\apps\emailwidget.r94"
+    "\epoc32\data\z\resource\ipssossettings.r94"                     - "c:\resource\ipssossettings.r94"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r94"                  - "c:\resource\apps\fscpocplugin.r94"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r94"                 - "c:\resource\apps\fsccallplugin.r94"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r94"        - "c:\resource\apps\fscsaveascontactplugin.r94"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r94"                 - "c:\resource\apps\fscsendplugin.r94"
+    "\epoc32\data\z\resource\esmrgui.r94"                            - "c:\resource\esmrgui.r94"
+    "\epoc32\data\z\resource\esmrtasks.r94"                          - "c:\resource\esmrtasks.r94"
+    "\epoc32\data\z\resource\esmrcasplugindata.r94"                  - "c:\resource\esmrcasplugindata.r94"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r94"             - "c:\resource\apps\emailwidgetsettings.r94"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r96" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r96"              - "c:\resource\apps\freestyleemailui.r96"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r96"         - "c:\resource\apps\gsemailsettingsplugin.r96"
+    "\epoc32\data\z\resource\apps\fsmailserver.r96"                  - "c:\resource\apps\fsmailserver.r96"
+    "\epoc32\data\z\resource\apps\emailwidget.r96"                   - "c:\resource\apps\emailwidget.r96"
+    "\epoc32\data\z\resource\ipssossettings.r96"                     - "c:\resource\ipssossettings.r96"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r96"                  - "c:\resource\apps\fscpocplugin.r96"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r96"                 - "c:\resource\apps\fsccallplugin.r96"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r96"        - "c:\resource\apps\fscsaveascontactplugin.r96"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r96"                 - "c:\resource\apps\fscsendplugin.r96"
+    "\epoc32\data\z\resource\esmrgui.r96"                            - "c:\resource\esmrgui.r96"
+    "\epoc32\data\z\resource\esmrtasks.r96"                          - "c:\resource\esmrtasks.r96"
+    "\epoc32\data\z\resource\esmrcasplugindata.r96"                  - "c:\resource\esmrcasplugindata.r96"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r96"             - "c:\resource\apps\emailwidgetsettings.r96"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r102" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r102"              - "c:\resource\apps\freestyleemailui.r102"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r102"         - "c:\resource\apps\gsemailsettingsplugin.r102"
+    "\epoc32\data\z\resource\apps\fsmailserver.r102"                  - "c:\resource\apps\fsmailserver.r102"
+    "\epoc32\data\z\resource\apps\emailwidget.r102"                   - "c:\resource\apps\emailwidget.r102"
+    "\epoc32\data\z\resource\ipssossettings.r102"                     - "c:\resource\ipssossettings.r102"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r102"                  - "c:\resource\apps\fscpocplugin.r102"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r102"                 - "c:\resource\apps\fsccallplugin.r102"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r102"        - "c:\resource\apps\fscsaveascontactplugin.r102"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r102"                 - "c:\resource\apps\fscsendplugin.r102"
+    "\epoc32\data\z\resource\esmrgui.r102"                            - "c:\resource\esmrgui.r102"
+    "\epoc32\data\z\resource\esmrtasks.r102"                          - "c:\resource\esmrtasks.r102"
+    "\epoc32\data\z\resource\esmrcasplugindata.r102"                  - "c:\resource\esmrcasplugindata.r102"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r102"             - "c:\resource\apps\emailwidgetsettings.r102"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r103" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r103"              - "c:\resource\apps\freestyleemailui.r103"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r103"         - "c:\resource\apps\gsemailsettingsplugin.r103"
+    "\epoc32\data\z\resource\apps\fsmailserver.r103"                  - "c:\resource\apps\fsmailserver.r103"
+    "\epoc32\data\z\resource\apps\emailwidget.r103"                   - "c:\resource\apps\emailwidget.r103"
+    "\epoc32\data\z\resource\ipssossettings.r103"                     - "c:\resource\ipssossettings.r103"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r103"                  - "c:\resource\apps\fscpocplugin.r103"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r103"                 - "c:\resource\apps\fsccallplugin.r103"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r103"        - "c:\resource\apps\fscsaveascontactplugin.r103"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r103"                 - "c:\resource\apps\fscsendplugin.r103"
+    "\epoc32\data\z\resource\esmrgui.r103"                            - "c:\resource\esmrgui.r103"
+    "\epoc32\data\z\resource\esmrtasks.r103"                          - "c:\resource\esmrtasks.r103"
+    "\epoc32\data\z\resource\esmrcasplugindata.r103"                  - "c:\resource\esmrcasplugindata.r103"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r103"             - "c:\resource\apps\emailwidgetsettings.r103"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r129" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r129"              - "c:\resource\apps\freestyleemailui.r129"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r129"         - "c:\resource\apps\gsemailsettingsplugin.r129"
+    "\epoc32\data\z\resource\apps\fsmailserver.r129"                  - "c:\resource\apps\fsmailserver.r129"
+    "\epoc32\data\z\resource\apps\emailwidget.r129"                   - "c:\resource\apps\emailwidget.r129"
+    "\epoc32\data\z\resource\ipssossettings.r129"                     - "c:\resource\ipssossettings.r129"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r129"                  - "c:\resource\apps\fscpocplugin.r129"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r129"                 - "c:\resource\apps\fsccallplugin.r129"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r129"        - "c:\resource\apps\fscsaveascontactplugin.r129"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r129"                 - "c:\resource\apps\fscsendplugin.r129"
+    "\epoc32\data\z\resource\esmrgui.r129"                            - "c:\resource\esmrgui.r129"
+    "\epoc32\data\z\resource\esmrtasks.r129"                          - "c:\resource\esmrtasks.r129"
+    "\epoc32\data\z\resource\esmrcasplugindata.r129"                  - "c:\resource\esmrcasplugindata.r129"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r129"             - "c:\resource\apps\emailwidgetsettings.r129"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r157" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r157"              - "c:\resource\apps\freestyleemailui.r157"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r157"         - "c:\resource\apps\gsemailsettingsplugin.r157"
+    "\epoc32\data\z\resource\apps\fsmailserver.r157"                  - "c:\resource\apps\fsmailserver.r157"
+    "\epoc32\data\z\resource\apps\emailwidget.r157"                   - "c:\resource\apps\emailwidget.r157"
+    "\epoc32\data\z\resource\ipssossettings.r157"                     - "c:\resource\ipssossettings.r157"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r157"                  - "c:\resource\apps\fscpocplugin.r157"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r157"                 - "c:\resource\apps\fsccallplugin.r157"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r157"        - "c:\resource\apps\fscsaveascontactplugin.r157"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r157"                 - "c:\resource\apps\fscsendplugin.r157"
+    "\epoc32\data\z\resource\esmrgui.r157"                            - "c:\resource\esmrgui.r157"
+    "\epoc32\data\z\resource\esmrtasks.r157"                          - "c:\resource\esmrtasks.r157"
+    "\epoc32\data\z\resource\esmrcasplugindata.r157"                  - "c:\resource\esmrcasplugindata.r157"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r157"             - "c:\resource\apps\emailwidgetsettings.r157"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r158" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r158"              - "c:\resource\apps\freestyleemailui.r158"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r158"         - "c:\resource\apps\gsemailsettingsplugin.r158"
+    "\epoc32\data\z\resource\apps\fsmailserver.r158"                  - "c:\resource\apps\fsmailserver.r158"
+    "\epoc32\data\z\resource\apps\emailwidget.r158"                   - "c:\resource\apps\emailwidget.r158"
+    "\epoc32\data\z\resource\ipssossettings.r158"                     - "c:\resource\ipssossettings.r158"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r158"                  - "c:\resource\apps\fscpocplugin.r158"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r158"                 - "c:\resource\apps\fsccallplugin.r158"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r158"        - "c:\resource\apps\fscsaveascontactplugin.r158"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r158"                 - "c:\resource\apps\fscsendplugin.r158"
+    "\epoc32\data\z\resource\esmrgui.r158"                            - "c:\resource\esmrgui.r158"
+    "\epoc32\data\z\resource\esmrtasks.r158"                          - "c:\resource\esmrtasks.r158"
+    "\epoc32\data\z\resource\esmrcasplugindata.r158"                  - "c:\resource\esmrcasplugindata.r158"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r158"             - "c:\resource\apps\emailwidgetsettings.r158"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r159" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r159"              - "c:\resource\apps\freestyleemailui.r159"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r159"         - "c:\resource\apps\gsemailsettingsplugin.r159"
+    "\epoc32\data\z\resource\apps\fsmailserver.r159"                  - "c:\resource\apps\fsmailserver.r159"
+    "\epoc32\data\z\resource\apps\emailwidget.r159"                   - "c:\resource\apps\emailwidget.r159"
+    "\epoc32\data\z\resource\ipssossettings.r159"                     - "c:\resource\ipssossettings.r159"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r159"                  - "c:\resource\apps\fscpocplugin.r159"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r159"                 - "c:\resource\apps\fsccallplugin.r159"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r159"        - "c:\resource\apps\fscsaveascontactplugin.r159"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r159"                 - "c:\resource\apps\fscsendplugin.r159"
+    "\epoc32\data\z\resource\esmrgui.r159"                            - "c:\resource\esmrgui.r159"
+    "\epoc32\data\z\resource\esmrtasks.r159"                          - "c:\resource\esmrtasks.r159"
+    "\epoc32\data\z\resource\esmrcasplugindata.r159"                  - "c:\resource\esmrcasplugindata.r159"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r159"             - "c:\resource\apps\emailwidgetsettings.r159"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r160" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r160"              - "c:\resource\apps\freestyleemailui.r160"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r160"         - "c:\resource\apps\gsemailsettingsplugin.r160"
+    "\epoc32\data\z\resource\apps\fsmailserver.r160"                  - "c:\resource\apps\fsmailserver.r160"
+    "\epoc32\data\z\resource\apps\emailwidget.r160"                   - "c:\resource\apps\emailwidget.r160"
+    "\epoc32\data\z\resource\ipssossettings.r160"                     - "c:\resource\ipssossettings.r160"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r160"                  - "c:\resource\apps\fscpocplugin.r160"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r160"                 - "c:\resource\apps\fsccallplugin.r160"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r160"        - "c:\resource\apps\fscsaveascontactplugin.r160"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r160"                 - "c:\resource\apps\fscsendplugin.r160"
+    "\epoc32\data\z\resource\esmrgui.r160"                            - "c:\resource\esmrgui.r160"
+    "\epoc32\data\z\resource\esmrtasks.r160"                          - "c:\resource\esmrtasks.r160"
+    "\epoc32\data\z\resource\esmrcasplugindata.r160"                  - "c:\resource\esmrcasplugindata.r160"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r160"             - "c:\resource\apps\emailwidgetsettings.r160"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r161" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r161"              - "c:\resource\apps\freestyleemailui.r161"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r161"         - "c:\resource\apps\gsemailsettingsplugin.r161"
+    "\epoc32\data\z\resource\apps\fsmailserver.r161"                  - "c:\resource\apps\fsmailserver.r161"
+    "\epoc32\data\z\resource\apps\emailwidget.r161"                   - "c:\resource\apps\emailwidget.r161"
+    "\epoc32\data\z\resource\ipssossettings.r161"                     - "c:\resource\ipssossettings.r161"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r161"                  - "c:\resource\apps\fscpocplugin.r161"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r161"                 - "c:\resource\apps\fsccallplugin.r161"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r161"        - "c:\resource\apps\fscsaveascontactplugin.r161"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r161"                 - "c:\resource\apps\fscsendplugin.r161"
+    "\epoc32\data\z\resource\esmrgui.r161"                            - "c:\resource\esmrgui.r161"
+    "\epoc32\data\z\resource\esmrtasks.r161"                          - "c:\resource\esmrtasks.r161"
+    "\epoc32\data\z\resource\esmrcasplugindata.r161"                  - "c:\resource\esmrcasplugindata.r161"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r161"             - "c:\resource\apps\emailwidgetsettings.r161"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r326" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r326"              - "c:\resource\apps\freestyleemailui.r326"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r326"         - "c:\resource\apps\gsemailsettingsplugin.r326"
+    "\epoc32\data\z\resource\apps\fsmailserver.r326"                  - "c:\resource\apps\fsmailserver.r326"
+    "\epoc32\data\z\resource\apps\emailwidget.r326"                   - "c:\resource\apps\emailwidget.r326"
+    "\epoc32\data\z\resource\ipssossettings.r326"                     - "c:\resource\ipssossettings.r326"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r326"                  - "c:\resource\apps\fscpocplugin.r326"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r326"                 - "c:\resource\apps\fsccallplugin.r326"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r326"        - "c:\resource\apps\fscsaveascontactplugin.r326"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r326"                 - "c:\resource\apps\fscsendplugin.r326"
+    "\epoc32\data\z\resource\esmrgui.r326"                            - "c:\resource\esmrgui.r326"
+    "\epoc32\data\z\resource\esmrtasks.r326"                          - "c:\resource\esmrtasks.r326"
+    "\epoc32\data\z\resource\esmrcasplugindata.r326"                  - "c:\resource\esmrcasplugindata.r326"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r326"             - "c:\resource\apps\emailwidgetsettings.r326"
+ENDIF
+
+IF EXISTS( "z:\resource\avkon.r327" )
+    "\epoc32\data\z\resource\apps\freestyleemailui.r327"              - "c:\resource\apps\freestyleemailui.r327"
+    "\epoc32\data\z\resource\apps\gsemailsettingsplugin.r327"         - "c:\resource\apps\gsemailsettingsplugin.r327"
+    "\epoc32\data\z\resource\apps\fsmailserver.r327"                  - "c:\resource\apps\fsmailserver.r327"
+    "\epoc32\data\z\resource\apps\emailwidget.r327"                   - "c:\resource\apps\emailwidget.r327"
+    "\epoc32\data\z\resource\ipssossettings.r327"                     - "c:\resource\ipssossettings.r327"
+    "\epoc32\data\z\resource\apps\fscpocplugin.r327"                  - "c:\resource\apps\fscpocplugin.r327"
+    "\epoc32\data\z\resource\apps\fsccallplugin.r327"                 - "c:\resource\apps\fsccallplugin.r327"
+    "\epoc32\data\z\resource\apps\fscsaveascontactplugin.r327"        - "c:\resource\apps\fscsaveascontactplugin.r327"
+    "\epoc32\data\z\resource\apps\fscsendplugin.r327"                 - "c:\resource\apps\fscsendplugin.r327"
+    "\epoc32\data\z\resource\esmrgui.r327"                            - "c:\resource\esmrgui.r327"
+    "\epoc32\data\z\resource\esmrtasks.r327"                          - "c:\resource\esmrtasks.r327"
+    "\epoc32\data\z\resource\esmrcasplugindata.r327"                  - "c:\resource\esmrcasplugindata.r327"
+    "\epoc32\data\z\resource\apps\emailwidgetsettings.r327"             - "c:\resource\apps\emailwidgetsettings.r327"
+ENDIF
+
+; emailservices / emailservermonitor
+"\epoc32\release\armv5\udeb\emailservermonitor.exe"              - "c:\sys\bin\emailservermonitor.exe"
+"\epoc32\release\armv5\udeb\fsmailserverautostart.exe"           - "c:\sys\bin\fsmailserverautostart.exe", FILERUN, RUNINSTALL

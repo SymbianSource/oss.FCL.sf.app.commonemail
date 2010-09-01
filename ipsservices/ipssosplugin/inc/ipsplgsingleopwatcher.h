@@ -29,7 +29,7 @@ class CIpsPlgImap4MoveRemoteOpObserver;
 /**
 * CMsvOperation watcher class.
 */
-NONSHARABLE_CLASS ( CIpsPlgSingleOpWatcher ) : public CActive
+class CIpsPlgSingleOpWatcher : public CActive
     {
     public:
         /**

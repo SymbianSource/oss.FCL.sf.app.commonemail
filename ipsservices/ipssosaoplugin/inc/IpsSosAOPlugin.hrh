@@ -17,8 +17,8 @@
 */
 
 
-#ifndef IPSSOSAOPLUGIN_HRH
-#define IPSSOSAOPLUGIN_HRH
+#ifndef IPSSOSAOPLUGIN_HRH_
+#define IPSSOSAOPLUGIN_HRH_
 
 const TInt KIpsSosAOMaxStateCycles = 50;
 const TInt KIpsSosAOStartDelaySeconds = 60;
@@ -26,9 +26,9 @@ const TInt KIpsSosAOReTryInterval = 60;
 const TInt KIpsSosAOMaxReTryTimes = 3;
 const TInt KIpsSosAOSuspendWatchdogTime = 300;
 const TInt KIpsSosAOContinueWaitTime = 5;
-const TInt KAODefaultInboxSyncTimeSecs = 3600;
+
 const TInt IpsSosAODefaultGranularity = 2;
 
 
 
-#endif /*IPSSOSAOPLUGIN_HRH*/
+#endif /*IPSSOSAOPLUGIN_HRH_*/

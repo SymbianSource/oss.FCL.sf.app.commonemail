@@ -1,0 +1,11 @@
+EXPORTS
+	?ImplementationGroupProxy@@YAPBUTImplementationProxy@@AAH@Z @ 1 NONAME ABSENT ; struct TImplementationProxy const * ImplementationGroupProxy(int &)
+	??1CESMRUtils@@UAE@XZ @ 2 NONAME ; CESMRUtils::~CESMRUtils(void)
+	?DeleteWithUiL@CESMRUtils@@QAEHABVCCalEntry@@J@Z @ 3 NONAME ; int CESMRUtils::DeleteWithUiL(class CCalEntry const &, long)
+	?DeleteWithUiL@CESMRUtils@@QAEHPAVCCalInstance@@J@Z @ 4 NONAME ; int CESMRUtils::DeleteWithUiL(class CCalInstance *, long)
+	?ExtensionL@CESMRUtils@@QAEPAXVTUid@@@Z @ 5 NONAME ; void * CESMRUtils::ExtensionL(class TUid)
+	?NewL@CESMRUtils@@SAPAV1@AAVMMRUtilsObserver@@@Z @ 6 NONAME ; class CESMRUtils * CESMRUtils::NewL(class MMRUtilsObserver &)
+	?SendWithUiL@CESMRUtils@@QAEXABVCCalEntry@@J@Z @ 7 NONAME ; void CESMRUtils::SendWithUiL(class CCalEntry const &, long)
+	?SessionSetupL@CESMRUtils@@QAEXAAVCCalSession@@PAVCMsvSession@@@Z @ 8 NONAME ; void CESMRUtils::SessionSetupL(class CCalSession &, class CMsvSession *)
+	?CreateExtensionsL@CESMRUtils@@QAEXW4TESMRCalendarEventType@@@Z @ 9 NONAME ; void CESMRUtils::CreateExtensionsL(enum TESMRCalendarEventType)
+

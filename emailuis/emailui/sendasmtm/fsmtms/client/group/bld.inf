@@ -1,0 +1,29 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for MTM client
+*
+*/
+
+
+PRJ_PLATFORMS
+WINSCW ARMV5
+
+PRJ_EXPORTS
+// needed by FSemailServer
+//<cmail>
+../inc/cfsclientmtm.h |../../../../../../inc/cfsclientmtm.h
+//</cmail>
+
+PRJ_MMPFILES
+fsclientmtm.mmp

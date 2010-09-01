@@ -1,220 +1,384 @@
 /*
- * Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies).
- * All rights reserved.
- * This component and the accompanying materials are made available
- * under the terms of "Eclipse Public License v1.0"
- * which accompanies this distribution, and is available
- * at the URL "http://www.eclipse.org/legal/epl-v10.html".
- *
- * Initial Contributors:
- * Nokia Corporation - initial contribution.
- *
- * Contributors:
- *
- * Description:
- *
- */
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Header file describing trace utilities for commonemail
+*
+*/
 
 #ifndef EMAILTRACE_H
 #define EMAILTRACE_H
 
-#include <QCoreApplication>
-#include <QDebug>
-#include <QFile>
-#include <QThread>
-#include <QDateTime>
+#include "emailtraceconfig.hrh"
 
-/*
- * The macros NM_COMMENT_TRACES, NM_ERROR_TRACES, and NM_FUNCTION_TRACES
- * control which debug messages are printed. The trace logging is controlled
- * with the NM_LOG_TO_FILE macro, whereas the NM_LOG_DIRECTORY macro defines
- * which directory is to be used to store the log files. The print_trace()
- * helper function implements printing. Log files are named according to
- * process and thread IDs. If NM_LOG_TO_FILE is zero or a log file cannot be
- * opened, the messages are printed to qDebug(). The DSC2STR() function can
- * be used to convert Symbian descriptors to QString objects.
- */
-#if defined(DEBUG) || defined(_DEBUG) || NM_COMMENT_TRACES || NM_ERROR_TRACES || NM_FUNCTION_TRACES
-
-#ifndef NM_COMMENT_TRACES
-#define NM_COMMENT_TRACES  0
+#ifdef TRACE_INTO_FILE
+#include "cmaillogger.h"
+#include <flogger.h> // RFileLogger
+#else
+#include <e32debug.h> // RDebug
 #endif
 
-#ifndef NM_ERROR_TRACES
-#define NM_ERROR_TRACES    0
-#endif
+/**
+* Constants
+*/
+#if defined(TRACE_INTO_FILE)
 
-#ifndef NM_FUNCTION_TRACES
-#define NM_FUNCTION_TRACES 0
-#endif
-
-#if NM_COMMENT_TRACES || NM_ERROR_TRACES || NM_FUNCTION_TRACES
-
-#define NM_LOG_TO_FILE   1
-#define NM_LOG_DIRECTORY "c:/data/logs/"
-
-inline void print_trace(const QString& msg)
-{
-    static QFile file(NM_LOG_DIRECTORY+
-                      QString("nmail_p%1_t%2.log").
-                      arg(QCoreApplication::applicationPid()).
-                      arg(QThread::currentThreadId()));
-    if (NM_LOG_TO_FILE && !file.isOpen()) {
-        file.open(QIODevice::Append | QIODevice::Text);
-    }
-    QDateTime dt = QDateTime::currentDateTime ();
-    if (file.isWritable()) {
-        QDebug(&file).nospace() << dt.toString(Qt::ISODate) << " " << msg << '\n';
-    } else {
-        qDebug().nospace() << "[Nmail] " << msg;
-    }
-}
+    _LIT(  KEmailDir, "email" );
+    _LIT(  KEmailTraceFile, "email.txt" );
 
 #endif
 
-inline QString DSC2STR(const TDesC& dsc)
-{
-    return QString::fromRawData(reinterpret_cast<const QChar*>(dsc.Ptr()),
-                                dsc.Length());
-}
-
+#if defined(TRACE_FILE_LIMIT_SIZE)
+    #define CMAIL_LOG_CLOSE CmailLogger::Close();
+    #define CMAILLOGBUFFERSIZE 120
 #else
+    #define CMAIL_LOG_CLOSE 
+#endif
 
-#define DSC2STR(dsc)
+//-----------------------------------------------------------------------------
+// Error trace macros
+//-----------------------------------------------------------------------------
+//
 
-#endif /* DEBUG */
+#ifdef ERROR_TRACE
 
-/*
- * The function NM_COMMENT() prints a debug message. The INFO macros and the
- * NMLOG macro are provided for legacy compatibility. They are deprecated and
- * should not be used. If sprintf() type of formatting is desired, consider
- * using QString::arg() or QTextStream.
- */
-#if NM_COMMENT_TRACES
+    /**
+    * Error trace definitions. Does not automatically log the error code!
+    */    
+    #if defined(TRACE_INTO_FILE) && !defined(TRACE_FILE_LIMIT_SIZE)
 
-inline void NM_COMMENT(const QString& msg)
-{
-    print_trace("COMMENT : " + msg);
-}
-#define INFO(msg) NM_COMMENT(msg)
-#define INFO_1(msg,arg1)\
-do {\
-    QString __msg;\
-    __msg.sprintf(msg,arg1);\
-    NM_COMMENT(__msg);\
-} while (0)
-#define INFO_2(msg,arg1,arg2)\
-do {\
-    QString __msg;\
-    __msg.sprintf(msg,arg1,arg2);\
-    NM_COMMENT(__msg);\
-} while (0)
-#define INFO_3(msg,arg1,arg2,arg3)\
-do {\
-    QString __msg;\
-    __msg.sprintf(msg,arg1,arg2,arg3);\
-    NM_COMMENT(__msg);\
-} while (0)
-#define NMLOG(msg) NM_COMMENT(msg)
+        #define ERROR( aErr, aMsg )\
+            {\
+            if( aErr != KErrNone )\
+                {\
+                _LIT( KMsg, aMsg );\
+                RFileLogger::Write(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg );\
+                }\
+            }
+        #define ERROR_1( aErr, aMsg, aP1 )\
+            {\
+            if( aErr != KErrNone )\
+                {\
+                _LIT( KMsg, aMsg );\
+                RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1 );\
+                }\
+            }
+        #define ERROR_2( aErr, aMsg, aP1, aP2 )\
+            {\
+            if( aErr != KErrNone )\
+                {\
+                _LIT( KMsg, aMsg );\
+                RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1, aP2 );\
+                }\
+            }
+        #define ERROR_3( aErr, aMsg, aP1, aP2, aP3 )\
+            {\
+            if( aErr != KErrNone )\
+                {\
+                _LIT( KMsg, aMsg );\
+                RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1, aP2, aP3 );\
+                }\
+            }
+        #define ERROR_GEN( aMsg ) ERROR( KErrGeneral, aMsg )
+        #define ERROR_GEN_1( aMsg, aP1 ) ERROR_1( KErrGeneral, aMsg, aP1 )
+    #endif
+    #if defined(TRACE_INTO_FILE) && defined(TRACE_FILE_LIMIT_SIZE)
+    
+        #define ERROR( aErr, aMsg )\
+        {\
+            if( aErr != KErrNone )\
+            {\
+            _LIT8( KMsg, aMsg );TBuf8<CMAILLOGBUFFERSIZE> buf=KMsg(); if ( KMsg().Size() < buf.MaxSize() ) { CmailLogger::Write( buf ); }}\
+        }    
+    
+    #define ERROR_1( aErr, aMsg, aP1 )\
+        {\
+            if( aErr != KErrNone )\
+            {\
+            _LIT8( KMsg, aMsg );TBuf8<CMAILLOGBUFFERSIZE> buf=KNullDesC8(); if ( KMsg().Size() < buf.MaxSize() ) { buf.Format( KMsg, aP1 ); CmailLogger::Write( buf ); } }\
+        }    
+        #define ERROR_2( aErr, aMsg, aP1, aP2 )\
+        {\
+            if( aErr != KErrNone )\
+            {\
+            _LIT8( KMsg, aMsg );TBuf8<CMAILLOGBUFFERSIZE> buf=KNullDesC8(); if ( KMsg().Size() < buf.MaxSize() ) { buf.Format( KMsg, aP1, aP2 ); CmailLogger::Write( buf ); }} \
+        }    
+        #define ERROR_3( aErr, aMsg, aP1, aP2, aP3 )\
+        {\
+            if( aErr != KErrNone )\
+            {\
+            _LIT8( KMsg, aMsg );TBuf8<CMAILLOGBUFFERSIZE> buf=KNullDesC8(); if ( KMsg().Size() < buf.MaxSize() ) { buf.Format( KMsg, aP1, aP2, aP3 ); CmailLogger::Write( buf ); }}\
+        }        
+    #endif
+    #if !defined(TRACE_INTO_FILE) && !defined(TRACE_FILE_LIMIT_SIZE)
 
-#else
+        #define ERROR( aErr, aMsg )\
+            {\
+            if( aErr != KErrNone )\
+                {\
+                _LIT( KMsg, aMsg ); RDebug::Print( KMsg );\
+                }\
+            }
+        #define ERROR_1( aErr, aMsg, aP1 )\
+            {\
+            if( aErr != KErrNone )\
+                {\
+                _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1 );\
+                }\
+            }
+        #define ERROR_2( aErr, aMsg, aP1, aP2 )\
+            {\
+            if( aErr != KErrNone )\
+                {\
+                _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1, aP2 );\
+                }\
+            }
+        #define ERROR_3( aErr, aMsg, aP1, aP2, aP3 )\
+            {\
+            if( aErr != KErrNone )\
+                {\
+                _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1, aP2, aP3 );\
+                }\
+            }
+        #define ERROR_GEN( aMsg ) ERROR( KErrGeneral, aMsg )
+        #define ERROR_GEN_1( aMsg, aP1 ) ERROR_1( KErrGeneral, aMsg, aP1 )
 
-#define NM_COMMENT(msg)
-#define INFO(msg)
-#define INFO_1(msg,arg1)
-#define INFO_2(msg,arg1,arg2)
-#define INFO_3(msg,arg1,arg2,arg3)
-#define NMLOG(msg)
+    #endif//TRACE_INTO_FILE
 
-#endif /* NM_COMMENT_TRACES */
+#else//ERROR_TRACE not defined
 
-/*
- * The function NM_ERROR() prints its second argument if the first argument
- * is non-zero. The ERROR macros are provided for legacy compatibility. They
- * are deprecated and should not be used. If sprintf() type of formatting is
- * desired, consider using QString::arg() or QTextStream.
- */
-#if NM_ERROR_TRACES
+    #define ERROR( aErr, aMsg )
+    #define ERROR_1( aErr, aMsg, aP1 )
+    #define ERROR_2( aErr, aMsg, aP1, aP2 )
+    #define ERROR_3( aErr, aMsg, aP1, aP2, aP3 )
+    #define ERROR_GEN( aMsg )
+    #define ERROR_GEN_1( aMsg, aP1 )
 
-inline void NM_ERROR(int err, const QString& msg)
-{
-    if (err) {
-        print_trace("ERROR : " + msg);
-    }
-}
-#define ERROR(err,msg) NM_ERROR(err,msg)
-#define ERROR_1(err,msg,arg1)\
-do {\
-    QString __msg;\
-    __msg.sprintf(msg,arg1);\
-    NM_ERROR(err,__msg);\
-} while (0)
-#define ERROR_2(err,msg,arg1,arg2)\
-do {\
-    QString __msg;\
-    __msg.sprintf(msg,arg1,arg2);\
-    NM_ERROR(err,__msg);\
-} while(0)
-#define ERROR_3(err,msg,arg1,arg2,arg3)\
-do {\
-    QString __msg;\
-    __msg.sprintf(msg,arg1,arg2,arg3);\
-    NM_ERROR(err,__msg);\
-} while(0)
-#define ERROR_GEN(msg) ERROR(KErrGeneral,msg)
-#define ERROR_GEN_1(msg,arg1) ERROR_1(KErrGeneral,msg,arg1)
+#endif//ERROR_TRACE
 
-#else
 
-#define NM_ERROR(err,msg)
-#define ERROR(err,msg)
-#define ERROR_1(err,msg,arg1)
-#define ERROR_2(err,msg,arg1,arg2)
-#define ERROR_3(err,msg,arg1,arg2,arg3)
-#define ERROR_GEN(msg)
-#define ERROR_GEN_1(msg,arg1)
+//-----------------------------------------------------------------------------
+// Info trace macros
+//-----------------------------------------------------------------------------
+//
+#if defined(INFO_TRACE)
 
-#endif /* NM_ERROR_TRACES */
+    /**
+    * Info log message definitions.
+    */
+    #if defined(TRACE_INTO_FILE) && !defined(TRACE_FILE_LIMIT_SIZE)
 
-/*
- * The macro NM_FUNCTION, when used inside a function body, enables tracing
- * for a function. If used, it should be placed on the first line of the
- * function body. ENTER and RETURN messages are printed when entering into
- * and returning from a function, respectively. In case of an exception,
- * UNWIND (for stack unwinding) is printed instead of RETURN. The FUNC_LOG
- * macro is provided for legacy compatibility. It is deprecated and should
- * not be used.
- */
-#if NM_FUNCTION_TRACES
+        #define INFO( aMsg )\
+            {\
+            _LIT( KMsg, aMsg );\
+            RFileLogger::Write(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg );\
+            }
+        #define INFO_1( aMsg, aP1 )\
+            {\
+            _LIT( KMsg, aMsg );\
+            RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1 );\
+            }
+        #define INFO_2( aMsg, aP1, aP2 )\
+            {\
+            _LIT( KMsg, aMsg );\
+            RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1, aP2 );\
+            }
+        #define INFO_3( aMsg, aP1, aP2, aP3 )\
+            {\
+            _LIT( KMsg, aMsg );\
+            RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1, aP2, aP3 );\
+            }
+    #endif // // TRACE_INTO_FILE && TRACE_FILE_LIMIT_SIZE
+    
+    #if defined(TRACE_INTO_FILE) && defined(TRACE_FILE_LIMIT_SIZE)
+        #define CMAIL_LOG_INIT
+        
+        #define INFO( aMsg )\
+            {\
+            _LIT8( KMsg, aMsg );\
+            CmailLogger::Write( KMsg );\
+            }
+        #define INFO_1( aMsg, aP1 )\
+            { _LIT8( KMsg, aMsg );TBuf8<CMAILLOGBUFFERSIZE> buf=KNullDesC8();\
+             if ( KMsg().Size() < buf.MaxSize() ) { buf.Format( KMsg, aP1 ); }\
+                CmailLogger::Write( buf ); }
+        #define INFO_2( aMsg, aP1, aP2 )\
+            { _LIT8( KMsg, aMsg );TBuf8<CMAILLOGBUFFERSIZE> buf=KNullDesC8();\
+             if ( KMsg().Size() < buf.MaxSize() ) { buf.Format( KMsg, aP1,aP2 ); }\
+                CmailLogger::Write( buf ); }
+        #define INFO_3( aMsg, aP1, aP2, aP3 )\
+            { _LIT8( KMsg, aMsg );TBuf8<CMAILLOGBUFFERSIZE> buf=KNullDesC8();\
+             if ( KMsg().Size() < buf.MaxSize() ) { buf.Format( KMsg, aP1,aP2,aP3 ); }\
+                CmailLogger::Write( buf ); }
+    #endif // TRACE_INTO_FILE && TRACE_FILE_LIMIT_SIZE
+    #if !defined(TRACE_INTO_FILE)
 
-class __ftracer
-{
-public:
-    __ftracer(const QString& _fn)
-    : fn(_fn)
-    {
-        print_trace("ENTER : " + fn);
-    }
-    ~__ftracer()
-    {
-        if (std::uncaught_exception()) {
-            print_trace("UNWIND : " + fn);
-        } else {
-            print_trace("RETURN : " + fn);
-        }
-    }
-private:
-    QString fn;
-};
+        #define INFO( aMsg )\
+            {\
+            _LIT( KMsg, aMsg ); RDebug::Print( KMsg );\
+            }
+        #define INFO_1( aMsg, aP1 )\
+            {\
+            _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1 );\
+            }
+        #define INFO_2( aMsg, aP1, aP2 )\
+            {\
+            _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1, aP2 );\
+            }
+        #define INFO_3( aMsg, aP1, aP2, aP3 )\
+            {\
+            _LIT( KMsg, aMsg ); RDebug::Print( KMsg, aP1, aP2, aP3 );\
+            }
 
-#define NM_FUNCTION __ftracer __ft(__PRETTY_FUNCTION__)
-#define FUNC_LOG NM_FUNCTION
+    #endif//TRACE_INTO_FILE
+                           
+#else//INFO_TRACE not defined
+    
+    #define CMAIL_LOG_INIT
+    #define CMAIL_LOG_CLOSE
+    #define INFO( aMsg )
+    #define INFO_1( aMsg, aP1 )
+    #define INFO_2( aMsg, aP1, aP2 )
+    #define INFO_3( aMsg, aP1, aP2, aP3 )
 
-#else
+#endif//INFO_TRACE
 
-#define NM_FUNCTION
-#define FUNC_LOG
+//-----------------------------------------------------------------------------
+// Function trace macros
+//-----------------------------------------------------------------------------
+//
+ 
+#if defined (FUNC_TRACE)
 
-#endif /* NM_FUNCTION_TRACES */
+    // Constants
+    _LIT8( KEllipse, "(" );
 
-#endif /* EMAILTRACE_H */
+    //
+    // Function logging definitions.
+    //
+    
+    
+    #if defined(TRACE_FILE_LIMIT_SIZE)
+        #define FUNC( aMsg, aP1 )\
+        {\
+            _LIT8( KMsg, aMsg );TBuf8<CMAILLOGBUFFERSIZE> buf=KNullDesC8(); if ( KMsg().Size() < buf.MaxSize() ) { buf.Format( KMsg, aP1 ); }CmailLogger::Write( buf ); }
+    #endif
+    #if defined(TRACE_INTO_FILE) && !defined(TRACE_FILE_LIMIT_SIZE)
+        #define FUNC( aMsg, aP1 )\
+            {\
+            _LIT8( KMsg, aMsg ); RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KMsg, aP1 );\
+            }
+    #endif
+    #if !defined(TRACE_INTO_FILE) 
+        #define FUNC( aMsg, aP1 )\
+            {\
+            RDebug::Printf( aMsg, aP1 );\
+            }\
+
+    #endif//TRACE_INTO_FILE
+    
+    /**
+    * Function trace helper class.
+    */
+    class TFuncLog
+        {
+        public:
+            inline TFuncLog( const char* aFunc ): iFunc( (TUint8*)aFunc )
+                {
+                TInt pos = iFunc.Find( KEllipse );
+                if( pos != KErrNotFound )
+                    {
+                    iFunc.Set( iFunc.Left( iFunc.Find( KEllipse ) ) );
+                    }
+                #if defined(TRACE_INTO_FILE) && !defined(TRACE_FILE_LIMIT_SIZE)
+
+                    //"CMAIL" string is added in the beginning of every trace
+                    //line for filtering purposes
+                    FUNC( "CMAIL %S <", &iFunc );
+                #endif
+                #if defined(TRACE_INTO_FILE) && defined(TRACE_FILE_LIMIT_SIZE)
+                    TBuf8<CMAILLOGBUFFERSIZE> buf(iFunc);
+                    buf.Append(_L("<"));
+                    CmailLogger::Write( buf );
+                #endif
+                #if !defined(TRACE_INTO_FILE)
+
+                    FUNC( "CMAIL %s <", iFunc.Ptr() );
+
+                #endif//TRACE_INTO_FILE
+                }
+            inline ~TFuncLog()
+                {
+                #if defined(TRACE_INTO_FILE) && !defined(TRACE_FILE_LIMIT_SIZE)
+                    FUNC( "CMAIL %S >", &iFunc );
+                #endif
+                #if defined(TRACE_INTO_FILE) && defined(TRACE_FILE_LIMIT_SIZE)
+                    TBuf8<CMAILLOGBUFFERSIZE> buf(iFunc);
+                    buf.Append(_L(">"));
+                    CmailLogger::Write( buf );
+                #endif
+                #if !defined(TRACE_INTO_FILE)
+
+                    FUNC( "CMAIL %s >", iFunc.Ptr() );
+                #endif//TRACE_INTO_FILE
+                }
+            TPtrC8 iFunc;
+        };
+
+    #define FUNC_LOG TFuncLog _fl( __PRETTY_FUNCTION__ );
+#else//FUNC_TRACE not defined
+
+    #define FUNC_LOG
+
+#endif//FUNC_TRACE
+
+//-----------------------------------------------------------------------------
+// Timestamp trace macros
+//-----------------------------------------------------------------------------
+//
+#if defined(TIMESTAMP_TRAC)
+
+    #if defined(TRACE_INTO_FILE)
+
+        #define TIMESTAMP( aCaption )\
+            {\
+            TTime t;\
+            t.HomeTime();\
+            TDateTime dt = t.DateTime();\
+            _LIT( KMsg, aCaption );\
+            _LIT( KFormat, "[TIMESTAMP] %d:%02d:%02d.%06d us %S");\
+            RFileLogger::WriteFormat(  KEmailDir,  KEmailTraceFile, EFileLoggingModeAppend, KFormat,\
+                dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond(), &KMsg );\
+            }
+
+    #else//TRACE_INTO_FILE not defined
+
+        #define TIMESTAMP( aCaption )\
+            {\
+            TTime t;\
+            t.HomeTime();\
+            TDateTime dt = t.DateTime();\
+            _LIT( KMsg, aCaption );\
+            _LIT( KFormat, "[TIMESTAMP] %d:%02d:%02d.%06d us %S");\
+            RDebug::Print( KFormat,\
+                dt.Hour(), dt.Minute(), dt.Second(), dt.MicroSecond(), &KMsg );\
+            }
+
+    #endif//TRACE_INTO_FILE
+
+#else//TIMESTAMP_TRACE not defined
+
+    #define TIMESTAMP( aCaption )
+
+#endif//TIMESTAMP_TRACE
+
+#endif // EMAILTRACE_H

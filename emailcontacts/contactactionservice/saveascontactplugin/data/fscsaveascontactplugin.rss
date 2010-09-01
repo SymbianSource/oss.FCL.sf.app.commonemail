@@ -1,0 +1,91 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Resource definitions for project Remote Contact Lookup Service
+*
+*/
+
+// RESOURCE IDENTIFIER
+NAME    FSAC // 4 letter ID
+
+// INCLUDE FILES
+#include <eikon.rh>
+#include <avkon.rsg>
+#include <avkon.rh>
+#include <avkon.mbg>
+#include <avkon.loc>
+#include <appinfo.rh>
+#include <data_caging_paths_strings.hrh>
+#include <eikon.hrh>
+
+// </cmail>
+#include <fscsaveascontactplugin.loc>
+#include "fsccontactactionserviceuids.hrh"
+//</cmail>
+// RESOURCE DEFINITIONS 
+
+RESOURCE RSS_SIGNATURE { }
+
+RESOURCE TBUF { buf = ""; }
+
+RESOURCE TBUF r_fs_action_save_as_contact      { buf = qtn_fs_action_save; }
+
+RESOURCE TBUF r_fs_action_saved_note    { buf = qtn_rcl_saved_note; }
+
+// -----------------------------------------------------------------------------
+//
+//    Localizable application information
+//
+// -----------------------------------------------------------------------------
+//
+RESOURCE LOCALISABLE_APP_INFO r_saveascontactplugin_localisable_app_info
+    {
+    short_caption = qtn_fs_action_save;
+    caption_and_icon = 
+    CAPTION_AND_ICON_INFO
+        {
+        caption = qtn_fs_action_save;
+        number_of_icons = 1;
+        icon_file = "\\resource\\apps\\fscsaveascontactplugin.mif";
+        };
+    }
+    
+// -----------------------------------------------------------------------------
+//
+//    'Saving contact' wait note
+//
+// -----------------------------------------------------------------------------
+//
+RESOURCE DIALOG r_fs_wait_note
+    {
+    flags = EAknWaitNoteFlags | EEikDialogFlagNotifyEsc;
+    buttons=R_AVKON_SOFTKEYS_CANCEL;
+    items =
+        {
+        DLG_LINE
+            {
+            type = EAknCtNote;
+            id = EGeneralNote;
+            control = AVKON_NOTE
+                {
+                layout = EWaitLayout;
+                singular_label = qtn_rcl_saving_wait_note;
+                animation = R_QGN_GRAF_WAIT_BAR_ANIM;
+                };
+            }
+        };
+    }
+
+// End of file
+
+

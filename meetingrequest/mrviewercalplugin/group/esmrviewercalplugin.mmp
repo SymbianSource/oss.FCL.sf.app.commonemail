@@ -1,0 +1,66 @@
+/*
+* Copyright (c) 2005-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description: Project definition file for esmrviewercalplugin.dll.
+*
+*/
+
+
+#include "../../inc/esmrinternaluid.h"
+#include "../../../inc/emailtraceconfig.hrh"
+#include <data_caging_paths.hrh>
+#include <platform_paths.hrh>
+
+TARGET      esmrviewercalplugin.dll
+TARGETTYPE  PLUGIN
+
+UID         KEComRecognitionUID2 KESMRViewerCalPluginDllUid3
+CAPABILITY  CAP_ECOM_PLUGIN
+VENDORID    VID_DEFAULT
+DEFFILE     ESMRViewerCalPlugin.def
+
+SOURCEPATH  ../src
+SOURCE      esmrviewermain.cpp
+SOURCE      cesmrviewersimpl.cpp
+
+//</cmail>
+USERINCLUDE    ../inc
+USERINCLUDE    ../../inc
+USERINCLUDE    ../../mrcommon/inc
+USERINCLUDE    ../../../inc
+//</cmail>
+
+APP_LAYER_SYSTEMINCLUDE
+
+SOURCEPATH      ../data
+// <cmail> S60 UID update
+START RESOURCE  2001E27E.rss
+// </cmail> S60 UID update
+TARGET          esmrviewercalplugin.rsc
+END
+
+LIBRARY esmrviewer.lib
+
+LIBRARY euser.lib
+LIBRARY ecom.lib
+LIBRARY eikcore.lib
+LIBRARY esmrgui.lib
+LIBRARY calinterimapi.lib
+
+#if defined( ENABLE_TRACES ) && defined( TRACE_INTO_FILE )
+LIBRARY flogger.lib
+#endif // ENABLE_TRACES && TRACE_INTO_FILE
+
+// End of file
+
+

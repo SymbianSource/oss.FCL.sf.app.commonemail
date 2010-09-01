@@ -1,0 +1,62 @@
+/*
+* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:
+* EmailServerMonitor project definition file
+*
+*/
+
+#include <platform_paths.hrh>
+
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailshutdownconst.hrh"  // KEmailShutdownUidAsTInt
+
+
+// Email Server Monitor implements email shutdown (aka Shutter) functionality
+TARGET        KEmailShutdownProcessExeName
+TARGETTYPE    exe
+UID           0 KEmailShutdownUidAsTInt
+
+CAPABILITY    CAP_APPLICATION PowerMgmt WriteUserData ReadUserData
+VENDORID      VID_DEFAULT
+
+VERSION       KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+USERINCLUDE   ../inc
+USERINCLUDE   ../../../inc
+USERINCLUDE   ../../emailstore/inc              // emailstoreuids.hrh
+
+APP_LAYER_SYSTEMINCLUDE
+
+SOURCEPATH    ../src
+SOURCE        main.cpp
+SOURCE        emailservermonitorutilities.cpp
+SOURCE        emailservermonitor.cpp
+SOURCE        emailshutter.cpp
+
+// ONLY FOR TESTING
+//START RESOURCE  ../data/emailservermonitor_reg.rss
+//TARGETPATH      /private/10003a3f/apps
+//END
+
+LIBRARY       euser.lib
+LIBRARY       apgrfx.lib                    // TApaTaskList
+LIBRARY       apparc.lib                    // CApaCommandLine
+LIBRARY       ws32.lib                      // RWsSession
+LIBRARY       bafl.lib                      // CCommandLineArguments
+LIBRARY       AlwaysOnlineManagerClient.lib // RAlwaysOnlineClientSession
+LIBRARY       PsServerClientAPI.lib         // PCS engine client-side API
+LIBRARY       estor.lib                     // RDesRead/WriteStream
+LIBRARY       cmaillogger.lib
+LIBRARY       flogger.lib

@@ -307,10 +307,7 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     TBool modified ( EFalse );
     TBool unread( aEmlEntry.Unread() );
 
-// <qmail>
-    if ( LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) ||
-         LogicalXor( unread, msgFlags & EFSMsgFlag_Read_Locally ))
-// </qmail>
+    if ( !LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) )
         {
         aEmlEntry.SetUnread( !unread );
         modified = ETrue;
@@ -362,6 +359,11 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     // EFSMsgFlag_Answered: supported only with IMAP4 (see below)
 
     // EFSMsgFlag_Forwarded: no counterpart in Symbian message in S60 3.1
+    if ( LogicalXor( aEmlEntry.Forwarded(), msgFlags & EFSMsgFlag_Forwarded ) )
+        {
+        aEmlEntry.SetForwarded( !aEmlEntry.Forwarded() );
+        modified = ETrue;
+        }
 
     // EFSMsgFlag_OnlyToMe: no counterpart in Symbian message
 
@@ -408,14 +410,17 @@ void CIpsPlgMsgMapper::UpdateMessageFlagsL(
 
     TMsvEmailEntry tEntry( cEntry->Entry() );
     TBool isModified = ChangeTEntryFlagsL( tEntry, aMessage );
-    // <qmail>
+
     if ( isModified )
         {
-        cEntry->ChangeL( tEntry );
+        CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewLC();
+        CMsvOperation* ops = cEntry->ChangeL( tEntry, waiter->iStatus );
+        CleanupStack::PushL( ops );
+        waiter->Start();
+        CleanupStack::PopAndDestroy( 2, waiter );
         }
 
     CleanupStack::PopAndDestroy( cEntry );
-    // </qmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -713,7 +718,8 @@ void CIpsPlgMsgMapper::SetFlags(
 							{
 							// Only text/calendar part included as attachment
 							aMsg.ResetFlag( EFSMsgFlag_Attachments );
-							// <qmail> remove call to SetAttachmentFlagL(), because shouln't be needed any more
+							//Set Attachment flag for CMsvEntry (needed for sorting)
+							TRAP_IGNORE( SetAttachmentFlagL( aEntry, EFalse ) );
 							}
                 		}
                 	delete cEntry;
@@ -748,7 +754,14 @@ void CIpsPlgMsgMapper::SetFlags(
     aMsg.ResetFlag( EFSMsgFlag_Answered );
 
     // EFSMsgFlag_Forwarded: not supported in S60 3.1
-    aMsg.ResetFlag( EFSMsgFlag_Forwarded );
+    if ( aEntry.Forwarded() )
+        {
+        aMsg.SetFlag( EFSMsgFlag_Forwarded );
+        }
+    else
+        {
+        aMsg.ResetFlag( EFSMsgFlag_Forwarded );
+        }
 
     // EFSMsgFlag_OnlyToMe: like EFSMsgFlag_Multiple
 
@@ -942,24 +955,17 @@ TPtrC CIpsPlgMsgMapper::ConvertMultipartMimeType(
 // ---------------------------------------------------------------------------
 // <cmail>
 TInt CIpsPlgMsgMapper::ConvertBodyPartMimeType(
-    const TMsvEmailEntry& aEntry,
+    const TUid& aEntryType,
     TDes& aMimeType )
     {
     FUNC_LOG;
     TInt result( KErrNone );
 
-    switch ( aEntry.iType.iUid )
+    switch ( aEntryType.iUid )
     {
     case KUidMsvEmailTextEntryValue:
         {
-        if( aEntry.ICalendar() )
-            {
-            aMimeType.Append( KFSMailContentTypeTextCalendar );
-            }
-        else
-            {
             aMimeType.Append( KMimeTypeTextPlain );
-            }
         break;
         }
     case KUidMsvEmailHtmlEntryValue:
@@ -1092,7 +1098,7 @@ void CIpsPlgMsgMapper::GetChildPartsOfMessageEntryL(
             childPart = GetMessagePartL( (*cEntry)[0].Id(), aMailBoxId, aMessageId );
             if( childPart )
                 {
-                aParts.AppendL( childPart );
+                aParts.Append( childPart );
                 }
             }
         }
@@ -1154,7 +1160,7 @@ void CIpsPlgMsgMapper::GetChildPartsOfFolderEntryL(
         // Insert the new child part to the result array
         if ( childPart )
             {
-            aParts.InsertL( childPart, position );
+            aParts.Insert( childPart, position );
             childPart = NULL;
             }
         }
@@ -1171,11 +1177,11 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertBodyEntry2MessagePartL(
     FUNC_LOG;
     CFSMailMessagePart* result( NULL );
     TInt status;
+// <cmail>
     HBufC* buf = HBufC::NewLC( KMaxContentTypeLength );
     TPtr contentType = buf->Des();
 
-    status = ConvertBodyPartMimeType( aEntry, contentType );
-    
+    status = ConvertBodyPartMimeType( aEntry.iType, contentType );
     __ASSERT_DEBUG( ( status == KErrNone ),
         User::Panic( KIpsPlgPanicCategory, EIpsPlgInvalidEntry ) );
     if ( status == KErrNone )
@@ -1188,6 +1194,7 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertBodyEntry2MessagePartL(
             {
             GetCharsetParameterL( aEntry, contentType );
             }
+// </cmail>
         result->SetContentType( contentType );
         result->SetMailBoxId( aMailBoxId );
 
@@ -1514,21 +1521,24 @@ void CIpsPlgMsgMapper::AttaCheckForIncompleteMsgL(
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 // <cmail>
-void CIpsPlgMsgMapper::SetAttachmentFlagL( const TMsvEmailEntry& /*aEntry*/,
-										   TBool /*aHasAttachment*/ )
+void CIpsPlgMsgMapper::SetAttachmentFlagL( const TMsvEmailEntry& aEntry,
+										   TBool aHasAttachment )
 	{
 	FUNC_LOG;
-	// <qmail> commented out, causing freeze in message list
-	/*CMsvEntry* cEntry = iSession.GetEntryL( aEntry.Id() );
+	CMsvEntry* cEntry = iSession.GetEntryL( aEntry.Id() );
 	CleanupStack::PushL( cEntry );
 	// Only text/calendar part included as attachment
 	TMsvEmailEntry entryToBeChanged( aEntry );
 	entryToBeChanged.SetAttachment( aHasAttachment );
-
-	cEntry->ChangeL( entryToBeChanged );
-	CleanupStack::PopAndDestroy( cEntry );*/
-// </qmail>
+	CIpsPlgOperationWait* waiter = CIpsPlgOperationWait::NewLC();
+	CMsvOperation* ops = cEntry->ChangeL( entryToBeChanged, waiter->iStatus );
+	CleanupStack::PushL( ops );
+	waiter->Start();
+	CleanupStack::PopAndDestroy( 3, cEntry );
 	}
+// </cmail>
+
+// <cmail>
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 void CIpsPlgMsgMapper::GetCharsetParameterL(
@@ -1548,11 +1558,11 @@ void CIpsPlgMsgMapper::GetCharsetParameterL(
             mimeHeader->RestoreL( *store );
 
             TInt count = mimeHeader->ContentTypeParams().MdcaCount();
-            //INFO_1("# of CT params: %d", count);
+            INFO_1("# of CT params: %d", count);
             for ( TInt i = 0; i < count; i++ )
                 {
                 TPtrC8 key8 = mimeHeader->ContentTypeParams().MdcaPoint( i );
-                //INFO_1("%S", &key8);
+                INFO_1("%S", &key8);
                 TPtr16 keyUppercase16 = HBufC::NewLC( key8.Length() )->Des();
                 keyUppercase16.Copy( key8 );
                 keyUppercase16.UpperCase();

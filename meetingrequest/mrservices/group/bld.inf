@@ -1,0 +1,39 @@
+/*
+* Copyright (c) 2007-2009 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Build information file for project esmrservices
+*
+*/
+
+
+#include <bldvariant.hrh>
+
+PRJ_PLATFORMS
+DEFAULT
+
+PRJ_EXPORTS
+// <cmail>
+../inc/cesmralarminfohandler.h   	|../../inc/cesmralarminfohandler.h
+../inc/tesmralarminfo.h          	|../../inc/tesmralarminfo.h
+../inc/esmralarminfo.rh          	|../../inc/esmralarminfo.rh
+../inc/cesmrrecurrenceinfohandler.h	|../../inc/cesmrrecurrenceinfohandler.h
+../inc/cesmrcaluserutil.h               |../../inc/cesmrcaluserutil.h
+../inc/cesmrconflictchecker.h           |../../inc/cesmrconflictchecker.h
+../inc/cesmrcalimportexporter.h         |../../inc/cesmrcalimportexporter.h
+../inc/mesmrcalimportexporter.h         |../../inc/mesmrcalimportexporter.h
+// </cmail>
+
+PRJ_MMPFILES
+esmrservices.mmp
+
+// EOF

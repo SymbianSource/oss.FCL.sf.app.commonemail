@@ -1,0 +1,64 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Address select resource definitions.
+ *
+*/
+
+
+#ifndef FSCADDRESSSELECT_RH
+#define FSCADDRESSSELECT_RH
+
+#include <badef.rh>
+#include <VPbkFieldType.rh>
+
+/**
+ * Resource structure for a Phonebook 2 address select service.
+ */
+STRUCT FSC_ADDRESS_SELECT
+    {
+    /**
+     * Field types to be used in the address select, given as
+     * VPBK_FIELD_TYPE_SELECTOR structure.
+     * @see VPBK_FIELD_TYPE_SELECTOR structure.
+     */
+    LLINK selector;
+
+    /**
+     * No addresses for a name prompt text. This text is used in a note
+     * shown to the user when a contact does not have any fields matching
+     * the selector (defined above).
+     * For example: "No phone numbers to %U".
+     * The %U is required to exist in the loc string, it will
+     * be replaced with the contact name.
+     */
+    LLINK noAddressesForNamePrompt;
+
+    /**
+     * No addresses prompt text. This text is used in a note
+     * shown to the user when an unnamed contact does not have any
+     * fields matching the selector (defined above).
+     * For example: "No phone number".
+     * There must not be %U in the loc string.
+     */
+    LLINK noAddressesPrompt;
+
+    /**
+     * Softkeys to be used in the query dialog.
+     * @see CBA resource structure.
+     */
+    LLINK cba;
+    }
+
+#endif // FSCADDRESSSELECT_RH
+// End of File

@@ -1,0 +1,118 @@
+/*
+* Copyright (c) 2008 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  Project definition file for project Contact Action Service Core
+*
+*/
+
+
+#include <platform_paths.hrh>
+#include <data_caging_paths.hrh>
+
+#include "../../../inc/emailversionnumbers.hrh" // KEmailBinaryVersionNumber
+#include "../../../inc/emailtraceconfig.hrh"
+#include "../inc/fsccontactactionserviceuids.hrh"
+#include "../inc/pbkxcontactactionservicedebug.hrh"
+
+
+TARGET                  fsccontactactionservice.dll
+TARGETTYPE              PLUGIN
+UID                     0x10009D8D KFscContactActionServiceImplDllUid
+
+CAPABILITY              CAP_ECOM_PLUGIN
+VENDORID                VID_DEFAULT
+
+VERSION                 KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH              ../src
+SOURCE                  cfsccontactactionserviceimpl.cpp
+SOURCE                  cfsccontactactionpluginengine.cpp
+SOURCE                  cfscactionutils.cpp
+SOURCE                  cfsccontactset.cpp
+SOURCE                  cfscstorecontactset.cpp
+SOURCE                  cfsccontactlinkset.cpp
+SOURCE                  cfsccontactaction.cpp
+// selectdialog
+SOURCE                  CFscAddressSelect.cpp
+SOURCE                  CFscContactFieldDynamicProperties.cpp
+SOURCE                  CFscContactNameFormatter.cpp
+SOURCE                  CFscContactNameFormatterBase.cpp
+SOURCE                  CFscDefaultPhoneNumberFormatter.cpp
+SOURCE                  CFscFieldFormatter.cpp
+SOURCE                  CFscFieldListBoxModel.cpp
+SOURCE                  CFscFieldOrderingManager.cpp
+SOURCE                  CFscFieldProperty.cpp
+SOURCE                  CFscFieldPropertyArray.cpp
+SOURCE                  CFscFieldPropertyGroup.cpp
+SOURCE                  CFscNumberGroupingFormatter.cpp
+SOURCE                  CFscPresentationContactField.cpp
+SOURCE                  CFscPresentationContactFieldCollection.cpp
+SOURCE                  CFscPresentationContactFieldTextData.cpp
+SOURCE                  CFscSelectFieldDlg.cpp
+SOURCE                  FscPhoneNumberFormatterFactory.cpp
+SOURCE                  FscPresentationUtils.cpp
+SOURCE                  TFscAddressSelectParams.cpp
+SOURCE                  TFscSortOrderFieldMapper.cpp
+SOURCE                  TFscStoreContactAnalyzer.cpp
+
+
+USERINCLUDE             ../inc
+
+APP_LAYER_SYSTEMINCLUDE
+USERINCLUDE             ../../../inc
+
+LIBRARY                 euser.lib 
+LIBRARY                 ecom.lib
+LIBRARY                 cone.lib
+LIBRARY                 avkon.lib
+LIBRARY                 commonengine.lib
+LIBRARY                 centralrepository.lib
+LIBRARY                 egul.lib // Icon
+LIBRARY                 fbscli.lib
+LIBRARY                 featmgr.lib 
+LIBRARY                 aknskins.lib
+LIBRARY                 vpbkeng.lib
+LIBRARY                 bafl.lib
+LIBRARY                 efsrv.lib
+LIBRARY                 eikcoctl.lib
+LIBRARY                 eikcore.lib
+LIBRARY                 numbergrouping.lib
+LIBRARY                 apgrfx.lib
+LIBRARY                 apparc.lib
+LIBRARY                 rcse.lib
+// Dependencies to Phonebook
+LIBRARY                 Pbk2Presentation.lib
+LIBRARY                 Pbk2CommonUi.lib
+LIBRARY cmaillogger.lib
+#if (PBKX_DEBUG_LEVEL > 0)
+LIBRARY                 pbkxdebug.lib
+
+#endif
+
+#ifdef TRACE_INTO_FILE
+LIBRARY flogger.lib
+#endif // TRACE_INTO_FILE
+
+SOURCEPATH              ../data
+START RESOURCE fsccontactactionservice.rss
+TARGET fsccontactactionservice.rsc
+END //RESOURCE
+
+SOURCEPATH             ../data
+START RESOURCE         FscActionUtils.rss
+DEPENDS vpbkeng.rsg
+TARGETPATH RESOURCE_FILES_DIR
+HEADER
+LANGUAGE_IDS
+END //RESOURCE

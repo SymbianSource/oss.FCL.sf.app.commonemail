@@ -1,0 +1,3 @@
+EXPORTS
+	?NewL@CESMRCalDbMgr@@SAPAV1@AAVCCalSession@@AAVMMRUtilsObserver@@@Z @ 1 NONAME ; class CESMRCalDbMgr * CESMRCalDbMgr::NewL(class CCalSession &, class MMRUtilsObserver &)
+

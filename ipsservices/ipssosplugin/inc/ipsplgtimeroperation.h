@@ -27,7 +27,7 @@ public:
 /**
 * Simple Timer Operation. Completes observer when time expires.
 */
-NONSHARABLE_CLASS ( CIpsPlgTimerOperation ) : public CActive
+class CIpsPlgTimerOperation : public CActive
     {
     public:
         /**

@@ -18,10 +18,10 @@
 
 
 //<cmail>
-#include "MsgStoreFolder.h"
-#include "MsgStorePropertyKeys.h"
+#include "msgstorefolder.h"
+#include "msgstorepropertykeys.h"
 //</cmail>
-#include "MsgStoreSessionContext.h"
+#include "msgstoresessioncontext.h"
 
 CMsgStoreFolder* CMsgStoreFolder::NewL( CMsgStoreSessionContext& aSessionContext, 
 									  	TMsgStoreId 			 aId, 

@@ -17,11 +17,14 @@
 */
 
 
-#ifndef IPSSOSAOBASEAGENT_H
-#define IPSSOSAOBASEAGENT_H
+#ifndef IPSSOSAOBASEAGENT_H_
+#define IPSSOSAOBASEAGENT_H_
 
 #include <e32base.h> 
 #include <msvapi.h>
+#include <SendUiConsts.h>
+
+#include "ipsplgcommon.h"
 
 class CIpsSetDataApi;
 class CIpsSosAOImapSyncOp;
@@ -55,9 +58,7 @@ public:
 *
 * @lib ipssosaoplugin.lib
 */
-//<Qmail>
-NONSHARABLE_CLASS (CIpsSosAOBaseAgent) : public CActive
-//</Qmail>
+class CIpsSosAOBaseAgent : public CActive
     {
     
 public: // enums
@@ -234,4 +235,4 @@ private:
     
     };
 
-#endif /*IPSSOSAOBASEAGENT_H*/
+#endif /*IPSSOSAOBASEAGENT_H_*/

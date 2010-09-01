@@ -1,0 +1,162 @@
+/*
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* All rights reserved.
+* This component and the accompanying materials are made available
+* under the terms of "Eclipse Public License v1.0"
+* which accompanies this distribution, and is available
+* at the URL "http://www.eclipse.org/legal/epl-v10.html".
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+*
+* Description:  File decleares used id's for settings UI.
+*
+*/
+
+
+#ifndef IPSSETUTILSPAGEIDS_HRH
+#define IPSSETUTILSPAGEIDS_HRH
+
+enum TIpsSetSettigsId
+    {
+// MENUITEMS
+
+    // Main menu
+    EIpsSetUiMainMailboxSettings = 0x0DEB, //3563
+    EIpsSetUiMainWhatToSync,
+    EIpsSetUiMainWhenToSync,
+
+    // Mailbox settings
+    EIpsSetUiMailboxEmailAddress,
+    EIpsSetUiMailboxReplyToAddress,
+    EIpsSetUiMailboxMailboxName,
+    EIpsSetUiMailboxMyName,
+    EIpsSetUiMailboxIncludeSignature,
+    EIpsSetUiMailboxSignature,   //3570
+    EIpsSetUiMailboxAdvancedSettings,
+
+    // Advanced settings
+    EIpsSetUiAdvancedIncomingSettings,
+    EIpsSetUiAdvancedOutgoingSettings,
+
+    // Incoming settings
+    EIpsSetUiIncomingUserName,
+    EIpsSetUiIncomingUserPwd,
+    EIpsSetUiIncomingMailServer,
+    EIpsSetUiIncomingIap,
+    EIpsSetUiIncomingSecurity,
+    EIpsSetUiIncomingPort,
+    EIpsSetUiIncomingAPop, //3580
+
+    // Outgoing settings
+    EIpsSetUiOutgoingUserAuthentication,
+    EIpsSetUiOutgoingUserName,
+    EIpsSetUiOutgoingUserPwd,
+    EIpsSetUiOutgoingMailServer,
+    EIpsSetUiOutgoingIap,
+    EIpsSetUiOutgoingSecurity,
+    EIpsSetUiOutgoingPort,
+
+    // What to Sync
+    EIpsSetUiWhatFolderSync,
+    EIpsSetUiWhatImapPath,
+    EIpsSetUiWhatDownloadSize,  //3590
+    EIpsSetUiWhatRetrievePop3,
+    EIpsSetUiWhatRetrieveImap4Menu,
+    EIpsSetUiWhatRetrieveImap4Inbox,
+    EIpsSetUiWhatRetrieveImap4Folders,
+
+    // When to Sync
+    EIpsSetUiWhenSchedule,
+    EIpsSetUiWhenDays,
+    EIpsSetUiWhenHours,
+    EIpsSetUiWhenHoursCustom,
+
+// BUTTON IDS
+
+    // Security
+    EIpsSetUiConnectionSecurityBtnTLS, //3600
+    EIpsSetUiConnectionSecurityBtnSSL,
+    EIpsSetUiConnectionSecurityBtnOff,
+
+    // Authentication
+    EIpsSetUiUserAuthenticationBtnNoAuth,
+    EIpsSetUiUserAuthenticationBtnUseIncoming,
+    EIpsSetUiUserAuthenticationBtnOwnForOutgoing,
+
+    // Port
+    EIpsSetUiIncomingPortBtnDefault,
+    EIpsSetUiIncomingPortBtnUserDefined,
+    EIpsSetUiIncomingPortBtnEditor,
+    EIpsSetUiOutgoingPortBtnDefault, //3610
+    EIpsSetUiOutgoingPortBtnUserDefined,
+    EIpsSetUiOutgoingPortBtnEditor,
+
+    // APop
+    EIpsSetUiApopBtnOn,
+    EIpsSetUiApopBtnOff,
+
+    // Signature
+    EIpsSetUiMailboxSignatureBtnOn,
+    EIpsSetUiMailboxSignatureBtnOff,
+
+    // Folder sync
+    EIpsSetUiWhatFoldersSyncBtnOn,
+    EIpsSetUiWhatFoldersSyncBtnOff,
+
+    // Download Size
+    EIpsSetUiWhatDownloadSizeBtnHeaders,
+    EIpsSetUiWhatDownloadSizeBtnPlus,  //3620
+    EIpsSetUiWhatDownloadSizeEditPlus, //0x0e25  
+    EIpsSetUiWhatDownloadSizeBtnFull,
+
+    // Emails to Retrieve
+    //EIpsSetUiWhatRetrievePop3BtnAll,
+    //EIpsSetUiWhatRetrievePop3BtnCustom,
+    //EIpsSetUiWhatRetrievePop3EditCustom,
+    //EIpsSetUiWhatRetrieveImap4InboxBtnAll,
+    //EIpsSetUiWhatRetrieveImap4InboxBtnCustom,
+    //EIpsSetUiWhatRetrieveImap4InboxEditCustom,
+    
+    //EIpsSetUiWhatRetrieveImap4FolderBtnAll,
+    //EIpsSetUiWhatRetrieveImap4FolderBtnCustom, //3630
+    //EIpsSetUiWhatRetrieveImap4FolderEditCustom,
+    
+    EIpsSetUiWhatRetrieveImap4FolderBtn50,
+    EIpsSetUiWhatRetrieveImap4FolderBtn100,
+    EIpsSetUiWhatRetrieveImap4FolderBtn250,
+
+    // Sync Interval
+    EIpsSetUiWhenScheduleBtn5Min,
+    EIpsSetUiWhenScheduleBtn10Min,
+    EIpsSetUiWhenScheduleBtn15Min,
+    EIpsSetUiWhenScheduleBtn30Min,
+    EIpsSetUiWhenScheduleBtn1Hour,
+    EIpsSetUiWhenScheduleBtn4Hours,
+    EIpsSetUiWhenScheduleBtn12Hours,
+    EIpsSetUiWhenScheduleBtn1Day,
+    EIpsSetUiWhenScheduleBtnNotification,  //3640
+    EIpsSetUiWhenScheduleBtnManual,
+
+    // Sync Days
+    EIpsSetUiWhenDaysBtnSunday,
+    EIpsSetUiWhenDaysBtnMonday,
+    EIpsSetUiWhenDaysBtnTuesday,
+    EIpsSetUiWhenDaysBtnWednesday,
+    EIpsSetUiWhenDaysBtnThursday,
+    EIpsSetUiWhenDaysBtnFriday,
+    EIpsSetUiWhenDaysBtnSaturday,
+
+    // Sync hours
+    EIpsSetUiWhenHoursBtnCustomize,
+    EIpsSetUiWhenHoursEditCustomizeFrom,  //3650
+    EIpsSetUiWhenHoursEditCustomizeTo,
+    EIpsSetUiWhenHoursBtnAllDay
+
+    };
+
+#endif // IPSSETUTILSPAGEIDS_HRH
+
+

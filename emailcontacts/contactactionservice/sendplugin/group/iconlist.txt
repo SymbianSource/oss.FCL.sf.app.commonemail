@@ -1,0 +1,4 @@
+-c16,8 qgn_prop_cmail_action_msg.svg
+-c16,8 qgn_prop_cmail_action_audio.svg
+-c16,8 qgn_prop_cmail_action_postcard.svg
+-c16,8 qgn_prop_cmail_action_email.svg

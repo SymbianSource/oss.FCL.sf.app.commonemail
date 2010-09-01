@@ -17,7 +17,7 @@
 
 
 #include <e32std.h>
-#include "BasePluginPanic.h"
+#include "basepluginpanic.h"
 
 _LIT( KBasePluginCategory, "BasePlugin" );
 
