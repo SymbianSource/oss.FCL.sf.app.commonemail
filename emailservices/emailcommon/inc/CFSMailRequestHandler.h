@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -53,7 +53,7 @@ public:
     };
 
 public: // data
-		        
+
     /** request id */
     TInt                       iRequestId;
 
@@ -72,12 +72,12 @@ public: // data
  *
  *  @lib FSFWCommonLib
  *  @since S60 v3.1
- */ 
+ */
 class EMAILCOMMON_EXPORT CFSMailRequestHandler : public CBase
 	{
 
 public:
-  
+
     /**
      * destructor.
      */
@@ -124,7 +124,7 @@ public:
      * @param aRequestId id of the request to be cancelled
      */
       void CancelRequestL( TInt aRequestId );
-	 
+
     /**
      * cancels all pending asynchronous requests
      *
@@ -148,20 +148,8 @@ public:
       void AddPluginL( TUid aPluginId, CFSMailPlugin* aPlugin );
 
      /**
-      * cleans temp dir
-      * 
-      */
-      void CleanTempDirL( );
-
-     /**
-      * returns temp dir path
-      * 
-      */
-      TDesC& GetTempDirL( );
-
-     /**
       * opens or creates file
-      * 
+      *
       * @param aFileName file name
       */
      // <qmail>
@@ -173,7 +161,7 @@ protected:
      * C++ default constructor.
      */
   	 CFSMailRequestHandler();
-  	 
+
     /**
      * two based constructor
      */
@@ -185,7 +173,7 @@ protected: // data
     /** list of loaded plugins */
 	 RPointerArray<CFSMailPluginData>    iPluginList;
 
-private: 
+private:
 
     /** removes all asynchronous requests */
     void RemoveAllRequests();
@@ -194,11 +182,11 @@ private: // data
 
     /** list of pending requests */
 	 RArray<TFSPendingRequest>           iPendingRequests;
-	
+
 	/** request id counter       */
     TUint                                iRequestId;
 
-    /** temp directory files handling        */ 
+    /** temp directory files handling        */
     RFs                                  iFs;
     HBufC                                *iTempDirName;
     };

@@ -217,12 +217,17 @@ signals:
             NmMessageEvent event,
             const NmId &folderId,
             const QList<NmId> &messageIds,
-            const NmId& mailboxId); //added to provide mailboxId
-    
+            const NmId& mailboxId);
+
+      void folderEvent(
+            NmFolderEvent event,
+            const QList<NmId> &folderIds,
+            const NmId& mailboxId);
+
     void syncStateEvent(
             NmSyncState state,
             const NmOperationCompletionEvent &event );
-    
+
     void connectionEvent(NmConnectState state, const NmId mailboxId, int errorCode);
 
     void matchFound(const NmId &messageId, const NmId &folderId);
@@ -293,6 +298,8 @@ private:
     void handleMailCopied(TAny* param1,TAny* param2, TFSMailMsgId mailbox);
     
     void handleSyncstateEvent(TAny* param1, TFSMailMsgId mailbox);
+    
+    void handleFoldersEvent(TAny* param1,TAny* param2, NmFolderEvent event, TFSMailMsgId mailbox);
     
     void getFolderByIdL(
             const NmId& mailboxId, 

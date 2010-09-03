@@ -98,6 +98,23 @@ NONSHARABLE_CLASS ( CFSMailBoxBase ) : public CExtendableEmail
      * @param aUid settings view id
      */
      IMPORT_C void SetSettingsUid(const TUid aUid);
+
+	/**
+	 * Returns a meeting request info processor, which is used for replying
+	 * to meeting request received as MMRInfoObjet
+	 *
+	 * @return meeting info Processor, NULL if not supported by plugin
+	 *         ownership not transferred
+	 */ 
+     IMPORT_C MMRInfoProcessor& MRInfoProcessorL();
+
+    /**
+     * method to cheack if MRInfoProcessor is set
+     *
+     * @return
+     */
+	 IMPORT_C TBool IsMRInfoProcessorSet();
+
 	/**
 	 * Meeting request info processor mutator
 	 *

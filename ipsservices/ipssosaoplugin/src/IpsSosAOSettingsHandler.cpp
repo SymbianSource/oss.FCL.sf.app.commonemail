@@ -293,12 +293,15 @@ TUint CIpsSosAOSettingsHandler::SelectedWeekDays() const
     }
 
 // ----------------------------------------------------------------------------
+// returns start time as seconds from midnight (00:00:00)
 // ----------------------------------------------------------------------------
 TTime CIpsSosAOSettingsHandler::SelectedTimeStart() const
     {
     QVariant value = NULL;
     TBool ok = GetSettingValue(IpsServices::ReceptionDayStartTime, value);
-    TDateTime time;
+    // set date time to zero
+    TTime zeroTime( 0 );
+    TDateTime time = zeroTime.DateTime();
     
     if(ok)
         {
@@ -314,12 +317,15 @@ TTime CIpsSosAOSettingsHandler::SelectedTimeStart() const
     }
 
 // ----------------------------------------------------------------------------
+// returns stop time as seconds from midnight (00:00:00)
 // ----------------------------------------------------------------------------
 TTime CIpsSosAOSettingsHandler::SelectedTimeStop() const
     {
     QVariant value = NULL;
     TBool ok = GetSettingValue(IpsServices::ReceptionDayEndTime, value);
-    TDateTime time;
+    // set date time to zero
+    TTime zeroTime( 0 );
+    TDateTime time = zeroTime.DateTime();
     
     if(ok)
         {

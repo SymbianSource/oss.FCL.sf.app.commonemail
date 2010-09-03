@@ -24,7 +24,7 @@
 #include "ipsplgsosbaseplugin.hrh"
 #include "ipsplgmailstoreroperation.h"
 #include "ipsplgmessagepartstoreroperation.h"
-#include "BasePlugin.h" 
+#include "BasePlugin.h"
 //<Qmail>
 #include "ipssosextendedsettingsmanager.h"
 #include "ipssettingkeys.h"
@@ -60,7 +60,7 @@ CEmailExtension* CIpsPlgSosBasePlugin::ExtensionL( const TUid& aInterfaceUid )
         {
         User::Leave(KErrNotSupported);
         }
-    
+
     return iStateExtension;
     }
 //</Qmail>
@@ -89,7 +89,7 @@ CIpsPlgSosBasePlugin::CIpsPlgSosBasePlugin( const TUint aFSPluginId ) :
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 // <qmail> iSettingsApi, iWait removed
-CIpsPlgSosBasePlugin::~CIpsPlgSosBasePlugin()
+EXPORT_C CIpsPlgSosBasePlugin::~CIpsPlgSosBasePlugin()
     {
     FUNC_LOG;
     iOperations.ResetAndDestroy();
@@ -151,7 +151,7 @@ void CIpsPlgSosBasePlugin::BaseConstructL()
                 dummyBuf ) );
         }
     aosession.Close();
-#endif    
+#endif
     }
 
 // ----------------------------------------------------------------------------
@@ -321,7 +321,7 @@ CFSMailBox* CIpsPlgSosBasePlugin::GetMailBoxByUidL(
         address = smtpSet->EmailAddress().AllocL();
         CleanupStack::PopAndDestroy( 2, acc );
 // </qmail>
-        
+
         CleanupStack::PushL( address ); // << address
         CFSMailAddress* fsAddress = CFSMailAddress::NewLC();    // << fsAddress
         fsAddress->SetEmailAddress( *address );
@@ -348,7 +348,7 @@ void CIpsPlgSosBasePlugin::DeleteMailBoxByUidL(
         {
         User::Leave( KErrNotReady );
         }
-    
+
 // <qmail> RAlwaysOnlineClientSession - related code removed
     // Prepare the parameters to be forwarded to AO-server
     TPckg<TMsvId> param = aMailBoxId.Id();
@@ -454,7 +454,7 @@ TInt CIpsPlgSosBasePlugin::MoveMessagesL(
         ret = KErrNone;
         }
     ret = KErrNotSupported;
-    TFSProgress progress = { 
+    TFSProgress progress = {
             TFSProgress::EFSStatus_RequestComplete, 0, 0, ret };
     aOperationObserver.RequestResponseL(
             progress, aRequestId );
@@ -552,23 +552,6 @@ void CIpsPlgSosBasePlugin::CopyMessagesL(
 	{
 	}
 
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-MDesCArray* CIpsPlgSosBasePlugin::GetMrusL(
-                const TFSMailMsgId& aMailBoxId)
-    {
-    return iMruList->GetMruListL( aMailBoxId );
-    }
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::SetMrusL(
-    const TFSMailMsgId& aMailBoxId,
-    MDesCArray*  aNewMruList )
-    {
-    iMruList->SetMruListL( aMailBoxId, aNewMruList );
-    }
-
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::GoOnlineL( const TFSMailMsgId& aMailBoxId )
@@ -648,18 +631,18 @@ TInt CIpsPlgSosBasePlugin::CancelSyncL( const TFSMailMsgId& aMailBoxId )
             DeleteAndRemoveOperation( i, KErrCancel );
             }
         }
-    
-#ifndef RD_101_EMAIL    
+
+#ifndef RD_101_EMAIL
     RAlwaysOnlineClientSession aosession;
     err = aosession.Connect();
     if ( err == KErrNone )
         {
         TPckgBuf<TMsvId> buf(aMailBoxId.Id());
-        TRAP( err, aosession.RelayCommandL( 
+        TRAP( err, aosession.RelayCommandL(
                 EServerAPIEmailCancelAllAndDoNotDisconnect, buf ) );
         }
     aosession.Close();
-#endif    
+#endif
 
     return err;
     }
@@ -842,27 +825,27 @@ void CIpsPlgSosBasePlugin::CreateMessageToSendL( const TFSMailMsgId& aMailBoxId,
     FUNC_LOG;
     // asynchronous message creation is started here to enable canceling of the operation
     TMsvPartList partList( KMsvMessagePartBody );
-    
+
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
 
-    //<qmail> removed mboxEntry from parameters + changed iSmtpService to pointer 
-    
-    CIpsPlgCreateMessageOperation* op = CIpsPlgCreateMessageOperation::NewL( 
-        *iSmtpService, 
+    //<qmail> removed mboxEntry from parameters + changed iSmtpService to pointer
+
+    CIpsPlgCreateMessageOperation* op = CIpsPlgCreateMessageOperation::NewL(
+        *iSmtpService,
         *iSession,
         watcher->iStatus,
-        partList, 
-        aMailBoxId, 
-        aOperationObserver, 
+        partList,
+        aMailBoxId,
+        aOperationObserver,
         aRequestId );
     //</qmail>
     watcher->SetOperation( op );
 
-    iOperations.AppendL( watcher ); 
-    CleanupStack::Pop( watcher );    
+    iOperations.AppendL( watcher );
+    CleanupStack::Pop( watcher );
     }
-// </qmail> 
- 
+// </qmail>
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 CFSMailMessage* CIpsPlgSosBasePlugin::CreateForwardMessageL(
@@ -878,7 +861,7 @@ CFSMailMessage* CIpsPlgSosBasePlugin::CreateForwardMessageL(
 // <qmail>
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::CreateForwardMessageL( 
+void CIpsPlgSosBasePlugin::CreateForwardMessageL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aOriginalMessageId,
     MFSMailRequestObserver& aOperationObserver,
@@ -887,50 +870,50 @@ void CIpsPlgSosBasePlugin::CreateForwardMessageL(
     {
     FUNC_LOG;
     // asynchronous message creation is started here to enable canceling of the operation
-    
+
     // 1. part of function checs that body text and all
     // attachments are fetched
     TMsvEntry orgMsg;
     TMsvId service;
-    User::LeaveIfError( iSession->GetEntry( 
+    User::LeaveIfError( iSession->GetEntry(
             aOriginalMessageId.Id(), service, orgMsg ) );
-    
+
     if ( orgMsg.Id() ==  KMsvNullIndexEntryIdValue )
         {
         User::Leave(KErrNotFound);
         }
-    
-    if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) && 
+
+    if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) &&
          ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
         {
         iSmtpService->ChangeServiceIdL( orgMsg );
         }
-    
+
     TMsvPartList partList( KMsvMessagePartBody | KMsvMessagePartAttachments );
-    
+
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
-    
+
     //<qmail> changed iSmtpService to pointer
-    CIpsPlgCreateForwardMessageOperation* op = CIpsPlgCreateForwardMessageOperation::NewL( 
-        *iSmtpService, 
+    CIpsPlgCreateForwardMessageOperation* op = CIpsPlgCreateForwardMessageOperation::NewL(
+        *iSmtpService,
         *iSession,
         watcher->iStatus,
-        partList, 
-        aMailBoxId, 
-        orgMsg.Id(), 
-        aOperationObserver, 
+        partList,
+        aMailBoxId,
+        orgMsg.Id(),
+        aOperationObserver,
         aRequestId );
     //</qmail>
     watcher->SetOperation( op );
 
-    iOperations.AppendL( watcher ); 
+    iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
     }
-// </qmail> 
+// </qmail>
 
 // ----------------------------------------------------------------------------
-// ---------------------------------------------------------------------------- 	
-CFSMailMessage* CIpsPlgSosBasePlugin::CreateReplyMessageL( 
+// ----------------------------------------------------------------------------
+CFSMailMessage* CIpsPlgSosBasePlugin::CreateReplyMessageL(
     const TFSMailMsgId& /*aMailBoxId*/,
     const TFSMailMsgId& /*aOriginalMessageId*/,
     const TBool /*aReplyToAll*/,
@@ -943,8 +926,8 @@ CFSMailMessage* CIpsPlgSosBasePlugin::CreateReplyMessageL(
 
 // <qmail>
 // ----------------------------------------------------------------------------
-// ---------------------------------------------------------------------------- 	
-void CIpsPlgSosBasePlugin::CreateReplyMessageL( 
+// ----------------------------------------------------------------------------
+void CIpsPlgSosBasePlugin::CreateReplyMessageL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& aOriginalMessageId,
     const TBool aReplyToAll,
@@ -954,56 +937,56 @@ void CIpsPlgSosBasePlugin::CreateReplyMessageL(
     {
     FUNC_LOG;
     // asynchronous message creation is started here to enable canceling of the operation
-    
+
     // find orginal message header and check that body is fetched
     TMsvEntry orgMsg;
     TMsvId service;
-    User::LeaveIfError( 
+    User::LeaveIfError(
         iSession->GetEntry( aOriginalMessageId.Id(), service, orgMsg ) );
-    
+
     if ( orgMsg.Id() ==  KMsvNullIndexEntryIdValue )
         {
         User::Leave(KErrNotFound);
         }
-    
-    if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) && 
+
+    if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) &&
          ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
         {
         iSmtpService->ChangeServiceIdL( orgMsg );
         }
-    
+
     // partList flags control e.g. what kind of recipient set is created
     TMsvPartList partList = KMsvMessagePartBody | KMsvMessagePartDescription
-    | KMsvMessagePartOriginator;        
+    | KMsvMessagePartOriginator;
     if( aReplyToAll )
         {
         partList |= KMsvMessagePartRecipient;
         }
-    
+
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
-    
+
     //<qmail> changed iSmtpService to pointer
-    CIpsPlgCreateReplyMessageOperation* op = CIpsPlgCreateReplyMessageOperation::NewL( 
-        *iSmtpService, 
+    CIpsPlgCreateReplyMessageOperation* op = CIpsPlgCreateReplyMessageOperation::NewL(
+        *iSmtpService,
         *iSession,
         watcher->iStatus,
-        partList, 
-        aMailBoxId, 
-        orgMsg.Id(), 
-        aOperationObserver, 
+        partList,
+        aMailBoxId,
+        orgMsg.Id(),
+        aOperationObserver,
         aRequestId );
     //</qmail>
     watcher->SetOperation( op );
 
-    iOperations.AppendL( watcher ); 
+    iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
     }
 // </qmail>
 
 // ----------------------------------------------------------------------------
-// ---------------------------------------------------------------------------- 	
-//	
-void CIpsPlgSosBasePlugin::StoreMessageL( 
+// ----------------------------------------------------------------------------
+//
+void CIpsPlgSosBasePlugin::StoreMessageL(
     const TFSMailMsgId& aMailBoxId,
     CFSMailMessage& aMessage )
  	{
@@ -1031,9 +1014,9 @@ void CIpsPlgSosBasePlugin::StoreMessageL(
 		// <qmail> Cmail change to synchronous call (UpdateMessageFlagsL) ignored,
         // <qmail> because it causes emulator & HW to freeze on 10.1
         CIpsPlgSingleOpWatcher* opW = CIpsPlgSingleOpWatcher::NewLC( *this );
-        CMsvOperation* op = iMsgMapper->UpdateMessageFlagsAsyncL( 
+        CMsvOperation* op = iMsgMapper->UpdateMessageFlagsAsyncL(
                 msgId.Id(), aMessage, opW->iStatus );
-        
+
         if ( op )
             {
             opW->SetOperation( op );
@@ -1063,19 +1046,19 @@ void CIpsPlgSosBasePlugin::StoreMessagesL(
     RPointerArray<CFSMailMessage> &messages,
     MFSMailRequestObserver& aOperationObserver,
     const TInt aRequestId )
-    
+
     {
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL(*this);
     CleanupStack::PushL(watcher);
-    CIpsPlgMailStorerOperation* op = 
+    CIpsPlgMailStorerOperation* op =
             CIpsPlgMailStorerOperation::NewLC(
                     *iSession,
                     watcher->iStatus,
-                    *this, 
-                    messages, 
-                    aOperationObserver, 
+                    *this,
+                    messages,
+                    aOperationObserver,
                     aRequestId );
-    
+
     watcher->SetOperation(op);
     iOperations.AppendL(watcher);
     CleanupStack::Pop( 2, watcher );
@@ -1154,7 +1137,7 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
 
 // <qmail>
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------  
+// ----------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& /* aParentFolderId */,
@@ -1167,26 +1150,26 @@ void CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     {
     FUNC_LOG;
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
-    
+
     CIpsPlgNewChildPartFromFileOperation* op = CIpsPlgNewChildPartFromFileOperation::NewL(
-        *iSession, 
+        *iSession,
         watcher->iStatus,
         aMailBoxId,
         aMessageId,
         aContentType,
         aFilePath,
-        aOperationObserver, 
+        aOperationObserver,
         aRequestId,
         iMsgMapper);
     watcher->SetOperation( op );
 
-    iOperations.AppendL( watcher ); 
+    iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
     }
-// </qmail> 
+// </qmail>
 
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------  
+// ----------------------------------------------------------------------------
 CFSMailMessagePart* CIpsPlgSosBasePlugin::NewChildPartFromFileL(
     const TFSMailMsgId& /*aMailBoxId*/,
     const TFSMailMsgId& /*aParentFolderId*/,
@@ -1231,9 +1214,9 @@ void CIpsPlgSosBasePlugin::RemoveChildPartL(
 
 // <qmail>
 // ----------------------------------------------------------------------------
-// Supports currently deletion of attachments and multipart structures 
+// Supports currently deletion of attachments and multipart structures
 // which are represented as folders in Symbian store)
-// ----------------------------------------------------------------------------  
+// ----------------------------------------------------------------------------
 //
 void CIpsPlgSosBasePlugin::RemoveChildPartL(
     const TFSMailMsgId& /* aMailBoxId */,
@@ -1246,17 +1229,17 @@ void CIpsPlgSosBasePlugin::RemoveChildPartL(
     {
     FUNC_LOG;
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewLC(*this);
-    
+
     CIpsPlgRemoveChildPartOperation* op = CIpsPlgRemoveChildPartOperation::NewL(
-        *iSession, 
+        *iSession,
         watcher->iStatus,
         aMessageId,
         aPartId,
-        aOperationObserver, 
+        aOperationObserver,
         aRequestId);
     watcher->SetOperation( op );
 
-    iOperations.AppendL( watcher ); 
+    iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
 
     }
@@ -1284,8 +1267,8 @@ CFSMailMessagePart* CIpsPlgSosBasePlugin::MessagePartL(
 // manager. Instead, it calls Symbian framework classes directly by
 // accessing the attachment entry.
 // Qmail change: returns file handle for read/write
-// ----------------------------------------------------------------------------  
-TInt CIpsPlgSosBasePlugin::GetMessagePartFileL(  
+// ----------------------------------------------------------------------------
+TInt CIpsPlgSosBasePlugin::GetMessagePartFileL(
     const TFSMailMsgId& /* aMailBoxId */,
     const TFSMailMsgId& /* aParentFolderId */,
     const TFSMailMsgId& /* aMessageId */,
@@ -1441,13 +1424,13 @@ void CIpsPlgSosBasePlugin::SetContentL(
     const TFSMailMsgId& aMessagePartId )
 	{
     FUNC_LOG;
-    
-//<qmail> Rewritten in Qmail: CIpsPlgOperationWait is no longer used 
+
+//<qmail> Rewritten in Qmail: CIpsPlgOperationWait is no longer used
     // Notice that SetContentL sets only the content of text/plain message part:
     // text/html part can be modified directly using GetMessagePartFileL
 	CMsvEntry* cEntry( NULL );
     CMsvStore* store = NULL;
-    
+
     // following code should fill text/plain content
     cEntry = iSession->GetEntryL( aMessagePartId.Id() );
     CleanupStack::PushL( cEntry );
@@ -1507,7 +1490,7 @@ void CIpsPlgSosBasePlugin::StoreMessagePartL(
 
 //<qmail>
 // ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------     
+// ----------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::StoreMessagePartsL(
     RPointerArray<CFSMailMessagePart>&  aMessageParts,
     MFSMailRequestObserver& aOperationObserver,
@@ -1519,15 +1502,15 @@ void CIpsPlgSosBasePlugin::StoreMessagePartsL(
             CIpsPlgMessagePartStorerOperation::NewLC(*iSession,
                     watcher->iStatus, *this, aMessageParts,
                     aOperationObserver, aRequestId);
-    
+
     watcher->SetOperation(op);
     iOperations.AppendL(watcher);
-    CleanupStack::Pop( 2, watcher );    
+    CleanupStack::Pop( 2, watcher );
     }
 //<//qmail>
 
 // ----------------------------------------------------------------------------
-// ---------------------------------------------------------------------------- 	
+// ----------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::UnregisterRequestObserver( TInt /* aRequestId */)
     {
     }
@@ -1551,9 +1534,9 @@ void CIpsPlgSosBasePlugin::SendL(TFSMailMsgId aMessageId )
     CleanupStack::Pop( watcher );
  	}
 
-   
+
 // ----------------------------------------------------------------------------
-// ---------------------------------------------------------------------------- 	
+// ----------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::SendMessageL( CFSMailMessage& /*aMessage*/ )
     {
     FUNC_LOG;
@@ -1702,19 +1685,19 @@ void CIpsPlgSosBasePlugin::DeleteMessagesByUidL(
     TInt count = aMessages.Count();
     TMsvEntry tEntry;
     TMsvId service;
-    
+
     for(TInt i=0; i<count; i++)
         {
         iSession->GetEntry( aMessages[i].Id(), service, tEntry );
         //make sure that only messages get deleted.
         if( tEntry.iType == KUidMsvMessageEntry )
-            {            
-			// <qmail>    
+            {
+			// <qmail>
             sel->AppendL( tEntry.Id() );
-			// </qmail>    
+			// </qmail>
             }
         }
-        
+
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL( *this );
     CleanupStack::PushL( watcher );
     //<qmail>
@@ -1746,17 +1729,17 @@ void CIpsPlgSosBasePlugin::DeleteMessagesByUidL(
     TInt count = aMessages.Count();
     TMsvEntry tEntry;
     TMsvId service;
-    
+
     for(TInt i=0; i<count; i++)
         {
         iSession->GetEntry( aMessages[i].Id(), service, tEntry );
         //make sure that only messages get deleted.
         if( tEntry.iType == KUidMsvMessageEntry )
-            {            
+            {
             sel->AppendL( tEntry.Id() );
             }
         }
-        
+
     CIpsPlgSingleOpWatcher* watcher = CIpsPlgSingleOpWatcher::NewL( *this );
     CleanupStack::PushL( watcher );
     CMsvOperation* op = CIpsPlgDeleteOperation::NewL( *iSession,
@@ -1856,21 +1839,21 @@ void CIpsPlgSosBasePlugin::SetCredentialsL( const TFSMailMsgId& /*aMailBoxId*/,
 // <qmail> not used; should be removed
 //    FUNC_LOG;
 //	TBool cancelled = EFalse;
-//	
+//
 //	if ( aPassword.Length() > 0 )
 //	    {
 //    	//Set new password and signal (possible) ongoing connect operation
 //    	//CIpsSetDataApi* api = CIpsSetDataApi::NewL( *iSession );
 //        //CleanupStack::PushL( api );
-//        
+//
 //        //CMsvEntry* cEntry = iSession->GetEntryL( aMailBoxId.Id() );
 //        //CleanupStack::PushL( cEntry );
-//        
+//
 //        //api->SetNewPasswordL( *cEntry, aPassword );
-//        
+//
 //        //CleanupStack::PopAndDestroy( 2, api );//cEntry, api
-//        
-//        //now signal through eventhandler that credientials have been set       
+//
+//        //now signal through eventhandler that credientials have been set
 //	    }
 //	else
 //	    {
@@ -1906,7 +1889,7 @@ void CIpsPlgSosBasePlugin::GetMessageEntryL(
     aImEmailMessage = iCachedEmailMessage;
     }
 
-    
+
 // ----------------------------------------------------------------------------
 // CIpsPlgSosBasePlugin::TakeMessageEntryL( )
 // Takes ownership of the cached objects or creates new ones
@@ -1924,7 +1907,7 @@ void CIpsPlgSosBasePlugin::TakeMessageEntryLC(
         // Can't use the ones that are in cache, create new ones and don't replace the ones in cache
         aMessageEntry = iSession->GetEntryL( aId );
         aImEmailMessage = 0;
-        
+
         if ( aMessageEntry->Entry().iType == KUidMsvMessageEntry )
             {
             CleanupStack::PushL( aMessageEntry );
@@ -1940,7 +1923,7 @@ void CIpsPlgSosBasePlugin::TakeMessageEntryLC(
     	iCachedEntry = 0;
     	iCachedEmailMessage = 0;
     	}
-    	
+
     // Ownership is transferred to the caller
     CleanupStack::PushL( aMessageEntry );
     CleanupStack::PushL( aImEmailMessage );
@@ -1954,12 +1937,12 @@ void CIpsPlgSosBasePlugin::ReturnMessageEntry(
 	{
 	// Clean old ones from the cache
 	CleanCachedMessageEntries();
-	
+
 	// Always save the latest ones in the cache
 	iCachedEntry = aMessageEntry;
 	iCachedEmailMessage = aImEmailMessage;
     }
-   
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 //
@@ -2073,7 +2056,7 @@ void CIpsPlgSosBasePlugin::DeleteAndRemoveOperation(
     {
     FUNC_LOG;
     CIpsPlgSingleOpWatcher* opWatcher = iOperations[aOpArrayIndex];
-    
+
 // <qmail> removed; does nothing
     // The operations matches, handle it in protocol plugin...if needed.
     //TRAP_IGNORE( HandleOpCompletedL( *opWatcher, aCompleteCode ) );
@@ -2114,32 +2097,32 @@ void CIpsPlgSosBasePlugin::FixReplyForwardHeaderL(
     if ( textBodyPart )
         {
         CleanupStack::PushL( textBodyPart );
-        CFSMailMessage* origMsg = GetMessageByUidL( 
-                                        aMailBoxId, 
-                                        TFSMailMsgId(), 
-                                        aOriginalMessageId, 
+        CFSMailMessage* origMsg = GetMessageByUidL(
+                                        aMailBoxId,
+                                        TFSMailMsgId(),
+                                        aOriginalMessageId,
                                         EFSMsgDataStructure );
         if ( origMsg )
             {
             CleanupStack::PushL( origMsg );
-            CFSMailMessagePart* origMsgTextBodyPart = 
+            CFSMailMessagePart* origMsgTextBodyPart =
                 origMsg->PlainTextBodyPartL();
                 if ( origMsgTextBodyPart )
                     {
                     CleanupStack::PushL( origMsgTextBodyPart );
                     // Use the content provided in aHeaderDescriptor
-                    // instead of what is provided by 
+                    // instead of what is provided by
                     // CreateForwardSmtpMessage..
                     TPckgBuf<TReplyForwardParams> pckg;
                     pckg.Copy( aHeaderDescriptor );
                     TPtr hPtr( pckg().iHeader->Des() );
-                    HBufC* body = HBufC::NewLC( 
+                    HBufC* body = HBufC::NewLC(
                             textBodyPart->FetchedContentSize() );
                     TPtr bPtr( body->Des() );
                     origMsgTextBodyPart->GetContentToBufferL( bPtr, 0 );
                     HBufC* content = HBufC::NewLC(
                             hPtr.Length() + bPtr.Length() );
-                    TPtr cPtr( content->Des() );                        
+                    TPtr cPtr( content->Des() );
                     cPtr.Append( hPtr );
                     cPtr.Append( bPtr );
                     textBodyPart->SetContent( cPtr );
@@ -2182,11 +2165,11 @@ void CIpsPlgSosBasePlugin::DisconnectL(
 
         CIpsPlgBaseOperation* op = CIpsPlgDisconnectOp::NewL(
             *iSession,
-            watcher->iStatus, 
-            service, 
+            watcher->iStatus,
+            service,
             ActivityTimerL( aMailBoxId ),
-            aMailBoxId, 
-            &aObserver, 
+            aMailBoxId,
+            &aObserver,
             aRequestId );
 
         watcher->SetOperation( op );
@@ -2416,8 +2399,8 @@ TBool CIpsPlgSosBasePlugin::ConnOpRunning( const TFSMailMsgId& aMailBoxId  )
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-void CIpsPlgSosBasePlugin::SetMailboxName( 
-        const TFSMailMsgId& aMailboxId, 
+void CIpsPlgSosBasePlugin::SetMailboxName(
+        const TFSMailMsgId& aMailboxId,
         const TDesC& /*aMailboxName*/ )
     {
     FUNC_LOG;
@@ -2475,7 +2458,7 @@ TBool CIpsPlgSosBasePlugin::HasOperations( const TFSMailMsgId& aMailboxId )
     TBool ret( EFalse );
     for ( TInt i = 0; i < iOperations.Count(); i++ )
         {
-        if( iOperations[i]->BaseOperation() && 
+        if( iOperations[i]->BaseOperation() &&
             iOperations[i]->BaseOperation()->FSMailboxId() == aMailboxId )
             {
             ret = ETrue;
@@ -2496,11 +2479,11 @@ void CIpsPlgSosBasePlugin::HandleActiveFolderChangeL(
     TMsvId service;
     TMsvEntry folder;
     iSession->GetEntry( aActiveFolderId.Id(), service, folder );
-    
-    
+
+
     //currently, no actions unless this is inbox
     //also, if id is '0', it means inbox before first sync...it doesn't really exist yet
-    if( folder.iDetails.CompareF( KIpsPlgInbox ) == 0 || folder.Id() == 0 || 
+    if( folder.iDetails.CompareF( KIpsPlgInbox ) == 0 || folder.Id() == 0 ||
             ( folder.iMtm == KSenduiMtmPop3Uid ) &&
             ( folder.iType == KUidMsvServiceEntry ) &&
             ( folder.iServiceId == aActiveFolderId.Id() ) )
@@ -2512,15 +2495,15 @@ void CIpsPlgSosBasePlugin::HandleActiveFolderChangeL(
             //we won't do anything if sync is already started
             return;
             }
-        
+
         //check are we in polling mode
-        NmIpsSosExtendedSettingsManager* eMgr= 
+        NmIpsSosExtendedSettingsManager* eMgr=
                 new NmIpsSosExtendedSettingsManager(aActiveMailboxId.Id());
-        
+
         QVariant value;
         bool ok = eMgr->readSetting(IpsServices::ReceptionActiveProfile, value);
         delete eMgr;
-        
+
         if ( ok )
             {
             TInt profile = value.toInt();
@@ -2529,7 +2512,7 @@ void CIpsPlgSosBasePlugin::HandleActiveFolderChangeL(
                 // let's sync
                 GoOnlineL(aActiveMailboxId);
                 }
-            }        
-        }        
+            }
+        }
     }
 // </qmail>

@@ -19,4 +19,7 @@ EXPORTS
 	_ZN22CIpsPlgSingleOpWatcherD1Ev @ 18 NONAME
 	_ZN22CIpsPlgSingleOpWatcherD2Ev @ 19 NONAME
 	_ZNK22CIpsPlgSingleOpWatcher9OperationEv @ 20 NONAME
+	_ZN20CIpsPlgSosBasePluginD0Ev @ 21 NONAME
+	_ZN20CIpsPlgSosBasePluginD1Ev @ 22 NONAME
+	_ZN20CIpsPlgSosBasePluginD2Ev @ 23 NONAME
 

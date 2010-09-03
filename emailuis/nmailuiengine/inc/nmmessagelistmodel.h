@@ -62,6 +62,10 @@ public:
 
     void setIgnoreFolderIds(bool ignore);
 
+    void handleFolderDeletedEvent(
+                            const NmId &folderId,
+                            const NmId &mailboxId);   
+
 
 public slots:
 

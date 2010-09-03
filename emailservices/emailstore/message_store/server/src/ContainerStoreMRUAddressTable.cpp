@@ -479,14 +479,14 @@ void CContainerStoreMruAddressTable::DeleteMailboxL( TContainerId aMailboxId )
         {
         if ( iAddressLists[i]->MailboxId() == aMailboxId )
             {
+            found = ETrue;
             CMruAddressList* list = iAddressLists[i];
             iAddressLists.Remove( i );
             delete list;
             break;
             }
         }
-    
-    if ( !found == NULL )
+    if ( !found )
         {
         User::Leave( KErrNotFound );
         }
@@ -690,7 +690,7 @@ void CContainerStoreMruAddressTable::UpdateMruNumberInTableL( TUint aOldMruNum, 
     __LOG_ENTER_SUPPRESS("UpdateMruNumberInTable")
     __LOG_WRITE_FORMAT2_INFO("updating MRU %u to %u", aOldMruNum, aNewMruNum )
     
-    iTable.SeekL( aOldMruNum );
+    SeekL( aOldMruNum );
     
     PrepareRowForUpdateLC();
     

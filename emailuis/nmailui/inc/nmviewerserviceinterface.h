@@ -28,23 +28,36 @@ class NmApplication;
 class NmUiEngine;
 class NmId;
 
+
 class NmViewerServiceInterface : public XQServiceProvider
 {
     Q_OBJECT
+
 public:
+
     NmViewerServiceInterface(QObject *parent,
-                              NmApplication *application,
-                              NmUiEngine &uiEngine);
+                             NmApplication *application,
+                             NmUiEngine &uiEngine);
+    
     ~NmViewerServiceInterface();
 
 
 public slots:
+
+    /*!
+        Depricated!
+    */
     void viewMessage(QVariant mailboxId, QVariant folderId, QVariant messageId);
 
+    void viewMessage(QVariant idList, QVariant flags);
+
+
 private:
+
     NmApplication *mApplication; // Not owned
     NmUiEngine &mUiEngine;
     int mAsyncReqId;
 };
+
 
 #endif /* NMVIEWERSERVICEINTERFACE_H_ */

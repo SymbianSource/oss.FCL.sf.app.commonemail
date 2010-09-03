@@ -355,3 +355,24 @@ QString NmMessageListViewItem::senderFieldText(const NmMessageEnvelope &envelope
     }
     return ret;
 }
+
+/*!
+    Handle font color changes in the case of theme change
+ */ 
+bool NmMessageListViewItem::event(QEvent *event)
+{
+    bool ret = HbTreeViewItem::event(event);    
+    if (event && event->type() == HbEvent::ThemeChanged) {
+        NmMessageListModelItem *msgModelItem(NULL);
+        msgModelItem = modelIndex().data(
+            Qt::DisplayRole).value<NmMessageListModelItem*>();
+        if (msgModelItem && !msgModelItem->envelope().isRead()) {
+            setFontsUnread();
+        }
+        else if (msgModelItem) {
+            setFontsRead();
+        }
+    }
+    return ret;
+}
+

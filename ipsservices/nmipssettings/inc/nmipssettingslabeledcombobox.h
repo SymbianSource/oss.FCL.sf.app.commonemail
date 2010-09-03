@@ -18,9 +18,9 @@
 #ifndef NMIPSSETTINGSLABELEDCOMBOBOX_H
 #define NMIPSSETTINGSLABELEDCOMBOBOX_H
 
-#include <qstringlist.h>
-#include <hbwidget.h>
-#include <qhash.h>
+#include <QStringList>
+#include <QHash>
+#include <HbWidget>
 
 class QGraphicsLinearLayout;
 class QGraphicsItem;
@@ -38,7 +38,7 @@ class NmIpsSettingsLabeledComboBox : public HbWidget
 public:
 
     NmIpsSettingsLabeledComboBox(QGraphicsItem *parent = 0, Qt::WindowFlags wFlags = 0);
-    virtual ~NmIpsSettingsLabeledComboBox();
+    ~NmIpsSettingsLabeledComboBox();
 
     int currentIndex() const;
     void setCurrentIndex(int index);

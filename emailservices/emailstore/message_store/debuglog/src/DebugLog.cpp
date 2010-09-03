@@ -510,7 +510,7 @@ TBool RDebugLog::PrepareForWrite()
         iLogFileHandler = CDebugLogTlsData::GetLogFileHandler( iLogDirectory, this );
         } // end if
        
-    return (iLogFileHandler != NULL) && iLogFileHandler->ReadyToWrite();
+    return (iLogFileHandler) && iLogFileHandler->ReadyToWrite();
            
     } // END PrepareForWrite
     

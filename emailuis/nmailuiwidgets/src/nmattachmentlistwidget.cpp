@@ -23,6 +23,7 @@ static const QString NmAttachmentTextColor = "qtc_default_main_pane_normal";
 
 static const qreal NmItemLineOpacity = 0.4;
 
+
 /*!
  @nmailuiwidgets
  \class NmAttachmentListWidget
@@ -103,12 +104,12 @@ attachmentWidget->setProgressValue(index, value);
     Constructs a new NmAttachmentListWidget with \a parent.
  */
 NmAttachmentListWidget::NmAttachmentListWidget(QGraphicsItem *parent)
-    : HbWidget( parent ),
-    mLayout(NULL),
-    mOrientation(Qt::Vertical)
+: HbWidget( parent ),
+  mLayout(NULL),
+  mOrientation(Qt::Vertical)
 {
     NM_FUNCTION;
-    
+
     init( );
 }
 
@@ -119,11 +120,11 @@ NmAttachmentListWidget::NmAttachmentListWidget(QGraphicsItem *parent)
 NmAttachmentListWidget::~NmAttachmentListWidget( )
 {
     NM_FUNCTION;
-    
+
     qDeleteAll(mItemList);
 
     mItemList.clear();
-	
+
 }
 
 /*!
@@ -133,8 +134,21 @@ NmAttachmentListWidget::~NmAttachmentListWidget( )
 void NmAttachmentListWidget::setTextColor(const QColor color)
 {
     NM_FUNCTION;
-    
+
     mTextColor=color;
+}
+
+
+/*!
+    Sets the background color. This method can be used to override the
+    default background color set by the current theme.
+
+    \param color The new background color.
+*/
+void NmAttachmentListWidget::setBackgroundColor(const QColor color)
+{
+    NM_FUNCTION;
+    mBackgroundColor = color;
 }
 
 
@@ -143,13 +157,18 @@ void NmAttachmentListWidget::setTextColor(const QColor color)
     old one will be moved to next.
  */
 void NmAttachmentListWidget::insertAttachment(
-        int index, 
-        const QString &fileName, 
+        int index,
+        const QString &fileName,
         const QString &fileSize)
-{   
+{
     NM_FUNCTION;
-    
+
     NmAttachmentListItem *item = new NmAttachmentListItem(this);
+
+    if (mBackgroundColor.isValid()) {
+        item->setBackgroundColor(mBackgroundColor);
+    }
+
     item->setObjectName(QString("nmattachmentlistitem_%1").arg(index));
 
     //connect to signals
@@ -157,7 +176,7 @@ void NmAttachmentListWidget::insertAttachment(
     connect(item, SIGNAL(itemLongPressed(QPointF)), this, SLOT(handleLongPressed(QPointF)));
 
     //set texts
-    item->setTextColor(checkColor());      
+    item->setTextColor(checkColor());
     item->setFileNameText(fileName);
     item->setFileSizeText(fileSize);
 
@@ -174,7 +193,7 @@ void NmAttachmentListWidget::insertAttachment(
 void NmAttachmentListWidget::removeAttachment(int index)
 {
     NM_FUNCTION;
-    
+
     if(!mLayout) {
         NM_ERROR(1,"NmAttachmentListWidget::removeAttachment(): layout loading failed");
         return;
@@ -198,23 +217,23 @@ void NmAttachmentListWidget::removeAttachment(int index)
     Set attachment file size.
  */
 void NmAttachmentListWidget::setAttachmentSize(
-        int index, 
+        int index,
         const QString &fileSize)
 {
     NM_FUNCTION;
-    
+
 	if (index>=0 && index<mItemList.count()) {
 	    mItemList.at(index)->setFileSizeText(fileSize);
 	}
 }
 
 /*!
-    Returns attachment(s) count. 
+    Returns attachment(s) count.
  */
 int NmAttachmentListWidget::count() const
 {
     NM_FUNCTION;
-    
+
     return mItemList.count();
 }
 
@@ -224,7 +243,7 @@ int NmAttachmentListWidget::count() const
 int NmAttachmentListWidget::progressValue(int index) const
 {
     NM_FUNCTION;
-    
+
     int ret(NmNotFoundError);
     if(index >= 0 && index < mItemList.count()){
         ret = mItemList.at(index)->progressBarValue();
@@ -233,13 +252,13 @@ int NmAttachmentListWidget::progressValue(int index) const
 }
 
 /*!
-    Hides progress of item, if index is negative or creater 
+    Hides progress of item, if index is negative or creater
     than last index function does nothing
  */
 void NmAttachmentListWidget::hideProgressBar(int index)
 {
     NM_FUNCTION;
-    
+
     if(index >= 0 && index < mItemList.count()){
         mItemList.at(index)->hideProgressBar();
     }
@@ -255,12 +274,12 @@ void NmAttachmentListWidget::paint(
     QWidget *widget)
 {
     NM_FUNCTION;
-    
+
     Q_UNUSED(option);
     Q_UNUSED(widget);
     if (painter&&mLayout){
         painter->save();
-        
+
         // Use text color as a line color if set, otherwise use theme
         // normal list content color.
         painter->setPen(checkColor());
@@ -271,11 +290,12 @@ void NmAttachmentListWidget::paint(
         for (int i=0;i<rowCount;i++){
             QGraphicsLayoutItem *item = mLayout->itemAt(i,0);
             if (item){
-                QRectF itemRect = item->geometry();      
-                QLineF line1( itemRect.topLeft().x(), itemRect.bottomRight().y(),
-                              layoutRect.bottomRight().x(), itemRect.bottomRight().y());
-                painter->drawLine(line1);                     
-            }     
+			    qreal offsetY = 0.5;
+                QRectF itemRect = item->geometry();
+                QLineF line1( itemRect.topLeft().x(), itemRect.bottomRight().y()+offsetY,
+                              layoutRect.bottomRight().x(), itemRect.bottomRight().y()+offsetY);
+                painter->drawLine(line1);
+            }
         }
         painter->restore();
     }
@@ -288,7 +308,7 @@ void NmAttachmentListWidget::paint(
 void NmAttachmentListWidget::setProgressBarValue(int index, int value)
 {
     NM_FUNCTION;
-    
+
     if(index >= 0 && index < mItemList.count()){
         mItemList[index]->setProgressBarValue(value);
     }
@@ -300,7 +320,7 @@ void NmAttachmentListWidget::setProgressBarValue(int index, int value)
 void NmAttachmentListWidget::init( )
 {
     NM_FUNCTION;
-    
+
     //Get mainwindow for orientation changes
     HbMainWindow *mw = hbInstance->allMainWindows().at(0);
 
@@ -316,7 +336,7 @@ void NmAttachmentListWidget::init( )
     constructUi();
 
     //set flags
-    setFlag(QGraphicsItem::ItemIsFocusable);  
+    setFlag(QGraphicsItem::ItemIsFocusable);
     setFlag(QGraphicsItem::ItemHasNoContents,false);
 }
 
@@ -326,7 +346,7 @@ void NmAttachmentListWidget::init( )
 void NmAttachmentListWidget::constructUi()
 {
     NM_FUNCTION;
-    
+
     setObjectName(QString(ATTACHMENT_WIDGET));
     HbDocumentLoader loader;
     bool loadingOk = false;
@@ -355,7 +375,7 @@ void NmAttachmentListWidget::constructUi()
 void NmAttachmentListWidget::handleLongPressed(QPointF point)
 {
     NM_FUNCTION;
-    
+
     QObject *sender = QObject::sender();
     int index = findItem(sender);
     if(NmNotFoundError != index){
@@ -373,7 +393,7 @@ void NmAttachmentListWidget::handleLongPressed(QPointF point)
 void NmAttachmentListWidget::handleItemActivated()
 {
     NM_FUNCTION;
-    
+
     QObject *sender = QObject::sender();
     int index = findItem(sender);
     if(NmNotFoundError != index){
@@ -391,7 +411,7 @@ void NmAttachmentListWidget::handleItemActivated()
 void NmAttachmentListWidget::orientationChanged(Qt::Orientation orientation)
 {
     NM_FUNCTION;
-    
+
     //be sure that orientation has been changed
     if(mOrientation != orientation){
         mOrientation = orientation;
@@ -408,7 +428,7 @@ void NmAttachmentListWidget::orientationChanged(Qt::Orientation orientation)
 int NmAttachmentListWidget::findItem(const QObject *obj)
 {
     NM_FUNCTION;
-    
+
     int found(NmNotFoundError);
     int index(0);
 
@@ -430,7 +450,7 @@ int NmAttachmentListWidget::findItem(const QObject *obj)
 void NmAttachmentListWidget::insertItemToLayout(NmAttachmentListItem* item)
 {
     NM_FUNCTION;
-    
+
     if(!mLayout) {
         NM_ERROR(1,"NmAttachmentListWidget::insertItemToLayout: Layout loading failed!");
         return;
@@ -453,12 +473,12 @@ void NmAttachmentListWidget::insertItemToLayout(NmAttachmentListItem* item)
 void NmAttachmentListWidget::rearrangeLayout()
 {
     NM_FUNCTION;
-    
+
     if(!mLayout) {
         NM_ERROR(1,"NmAttachmentListWidget::rearrangeLayout: Layout loading failed!");
         return;
     }
-    
+
     //remove all items from the layout
     int count(mLayout->count());
     for(int i = count - 1; i >= 0; --i){
@@ -466,7 +486,7 @@ void NmAttachmentListWidget::rearrangeLayout()
     }
 
     //then add them back
-    QColor textColor = checkColor();    
+    QColor textColor = checkColor();
     foreach(NmAttachmentListItem *item, mItemList){
         item->setTextColor(textColor);
         insertItemToLayout(item);
@@ -479,13 +499,13 @@ void NmAttachmentListWidget::rearrangeLayout()
 QColor NmAttachmentListWidget::checkColor()
 {
     NM_FUNCTION;
-    
+
     QColor retColor;
 
     if (mTextColor.isValid()){
         retColor = mTextColor;
     }
-    else {    
+    else {
         retColor =  HbColorScheme::color(NmAttachmentTextColor);
     }
     return retColor;
@@ -500,7 +520,7 @@ void NmAttachmentListWidget::changeEvent(QEvent *event)
     NM_FUNCTION;
 
     if (event->type() == HbEvent::ThemeChanged) {
-        rearrangeLayout();    
+        rearrangeLayout();
     }
     return HbWidgetBase::changeEvent(event);
 }

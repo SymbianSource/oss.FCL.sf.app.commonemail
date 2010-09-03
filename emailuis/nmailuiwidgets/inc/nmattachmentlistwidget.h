@@ -35,6 +35,7 @@ public:
     NmAttachmentListWidget(QGraphicsItem *parent = 0);
     virtual ~NmAttachmentListWidget();
     void setTextColor(const QColor color);
+    void setBackgroundColor(const QColor color);
     void insertAttachment(const int index, const QString &fileName, const QString &fileSize);
     void removeAttachment(const int index);
     void setAttachmentSize(int index, const QString &fileSize);
@@ -72,6 +73,7 @@ private:
     QGraphicsGridLayout *mLayout;
     Qt::Orientation mOrientation;
     QColor mTextColor;
+    QColor mBackgroundColor;
 };
 
 #endif // NMATTACHMENTLISTWIDGET_H_

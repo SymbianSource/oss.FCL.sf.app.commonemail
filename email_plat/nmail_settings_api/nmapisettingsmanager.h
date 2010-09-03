@@ -29,7 +29,7 @@ class NMAPI_EXPORT NmApiSettingsManager
 {
 public:
     NmApiSettingsManager(const quint64 mailboxId);
-    ~NmApiSettingsManager();
+    virtual ~NmApiSettingsManager();
 
     bool load(quint64 mailboxId, NmApiMailboxSettingsData &data);
     bool save(const NmApiMailboxSettingsData &data);

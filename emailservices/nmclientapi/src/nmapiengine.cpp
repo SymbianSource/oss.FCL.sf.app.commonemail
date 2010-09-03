@@ -215,18 +215,18 @@ void NmApiEngine::listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList
     NmDataPluginInterface *instance =  mFactory->interfaceInstance();
     if (instance) {
         instance->listMailboxes(mailboxFromPlugin);
-    }
-
-    while (mailboxFromPlugin.isEmpty() == false) {
-        NmMailbox* tempNmMailbox = mailboxFromPlugin.takeLast();
-
-        // subscribe all events also for these new mailboxes
-        instance->subscribeMailboxEvents(tempNmMailbox->id());
-
-        // construct mailboxlist to platform api
-        mailboxList << NmToApiConverter::NmMailbox2NmApiMailbox(*tempNmMailbox);
-
-        delete tempNmMailbox;
+        
+        while (mailboxFromPlugin.isEmpty() == false) {
+            NmMailbox* tempNmMailbox = mailboxFromPlugin.takeLast();
+    
+            // subscribe all events also for these new mailboxes
+            instance->subscribeMailboxEvents(tempNmMailbox->id());
+    
+            // construct mailboxlist to platform api
+            mailboxList << NmToApiConverter::NmMailbox2NmApiMailbox(*tempNmMailbox);
+    
+            delete tempNmMailbox;
+        }
     }
 }
 

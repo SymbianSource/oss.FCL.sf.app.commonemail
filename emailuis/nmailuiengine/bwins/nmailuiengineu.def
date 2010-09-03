@@ -313,4 +313,8 @@ EXPORTS
 	?message@NmDataManager@@QAEPAVNmMessage@@ABVNmId@@00@Z @ 312 NONAME ; class NmMessage * NmDataManager::message(class NmId const &, class NmId const &, class NmId const &)
 	?metaObject@NmOperation@@UBEPBUQMetaObject@@XZ @ 313 NONAME ; struct QMetaObject const * NmOperation::metaObject(void) const
 	?getSignature@NmUiEngine@@QAEHABVNmId@@AAPAVQString@@@Z @ 314 NONAME ; int NmUiEngine::getSignature(class NmId const &, class QString * &)
+	?handleFolderEvent@NmUiEngine@@AAEXW4NmFolderEvent@@ABV?$QList@VNmId@@@@ABVNmId@@@Z @ 315 NONAME ; void NmUiEngine::handleFolderEvent(enum NmFolderEvent, class QList<class NmId> const &, class NmId const &)
+	?handleFolderCreatedEvent@NmUiEngine@@AAEXABV?$QList@VNmId@@@@ABVNmId@@@Z @ 316 NONAME ; void NmUiEngine::handleFolderCreatedEvent(class QList<class NmId> const &, class NmId const &)
+	?handleFolderDeletedEvent@NmMessageListModel@@QAEXABVNmId@@0@Z @ 317 NONAME ; void NmMessageListModel::handleFolderDeletedEvent(class NmId const &, class NmId const &)
+	?handleFolderDeletedEvent@NmUiEngine@@AAEXABV?$QList@VNmId@@@@ABVNmId@@@Z @ 318 NONAME ; void NmUiEngine::handleFolderDeletedEvent(class QList<class NmId> const &, class NmId const &)
 

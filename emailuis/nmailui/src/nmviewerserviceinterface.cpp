@@ -29,12 +29,12 @@
     Class constructor.
 */
 NmViewerServiceInterface::NmViewerServiceInterface(QObject *parent,
-        NmApplication *application,
-        NmUiEngine &uiEngine)
-    : XQServiceProvider(emailFullServiceNameMessage, parent),
-      mApplication(application),
-      mUiEngine(uiEngine),
-      mAsyncReqId(0)
+                                                   NmApplication *application,
+                                                   NmUiEngine &uiEngine)
+: XQServiceProvider(emailFullServiceNameMessage, parent),
+  mApplication(application),
+  mUiEngine(uiEngine),
+  mAsyncReqId(0)
 {
     publishAll();
 }
@@ -50,75 +50,125 @@ NmViewerServiceInterface::~NmViewerServiceInterface()
 
 
 /*!
-    Opens view to the specific message
- */
-void NmViewerServiceInterface::viewMessage(QVariant mailboxId, QVariant folderId, QVariant messageId)
+    This has the soon to be DEPRICATED three argument interface!!!
+    Use viewMessage(QVariant idList, QVariant flags) instead!!!
+*/
+void NmViewerServiceInterface::viewMessage(QVariant mailboxId,
+                                           QVariant folderId,
+                                           QVariant messageId)
+{
+    QVariantList idList;
+    idList.append(mailboxId);
+    idList.append(folderId);
+    idList.append(messageId);
+    QVariant idListAsVariant = QVariant::fromValue(idList);
+    viewMessage(idListAsVariant, QVariant());
+}
+
+
+/*!
+    Opens the message view according to the given IDs.
+
+    \param idList A list containing the required IDs for locating the wanted
+                  message. The ID are the following (and should be placed in
+                  the following order): mailbox ID, folder ID and message ID.
+    \param flags Will contain EmailBackReturnsToMessageList if the message
+                 list view should be added into the view stack.
+*/
+void NmViewerServiceInterface::viewMessage(QVariant idList, QVariant flags)
 {
     NM_FUNCTION;
-
+    
     mAsyncReqId = setCurrentRequestAsync();
-    NmId mailboxNmId(0);
-    mailboxNmId = mailboxId.toULongLong();   
-    NmId messageNmId(0);
-    messageNmId = messageId.toULongLong(); 
-    NmId folderNmId(0);
-    folderNmId = folderId.toULongLong();
 
-	// Make sure the app stays background if user presses back in viewer view
+    NmId mailboxId(0), folderId(0), messageId(0);
+
+    // Check the given arguments.
+    if (idList.canConvert(QVariant::List)) {
+        QList<QVariant> ids = idList.toList();
+        
+        if (ids.count() >= 3) {
+            mailboxId = ids[0].toULongLong();
+            folderId = ids[1].toULongLong();
+            messageId = ids[2].toLongLong();
+        }
+    }
+
+    quint64 flag(EmailNoFlags);
+
+    if (flags.canConvert(QVariant::ULongLong)) {
+        flag = flags.toULongLong();
+    }
+
+    bool addMessageListViewToStack(false);
+
+    if (flag & EmailBackReturnsToMessageList) {
+        addMessageListViewToStack = true;
+    }
+
+	// Make sure the app stays on the background if the user presses back button
+    // in the viewer view.
 	bool visible = mApplication->updateVisibilityState();
 
-    NmMessage *message = mUiEngine.message( mailboxNmId, folderNmId, messageNmId );
+    NmMessage *message = mUiEngine.message(mailboxId, folderId, messageId);
+
     if (message) {
-        // bring application to foreground
+        // Bring the application to the foreground.
         if (!XQServiceUtil::isEmbedded()) {
             XQServiceUtil::toBackground(false);
         }
+
         HbMainWindow *mainWindow = mApplication->mainWindow();
         mainWindow->show();
 
-        // Launch the message list view.
-        NmUiStartParam *startParam1 = 
-            new NmUiStartParam(NmUiViewMessageList,
-                               mailboxNmId,
-                               folderNmId, // folder id
-                               messageNmId, // message id
-                               NmUiEditorCreateNew, // editor start mode
-                               NULL, // address list
-                               NULL, // attachment list
-                               true); // start as service
-        mApplication->enterNmUiView(startParam1);
+        if (addMessageListViewToStack) {
+            // Launch the message list view.
+            NmUiStartParam *startParam1 = 
+                new NmUiStartParam(NmUiViewMessageList,
+                                   mailboxId,
+                                   folderId,
+                                   messageId,
+                                   NmUiEditorCreateNew, // editor start mode
+                                   NULL, // address list
+                                   NULL, // attachment list
+                                   true); // start as service
+
+            mApplication->enterNmUiView(startParam1);
+        }
         
         // Launch the message view.
         NmUiStartParam *startParam =
             new NmUiStartParam(NmUiViewMessageViewer,
-                               mailboxNmId,
-                               folderNmId, // folder id
-                               messageNmId, // message id
+                               mailboxId,
+                               folderId, // folder id
+                               messageId, // message id
                                NmUiEditorCreateNew, // editor start mode
                                NULL, // address list
                                NULL, // attachment list
-                               false); // not started as service
+                               !addMessageListViewToStack); // start as service?
+
         mApplication->enterNmUiView(startParam);
 
-        completeRequest(mAsyncReqId,0);
+        completeRequest(mAsyncReqId, 0);
     }
     else {
-        // Message was not found
+        // The message was not found!
 
-        // if started as embedded, do not hide the app
+        // If started as embedded, do not hide the app.
 		if (!XQServiceUtil::isEmbedded() && !visible) {
 			XQServiceUtil::toBackground(true);
 		}
 
-        completeRequest(mAsyncReqId,1);
+        completeRequest(mAsyncReqId, 1);
 
-        // Close the application if started as service
+        // Close the application if started as a service.
         if (XQServiceUtil::isService()) {
-            // Exit the application when the return value is delivered
+            // Exit the application when the return value is delivered.
             connect(this, SIGNAL(returnValueDelivered()),
                     mApplication, SLOT(delayedExitApplication()));
         }
     }
 }
+
 
 // End of file.

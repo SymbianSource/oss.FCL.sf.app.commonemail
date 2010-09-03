@@ -15,40 +15,36 @@
  *
  */
 
+#include <hbsplashscreen.h>
 #include "nmuiheaders.h"
-
-const QString NmActivityName("EmailInboxView");
+#include "nmapplication.h"
 
 /*!
     The main function.
  */
 int main(int argc, char *argv[])
 {
-    HbApplication app(argc,argv,Hb::NoSplash);
-    
-    // Load the translation file.
-    QTranslator translator;
-    QString lang = QLocale::system().name();
-    QString appName = "mail_";
-    QString path = "Z:/resource/qt/translations/";
-    translator.load(appName + lang, path);
-    app.installTranslator(&translator);
-    
-    app.setApplicationName(hbTrId("txt_mail_title_mail"));
-    
-    NmApplication *nmApplication = NULL;
-    quint64 accountId = 0;
-    QString activateId = app.activateId();
-    if (app.activateReason() == Hb::ActivationReasonActivity &&
-            activateId.startsWith(NmActivityName) ) {
-        QString accountIdString = activateId.mid(NmActivityName.length());
-        accountId = accountIdString.toULongLong();
-        nmApplication = new NmApplication(&app,accountId);
+    // Decide which splash screen to show.
+    if (!XQServiceUtil::isService(argc,argv)) {
+        HbSplashScreen::setScreenId("messagelist_screen");        
     } else {
-        nmApplication = new NmApplication(&app);
+        QString interfaceName = XQServiceUtil::interfaceName(argc,argv);
+        
+        if (interfaceName == XQI_EMAIL_MESSAGE_SEND || 
+            interfaceName == XQI_URI_VIEW ||
+            interfaceName == XQI_FILE_SHARE) {
+            HbSplashScreen::setScreenId("editor_screen");
+        }
+        else if (interfaceName == XQI_EMAIL_MESSAGE_VIEW) {
+            HbSplashScreen::setScreenId("viewer_screen");
+        }
+        else if (interfaceName == XQI_EMAIL_INBOX_VIEW) {
+            HbSplashScreen::setScreenId("messagelist_screen");
+        }
     }
     
+    NmApplication app(argc,argv);
+
     int ret = app.exec();
-    delete nmApplication;
     return ret;
 }

@@ -361,13 +361,16 @@ void CEmailMailbox::EditNewMessageL()
     {
     bool syncronous;
 
-    XQServiceRequest request( emailInterfaceNameSend,
-                             emailOperationSendMail,
-                             syncronous );
+    XQServiceRequest request( XQI_EMAIL_MESSAGE_SEND,
+                              XQOP_EMAIL_MESSAGE_SEND,
+                              syncronous );
 
     QVariant returnValue;
+
     if ( !request.send( returnValue ) )
+        {
         User::Leave( KErrGeneral );
+        }
     }
 
 // -----------------------------------------------------------------------------

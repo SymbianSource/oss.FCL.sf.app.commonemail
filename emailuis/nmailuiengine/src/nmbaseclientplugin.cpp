@@ -467,7 +467,6 @@ void NmBaseClientPlugin::createMessageListCommands(
             // Create the search button.
             NmAction *mailSearchAction = new NmAction(0);
             mailSearchAction->setObjectName("baseclientplugin_mailsearchaction");
-            mailSearchAction->setText(hbTrId("txt_mail_list_search"));
             mailSearchAction->setIcon(HbIcon("qtg_mono_search"));
             connect(mailSearchAction, SIGNAL(triggered()), this, SLOT(search()));
             actionList.append(mailSearchAction);
@@ -476,7 +475,6 @@ void NmBaseClientPlugin::createMessageListCommands(
             mViewerToolBarRequest = request;
             NmAction *createMailAction = new NmAction(0);
             createMailAction->setObjectName("baseclientplugin_createmailaction");
-            createMailAction->setText(hbTrId("txt_mail_button_new_mail"));
             createMailAction->setIcon(NmIcons::getIcon(NmIcons::NmIconNewEmail));
             connect(createMailAction, SIGNAL(triggered()),
                     this, SLOT(createNewMailViewerToolBar()));

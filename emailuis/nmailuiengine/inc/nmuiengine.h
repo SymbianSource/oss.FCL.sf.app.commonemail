@@ -197,6 +197,9 @@ private slots:
     void handleMailboxEvent(NmMailboxEvent event,
                             const QList<NmId> &mailboxIds);
 
+    void handleFolderEvent(NmFolderEvent event, const QList<NmId> &folderIds,
+                            const NmId& mailboxId);
+
     void handleMatchFound(const NmId &messageId, const NmId &folderId);
 
     void messageEventForListModel(NmMessageEvent event,
@@ -222,6 +225,12 @@ private:
     NmUiEngine();
 
     virtual ~NmUiEngine();
+    
+    void handleFolderDeletedEvent(const QList<NmId> &folderIds,
+                            const NmId& mailboxId);
+    
+    void handleFolderCreatedEvent(const QList<NmId> &folderIds,
+                            const NmId& mailboxId);    
 
 
 private: // Data

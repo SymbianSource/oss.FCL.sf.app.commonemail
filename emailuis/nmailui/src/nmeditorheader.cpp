@@ -203,7 +203,7 @@ qreal NmEditorHeader::headerHeight() const
 
     // get the layout's vertical spacing
     qreal spacing = 0;
-    HbStyle().parameter("hb-param-margin-gene-middle-vertical", spacing);
+    HbInstance::instance()->style()->parameter("hb-param-margin-gene-middle-vertical", spacing);
 
     // calculate the height
     qreal height = 0;

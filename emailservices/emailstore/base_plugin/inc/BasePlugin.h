@@ -110,7 +110,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
     public:
 
         /**
-         * This methoed must be called before destruction of 
+         * This methoed must be called before destruction of
          * CBasePlugin derived class. To fix bug EIZU-7XVF2Z.
          */
          void DeleteDelayedOpsManager();
@@ -140,13 +140,6 @@ class BASEPLUGIN_EXPORT CBasePlugin :
             RArray<TFSMailMsgId>& aNewMessages,
             const TFSMailMsgId& aSourceFolderId,
             const TFSMailMsgId& aDestinationFolderId );
-
-         MDesCArray* GetMrusL(
-            const TFSMailMsgId& aMailBoxId );
-
-         void SetMrusL(
-            const TFSMailMsgId& aMailBoxId,
-            MDesCArray* aNewMruList );
 
          void GoOnlineL(
             const TFSMailMsgId& aMailBoxId );
@@ -234,7 +227,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
          virtual void StoreMessageL(
             const TFSMailMsgId& aMailBoxId,
             CFSMailMessage& aMessage );
-        
+
 // <qmail>
          void StoreMessagesL(
                 const TFSMailMsgId& aMailBoxId,
@@ -242,14 +235,14 @@ class BASEPLUGIN_EXPORT CBasePlugin :
                 MFSMailRequestObserver& aOperationObserver,
                 const TInt aRequestId );
 // </qmail>
-        
+
 // <qmail>
         virtual void StoreMessagePartsL(
                RPointerArray<CFSMailMessagePart>& aMessageParts,
                MFSMailRequestObserver& aOperationObserver,
                const TInt aRequestId);
 // <//qmail>
-		
+
          virtual void FetchMessagesL(
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aFolderId,
@@ -447,7 +440,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
 	         const TFSMailMsgId& aMessageId,
 	         const TFSMailMsgId& aParentPartId,
 	         const TDesC& aContentType,
-	         const TDesC& aFilePath, 
+	         const TDesC& aFilePath,
 	         MFSMailRequestObserver& aOperationObserver,
 	         const TInt aRequestId );
 	     // </qmail>
@@ -509,7 +502,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
          * Get signature string from protocol specific subclass.
          * Caller is responsible for memory of returned string.
          */
-        virtual HBufC* GetSignatureL( TFSMailMsgId /* aMailBox */ )
+        virtual HBufC* GetSignatureL( const TFSMailMsgId& /* aMailBox */ )
         	{
         	return NULL;
         	}
@@ -808,7 +801,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
 	        TMsgStoreId aId,
 	        TMsgStoreId aParentId,
 	        TMsgStoreId aOtherId );
-	    
+
 	     virtual const TDesC& CBasePlugin::CalendarFileName() const;
 
     public:
@@ -837,7 +830,7 @@ class BASEPLUGIN_EXPORT CBasePlugin :
         //does not actually own the observers.
         RPointerArray<MFSMailEventObserver> iObservers;
         //async fetch reqs.
-        RPointerArray<CFetchRequester> iReqs;       
+        RPointerArray<CFetchRequester> iReqs;
         RPointerArray<CDelayedOp> iDelayedOpReqs;
 
         TCacheLine iCacheLine;

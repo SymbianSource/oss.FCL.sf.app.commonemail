@@ -284,10 +284,11 @@ void CEmailMessageSearchAsync::Cancel()
 // -----------------------------------------------------------------------------
 TInt CEmailMessageSearchAsync::Status() const
     {
+    TInt ret(KErrNone);
     if (KErrNone != iGate.Wait(1))
         {
         // Search is going on
-        return KRequestPending;
+        ret = KRequestPending;
         }
     else
         {
@@ -295,7 +296,7 @@ TInt CEmailMessageSearchAsync::Status() const
         iGate.Signal();       
         }
 
-    return KErrNone; 
+    return ret; 
     }
 
 // -----------------------------------------------------------------------------

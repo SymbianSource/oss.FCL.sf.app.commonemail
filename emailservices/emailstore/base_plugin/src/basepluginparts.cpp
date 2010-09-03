@@ -32,8 +32,7 @@ EXPORT_C void CBasePlugin::ChildPartsL(
     {
     __LOG_ENTER( "ChildPartsL" )
     
-    CMsgStoreMessage* message = GetCachedMsgL( aMailBoxId.Id(), aMessageId.Id() );
-    
+    GetCachedMsgL( aMailBoxId.Id(), aMessageId.Id() );
     RPointerArray<CMsgStoreMessagePart>* parts;
     if ( aParentId.IsNullId() )
         {

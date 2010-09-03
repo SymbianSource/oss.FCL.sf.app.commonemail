@@ -517,6 +517,19 @@ EXPORT_C RFile CFSMailMessagePart::GetContentFileL()
 	return iFile;
 	}
 
+// -----------------------------------------------------------------------------
+// CFSMailMessagePart::CopyContentFileL
+// -----------------------------------------------------------------------------
+EXPORT_C void CFSMailMessagePart::CopyContentFileL( const TDesC& aFilePath )
+	{
+    NM_FUNCTION;
+    
+	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetPartId()))
+		{
+		plugin->CopyMessagePartFileL( GetMailBoxId(), GetFolderId(),
+			GetMessageId(), GetPartId(), aFilePath);		
+		}
+	}
 
 // -----------------------------------------------------------------------------
 // CFSMailMessagePart::GetContentToBufferL
@@ -1186,7 +1199,37 @@ EXPORT_C void CFSMailMessagePart::SetFetchedContentSize(TUint aContentSize)
 //</qmail>
 	}
 
-
+// -----------------------------------------------------------------------------
+// CFSMailMessagePart::FetchLoadState
+// -----------------------------------------------------------------------------
+EXPORT_C TFSPartFetchState CFSMailMessagePart::FetchLoadState() const
+	{
+    NM_FUNCTION;
+    
+//<qmail>
+	 if(iMessagePartsStatus != EFSDefault)
+		{
+		return iMessagePartsStatus;
+		}
+     else if (iNmPrivateMessagePart->mSize == 0)
+     	{
+     	return EFSFull;     	
+     	}
+     else if(iNmPrivateMessagePart->mFetchedSize == 0)
+     	{
+     	return EFSNone;
+     	}
+     else if (iNmPrivateMessagePart->mFetchedSize < iNmPrivateMessagePart->mSize)
+     	{
+     	return EFSPartial;
+     	}
+     else
+     	{
+     	return EFSFull;
+     	}
+//</qmail>
+	}
+	
 // -----------------------------------------------------------------------------
 // CFSMailMessagePart::FetchMessagePartL
 // -----------------------------------------------------------------------------

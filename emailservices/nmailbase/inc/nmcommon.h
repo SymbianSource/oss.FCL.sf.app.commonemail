@@ -60,6 +60,17 @@ enum NmMessageEvent
 };
 Q_DECLARE_METATYPE(NmMessageEvent)
 
+/*!
+    \struct NmFolderEvent
+    \brief Enumeration for folder related events
+ */
+enum NmFolderEvent
+{
+    NmFolderIsCreated,
+    NmFolderIsDeleted
+};
+Q_DECLARE_METATYPE(NmFolderEvent)
+
 enum NmFolderType
 {
     NmFolderInbox = 1,

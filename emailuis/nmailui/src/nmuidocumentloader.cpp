@@ -57,6 +57,18 @@ QObject *NmUiDocumentLoader::createObject(const QString& type, const QString &na
         res = new NmAttachmentListWidget();
         res->setObjectName(name);
     }    
+    if( type == NmRecipientLineEdit::staticMetaObject.className() ) {
+        res = new NmRecipientLineEdit();
+        res->setObjectName(name);
+    }
+    if( type == NmHtmlLineEdit::staticMetaObject.className() ) {
+        res = new NmHtmlLineEdit();
+        res->setObjectName(name);
+    }
+    if( type == NmEditorTextEdit::staticMetaObject.className() ) {
+        res = new NmEditorTextEdit();
+        res->setObjectName(name);
+    }
     if (!res) {
         res = HbDocumentLoader::createObject(type, name);
     }

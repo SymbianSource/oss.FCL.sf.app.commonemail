@@ -99,7 +99,7 @@ bool NmIpsImap4SettingsManager::readSetting(IpsServices::SettingItem settingItem
         case IpsServices::IncomingSecureSockets:
         	settingValue = mImap4Settings->SecureSockets();
             found = true;
-            break;  
+            break;
         case IpsServices::IncomingSSLWrapper:
         	settingValue = mImap4Settings->SSLWrapper();
             found = true;
@@ -120,8 +120,8 @@ bool NmIpsImap4SettingsManager::readSetting(IpsServices::SettingItem settingItem
 bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingItem,
                                              const QVariant &settingValue)
 {
-    HBufC *tmp = 0;
-    HBufC8 *tmp8 = 0;
+    HBufC *tmp = NULL;
+    HBufC8 *tmp8 = NULL;
 
     bool ret(false);
     TInt err(KErrNone);
@@ -157,11 +157,11 @@ bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingIte
                 ret = saveSettings();
             }
             break;
-        case IpsServices::IncomingPort:            
+        case IpsServices::IncomingPort:
             mImap4Settings->SetPort(settingValue.toInt());
             ret = saveSettings();
             break;
-        case IpsServices::FolderPath:            
+        case IpsServices::FolderPath:
             tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
             TRAP(err, mImap4Settings->SetFolderPathL(*tmp8));
             delete tmp;
@@ -172,11 +172,22 @@ bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingIte
         case IpsServices::IncomingSecureSockets:
             mImap4Settings->SetSecureSockets(settingValue.toBool());
             ret = saveSettings();
-            break;  
+            break;
         case IpsServices::IncomingSSLWrapper:
             mImap4Settings->SetSSLWrapper(settingValue.toBool());
             ret = saveSettings();
-            break;  
+            break;
+        case IpsServices::ReceptionInboxSyncWindow: {
+            int inboxValue = settingValue.toInt();
+            if (inboxValue == 0) {
+                // for CImImap4Settings all messages value is -1
+                inboxValue = -1;
+            }
+            mImap4Settings->SetInboxSynchronisationLimit(inboxValue);
+            ret = saveSettings();
+            ret = NmIpsSettingsManagerBase::writeSetting(settingItem, settingValue);
+            break;
+        }
         case IpsServices::Connection:
             ret = saveIAPSettings(settingValue.toUInt());
             // Fallthrough so SMTP IAP settings are also updated accordingly.
@@ -195,6 +206,12 @@ bool NmIpsImap4SettingsManager::writeSetting(IpsServices::SettingItem settingIte
 int NmIpsImap4SettingsManager::deleteMailbox()
 {
     TRAPD(error, mAccount->DeleteImapAccountL(mImap4Account));
+
+    // Try to delete the mailbox again if it failed because it was locked or in use
+	if (error==KErrInUse || error==KErrLocked) {
+		TRAP(error, mAccount->DeleteImapAccountL(mImap4Account));
+	}
+
     if (!error) {
 		NmIpsSettingsManagerBase::deleteMailbox();
     }
@@ -213,7 +230,7 @@ int NmIpsImap4SettingsManager::determineDefaultIncomingPort()
     int port(IpsServices::standardImap4Port);
     if (mImap4Settings->SSLWrapper()) {
         port = IpsServices::imap4OverSslPort;
-    }        
+    }
     return port;
 }
 

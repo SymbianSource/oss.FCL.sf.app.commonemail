@@ -117,11 +117,7 @@ void NmMessageListView::loadViewLayout()
             mMessageListWidget->setClampingStyle(HbScrollArea::BounceBackClamping);
             mMessageListWidget->setFrictionEnabled(true);
             mMessageListWidget->setItemPixmapCacheEnabled(true);
-            
-            // Enable animations to display an email as soon as it is added to
-            // the list.
-            mMessageListWidget->setEnabledAnimations(HbAbstractItemView::Appear &
-                                                     HbAbstractItemView::Expand);
+            mMessageListWidget->setEnabledAnimations(HbAbstractItemView::All);
         }
         else {
             NM_ERROR(1,"nmailui: list object loading failed");
@@ -296,11 +292,10 @@ void NmMessageListView::refreshList()
     NM_FUNCTION;
 
     if (mMessageListModel) {
-        NmId mailboxId = mStartParam->mailboxId();
-
         // In each refresh, e.g. in folder change the UI signals lower layer
         // about the folder that has been opened.
-        if (mStartParam){
+        if (mStartParam) {
+            NmId mailboxId = mStartParam->mailboxId();
             mUiEngine.updateActiveFolder(mailboxId, mStartParam->folderId());
 
             NmFolderType folderType(NmFolderInbox);
@@ -313,33 +308,33 @@ void NmMessageListView::refreshList()
             if (folderType == NmFolderInbox) {
                 mIsFirstSyncInMessageList = true;
             }
-        }
-
-        // Set item model to message list widget
-        if (mMessageListWidget) {
-            mMessageListWidget->setModel(static_cast<QStandardItemModel*>(mMessageListModel));
-
-            QObject::connect(mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
-                this, SLOT(itemsAdded(const QModelIndex&,int,int)),Qt::UniqueConnection);
-            QObject::connect(mMessageListModel, SIGNAL(rowsRemoved(const QModelIndex&,int,int)),
-                this, SLOT(itemsRemoved()),Qt::UniqueConnection);
-            QObject::connect(mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
-                this, SLOT(reloadViewContents(NmUiStartParam*)),Qt::UniqueConnection);
-
-            mPreviousModelCount=mMessageListModel->rowCount();
-
-            if (mPreviousModelCount == 0) {
-                showNoMessagesText();
+ 
+            // Set item model to message list widget
+            if (mMessageListWidget) {
+                mMessageListWidget->setModel(static_cast<QStandardItemModel*>(mMessageListModel));
+    
+                QObject::connect(mMessageListModel, SIGNAL(rowsInserted(const QModelIndex&,int,int)),
+                    this, SLOT(itemsAdded(const QModelIndex&,int,int)),Qt::UniqueConnection);
+                QObject::connect(mMessageListModel, SIGNAL(rowsRemoved(const QModelIndex&,int,int)),
+                    this, SLOT(itemsRemoved()),Qt::UniqueConnection);
+                QObject::connect(mMessageListModel, SIGNAL(setNewParam(NmUiStartParam*)),
+                    this, SLOT(reloadViewContents(NmUiStartParam*)),Qt::UniqueConnection);
+    
+                mPreviousModelCount = mMessageListModel->rowCount();
+    
+                if (mPreviousModelCount == 0) {
+                    showNoMessagesText();
+                }
+                else {
+                    hideNoMessagesText();
+                }
             }
-            else {
-                hideNoMessagesText();
-            }
+    
+            // Notify the mail agent. 
+            NmUiEventsNotifier::notifyViewStateChanged(NmUiEventsNotifier::NmViewShownEvent,
+                                                       NmUiViewMessageList,
+                                                       mailboxId);
         }
-
-        // Notify the mail agent. 
-        NmUiEventsNotifier::notifyViewStateChanged(NmUiEventsNotifier::NmViewShownEvent,
-                                                   NmUiViewMessageList,
-                                                   mStartParam->mailboxId());
     }
 }
 

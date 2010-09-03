@@ -31,7 +31,6 @@ class HbDataFormModelItem;
 class NmId;
 class NmSettingsViewLauncher;
 class HbView;
-class HbMessageBox;
 class HbAction;
 
 class NMAILSETTINGUI_EXPORT NmSettingsViewFactory : public CpSettingFormEntryItemData
@@ -67,11 +66,8 @@ signals:
 private slots:
 
     void backPress();
-    void launchWizard(HbAction *action);
 
 private:
-
-    void createMessageBox();
 
     Q_DISABLE_COPY(NmSettingsViewFactory)
 
@@ -85,9 +81,6 @@ private: // data
 
     // Not Owned.
     mutable HbView* mPrevView;
-
-    // Owned.
-    HbMessageBox *mMessageBox;
 };
 
 

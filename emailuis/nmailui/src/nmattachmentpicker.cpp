@@ -156,12 +156,12 @@ void NmAttachmentPicker::fetch(const QString &interface,
         if (args) {
             mRequest->setArguments(*args);
         }
-        // Set the title for the picker window
-        // Title setting disabled
-        //QVariant title(mTitle);
-        //XQRequestInfo info;
-        //info.setInfo(XQINFO_KEY_WINDOW_TITLE, title);
-        //mRequest->setInfo(info);
+        // Set the title pane text for the picker window
+		// sub-title comes from the pickers
+        QVariant title(mTitle);
+        XQRequestInfo info;
+        info.setInfo(XQINFO_KEY_WINDOW_TITLE, title);
+        mRequest->setInfo(info);
 
         connect(mRequest, SIGNAL(requestOk(const QVariant&)),
                 this, SIGNAL(attachmentsFetchOk(const QVariant&)));
@@ -184,7 +184,7 @@ void NmAttachmentPicker::selectFetcher(HbListWidgetItem *listItem)
     if (itemText == hbTrId("txt_mail_list_photo")) {
         fetchImage();
     }
-    else if (itemText == hbTrId("txt_mail_list_music")) {
+    else if (itemText == hbTrId("txt_mail_list_sound")) {
         fetchAudio();
 	}
     else if (itemText == hbTrId("txt_mail_list_video")) {

@@ -256,16 +256,15 @@ void NmViewerHeader::createExpandableHeader()
     NM_FUNCTION;
     
     if (mHeaderBox) {        // Initialize recipient box
-        if (!mRecipientsBox){
+        if (!mRecipientsBox) {
             mRecipientsBox = new HbLabel();
             HbStyle::setItemName(mRecipientsBox, "recipients");
             mRecipientsBox->setFontSpec(HbFontSpec(HbFontSpec::Secondary)); 
             mRecipientsBox->setTextWrapping((Hb::TextWrapping)NmTextWrapWordOrAnywhere);
-        }
-               
-        // Set recipients to text edit field as html 
-        NmAddress sender = mMessage->envelope().sender();               
+        }              
         if (mMessage) {
+            // Set recipients to text edit field as html 
+            NmAddress sender = mMessage->envelope().sender(); 
             mRecipientsBox->setHtml(formatRecipientList(addressToDisplay(sender),
                                     mMessage->envelope().toRecipients(), 
                                     mMessage->envelope().ccRecipients()));

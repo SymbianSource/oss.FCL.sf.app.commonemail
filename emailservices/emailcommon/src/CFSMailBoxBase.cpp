@@ -194,6 +194,34 @@ EXPORT_C void CFSMailBoxBase::SetSettingsUid(const TUid aUid)
     
 		iSettingsUid = aUid;
 	}
+
+// -----------------------------------------------------------------------------
+// CFSMailBoxBase::MRInfoProcessorL
+// -----------------------------------------------------------------------------
+EXPORT_C MMRInfoProcessor& CFSMailBoxBase::MRInfoProcessorL()
+	{
+    NM_FUNCTION;
+    
+	return *iMRInfoProcessor;
+	}
+
+// -----------------------------------------------------------------------------
+// CFSMailBoxBase::IsMRInfoProcessorSet
+// -----------------------------------------------------------------------------
+EXPORT_C TBool CFSMailBoxBase::IsMRInfoProcessorSet()
+	{
+    NM_FUNCTION;
+    
+	if(iMRInfoProcessor)
+		{
+		return ETrue;
+		}
+	else
+		{
+		return EFalse;
+		}
+	}
+
 // -----------------------------------------------------------------------------
 // CFSMailBoxBase::SetMRInfoProcessorL
 // -----------------------------------------------------------------------------

@@ -18,6 +18,25 @@
 #ifndef EMAIL_SERVICES_API_H
 #define EMAIL_SERVICES_API_H
 
+// Qt
+#include <QMetaType>
+#include <QString>
+
+// Platform
+#include <xqaiwdeclplat.h>
+
+
+/*!
+    The flags which can be used with the service interfaces.
+*/
+enum EmailServiceInterfaceFlags {
+    EmailNoFlags = 0x0,
+    EmailBackReturnsToMessageList = 0x1
+};
+
+Q_DECLARE_METATYPE(EmailServiceInterfaceFlags)
+
+
 /*!
     Keys for mail send service data.
 */
@@ -28,6 +47,7 @@ static const QString emailSendBccKey = "bcc";
 static const QString emailSendBodyTextKey = "body";
 static const QString emailSendAttachmentKey = "attachment";
 
+
 /*!
     Mail service name
 */
@@ -36,12 +56,18 @@ static const QString emailServiceName("nmail");
 /*!
     Mail send service interface name.
 */
-static const QString emailInterfaceNameSend = "com.nokia.symbian.IEmailMessageSend";
+static const QString emailFullServiceNameSend = emailServiceName + "." + XQI_EMAIL_MESSAGE_SEND;
 
 /*!
-    Mail send service interface name.
+    Mailbox service full name.
 */
-static const QString emailFullServiceNameSend = emailServiceName + "." + emailInterfaceNameSend;
+static const QString emailFullServiceNameMailbox = emailServiceName + "." + XQI_EMAIL_INBOX_VIEW;
+
+
+/*!
+    Message service full name.
+*/
+static const QString emailFullServiceNameMessage = emailServiceName + "." + XQI_EMAIL_MESSAGE_VIEW;
 
 
 /*!
@@ -67,7 +93,7 @@ static const QString emailFullServiceNameSend = emailServiceName + "." + emailIn
         bool syncronous;
 
         XQServiceRequest request(emailFullServiceNameSend,
-                                 emailOperationSendMail,
+                                 XQOP_EMAIL_MESSAGE_SEND,
                                  syncronous);
 
         QMap<QString, QVariant> map;
@@ -87,29 +113,6 @@ static const QString emailFullServiceNameSend = emailServiceName + "." + emailIn
         QVariant returnValue;
         bool retVal = request.send(returnValue);
 */
-static const QString emailOperationSendMail = "send(QVariant)";
-
-
-/*!
-    Mailbox service interface name.
-*/
-static const QString emailInterfaceNameMailbox = "com.nokia.symbian.IEmailInboxView";
-
-/*!
-    Mailbox service full name.
-*/
-static const QString emailFullServiceNameMailbox = emailServiceName + "." + emailInterfaceNameMailbox;
-
-
-/*!
-    Message service interface name.
-*/
-static const QString emailInterfaceNameMessage = "com.nokia.symbian.IEmailMessageView";
-
-/*!
-    Message service full name.
-*/
-static const QString emailFullServiceNameMessage = emailServiceName + "." + emailInterfaceNameMessage;
 
 
 /*!
@@ -124,7 +127,7 @@ static const QString emailFullServiceNameMessage = emailServiceName + "." + emai
 
     XQServiceRequest request(
         emailFullServiceNameMailbox,
-        emailOperationViewInbox,
+        XQOP_EMAIL_INBOX_VIEW,
         syncronous);
 
     QList<QVariant> list;
@@ -134,35 +137,57 @@ static const QString emailFullServiceNameMessage = emailServiceName + "." + emai
     QVariant returnValue;
     bool rval = request.send(returnValue);
 */
-static const QString emailOperationViewInbox = "displayInboxByMailboxId(QVariant)";
 
 
 /*!
-    \fn viewMessage(QVariant mailboxId, QVariant folderId, QVariant messageId)
-    \param mailboxId The ID of the mailbox where message is
-    \param folderId The ID of the folder where message is
-    \param messageId The ID of the message to be shown
+    \fn viewMessage(QVariant idList, QVariant flags)
+
+    This method opens the mail viewer view containing the specific message.
+    It is intended to be used via Qt Highway.
+
+
+    \param idList A list containing the required IDs for locating the wanted
+                  message. The ID are the following (and should be placed in
+                  the following order): mailbox ID, folder ID and message ID.
+
+    \param flags The flags which can contain any values defined by
+                 EmailServiceInterfaceFlags enumeration. The only flag
+                 acknowledged by this interface is EmailBackReturnsToMessageList,
+                 which, if given, will add the message list (according to the
+                 given mailbox and folder IDs) into the view stack. This means
+                 that when the back button is pressed from the viewer view, the
+                 message list view will be shown.
+                     
     \return 1 if message was opened. 0 if one of the IDs was incorrect.
 
-    This method opens a view for a specific message.
-    It is intended to be used via Qt Highway.
 
     Usage example:
 
     XQServiceRequest request(
        emailFullServiceNameMessage,
-       emailOperationViewMessage,
-       syncronous);
+       XQOP_EMAIL_MESSAGE_VIEW,
+       synchronous);
 
-    QList<QVariant> list;
-    list.append(mailboxId);
-    list.append(folderId);
-    list.append(messageId);
-    request.setArguments(list);
+    QVariantList idList;
+    idList.append(mailboxId);
+    idList.append(folderId);
+    idList.append(messageId);
+    QVariant idListAsVariant = QVariant::fromValue(idList);
+
+    // Add the message list view into the view stack. If the list view should
+    // not be added into the stack, use "quint64 flags(EmailNoFlags);" instead.
+    quint64 flags(EmailBackReturnsToMessageList);
+
+    QList<QVariant> argumentList;
+    argumentList.append(idListAsVariant);
+    argumentList.append(flags);
+
+    request.setArguments(argumentList);
 
     QVariant returnValue;
+
     bool rval = request.send(returnValue);
 */
-static const QString emailOperationViewMessage = "viewMessage(QVariant,QVariant,QVariant)";
+
 
 #endif // EMAIL_SERVICES_API_H

@@ -62,7 +62,7 @@ NmEditorView::NmEditorView(
 {
     NM_FUNCTION;
     
-    mDocumentLoader	= new HbDocumentLoader();
+    mDocumentLoader	= new NmUiDocumentLoader( mApplication.mainWindow() );
     // Set object name
     setObjectName("NmEditorView");
     // call the createToolBar on load view layout
@@ -222,10 +222,12 @@ void NmEditorView::vkbClosed()
 void NmEditorView::showChrome(bool show)
 {
     if (show) {
-        showItems(Hb::StatusBarItem | Hb::TitleBarItem | Hb::ToolBarItem);
+        setContentFullScreen(false);
+        showItems(Hb::ToolBarItem);
     }
     else {
-        hideItems(Hb::StatusBarItem | Hb::TitleBarItem | Hb::ToolBarItem);
+        setContentFullScreen(true);
+        hideItems(Hb::ToolBarItem);
     }
 }
 
@@ -933,7 +935,7 @@ void NmEditorView::createToolBar()
                     mTBExtnContentWidget->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
                     
                     mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_photo"));
-                    mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_music"));
+                    mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_sound"));
                     mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_video"));
                     mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_other"));
                     mTBExtnContentWidget->addItem(hbTrId("txt_mail_list_new_photo"));
@@ -1549,7 +1551,8 @@ void NmEditorView::openAttachmentTriggered(NmId attachmentId)
     int error = NmUtilities::openFile(file);
     file.close();
     if ( error == NmNotFoundError ) {
-        NmUtilities::displayErrorNote(hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty")); 
+        HbMessageBox *box = NmUtilities::displayWarningNote(hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty"));
+        box->setAttribute(Qt::WA_DeleteOnClose); 
     }
 }
 

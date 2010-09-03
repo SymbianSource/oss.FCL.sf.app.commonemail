@@ -221,30 +221,34 @@ void NmEditorContent::setEditorContentHeight()
 {
     NM_FUNCTION;
     
-    // the height of the margin between the title bar and the header
-    qreal topMargin = 0;
-    HbStyle().parameter("hb-param-margin-gene-top", topMargin);
+    HbStyle* style = mScrollAreaContents->style();
     
-    // header height
-    qreal headerHeight = mHeader->headerHeight();
-
-    // body area editor's document height with margins added
-    qreal documentHeightAndMargins = mEditorWidget->document()->size().height() +
-        (mEditorWidget->document()->documentMargin() * 2);
-
-    // chrome height
-    qreal chromeHeight = 0;
-    HbStyle().parameter("hb-param-widget-chrome-height", chromeHeight);
+    if (style) {
+        // the height of the margin between the title bar and the header
+        qreal topMargin = 0;
+        style->parameter("hb-param-margin-gene-top", topMargin);
+        
+        // header height
+        qreal headerHeight = mHeader->headerHeight();
     
-    // screen height
-    qreal screenHeight = mApplication.screenSize().height();
-
-    // set min size for the body area so that at least the screen area is always filled
-    qreal bodyAreaMinSize = screenHeight - chromeHeight - topMargin - headerHeight;
+        // body area editor's document height with margins added
+        qreal documentHeightAndMargins = mEditorWidget->document()->size().height() +
+            (mEditorWidget->document()->documentMargin() * 2);
     
-    qreal bodyAreaSize = fmax(bodyAreaMinSize, documentHeightAndMargins);
-
-    mScrollAreaContents->setPreferredHeight(topMargin + headerHeight + bodyAreaSize);
+        // chrome height
+        qreal chromeHeight = 0;
+        style->parameter("hb-param-widget-chrome-height", chromeHeight);
+        
+        // screen height
+        qreal screenHeight = mApplication.screenSize().height();
+    
+        // set min size for the body area so that at least the screen area is always filled
+        qreal bodyAreaMinSize = screenHeight - chromeHeight - topMargin - headerHeight;
+        
+        qreal bodyAreaSize = fmax(bodyAreaMinSize, documentHeightAndMargins);
+        
+        mScrollAreaContents->setPreferredHeight(topMargin + headerHeight + bodyAreaSize);
+    }
 }
 
 /*!
@@ -301,7 +305,7 @@ void NmEditorContent::ensureCursorVisibility()
             QPointF bottomRightPos =
                 focused->mapToItem(mScrollAreaContents, localRect.bottomRight());
             qreal marginRight = 0;
-            HbStyle().parameter("hb-param-margin-gene-right", marginRight);
+            mScrollArea->style()->parameter("hb-param-margin-gene-right", marginRight);
             bottomRightPos.rx() += marginRight;
             mScrollArea->ensureVisible(topLeftPos);
             mScrollArea->ensureVisible(bottomRightPos);
@@ -330,8 +334,8 @@ void NmEditorContent::repositHeader(const QPointF &scrollPosition)
     
     // Get the layout's left margin
     qreal margin = 0;
-    HbStyle().parameter("hb-param-margin-gene-left", margin);
-    
+    HbInstance::instance()->style()->parameter("hb-param-margin-gene-left", margin);
+
     // Calculate header width. (Screen width minus left and right margins.
     qreal headerWidth = mApplication.screenSize().width() - margin - margin;
 

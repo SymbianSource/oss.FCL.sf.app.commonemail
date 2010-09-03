@@ -47,7 +47,6 @@
 #include <QInputContext>
 
 // Orbit
-#include <hbapplication.h>
 #include <hbmainwindow.h>
 #include <hbaction.h>
 #include <hbmenu.h>
@@ -95,6 +94,10 @@
 #include <hbactivitymanager.h>
 #include <hbframebackground.h>
 #include <hbparameterlengthlimiter.h>
+#include <HbSearchPanel>
+#include <HbIconAnimationManager>
+#include <HbVkbHostBridge>
+#include <hbevent.h>
 
 #include <cntservicescontact.h>
 #include <xqservicerequest.h>

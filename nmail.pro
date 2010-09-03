@@ -23,7 +23,6 @@ symbian*: {
         emailservices/nmailbase \
         emailuis/nmailuiengine \
         emailuis/nmailuiwidgets \
-        emailuis/nmailuiwidgetsplugin \
         emailuis/nmsettingui \
         emailuis/nmailcpplugin \
         emailuis/nmailui \

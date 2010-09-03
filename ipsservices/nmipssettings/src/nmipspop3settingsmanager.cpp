@@ -86,15 +86,15 @@ bool NmIpsPop3SettingsManager::readSetting(IpsServices::SettingItem settingItem,
         case IpsServices::IncomingMailServer:
             settingValue = XQConversions::s60DescToQString(mPop3Settings->ServerAddress());
             found = true;
-            break;   
+            break;
         case IpsServices::IncomingPort:
             settingValue = mPop3Settings->Port();
             found = true;
-            break;  
+            break;
         case IpsServices::IncomingSecureSockets:
             settingValue = mPop3Settings->SecureSockets();
             found = true;
-            break;  
+            break;
         case IpsServices::IncomingSSLWrapper:
             settingValue = mPop3Settings->SSLWrapper();
             found = true;
@@ -114,8 +114,8 @@ bool NmIpsPop3SettingsManager::readSetting(IpsServices::SettingItem settingItem,
 bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem,
                                             const QVariant &settingValue)
 {
-    HBufC *tmp = 0;
-    HBufC8 *tmp8 = 0;
+    HBufC *tmp = NULL;
+    HBufC8 *tmp8 = NULL;
 
     bool ret(false);
     TInt err(KErrNone);
@@ -151,18 +151,29 @@ bool NmIpsPop3SettingsManager::writeSetting(IpsServices::SettingItem settingItem
                 ret = saveSettings();
             }
             break;
-        case IpsServices::IncomingPort:            
+        case IpsServices::IncomingPort:
             mPop3Settings->SetPort(settingValue.toInt());
             ret = saveSettings();
             break;
         case IpsServices::IncomingSecureSockets:
             mPop3Settings->SetSecureSockets(settingValue.toBool());
             ret = saveSettings();
-            break;  
+            break;
         case IpsServices::IncomingSSLWrapper:
             mPop3Settings->SetSSLWrapper(settingValue.toBool());
             ret = saveSettings();
             break;
+        case IpsServices::ReceptionInboxSyncWindow: {
+            int inboxValue = settingValue.toInt();
+            if (inboxValue == 0) {
+                // for CImPop3Settings all messages value is -1
+                inboxValue = -1;
+            }
+            mPop3Settings->SetInboxSynchronisationLimit(inboxValue);
+            ret = saveSettings();
+            ret = NmIpsSettingsManagerBase::writeSetting(settingItem, settingValue);
+            break;
+        }
         case IpsServices::Connection:
             ret = saveIAPSettings(settingValue.toUInt());
             // Fallthrough so SMTP IAP settings are also updated accordingly.
@@ -198,7 +209,7 @@ int NmIpsPop3SettingsManager::determineDefaultIncomingPort()
     int port(IpsServices::standardPop3Port);
     if (mPop3Settings->SSLWrapper()) {
         port = IpsServices::securePop3Port;
-    }        
+    }
     return port;
 }
 

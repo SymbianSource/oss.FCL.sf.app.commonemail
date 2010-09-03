@@ -419,8 +419,12 @@ void NmViewerView::setAttachmentList()
         // connect atta widget to listen progress value events
         QObject::connect(this, SIGNAL(progressValueChanged(int, int)),
                 mAttaWidget, SLOT(setProgressBarValue(int, int)));
-        // Set atta widget text color black since header has static white bg.
+
+        // Set the text color of the attachment widget black and the background
+        // color white.
         mAttaWidget->setTextColor(Qt::black);
+        mAttaWidget->setBackgroundColor(Qt::white);
+
         // Set attawidget minimum & maximum size
         mAttaWidget->setMinimumWidth(mScreenSize.width());
         mAttaWidget->setMaximumWidth(mScreenSize.width());
@@ -549,7 +553,8 @@ QString NmViewerView::formatHtmlMessage(NmMessagePart *html)
             // Browse through embedded image parts and add those
             // the web view.
             bool isFetched = child->fetchedSize() >= child->size();
-            if (child->contentType().startsWith("image", Qt::CaseInsensitive)) {
+            if(child->contentType().startsWith("image", Qt::CaseInsensitive) &&
+               child->contentDisposition().trimmed().startsWith("inline", Qt::CaseInsensitive)) {
                 QString contentId = child->contentId();
                 if (isFetched) {
                     int ret = mUiEngine.contentToMessagePart(
@@ -593,8 +598,7 @@ QString NmViewerView::formatPlainTextMessage(NmMessagePart *plain)
             QFont currentFont = document.defaultFont();
             currentFont.setWeight(QFont::Normal);
             qreal secondarySize;
-            HbStyle myStyle;
-            bool found = myStyle.parameter(NmParamTextHeightSecondary, secondarySize);
+            bool found = style()->parameter(NmParamTextHeightSecondary, secondarySize);
             if (found) {
                 HbFontSpec fontSpec(HbFontSpec::Secondary);
                 fontSpec.setTextHeight(secondarySize);

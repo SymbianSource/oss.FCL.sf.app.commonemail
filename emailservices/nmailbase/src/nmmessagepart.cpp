@@ -337,7 +337,7 @@ void NmMessagePart::setChildParts(QList<NmMessagePart*> parts)
     d->mChildParts.clear();
     }
     for (int i = 0; i < parts.count(); i++) {
-        if (parts[i] != NULL) {
+        if (parts[i]) {
             d->mChildParts.append(parts[i]);
         }
     }

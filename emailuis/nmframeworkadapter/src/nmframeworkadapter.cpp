@@ -1015,14 +1015,16 @@ void NmFrameworkAdapter::contentToMessagePartL(
         TInt fileSize = 0;
         file.Size(fileSize);
         if (fileSize != 0) {
-            HBufC8* data = HBufC8::NewLC(fileSize);
-            TPtr8 dataPtr = data->Des();
+            // Reserve buffer for content
+            QByteArray byteArray;
+            QT_TRYCATCH_LEAVING(byteArray = QByteArray(fileSize, 0));
+            TUint8* ptr = reinterpret_cast<unsigned char*>(byteArray.data());
+            TPtr8 dataPtr(ptr, byteArray.capacity());
 
-            if (fileSize != 0) {
-                TInt dummyPos = 0;
-                file.Seek(ESeekStart, dummyPos);
-                User::LeaveIfError(file.Read(dataPtr));
-            }
+            // Read data from the file
+            TInt dummyPos = 0;
+            file.Seek(ESeekStart, dummyPos);
+            User::LeaveIfError(file.Read(dataPtr));
 
             if (contentType.startsWith(NmContentTypeTextHtml) || contentType.contains( NmContentDescrAttachmentHtml)) {
                 QRegExp rxlen("(?:charset=)(?:\"?)([\\-\\_a-zA-Z0-9]+)", Qt::CaseInsensitive);
@@ -1031,18 +1033,15 @@ void NmFrameworkAdapter::contentToMessagePartL(
                 if (pos > -1) {
                     charset = rxlen.cap(1);
                 }
-                QByteArray msgBytes = QByteArray(reinterpret_cast<const char*>(dataPtr.Ptr()), fileSize);
                 QTextCodec *codec = QTextCodec::codecForName(charset.toAscii());
                 if (!codec) {
                     codec = QTextCodec::codecForName("UTF-8");
                 }
-                QString encodedStr = codec->toUnicode(msgBytes);
+                QString encodedStr = codec->toUnicode(byteArray);
                 messagePart.setTextContent(encodedStr, contentType);
             } else {
-                messagePart.setBinaryContent(QByteArray(
-                        reinterpret_cast<const char*>(dataPtr.Ptr()), fileSize), contentType);
+                messagePart.setBinaryContent(byteArray, contentType);
             }
-            CleanupStack::PopAndDestroy(data);
         }
         file.Close();
     }
@@ -1219,6 +1218,17 @@ void NmFrameworkAdapter::EventL(
     NM_FUNCTION;
 
     switch (aEvent) {
+        case TFSEventMailboxSettingsChanged:
+            break;
+
+        // Folder related events:
+        case TFSEventFoldersDeleted:                 
+            handleFoldersEvent(param1, param2, NmFolderIsDeleted, mailbox);
+            break;
+        case TFSEventNewFolder:
+            handleFoldersEvent(param1, param2, NmFolderIsCreated, mailbox);            
+            break;
+
         // Mailbox related events:
         case TFSEventNewMailbox:
             handleMailboxEvent(mailbox, NmMailboxCreated);
@@ -1795,5 +1805,39 @@ void NmFrameworkAdapter::handleSyncstateEvent(TAny* param1, TFSMailMsgId mailbox
             break;
         };
 }
+
+/*!
+   function to handle folder event
+ */
+void NmFrameworkAdapter::handleFoldersEvent(
+    TAny* param1, TAny* param2, NmFolderEvent event, TFSMailMsgId mailbox)
+{
+    NM_FUNCTION;
+
+    // aParam1: RArray<TFSMailMsgId>* aEntries
+    // aParam2: TFSMailMsgId* aParentFolder
+    // aParam3: NULL      
+
+    NmId mailboxId(0);
+    mailboxId = mailbox.GetNmId();
+
+    NmId nmMsgId(0);
+    QList<NmId> folderIds;    
+
+    RArray<TFSMailMsgId>* fsEntries = reinterpret_cast<RArray<TFSMailMsgId>*> (param1);
+    TFSMailMsgId* fsFolderId = reinterpret_cast<TFSMailMsgId*> (param2);
+    NmId folderId = fsFolderId->GetNmId();
+    NmId inputFolderId = NmFrameworkAdapter::getStandardFolderId(mailboxId, NmFolderInbox);
+
+    TFSMailMsgId fsMsgId;
+    for(TInt i = 0; i < fsEntries->Count(); i++){
+        fsMsgId = (*fsEntries)[i];
+        folderId = fsMsgId.GetNmId();
+        folderIds.append(folderId);
+    }
+
+    emit folderEvent(event, folderIds, mailboxId);
+}
+
 Q_EXPORT_PLUGIN(NmFrameworkAdapter)
 

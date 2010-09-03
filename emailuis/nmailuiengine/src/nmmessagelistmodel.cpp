@@ -119,24 +119,24 @@ void NmMessageListModel::refresh(
         // imap and pop is using common sent, outbox or draft folder
         // for all mailboxes, here we want to filter out messages that
         // are not under this mailbox
-        bool insert(true);
-        if (nextMessage 
-            && (NmFolderSent == mCurrentFolderType
-             || NmFolderOutbox == mCurrentFolderType
-             || NmFolderDrafts == mCurrentFolderType)) {
-            insert = (mCurrentMailboxId == nextMessage->mailboxId());  
-        }
-        if (insert) {
-            if (mDividersActive &&
-                !messagesBelongUnderSameDivider(insertedMessage, nextMessage)) {
-                insertDividerIntoModel(nextMessage, parentCount);
-                parentCount++;
-                childCount = 0;
+        if (nextMessage) {
+            bool insert(true);
+            if (NmFolderSent == mCurrentFolderType
+                || NmFolderOutbox == mCurrentFolderType
+                || NmFolderDrafts == mCurrentFolderType) {
+                insert = (mCurrentMailboxId == nextMessage->mailboxId());  
             }
-    
+            if (insert) {
+                if (mDividersActive &&
+                    !messagesBelongUnderSameDivider(insertedMessage, nextMessage)) {
+                    insertDividerIntoModel(nextMessage, parentCount);
+                    parentCount++;
+                    childCount = 0;
+                }
             insertMessageIntoModel(nextMessage, childCount, false);
             insertedMessage = nextMessage;
             childCount++;
+            }
         }
     }
 }
@@ -218,6 +218,7 @@ void NmMessageListModel::handleMessageEvent(NmMessageEvent event,
 {
     NM_FUNCTION;
     const int idCount = messageIds.count();
+    NmId inFolderId = mDataManager.getStandardFolderId(mailboxId, NmFolderInbox);    
 
     // Folder ID does not concern us if this model instance is used for e.g.
     // searching messages.
@@ -225,14 +226,13 @@ void NmMessageListModel::handleMessageEvent(NmMessageEvent event,
         if (folderId == 0) {
             // Const cast is used here because also the input parameter has to
             // be changed.
-            const_cast<NmId&>(folderId) =
-                mDataManager.getStandardFolderId(mailboxId, NmFolderInbox);
+            const_cast<NmId&>(folderId) = inFolderId;
             NmUiStartParam *startParam =
                 new NmUiStartParam(NmUiViewMessageList, mailboxId, folderId);
             emit setNewParam(startParam);
         }
 
-        if (mCurrentFolderId == 0) {
+        if (mCurrentFolderId == 0 && folderId == inFolderId) {
             // Folder ID was not known at time when the mailbox opened and we
             // know that because of events the subscription is valid only for
             // the current mailbox.
@@ -279,6 +279,32 @@ void NmMessageListModel::handleMessageEvent(NmMessageEvent event,
                 break;
             }
         }
+    }
+}
+
+/*!
+    Handles the folder deleted events.
+
+    \param folderId The folder deleted
+    \param mailboxId A related mailbox
+*/
+void NmMessageListModel::handleFolderDeletedEvent(
+                        const NmId &folderId,
+                        const NmId &mailboxId)
+{
+    NM_FUNCTION;
+
+    // Folder ID does not concern us if this model instance is used for e.g.
+    // searching messages.
+    if (!mIgnoreFolderIds 
+    	  && mCurrentMailboxId == mailboxId 
+    	  && mCurrentFolderId == folderId) {
+        clear();
+        mCurrentFolderId = 0;        
+        // Go to inbox, but set folderId as 0 to indicate out-of-sync-state.
+        NmUiStartParam *startParam =
+            new NmUiStartParam(NmUiViewMessageList, mailboxId, mCurrentFolderId);
+        emit setNewParam(startParam);
     }
 }
 

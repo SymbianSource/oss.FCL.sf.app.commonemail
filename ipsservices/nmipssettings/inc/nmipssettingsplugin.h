@@ -20,14 +20,11 @@
 
 #include <QObject>
 #include <QVariant>
-#include <QPersistentModelIndex>
 #include <AlwaysOnlineManagerClient.h>
 
 #include "nmsettingsplugininterface.h"
 #include "nmsettingscommon.h"
 
-class QTranslator;
-class QModelIndex;
 class HbDataForm;
 class HbDataFormModel;
 class HbDataFormModelItem;
@@ -58,7 +55,7 @@ signals:
 public slots:
 
     void aboutToClose();
-    
+
 private slots:
 
     void createUserDefinedMode();

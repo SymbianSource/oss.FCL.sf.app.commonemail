@@ -458,13 +458,16 @@ void NmHsWidgetEmailEngine::launchMailAppMailViewer(const NmId &messageId)
                         this, SLOT( aiwRequestError(int, const QString&) ));
                 connect(mAiwRequest, SIGNAL( requestOk(const QVariant&) ), 
                         this, SLOT( aiwRequestOk(const QVariant&) ));
-                QList<QVariant> list;
-                list.append(QVariant(mMailboxId.id()));
-                list.append(QVariant(mFolderId.id()));
-                list.append(QVariant(messageId.id()));
+
+                QList<QVariant> argList;
+                QList<QVariant> messageIdList;
+                messageIdList.append(QVariant(mMailboxId.id()));
+                messageIdList.append(QVariant(mFolderId.id()));
+                messageIdList.append(QVariant(messageId.id()));
+                argList.append(messageIdList);
             
                 mAiwRequest->setSynchronous(false);
-                mAiwRequest->setArguments(list);
+                mAiwRequest->setArguments(argList);
                 mAiwRequest->send();
             }
         }

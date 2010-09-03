@@ -114,7 +114,7 @@ void NmMailboxListViewItem::updateChildItems()
 /*!
     boolean value indicating model index availability
 */
-bool NmMailboxListViewItem::canSetModelIndex(const QModelIndex &index)
+bool NmMailboxListViewItem::canSetModelIndex(const QModelIndex &index) const
 {
     NM_FUNCTION;
     

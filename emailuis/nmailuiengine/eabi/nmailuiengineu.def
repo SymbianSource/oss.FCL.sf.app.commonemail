@@ -320,4 +320,8 @@ EXPORTS
 	_ZThn8_N18NmBaseClientPluginD0Ev @ 319 NONAME
 	_ZThn8_N18NmBaseClientPluginD1Ev @ 320 NONAME
 	_ZN10NmUiEngine12getSignatureERK4NmIdRP7QString @ 321 NONAME
+	_ZN10NmUiEngine17handleFolderEventE13NmFolderEventRK5QListI4NmIdERKS2_ @ 322 NONAME
+	_ZN10NmUiEngine24handleFolderCreatedEventERK5QListI4NmIdERKS1_ @ 323 NONAME
+	_ZN10NmUiEngine24handleFolderDeletedEventERK5QListI4NmIdERKS1_ @ 324 NONAME
+	_ZN18NmMessageListModel24handleFolderDeletedEventERK4NmIdS2_ @ 325 NONAME
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -11,7 +11,7 @@
 *
 * Contributors:
 *
-* Description: Inline methods for class CFSMailPlugin. 
+* Description: Inline methods for class CFSMailPlugin.
 *
 */
 
@@ -44,7 +44,7 @@ inline void CFSMailPlugin::Close()
     {
     REComSession::FinalClose();
     }
-    
+
 // -----------------------------------------------------------------------------
 // CFSMailPlugin::ListImplementationsL
 // -----------------------------------------------------------------------------
@@ -60,44 +60,9 @@ inline void CFSMailPlugin::ListImplementationsL(
 //
 inline CFSMailPlugin* CFSMailPlugin::NewL(TUid aUid)
     {
-    return static_cast<CFSMailPlugin*>( 
+    return static_cast<CFSMailPlugin*>(
         REComSession::CreateImplementationL(
             aUid, _FOFF( CFSMailPlugin, iDtor_ID_Key ) ) );
-    }
-
-// <cmail> empty implementations added to avoid CS warnings
-// -----------------------------------------------------------------------------
-// CFSMailPlugin::GetConnectionId
-// -----------------------------------------------------------------------------
-inline TInt CFSMailPlugin::GetConnectionId(
-    TFSMailMsgId /*aMailBoxId*/,
-    TUint32& /*aConnectionId*/ )
-    {
-    return KErrNotSupported;
-    }
-    
-    // <cmail> empty implementations added to avoid CS warnings
-// -----------------------------------------------------------------------------
-// CFSMailPlugin::IsConnectionAllowedWhenRoaming
-// -----------------------------------------------------------------------------
-inline TInt CFSMailPlugin::IsConnectionAllowedWhenRoaming(
-	TFSMailMsgId /*aMailBoxId*/,
-	TBool& /*aConnectionAllowed*/ )
-    {
-    return KErrNotSupported;
-    }
-// </cmail>
-
-// <qmail>
-// -----------------------------------------------------------------------------
-// CFSMailPlugin::CreateMessageToSendL
-// -----------------------------------------------------------------------------
-inline void CFSMailPlugin::CreateMessageToSendL(
-    const TFSMailMsgId& /*aMailBoxId*/,
-    MFSMailRequestObserver& /*aOperationObserver*/,
-    const TInt /*aRequestId*/ )
-    {
-    User::Leave( KErrFSMailPluginNotSupported );
     }
 
 // -----------------------------------------------------------------------------

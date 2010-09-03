@@ -27,6 +27,7 @@ class HbTextItem;
 class HbTapGesture;
 class HbFrameItem;
 
+
 class NMAILUIWIDGETS_EXPORT NmAttachmentListItem : public HbWidget
 {
     Q_OBJECT
@@ -34,7 +35,10 @@ class NMAILUIWIDGETS_EXPORT NmAttachmentListItem : public HbWidget
 public:
     explicit NmAttachmentListItem(QGraphicsItem *parent = 0);
     virtual ~NmAttachmentListItem();
+
+public:
     void setTextColor(const QColor color);
+    void setBackgroundColor(const QColor color);
     void setFileNameText(const QString &fileName);
     void setFileSizeText(const QString &fileSize);
     void setProgressBarValue(const int value);
@@ -44,7 +48,11 @@ public:
 
 protected: 
    virtual void gestureEvent(QGestureEvent *event);
-    
+
+private:
+    void init();
+    void constructUi();
+
 private slots:
     void removeProgressBar();
 
@@ -52,17 +60,14 @@ signals:
     void itemActivated();
     void itemLongPressed(QPointF point);
     
-private: 
-    void init( );
-    void constructUi();
-    
 private:
     Q_DISABLE_COPY(NmAttachmentListItem)
-    HbTextItem *mFileNameText; //owned
-    HbTextItem *mFileSizeText; //owned
-    HbProgressBar *mProgressBar; //owned
+    HbTextItem *mFileNameText; // Owned
+    HbTextItem *mFileSizeText; // Owned
+    HbProgressBar *mProgressBar; // Owned
+    HbFrameItem *mBackground; // Not owned
     QColor mTextColor;
-    HbFrameItem *mBackGround; //not owned
+    QColor mBackgroundColor;
 };
 
 #endif /* NMATTACHMENTLISTITEM_H_ */

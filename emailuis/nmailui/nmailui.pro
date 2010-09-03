@@ -27,6 +27,30 @@ QT += webkit
 QT += network
 MOC_DIR = moc
 
+#the following is for splash screen in phone
+BLD_INF_RULES.prj_exports += "resources/mail_messagelist.splashml   /epoc32/data/z/resource/hb/splashml/mail_messagelist.splashml" \
+                             "resources/mail_messagelist.docml      /epoc32/data/z/resource/hb/splashml/mail_messagelist.docml" \
+                             "resources/mail_editor.splashml        /epoc32/data/z/resource/hb/splashml/mail_editor.splashml" \
+                             "resources/mail_editor.docml           /epoc32/data/z/resource/hb/splashml/mail_editor.docml" \
+                             "resources/mail_viewer.splashml        /epoc32/data/z/resource/hb/splashml/mail_viewer.splashml" \
+                             "resources/mail_viewer.docml           /epoc32/data/z/resource/hb/splashml/mail_viewer.docml"
+
+#the following is for splash screen in winscw_udeb
+BLD_INF_RULES.prj_exports += "resources/mail_messagelist.splashml   /epoc32/release/winscw/udeb/z/resource/hb/splashml/mail_messagelist.splashml" \
+                             "resources/mail_messagelist.docml      /epoc32/release/winscw/udeb/z/resource/hb/splashml/mail_messagelist.docml" \
+                             "resources/mail_editor.splashml        /epoc32/release/winscw/udeb/z/resource/hb/splashml/mail_editor.splashml" \
+                             "resources/mail_editor.docml           /epoc32/release/winscw/udeb/z/resource/hb/splashml/mail_editor.docml" \
+                             "resources/mail_viewer.splashml        /epoc32/release/winscw/udeb/z/resource/hb/splashml/mail_viewer.splashml" \
+                             "resources/mail_viewer.docml           /epoc32/release/winscw/udeb/z/resource/hb/splashml/mail_viewer.docml"
+                             
+#the following is for splash screen in winscw_urel
+BLD_INF_RULES.prj_exports += "resources/mail_messagelist.splashml   /epoc32/release/winscw/urel/z/resource/hb/splashml/mail_messagelist.splashml" \
+                             "resources/mail_messagelist.docml      /epoc32/release/winscw/urel/z/resource/hb/splashml/mail_messagelist.docml" \
+                             "resources/mail_editor.splashml        /epoc32/release/winscw/urel/z/resource/hb/splashml/mail_editor.splashml" \
+                             "resources/mail_editor.docml           /epoc32/release/winscw/urel/z/resource/hb/splashml/mail_editor.docml" \
+                             "resources/mail_viewer.splashml        /epoc32/release/winscw/urel/z/resource/hb/splashml/mail_viewer.splashml" \
+                             "resources/mail_viewer.docml           /epoc32/release/winscw/urel/z/resource/hb/splashml/mail_viewer.docml"
+                             
 LIBS += -leuser
 LIBS += -llibc
 LIBS += -lnmailbase

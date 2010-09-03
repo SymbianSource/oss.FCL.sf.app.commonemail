@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -39,7 +39,7 @@ CFSMailPluginManager::CFSMailPluginManager()
 CFSMailPluginManager::~CFSMailPluginManager()
 {
     NM_FUNCTION;
-    
+
 	iPluginInfo.ResetAndDestroy();
 }
 
@@ -50,12 +50,12 @@ CFSMailPluginManager::~CFSMailPluginManager()
 CFSMailPluginManager* CFSMailPluginManager::NewLC(TInt aConfiguration)
 {
     NM_FUNCTION;
-    
+
     CFSMailPluginManager* pluginManager = new (ELeave) CFSMailPluginManager();
     CleanupStack:: PushL(pluginManager);
     pluginManager->ConstructL(aConfiguration);
     return pluginManager;
-} 
+}
 
 // -----------------------------------------------------------------------------
 // CFSMailPluginManager::NewL
@@ -63,7 +63,7 @@ CFSMailPluginManager* CFSMailPluginManager::NewLC(TInt aConfiguration)
 CFSMailPluginManager* CFSMailPluginManager::NewL(TInt aConfiguration)
 {
     NM_FUNCTION;
-    
+
     CFSMailPluginManager* pluginManager =  CFSMailPluginManager::NewLC(aConfiguration);
     CleanupStack:: Pop(pluginManager);
     return pluginManager;
@@ -81,59 +81,41 @@ void CFSMailPluginManager::ConstructL(TInt aConfiguration)
 	iPluginInfo.Reset();
 	CFSMailPlugin::ListImplementationsL(iPluginInfo);
 	CFSMailPlugin::Close();
-	
+
 	// load plugins
 	CFSMailPlugin* plugin = NULL;
-    // <cmail>  	
+    // <cmail>
 	TInt tempCount = iPluginInfo.Count();
 	for(TInt i=0;i<tempCount;i++)
-	// </cmail> 	    
+	// </cmail>
 	{
 		TUid id = iPluginInfo[i]->ImplementationUid();
 		if(aConfiguration == EFSLoadPlugins)
 		{
 			TRAPD(err,plugin = CFSMailPlugin::NewL( id ));
 			CFSMailPlugin::Close();		
-			if(err == KErrNone && plugin != NULL)
+			if(err == KErrNone && plugin)
 			{
 				AddPluginL(id,plugin);
 			}
-		}	
+		}
 // <cmail>
 		else
-		    {		    
+		    {
 		    }
-// </cmail>      		
+// </cmail>
 	}
 
 }
 
-// -----------------------------------------------------------------------------
-// CFSMailPluginManager::LoadPluginL
-// -----------------------------------------------------------------------------
-void CFSMailPluginManager::LoadPluginL( TUid /*aPlugin*/ )
-{
-    NM_FUNCTION;
-}
-	
 // -----------------------------------------------------------------------------
 // CFSMailPluginManager::GetPluginByIndex
 // -----------------------------------------------------------------------------
 CFSMailPlugin* CFSMailPluginManager::GetPluginByIndex(TUint aIndex)
 	{
     NM_FUNCTION;
-    
-	return iPluginList[aIndex]->iPlugin;
-	}
 
-// -----------------------------------------------------------------------------
-// CFSMailPluginManager::GetPluginIdByIndex
-// -----------------------------------------------------------------------------
-TUid CFSMailPluginManager::GetPluginIdByIndex(TUint aIndex)
-	{
-    NM_FUNCTION;
-    
-	return iPluginList[aIndex]->iPluginId;
+	return iPluginList[aIndex]->iPlugin;
 	}
 
 // -----------------------------------------------------------------------------
@@ -142,9 +124,9 @@ TUid CFSMailPluginManager::GetPluginIdByIndex(TUint aIndex)
 TUint CFSMailPluginManager::GetPluginCount( )
 	{
     NM_FUNCTION;
-    
+
 	return iPluginList.Count();
 	}
-	
+
 
 

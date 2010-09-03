@@ -275,81 +275,7 @@ void CBasePlugin::RefreshNowL(
 
     }
 
-
-#pragma mark -
-#pragma mark --- MRU SUPPORT ---
-
-
-/**
- *
- */
-MDesCArray* CBasePlugin::GetMrusL(
-    const TFSMailMsgId& aMailBoxId )
-
-    {
-    CMailboxInfo& mailBox = GetMailboxInfoL( aMailBoxId.Id() );
-
-    RPointerArray<CMsgStoreAddress> addressArray;
-    CleanupResetAndDestroyClosePushL( addressArray );
-    mailBox().MruAddressesL( addressArray );
-
-    //defione consts to avoid codescanner errors
-    const TUint KDefaultGranularity = 8;
-
-    TInt granularity = addressArray.Count() > 0 ? 2 * addressArray.Count() : KDefaultGranularity;
-    CDesCArrayFlat* result = new (ELeave) CDesCArrayFlat( granularity );
-    CleanupStack::PushL( result );
-
-    TInt count = addressArray.Count();
-    for ( TInt i = 0; i < count; i++ )
-        {
-        result->AppendL( addressArray[i]->DisplayName() );
-        result->AppendL( addressArray[i]->EmailAddress() );
-        }
-
-    CleanupStack::Pop( result );
-    CleanupStack::PopAndDestroy( &addressArray );
-
-    return result;
-    }
-
-
-/**
- *
- */
-void CBasePlugin::SetMrusL(
-    const TFSMailMsgId& aMailBoxId,
-    MDesCArray* aNewMruList )
-
-    {
-    CMailboxInfo& mailBox = GetMailboxInfoL( aMailBoxId.Id() );
-
-    __ASSERT_DEBUG(
-        0 == ( aNewMruList->MdcaCount() % 2 ),
-        ::BasePluginPanic( ESetMrusInvalidAssert ) );
-
-    RPointerArray<CMsgStoreAddress> addressArray;
-    CleanupResetAndDestroyClosePushL( addressArray );
-
-    CMsgStoreAddress* address;
-    for ( TInt i = 0; i < aNewMruList->MdcaCount(); i+=2 )
-        {
-        TPtrC display = aNewMruList->MdcaPoint( i );
-        TPtrC email = aNewMruList->MdcaPoint( 1 + i );
-
-        address = CMsgStoreAddress::NewL( email, display );
-        CleanupStack::PushL( address );
-        addressArray.AppendL( address );
-        CleanupStack::Pop( address );
-        }
-
-    mailBox().AddMruAddressesL( addressArray );
-    CleanupStack::PopAndDestroy( &addressArray );
-    }
-
-
 #pragma mark --- "MFSMAILPLUGINAPI - STATUS INFO" ---
-
 
 /**
  *
@@ -387,7 +313,7 @@ void CBasePlugin::CancelL( TInt aRequestId )
     		break;
     		}
     	}
-//<qmail>		
+//<qmail>
     count = iDelayedOpReqs.Count();
     for ( TInt i = 0; i < count; i++ )
         {
@@ -405,7 +331,7 @@ void CBasePlugin::CancelL( TInt aRequestId )
             break;
             }
         }
-//</qmail>		
+//</qmail>
     }
 
 
@@ -556,7 +482,7 @@ void CBasePlugin::DoClearSearchResultCacheL(
             }
         }
 
-    if ( NULL == result )
+    if ( !result )
         {
         CMailboxInfo& mailBox = GetMailboxInfoL( aMailBoxId );
         iCacheLine.iMsg = mailBox().FetchMessageL( aMsgId, KMsgStoreInvalidId );

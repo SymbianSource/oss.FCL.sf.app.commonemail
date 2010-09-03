@@ -60,11 +60,11 @@ public: //from MStateObserverCallback
     void ActiveFolderChanged(
         const TFSMailMsgId& aActiveMailboxId,
         const TFSMailMsgId& aActiveFolderId);
-    
+
 public://from CExtendableEmail
 
     CEmailExtension* ExtensionL( const TUid& aInterfaceUid );
-//</Qmail>    
+//</Qmail>
 public:
 
     /**
@@ -72,7 +72,7 @@ public:
     * Destructor
     */
     IMPORT_C virtual ~CIpsPlgSosBasePlugin();
-    
+
 public: //from MIpsPlgSingleOpWatcher
 
     /**
@@ -140,12 +140,6 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aSourceFolderId,
         const TFSMailMsgId& aDestinationFolderId );
 
-    virtual MDesCArray* GetMrusL( const TFSMailMsgId& aMailBoxId );
-
-    virtual void SetMrusL(
-            const TFSMailMsgId& aMailBoxId,
-            MDesCArray* aNewMruList );
-
     virtual const TFSProgress GetLastSyncStatusL(
         const TFSMailMsgId& aMailBoxId );
 
@@ -185,7 +179,7 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
         const RArray<TFSMailMsgId>& aMessages );
-		
+
 //<qmail>
     virtual void DeleteMessagesByUidL(
         const TFSMailMsgId& aMailBoxId,
@@ -199,7 +193,7 @@ public: // from CFSMailPlugin
 
     virtual CFSMailMessage* CreateMessageToSendL(
         const TFSMailMsgId& aMailBoxId );
-    
+
 // <qmail>
     /**
      * Creates new email message to message store asynchronously
@@ -228,7 +222,7 @@ public: // from CFSMailPlugin
      * @param aOperationObserver Observer for the operation
      * @param aRequestId Id of the operation
      */
-    virtual void CreateForwardMessageL( 
+    virtual void CreateForwardMessageL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId,
         MFSMailRequestObserver& aOperationObserver,
@@ -252,15 +246,15 @@ public: // from CFSMailPlugin
      * @param aOperationObserver Observer for the operation
      * @param aRequestId Id of the operation
      */
-    virtual void CreateReplyMessageL( 
-        const TFSMailMsgId& aMailBoxId, 
+    virtual void CreateReplyMessageL(
+        const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aOriginalMessageId,
         const TBool aReplyToAll,
         MFSMailRequestObserver& aOperationObserver,
         const TInt aRequestId,
         const TDesC& aHeaderDescriptor );
 // </qmail>
-       
+
     virtual void StoreMessageL(
         const TFSMailMsgId& aMailBoxId,
         CFSMailMessage& aMessage );
@@ -273,7 +267,7 @@ public: // from CFSMailPlugin
             MFSMailRequestObserver& aOperationObserver,
             const TInt aRequestId );
     // </qmail>
-            
+
     virtual void GetMessagesL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aFolderId,
@@ -303,7 +297,7 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aParentPartId,
         const TDesC& aContentType,
         const TDesC& aFilePath );
-    
+
     // <qmail>
     virtual void NewChildPartFromFileL(
         const TFSMailMsgId& aMailBoxId,
@@ -311,7 +305,7 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMessageId,
         const TFSMailMsgId& aParentPartId,
         const TDesC& aContentType,
-        const TDesC& aFilePath, 
+        const TDesC& aFilePath,
         MFSMailRequestObserver& aOperationObserver,
         const TInt aRequestId );
     // </qmail>
@@ -347,7 +341,7 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aMessageId,
         const TFSMailMsgId& aParentPartId,
         const TFSMailMsgId& aPartId);
-    
+
     // <qmail>
     virtual void RemoveChildPartL(
         const TFSMailMsgId& aMailBoxId,
@@ -358,7 +352,7 @@ public: // from CFSMailPlugin
         MFSMailRequestObserver& aOperationObserver,
         const TInt aRequestId );
     // </qmail>
-        
+
     virtual CFSMailMessagePart* MessagePartL(
         const TFSMailMsgId& aMailBoxId,
         const TFSMailMsgId& aParentFolderId,
@@ -692,19 +686,19 @@ private:
 
     /**
 	 * Takes ownership of the cached objects or creates new ones
-	 */     	 
+	 */
 	void TakeMessageEntryLC(
 		TMsvId aId,
         CMsvEntry*& aMessageEntry,
         CImEmailMessage*& aImEmailMessage );
-    
+
     /**
      * Return objects to cache, deleting old ones in the cache if necessary
-     */         
+     */
     void ReturnMessageEntry(
         CMsvEntry* aMessageEntry,
         CImEmailMessage* aImEmailMessage );
-        
+
     /*
      * Cleans up the cached messages entries that have accessed with
      * GetMessageEntryL()
@@ -731,7 +725,7 @@ private:
 
     /**
      * Fixes the forward (or reply) message header parts (that are copied
-     * to msg content) in case that caller has provided an own header 
+     * to msg content) in case that caller has provided an own header
      * descriptor for these parts.
      */
     void FixReplyForwardHeaderL(
@@ -739,7 +733,7 @@ private:
             const TFSMailMsgId& aMailBoxId,
             const TFSMailMsgId& aOriginalMessageId,
             const TDesC& aHeaderDescriptor );
-    
+
 private:
 
     /**
@@ -835,7 +829,7 @@ protected:
 
     // flag indicates is instance under FSEmail.exe
     TBool iIsUnderUiProcess;
-    
+
     //<Qmail>
     CIpsStateExtension*    iStateExtension;//owned
     //</Qmail>

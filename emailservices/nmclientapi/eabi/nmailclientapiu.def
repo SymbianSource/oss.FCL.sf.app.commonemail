@@ -274,4 +274,7 @@ EXPORTS
 	_ZTIN14EmailClientApi20NmApiMailboxSettingsE @ 273 NONAME
 	_ZTVN14EmailClientApi19NmApiMessageManagerE @ 274 NONAME
 	_ZTVN14EmailClientApi20NmApiMailboxSettingsE @ 275 NONAME
+	_ZN14EmailClientApi20NmApiSettingsManagerD0Ev @ 276 NONAME
+	_ZTIN14EmailClientApi20NmApiSettingsManagerE @ 277 NONAME
+	_ZTVN14EmailClientApi20NmApiSettingsManagerE @ 278 NONAME
 

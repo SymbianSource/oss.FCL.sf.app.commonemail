@@ -166,12 +166,6 @@ public:
     TInt GetCurrentState() const;
     
     /*
-     * Gets current error code
-     * @return iError value
-     */
-    TInt GetCurrentError() const;
-    
-    /*
      * Gets email address from settings
      * @param aEmailAddress mailbox email address
      */
@@ -186,7 +180,7 @@ public:
     void SetEmnReceivedFlagL( TBool aNewValue );
     
     /*
-     * Gets mailbox roaming stopped status
+     * Gets true if mailbox is stopped because of roaming
      * @return ETrue if roaming and mailbox logic is stopped during roaming
      */
     TBool IsMailboxRoamingStoppedL();

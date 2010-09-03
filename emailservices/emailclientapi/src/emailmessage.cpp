@@ -834,24 +834,45 @@ void CEmailMessage::ShowMessageViewerL()
     {   
     bool syncronous;
 
-    XQServiceRequest request(
-       emailInterfaceNameMessage,
-       emailOperationViewMessage,
-       syncronous );
+    XQServiceRequest request( XQI_EMAIL_MESSAGE_VIEW,
+                              XQOP_EMAIL_MESSAGE_VIEW,
+                              syncronous );
 
     TFSMailMsgId mailboxId = FsMsgId( iPluginData, iMessageId.iFolderId.iMailboxId );
     TFSMailMsgId folderId = FsMsgId( iPluginData, iMessageId.iFolderId );
     TFSMailMsgId messageId = FsMsgId( iPluginData, iMessageId );
 
-    QList<QVariant> list;
-    list.append( mailboxId.Id() );
-    list.append( folderId.Id() );
-    list.append( messageId.Id() );
-    request.setArguments( list );
+    QList<QVariant> idList;
+    idList.append( mailboxId.Id() );
+    idList.append( folderId.Id() );
+    idList.append( messageId.Id() );
+
+    /*
+        Uncomment the following when the viewer service API operation definition
+        (XQOP_EMAIL_MESSAGE_VIEW) has been updated.
+    
+    QVariant idListAsVariant = QVariant::fromValue( idList );
+
+    // Add the message list view into the view stack.
+    quint64 flags( EmailBackReturnsToMessageList );
+
+    QList<QVariant> argumentList;
+    argumentList.append( idListAsVariant );
+    argumentList.append( flags );
+
+    request.setArguments( argumentList );    
+    */
+    
+    // Remove the following line when the viewer service API operation
+    // definition has been updated.
+    request.setArguments( idList );
 
     QVariant returnValue;
+
     if ( !request.send( returnValue ) )
+        {
         User::Leave( KErrGeneral );
+        }
     }
 
 // -----------------------------------------------------------------------------

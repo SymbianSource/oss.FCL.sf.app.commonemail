@@ -75,11 +75,6 @@ win32 {
    DESTDIR = ../../bin
 }
 
-#creating rcc file from qrc
-#system(rcc -binary data/email_brand.qrc -o data/email_brand.rcc)
-#RESOURCES += data/email_brand.qrc
-#"data/email_brand.rcc                  /epoc32/data/Z/resource/apps/email_brand.rcc" \
-
 # Build.inf rules  
 BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
                              "rom/nmutilities.iby $$CORE_APP_LAYER_IBY_EXPORT_PATH(nmutilities.iby)" \

@@ -27,28 +27,20 @@ INCLUDEPATH += /epoc32/include/ecom
 INCLUDEPATH += $$MW_LAYER_SYSTEMINCLUDE
 
 HEADERS   += inc/CFSFWImplementation.h \
-inc/CFSMailBrand.h \
-inc/CFSMailBrandManagerImpl.h \
 inc/CFSMailClient.h \
 inc/CFSMailClient.hrh \
 inc/CFSMailPlugin.h \
 inc/CFSMailPlugin.hrh \
 inc/CFSMailPluginManager.h \
-inc/MailBrandManager.hrh \
-inc/MailBrandManager.rh \
 inc/MFSMailBoxSearchObserver.h \
-inc/MFSMailBrandManager.h \
 inc/MFSMailEventObserver.h \
 inc/MFSMailIterator.h \
-inc/MFSMailPlugin.h \
 inc/MFSMailRequestObserver.h 
 
     
 SOURCES   += src/CFSFWImplementation.cpp \
 src/CFSMailClient.cpp \
 src/CFSMailPluginManager.cpp \
-src/CFSMailBrand.cpp \
-src/CFSMailBrandManagerImpl.cpp \
 inc/CFSMailPlugin.inl \
 inc/CFSMailPluginInterface.inl 
  
@@ -58,15 +50,6 @@ symbian*: {
     TARGET.CAPABILITY = CAP_GENERAL_DLL
     TARGET.UID2 = 0x1000008D
     TARGET.UID3 = 0x2001E279
-
-    resourceBlock = \
-      "$${LITERAL_HASH}include <data_caging_paths.hrh>" \
-      "SOURCEPATH      data" \
-      "START RESOURCE fsmailbrandmanager.rss" \
-      "HEADER" \
-      "targetpath RESOURCE_FILES_DIR" \
-      "LANGUAGE_IDS" \
-      "END" \
       
     debuggerBlock= \
       "$${LITERAL_HASH}ifdef DEBUGLOGGER_BUILD_CONFIG_DEBUG" \
@@ -83,9 +66,8 @@ symbian*: {
       "$${LITERAL_HASH}endif"
 
       
-    MMP_RULES += resourceBlock \
-      debuggerBlock \
-	  defBlock
+    MMP_RULES += debuggerBlock \
+	             defBlock
     
     LIBS += -lbafl \
     -leuser \

@@ -16,12 +16,11 @@
  */
 
 #include "nmuiheaders.h"
-#include <email_services_api.h>
 #include <e32base.h>
 
 static const QString NmSendServiceName = "nmail.com.nokia.symbian.IFileShare";
-
 static const QString NmActivityName = "EmailInboxView";
+static const int NmErrorNoteDelay = 300000;
 
 /*!
     \class NmApplication
@@ -32,8 +31,8 @@ static const QString NmActivityName = "EmailInboxView";
 /*!
     Constructor.
 */
-NmApplication::NmApplication(QObject *parent, quint64 accountId)
-: QObject(parent),
+NmApplication::NmApplication(int &argc, char *argv[], Hb::ApplicationFlags flags)
+: HbApplication(argc,argv,flags),
   mMainWindow(NULL),
   mViewStack(NULL),
   mActiveViewId(NmUiViewNone),
@@ -49,10 +48,28 @@ NmApplication::NmApplication(QObject *parent, quint64 accountId)
   mViewReady(false),
   mQueryDialog(NULL),
   mBackButtonPressed(false),
-  mApplicationHidden(false)
+  mApplicationHidden(false),
+  mErrorNoteTimer(NULL)
 {
-    TRAP_IGNORE(mUiEngine = NmUiEngine::instance());
+    // Load the translation file.
+    QTranslator *translator = new QTranslator(this);
+    QString lang = QLocale::system().name();
+    QString appName = "mail_";
+    QString path = "Z:/resource/qt/translations/";
+    translator->load(appName + lang, path);
+    installTranslator(translator);
+    setApplicationName(hbTrId("txt_mail_title_mail"));
     
+    quint64 accountId = 0;
+    QString activateId = this->activateId();
+    if (activateReason() == Hb::ActivationReasonActivity &&
+        activateId.startsWith(NmActivityName) ) {
+        QString accountIdString = activateId.mid(NmActivityName.length());
+        accountId = accountIdString.toULongLong();
+    }
+            
+    TRAP_IGNORE(mUiEngine = NmUiEngine::instance());
+        
     // Create network access manager and cache for application use.
     mNetManager = new NmViewerViewNetManager(*mUiEngine);
     QNetworkDiskCache *cache = new QNetworkDiskCache();
@@ -85,7 +102,7 @@ NmApplication::NmApplication(QObject *parent, quint64 accountId)
     
     mEffects = new NmUiEffects(*mMainWindow);
     
-    QObject::connect(parent, SIGNAL(activate()), this, SLOT(activityActivated()));
+    QObject::connect(this, SIGNAL(activate()), this, SLOT(activityActivated()));
 }
 
 
@@ -377,10 +394,7 @@ void NmApplication::hideApplication()
     taskSettings.setVisibility(false);
     
     // Remove also the mailbox item from the task switcher
-    HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
-    if (hbApp) {
-        hbApp->activityManager()->removeActivity(NmActivityName);
-    }
+    activityManager()->removeActivity(NmActivityName);
 }
 
 
@@ -408,8 +422,13 @@ void NmApplication::popView()
 
             // Move the application to background if closing the message list view
             if (topViewId == NmUiViewMessageList && mViewStack->size() == 1) {
-                hideApplication();
-                return;
+                
+                // if the application has been started as embedded service,
+                // we must close it. Otherwise we cannot return back to the calling application.
+                if (!XQServiceUtil::isEmbedded()) {
+                    hideApplication();
+                    return;
+                }
             }
 
             mViewStack->pop();
@@ -626,8 +645,7 @@ void NmApplication::exitApplication()
 {
     NM_FUNCTION;
     
-    HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
-    hbApp->activityManager()->removeActivity("EmailInboxView");
+    activityManager()->removeActivity(NmActivityName);
     
     delete mSendServiceInterface;
     mSendServiceInterface = NULL;
@@ -741,7 +759,25 @@ void NmApplication::handleOperationCompleted(const NmOperationCompletionEvent &e
         }
         // Following applies to all operation/event types.
         if (event.mCompletionCode == NmConnectionError) {
-            NmUtilities::displayWarningNote(hbTrId("txt_mail_dialog_mail_connection_error"));
+            // Create error note delayer timer when used for the first time
+            if (!mErrorNoteTimer) {
+                mErrorNoteTimer = new QTimer(this);
+            }
+            // Check whether mailbox id has changed, stop
+            // timer in that case and note will be displayed even
+            // before 5min delay has passed
+            if (mLastErrorMailboxId != event.mMailboxId) {
+                mErrorNoteTimer->stop();
+            }
+            // Store mailbox id
+            mLastErrorMailboxId = event.mMailboxId;
+            // Show error note if timer is not active, e.g 5 minutes 
+            // have passed since last "mail connection error".
+            if (!mErrorNoteTimer->isActive()) {
+                NmUtilities::displayErrorNote(hbTrId("txt_mail_dialog_mail_connection_error"));            
+                // Start timer with 5 min timeout
+                mErrorNoteTimer->start(NmErrorNoteDelay);
+            }
         }
     }
 }
@@ -797,28 +833,25 @@ bool NmApplication::updateVisibilityState()
 void NmApplication::updateActivity()
 {
     NmMailboxMetaData *meta = mUiEngine->mailboxById(mCurrentMailboxId);
-    HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
-
-    if (hbApp) {
-        // This will ensure that when service is started as a embedded service and a mail 
-        // process already exists the task activity will show the embedded service inside the 
-        // calling processes activity and the already running mail process in its own activity.
-        if(!XQServiceUtil::isService() || !XQServiceUtil::isEmbedded()) {
-            if (meta) {
-                TsTaskSettings tasksettings;
-                tasksettings.setVisibility(false);
-                QVariantHash metadata;
-                metadata.insert(ActivityScreenshotKeyword, QPixmap::grabWidget(mainWindow(), mainWindow()->rect()));
-                metadata.insert(ActivityApplicationName, meta->name());
-                metadata.insert(ActivityVisibility, true);
-                hbApp->activityManager()->removeActivity(NmActivityName);
-                hbApp->activityManager()->addActivity(NmActivityName, QVariant(), metadata);
-            }
-            else {
-                hbApp->activityManager()->removeActivity(NmActivityName);
-                TsTaskSettings tasksettings;
-                tasksettings.setVisibility(true);
-            }
+    
+    // This will ensure that when service is started as a embedded service and a mail 
+    // process already exists the task activity will show the embedded service inside the 
+    // calling processes activity and the already running mail process in its own activity.
+    if(!XQServiceUtil::isService() || !XQServiceUtil::isEmbedded()) {
+        if (meta) {
+            TsTaskSettings tasksettings;
+            tasksettings.setVisibility(false);
+            QVariantHash metadata;
+            metadata.insert(ActivityScreenshotKeyword, QPixmap::grabWidget(mainWindow(), mainWindow()->rect()));
+            metadata.insert(ActivityApplicationName, meta->name());
+            metadata.insert(ActivityVisibility, true);
+            activityManager()->removeActivity(NmActivityName);
+            activityManager()->addActivity(NmActivityName, QVariant(), metadata);
+        }
+        else {
+            activityManager()->removeActivity(NmActivityName);
+            TsTaskSettings tasksettings;
+            tasksettings.setVisibility(true);
         }
     }
 }
@@ -828,18 +861,15 @@ void NmApplication::updateActivity()
 */
 void NmApplication::activityActivated()
 {
-    HbApplication* hbApp = dynamic_cast<HbApplication*>(parent());
-    if (hbApp) {
-        quint64 accountId(0);
-        QString activateId = hbApp->activateId();
-        if (hbApp->activateReason() == Hb::ActivationReasonActivity &&
-                activateId.startsWith(NmActivityName) ) {
-            QString accountIdString = activateId.mid(NmActivityName.length());
-            accountId = accountIdString.toULongLong();
-            QVariant mailbox;
-            mailbox.setValue(accountId);
-            mMailboxServiceInterface->displayInboxByMailboxId(mailbox);
-        }
+    quint64 accountId(0);
+    QString activateId = this->activateId();
+    if (activateReason() == Hb::ActivationReasonActivity &&
+            activateId.startsWith(NmActivityName) ) {
+        QString accountIdString = activateId.mid(NmActivityName.length());
+        accountId = accountIdString.toULongLong();
+        QVariant mailbox;
+        mailbox.setValue(accountId);
+        mMailboxServiceInterface->displayInboxByMailboxId(mailbox);
     }
 }
 

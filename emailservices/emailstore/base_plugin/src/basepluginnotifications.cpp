@@ -300,51 +300,45 @@ void CBasePlugin::ModificationNotifyL(
                     }
                 else if ( EMsgStoreFolderContainer == aType )
                     {
-                    TRAPD( err, CMailboxInfo& mailBox = GetMailboxInfoL( aMailBoxId ) );
-                    
-                    if ( KErrNone == err )
-                    	{
-                    	for ( TInt i = EFSInbox; i <= EFSDeleted; i++ )
-                    		{
-                    		if ( mailBox.iRootFolders.iFolders[i] == aId )
-                    			{
-                    			TMsgStoreId newId = 0;
-                    			
-                    			/**@ this behavior is forced by the UI for some reason and should be revisited
-                    			 * in the future as it allows more than one inbox folder which is not recommended. */
-                    			
-                    			//loop over all of the root folders looking for a replacement.
-								RPointerArray<CMsgStoreFolder> folders;
-								CleanupResetAndDestroyClosePushL( folders );
+                    for ( TInt i = EFSInbox; i <= EFSDeleted; i++ )
+                        {
+                        if ( mailBox.iRootFolders.iFolders[i] == aId )
+                            {
+                            TMsgStoreId newId = 0;
+                            
+                            /**@ this behavior is forced by the UI for some reason and should be revisited
+                             * in the future as it allows more than one inbox folder which is not recommended. */
+                            
+                            //loop over all of the root folders looking for a replacement.
+                            RPointerArray<CMsgStoreFolder> folders;
+                            CleanupResetAndDestroyClosePushL( folders );
 
-								mailBox().FoldersL( aMailBoxId, folders );
+                            mailBox().FoldersL( aMailBoxId, folders );
 
-								for ( int j = 0; j < folders.Count(); j++ )
-									{
-									CMsgStoreFolder* folder = folders[j];
+                            for ( int j = 0; j < folders.Count(); j++ )
+                                {
+                                CMsgStoreFolder* folder = folders[j];
 
-									TUint index = 0;
-									if ( folder->FindProperty( KMsgStorePropertyFolderType, index ) )
-										{
-	                                    TUint32 type = folder->PropertyValueUint32L( index );
+                                TUint index = 0;
+                                if ( folder->FindProperty( KMsgStorePropertyFolderType, index ) )
+                                    {
+                                    TUint32 type = folder->PropertyValueUint32L( index );
 
-	                                    if ( type == i )	//i is a value in the folder type enum.
-											{
-											newId = folder->Id();
-											break;
-											}
-	                                    }
-									}
-								
-								CleanupStack::PopAndDestroy( &folders );
-                                
-                    			//set the new root folder info.
-                    			mailBox.iRootFolders.iFolders[i] = newId;
-                    			break;
-                    			}                    		
-                    		}
-						}
-                
+                                    if ( type == i )	//i is a value in the folder type enum.
+                                        {
+                                        newId = folder->Id();
+                                        break;
+                                        }
+                                    }
+                                }
+                            
+                            CleanupStack::PopAndDestroy( &folders );
+                            
+                            //set the new root folder info.
+                            mailBox.iRootFolders.iFolders[i] = newId;
+                            break;
+                            }                    		
+                        }
                     NotifyEventL( aMailBoxId, aId, aParentId, TFSEventFoldersDeleted );
                     }
                 }

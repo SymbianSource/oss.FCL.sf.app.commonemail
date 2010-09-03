@@ -729,7 +729,7 @@ void CContainerStoreContainersTable::ChildrenCountsL( TDes8& aCounts, TBool aRec
 		
 		for ( int i = 0 ; i < childrens.Count() ; i++ )
 			{
-			iTable.SeekL( childrens[i] );
+			User::LeaveIfError(iTable.SeekL( childrens[i] ));
 			iTable.GetL();
 			childrenCounts.Copy( iTable.ColDes8(iChildrenCountsColNum) );
 		    iCustomBehaviorProvider.IncrementParentCounts( totalCounts, childrenCounts );

@@ -20,7 +20,6 @@
 #include <QCoreApplication>
 #include <HbInstance>
 #include <HbAction>
-#include <HbMessageBox>
 
 #include "nmsettingsviewfactory.h"
 #include "nmmailboxsettingsmanager.h"
@@ -30,9 +29,6 @@
 #include "nmcommon.h"
 #include "nmsettingsviewlauncher.h"
 #include "nmsettingscommon.h"
-
-static const QString mailWizardStartExe = "mailwizard.exe";
-static const QString mailWizardStartArgs = "from:controlpanel";
 
 
 /*!
@@ -61,12 +57,9 @@ NmSettingsViewFactory::NmSettingsViewFactory(
     const HbIcon &icon,
     const HbDataFormModelItem *parent)
  : CpSettingFormEntryItemData(itemDataHelper, text, description, icon, parent),
-   mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(0),mPrevView(0),
-   mMessageBox(0)
+   mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(0),mPrevView(0)
 {
     NM_FUNCTION;
-
-    createMessageBox();
 }
 
 
@@ -90,11 +83,9 @@ NmSettingsViewFactory::NmSettingsViewFactory(
     const HbDataFormModelItem *parent)
  : CpSettingFormEntryItemData(itemDataHelper, text, description, icon, parent),
      mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(viewLauncher),
-     mPrevView(0), mMessageBox(0)
+     mPrevView(0)
 {
     NM_FUNCTION;
-
-    createMessageBox();
 }
 
 
@@ -106,7 +97,6 @@ NmSettingsViewFactory::~NmSettingsViewFactory()
     NM_FUNCTION;
 
     delete mSettingsManager;
-    delete mMessageBox;
 }
 
 
@@ -131,9 +121,7 @@ CpBaseSettingView *NmSettingsViewFactory::createSettingView() const
 
     switch(mailboxCount) {
         case 0: {
-            // Query the user whether to launch the wizard or not.
-            mMessageBox->open(const_cast<NmSettingsViewFactory *>(this),
-                              SLOT(launchWizard(HbAction *)));
+            // Mailbox doesn't exist, we can't open settings
             break;
         }
         case 1: {
@@ -268,37 +256,6 @@ void NmSettingsViewFactory::backPress()
         }
         mPrevView = 0;
     }
-}
-
-/*!
-    Handles user selection from "No mailboxes defined" dialog. Launches the Mail Wizard if \a action
-    is the dialog's primary action ("Yes"). Otherwise does nothing.
-    \param action. Action selected by the user.
-*/
-void NmSettingsViewFactory::launchWizard(HbAction *action)
-{
-    NM_FUNCTION;
-
-    if (action == mMessageBox->primaryAction()) {
-        // Launch mail wizard.
-        NM_COMMENT(QString("NmSettingsViewFactory::launchWizard(): launching the mail wizard"));
-        QStringList args;
-        args << mailWizardStartArgs;
-        QProcess::startDetached(mailWizardStartExe, args);
-    }
-}
-
-/*!
-    Creates the "No mailboxes defined" dialog. Called from the constructors.
-*/
-void NmSettingsViewFactory::createMessageBox()
-{
-    NM_FUNCTION;
-
-    mMessageBox = new HbMessageBox(HbMessageBox::MessageTypeQuestion);
-    mMessageBox->setText(hbTrId("txt_mail_dialog_no_mailboxes_create_new"));
-    mMessageBox->setTimeout(HbMessageBox::NoTimeout);
-    mMessageBox->setStandardButtons(HbMessageBox::Yes | HbMessageBox::No);
 }
 
 

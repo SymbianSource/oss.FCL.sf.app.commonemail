@@ -73,7 +73,7 @@ HbWidget *NmIpsSettingsCustomItem::createCustomWidget()
     QVariant data(modelIndex().data(HbDataFormModelItem::ItemTypeRole));
     int type(data.toInt());
 
-    HbWidget *widget = 0;
+    HbWidget *widget = NULL;
 
     switch (type) {
         case LabeledComboBox: {

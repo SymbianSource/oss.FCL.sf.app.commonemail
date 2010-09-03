@@ -66,6 +66,12 @@ NmUiEngine::NmUiEngine()
                 this,
                 SLOT(handleConnectEvent(NmConnectState, const NmId &, const int)),
                 Qt::UniqueConnection);
+            // connect folder events            
+            QObject::connect(plugin,
+                SIGNAL(folderEvent(NmFolderEvent, const QList<NmId> &, const NmId &)),
+                this, SLOT(handleFolderEvent(NmFolderEvent, const QList<NmId> &, const NmId &)),
+                Qt::UniqueConnection);           
+
             // do the subscriptions also
             NmDataPluginInterface *pluginInterface = mPluginFactory->interfaceInstance(plugin);
             if (pluginInterface) {
@@ -902,7 +908,7 @@ const NmMessage *NmUiEngine::messageBeingSent() const
 
     const NmMessage *message = NULL;
 
-    if (mSendOperation != NULL) {
+    if (mSendOperation) {
         message = mSendOperation->getMessage();
     }
 
@@ -1224,6 +1230,60 @@ void NmUiEngine::handleMailboxEvent(NmMailboxEvent event,
         default:
         break;
     }
+}
+
+/*!
+    Emits signals based on folder deletion or creation from plugins.
+    \param event folder event type
+    \param folderIds Ids of folder having the action       
+    \param mailboxId Id of active mailbox, 0 if application is closed.
+*/
+void NmUiEngine::handleFolderEvent(NmFolderEvent event, 
+        const QList<NmId> &folderIds, const NmId &mailboxId)
+{
+    NM_FUNCTION;
+
+    switch (event) {
+        case NmFolderIsDeleted:
+            handleFolderDeletedEvent(folderIds, mailboxId);
+            break;
+        case NmFolderIsCreated:
+        default:
+            handleFolderCreatedEvent(folderIds, mailboxId);            
+            break;            
+    };
+}
+
+/*!
+    Handles folder deletion from plugins.
+*/
+void NmUiEngine::handleFolderDeletedEvent(const QList<NmId> &folderIds,
+                                          const NmId &mailboxId)
+{
+    NM_FUNCTION;
+
+    NmId folderId(0); 
+
+    for (int i(0); i < folderIds.count(); i++) {
+        folderId = folderIds[i];
+        if (mInboxListModel){
+            mInboxListModel->handleFolderDeletedEvent(folderId, mailboxId);
+        }
+        if (mMessageListModel){
+            mMessageListModel->handleFolderDeletedEvent(folderId, mailboxId);
+        }
+    }
+}
+
+/*!
+    Emits signals based on folder creation from plugins.
+*/
+void NmUiEngine::handleFolderCreatedEvent(const QList<NmId> &folderIds,
+                                          const NmId &mailboxId)
+{
+    NM_FUNCTION;
+    Q_UNUSED(folderIds);
+    Q_UNUSED(mailboxId);
 }
 
 

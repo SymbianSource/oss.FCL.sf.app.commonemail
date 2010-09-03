@@ -146,7 +146,7 @@ void CIpsSosAOMBoxLogic::SendCommandL( TInt aCommand )
             CalculateToNextIntervalL();
             break;
         case ECommandCancelDoNotDiconnect:
-            if ( iAgent->GetState() != CIpsSosAOBaseAgent::EStateCompleted ||
+            if ( iAgent->GetState() != CIpsSosAOBaseAgent::EStateCompleted &&
                     iAgent->GetState() != CIpsSosAOBaseAgent::EStateIdle  )
                 {
                 iAgent->CancelAllAndDoNotDisconnect();
@@ -447,15 +447,6 @@ TInt CIpsSosAOMBoxLogic::GetCurrentState() const
     {
     FUNC_LOG;
     return iState;
-    }
-
-// ----------------------------------------------------------------------------
-// ----------------------------------------------------------------------------
-// 
-TInt CIpsSosAOMBoxLogic::GetCurrentError() const
-    {
-    FUNC_LOG;
-    return iError;
     }
 
 // ----------------------------------------------------------------------------
@@ -928,7 +919,7 @@ TBool CIpsSosAOMBoxLogic::FirstEMNReceived()
 	//<QMail>
     CIpsSosAOSettingsHandler* settings = NULL;
     TBool ret = EFalse;
-    TRAP_IGNORE(CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId));
+    TRAP_IGNORE(settings = CIpsSosAOSettingsHandler::NewL(iSession, iMailboxId));
     if(settings){
         ret = settings->FirstEmnReceived();
         delete settings;

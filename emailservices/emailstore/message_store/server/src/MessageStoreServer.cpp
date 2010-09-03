@@ -222,7 +222,7 @@ EXPORT_C TInt MessageStoreServerThreadFunction( TAny* aParams )
 	// decided that MsgStore running as a seperate process in case Bridge process
 	// crashes makes more sense
 	// (aParams == NULL) is basically to differentiate dll or exe
-    TRAP( ret, RunServerL( (aParams == NULL) ) );
+    TRAP( ret, RunServerL( (!aParams) ) );
     delete cleanup;
     }
   __UHEAP_MARKEND;

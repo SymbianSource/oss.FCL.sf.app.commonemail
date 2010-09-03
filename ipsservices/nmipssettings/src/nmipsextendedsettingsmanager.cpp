@@ -18,7 +18,7 @@
 #include <xqsettingsmanager.h>
 #include <xqcentralrepositoryutils.h>
 #include <xqcentralrepositorysearchcriteria.h>
-#include <qlist.h>
+#include <QList>
 
 #include "nmipsextendedsettingsmanager.h"
 #include "nmipssettingitems.h"

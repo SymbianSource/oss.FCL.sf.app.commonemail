@@ -6,7 +6,7 @@ EXPORTS
 	?tr@NmApiMessageManager@EmailClientApi@@SA?AVQString@@PBD0H@Z @ 5 NONAME ; class QString EmailClientApi::NmApiMessageManager::tr(char const *, char const *, int)
 	?qt_metacall@NmApiEventNotifier@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 6 NONAME ; int EmailClientApi::NmApiEventNotifier::qt_metacall(enum QMetaObject::Call, int, void * *)
 	?setPlainText@NmApiMessageEnvelope@EmailClientApi@@QAEXABVQString@@@Z @ 7 NONAME ; void EmailClientApi::NmApiMessageEnvelope::setPlainText(class QString const &)
-	??1NmApiSettingsManager@EmailClientApi@@QAE@XZ @ 8 NONAME ; EmailClientApi::NmApiSettingsManager::~NmApiSettingsManager(void)
+	??1NmApiSettingsManager@EmailClientApi@@UAE@XZ @ 8 NONAME ; EmailClientApi::NmApiSettingsManager::~NmApiSettingsManager(void)
 	?id@NmApiMailbox@EmailClientApi@@QBE_KXZ @ 9 NONAME ; unsigned long long EmailClientApi::NmApiMailbox::id(void) const
 	?createReplyMessage@NmApiMessageManager@EmailClientApi@@QAE_NPBVQVariant@@_N@Z @ 10 NONAME ; bool EmailClientApi::NmApiMessageManager::createReplyMessage(class QVariant const *, bool)
 	?saveMessage@NmApiMessageManager@EmailClientApi@@QAE_NABUNmApiMessage@@@Z @ 11 NONAME ; bool EmailClientApi::NmApiMessageManager::saveMessage(struct NmApiMessage const &)
@@ -246,4 +246,5 @@ EXPORTS
 	?qt_metacall@NmApiMailboxSettings@EmailClientApi@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 245 NONAME ; int EmailClientApi::NmApiMailboxSettings::qt_metacall(enum QMetaObject::Call, int, void * *)
 	?start@NmApiFolderListing@EmailClientApi@@UAE_NXZ @ 246 NONAME ; bool EmailClientApi::NmApiFolderListing::start(void)
 	?cancel@NmApiFolderListing@EmailClientApi@@UAEXXZ @ 247 NONAME ; void EmailClientApi::NmApiFolderListing::cancel(void)
+	??_ENmApiSettingsManager@EmailClientApi@@UAE@I@Z @ 248 NONAME ; EmailClientApi::NmApiSettingsManager::~NmApiSettingsManager(unsigned int)
 

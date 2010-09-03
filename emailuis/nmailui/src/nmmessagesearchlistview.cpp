@@ -15,16 +15,19 @@
 *
 */
 
-static const char *NMUI_MESSAGE_SEARCH_LIST_VIEW_XML = ":/docml/nmmessagesearchlistview.docml";
-static const char *NMUI_MESSAGE_SEARCH_LIST_VIEW = "NmMessageSearchListView";
-static const char *NMUI_MESSAGE_SEARCH_LIST_TREE_LIST = "MessageTreeList";
-static const char *NMUI_MESSAGE_SEARCH_LIST_NO_MESSAGES = "MessageListNoMessages";
-static const char *NMUI_MESSAGE_SEARCH_LIST_INFO_LABEL = "LabelGroupBox";
-static const char *NMUI_MESSAGE_SEARCH_LIST_LINE_EDIT = "LineEdit";
-static const char *NMUI_MESSAGE_SEARCH_LIST_PUSH_BUTTON = "PushButton";
-
-
 #include "nmuiheaders.h"
+
+static const char *NMUI_MESSAGE_SEARCH_VIEW_XML = ":/docml/nmmessagesearchlistview.docml";
+static const char *NMUI_MESSAGE_SEARCH_VIEW = "NmMessageSearchView";
+static const char *NMUI_MESSAGE_SEARCH_MESSAGE_TREE_LIST= "MessageTreeList";
+static const char *NMUI_MESSAGE_SEARCH_PANEL = "SearchPanel";
+static const char *NMUI_MESSAGE_SEARCH_NO_MESSAGES = "MessageNoMessages";
+
+static const QString NmSearchListViewProgressButton("progressbutton");
+static const QString NmSearchListViewLineEdit("lineedit");
+
+static const QString NmSearchListViewSpinnerAnimation("qtg_anim_mono_loading");
+static const QString NmSearchListViewSpinnerImage("qtg_anim_mono_loading_1");
 
 
 /*!
@@ -49,19 +52,40 @@ NmMessageSearchListView::NmMessageSearchListView(
   mMsgListModel(msgListModel),
   mDocumentLoader(documentLoader),
   mItemContextMenu(NULL),
-  mMessageListWidget(NULL),
-  mInfoLabel(NULL),
+  mMessageList(NULL),
   mNoMessagesLabel(NULL),
-  mLineEdit(NULL),
-  mPushButton(NULL),
+  mSearchPanel(NULL),
   mLongPressedItem(NULL),
+  mProgressButton(NULL),
+  mLineEdit(NULL),
   mViewReady(false),
-  mSearchInProgress(false)
+  mSearchInProgress(false),
+  mSpinnerIcon(NULL),
+  mAnimationAddedToManger(false),
+  mSelectTextAfterOrientationChange(false),
+  mVkbHost(NULL)
 {
     NM_FUNCTION;
     
     loadViewLayout();
     initTreeView();
+
+    // Add spinner animation axml to animation manager.
+    HbIconAnimationManager *animationManager = HbIconAnimationManager::global();
+    if (animationManager) {
+        mAnimationAddedToManger =
+            animationManager->addDefinitionFile(NmSearchListViewSpinnerAnimation);
+    }
+
+    HbMainWindow *mainWindow = mApplication.mainWindow();
+    connect(mainWindow, SIGNAL(aboutToChangeOrientation()),
+            this, SLOT(orientationAboutToChange()));
+    connect(mainWindow, SIGNAL(orientationChanged(Qt::Orientation)),
+            this, SLOT(orientationChanged()));
+
+    mVkbHost = new HbShrinkingVkbHost(this);
+    connect(mVkbHost, SIGNAL(keypadOpened()), this, SLOT(vkbOpened()));
+    connect(mVkbHost, SIGNAL(keypadClosed()), this, SLOT(vkbClosed()));
 }
 
 
@@ -71,7 +95,7 @@ NmMessageSearchListView::NmMessageSearchListView(
 NmMessageSearchListView::~NmMessageSearchListView()
 {
     NM_FUNCTION;
-    
+    delete mSpinnerIcon;
     delete mDocumentLoader;
 
     mWidgetList.clear();
@@ -81,6 +105,7 @@ NmMessageSearchListView::~NmMessageSearchListView()
     }
 
     delete mItemContextMenu;
+    delete mVkbHost;
 }
 
 
@@ -102,6 +127,21 @@ NmUiViewId NmMessageSearchListView::nmailViewId() const
 /*!
     From NmBaseView.
 
+    Makes necessary activities before view can exit.
+*/
+void NmMessageSearchListView::aboutToExitView()
+{
+    NM_FUNCTION;
+    if (mSearchInProgress) {
+       // Search is in progress - do cancel.
+       mUiEngine.cancelSearch(mStartParam->mailboxId());
+       mSearchInProgress = false;
+    }
+}
+
+/*!
+    From NmBaseView.
+
     Does the lazy loading after the view layout has been loaded.
 */
 void NmMessageSearchListView::viewReady()
@@ -115,8 +155,11 @@ void NmMessageSearchListView::viewReady()
         // Refresh the list.
         QMetaObject::invokeMethod(this, "refreshList", Qt::QueuedConnection);
 
-        // Highlight the search input.
-        setSearchInputMode(NmHighlightedMode);
+        // Undim search field.
+        setSearchInputMode(NmNormalMode);
+
+        // Open VKB
+        QMetaObject::invokeMethod(this, "sendSoftwareInputPanelRequest", Qt::QueuedConnection);
 
         mViewReady = true;
     }
@@ -154,6 +197,11 @@ void NmMessageSearchListView::handleActionCommand(NmActionResponse &actionRespon
     // Handle context menu commands here.
     if (actionResponse.menuType() == NmActionContextMenu) {
         if (mLongPressedItem){
+
+            // Hide VKB
+            vkbClosed();
+            sendSoftwareInputPanelRequest(QEvent::CloseSoftwareInputPanel);
+
             NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageViewer,
                 mStartParam->mailboxId(), mLongPressedItem->envelope().folderId(),
                 mLongPressedItem->envelope().messageId());
@@ -176,7 +224,7 @@ void NmMessageSearchListView::loadViewLayout()
     
     // Use the document loader to load the view layout.
     bool ok(false);
-    setObjectName(QString(NMUI_MESSAGE_SEARCH_LIST_VIEW));
+    setObjectName(QString(NMUI_MESSAGE_SEARCH_VIEW));
     QObjectList objectList;
     objectList.append(this);
 
@@ -184,74 +232,74 @@ void NmMessageSearchListView::loadViewLayout()
     // document loader uses this view when the docml file is parsed.
     if (mDocumentLoader) {
         mDocumentLoader->setObjectTree(objectList);
-        mWidgetList = mDocumentLoader->load(NMUI_MESSAGE_SEARCH_LIST_VIEW_XML, &ok);
+        mWidgetList = mDocumentLoader->load(NMUI_MESSAGE_SEARCH_VIEW_XML, &ok);
     }
 
     if (ok) {
-        // Load the search panel (contains the line edit and the push button
-        // widgets.
-        mLineEdit = qobject_cast<HbLineEdit *>(
-            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_LINE_EDIT));
+        // Load the search panel
+        mSearchPanel = qobject_cast<HbSearchPanel *>(
+            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_PANEL));
 
-        if (mLineEdit) {
-            connect(mLineEdit, SIGNAL(textChanged(QString)), 
-                    this, SLOT(criteriaChanged(QString)));
-        }
-    
-        mPushButton = qobject_cast<HbPushButton *>(
-        mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_PUSH_BUTTON));
+        if (mSearchPanel) {
+            mSearchPanel->setProgressive(false);
+            mSearchPanel->setCancelEnabled(true);
 
-        if (mPushButton) {
-            // button is disabled when line edit is empty
-            mPushButton->setEnabled(false);
+            foreach(QGraphicsItem *obj, mSearchPanel->childItems()) {
+                QGraphicsWidget *const widget = static_cast<QGraphicsWidget *>(obj);
+                if (widget) {
+                    QString objectName(widget->objectName());
+                    if (objectName == NmSearchListViewProgressButton) {
+                        mProgressButton = qobject_cast<HbPushButton *>(widget);
+                        mProgressButton->setIcon(HbIcon("qtg_mono_search"));
+                        mProgressButton->setEnabled(false);
+                    }
+                    else if(objectName == NmSearchListViewLineEdit) {
+                        mLineEdit = qobject_cast<HbLineEdit *>(widget);
+                        mLineEdit->setInputMethodHints(Qt::ImhNoPredictiveText);
+                        connect(mLineEdit, SIGNAL(textChanged(const QString &)),
+                                this, SLOT(textChanged(const QString &)));
+                    }
+                }
+            }
 
-            // The push button both starts and stops the search.
-            connect(mPushButton, SIGNAL(clicked()), this, SLOT(toggleSearch()));
-            mPushButton->setIcon(HbIcon("qtg_mono_search"));
-        }
+            connect(mSearchPanel, SIGNAL(criteriaChanged(const QString &)),
+                    this, SLOT(toggleSearch()));
 
-        // Load the info label.
-        mInfoLabel = qobject_cast<HbGroupBox *>(
-            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_INFO_LABEL));
+            connect(mSearchPanel, SIGNAL(exitClicked()),
+                    this, SLOT(exitClicked()), Qt::QueuedConnection);
 
-        if (mInfoLabel) {
-            NM_COMMENT("NmMessageSearchListView: info label loaded");
-
-            // If the heading is empty, the widget will not be shown which in
-            // turn would ruin the layout.
-            mInfoLabel->setHeading(" ");
         }
 
         // Get the message list widget.
-        mMessageListWidget = qobject_cast<HbTreeView *>(
-            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_TREE_LIST));
+        mMessageList = qobject_cast<HbTreeView *>(
+            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_MESSAGE_TREE_LIST));
 
-        if (mMessageListWidget) {
+        if (mMessageList) {
             NM_COMMENT("NmMessageSearchListView: message list widget loaded");
 
             // Set the item prototype.
-            mMessageListWidget->setItemPrototype(new NmMessageListViewItem());
+            mMessageList->setItemPrototype(new NmMessageListViewItem());
 
             // Set the list widget properties.
-            mMessageListWidget->setItemRecycling(true);
-            mMessageListWidget->contentWidget()->setProperty("indentation", 0);
-            mMessageListWidget->setScrollDirections(Qt::Vertical);
-            mMessageListWidget->setClampingStyle(HbScrollArea::BounceBackClamping);
-            mMessageListWidget->setFrictionEnabled(true);
-            mMessageListWidget->setItemPixmapCacheEnabled(true);
+            mMessageList->setItemRecycling(true);
+            mMessageList->contentWidget()->setProperty("indentation", 0);
+            mMessageList->setScrollDirections(Qt::Vertical);
+            mMessageList->setClampingStyle(HbScrollArea::BounceBackClamping);
+            mMessageList->setFrictionEnabled(true);
+            mMessageList->setItemPixmapCacheEnabled(true);
             
             // We want the search results to appear one by one.
-            mMessageListWidget->setEnabledAnimations(HbAbstractItemView::Appear &
-                                                     HbAbstractItemView::Expand);
+            mMessageList->setEnabledAnimations(HbAbstractItemView::Appear &
+                HbAbstractItemView::Expand);
         }
 
         // Load the no messages label.
         mNoMessagesLabel = qobject_cast<HbLabel *>(
-            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_LIST_NO_MESSAGES));
+            mDocumentLoader->findWidget(NMUI_MESSAGE_SEARCH_NO_MESSAGES));
 
         if (mNoMessagesLabel) {
             NMLOG("NmMessageSearchListView: No messages label loaded.");
-            mNoMessagesLabel->hide();
+            mNoMessagesLabel->setMaximumHeight(0);
         }
     }
     else {
@@ -268,14 +316,14 @@ void NmMessageSearchListView::initTreeView()
     NM_FUNCTION;
     
     // Get the mailbox widget pointer and set the parameters.
-    if (mMessageListWidget) {
-        connect(mMessageListWidget, SIGNAL(activated(const QModelIndex &)),
+    if (mMessageList) {
+        connect(mMessageList, SIGNAL(activated(const QModelIndex &)),
                 this, SLOT(itemActivated(const QModelIndex &)));
 
-        connect(mMessageListWidget, SIGNAL(longPressed(HbAbstractViewItem*, QPointF)),
+        connect(mMessageList, SIGNAL(longPressed(HbAbstractViewItem*, QPointF)),
                 this, SLOT(showItemContextMenu(HbAbstractViewItem*, QPointF)));
 
-        mMessageListWidget->setFocus();
+        mMessageList->setFocus();
         mItemContextMenu = new HbMenu();
     }
 
@@ -314,60 +362,42 @@ void NmMessageSearchListView::noMessagesLabelVisibility(bool visible)
     
     if (visible) {
         // Hide the message list widget and display the "no messages" label.
-        if (mMessageListWidget) {
-            mMessageListWidget->hide();
+        if (mMessageList) {
+            mMessageList->setMaximumHeight(0);
+            mMessageList->hide();
         }
 
         if (mNoMessagesLabel && !mNoMessagesLabel->isVisible()) {
+            mNoMessagesLabel->setMaximumHeight(QWIDGETSIZE_MAX);
             mNoMessagesLabel->show();
         }
     }
     else {
         // Hide the "no messages" label and display the message list widget.
         if (mNoMessagesLabel && mNoMessagesLabel->isVisible()) {
+            mNoMessagesLabel->setMaximumHeight(0);
             mNoMessagesLabel->hide();
         }
 
-        if (mMessageListWidget) {
-            mMessageListWidget->show();
+        if (mMessageList) {
+            mMessageList->setMaximumHeight(QWIDGETSIZE_MAX);
+            mMessageList->show();
         }
     }
 }
 
 
 /*!
-    Updates the search result count information. If the message list does not
-    contain any items, a "no messages" label is displayed. Otherwise the result
-    count in the information label is updated according to the number of
-    messages in the list.
+    Shows no messages label if no matching messages were found.
 */
-void NmMessageSearchListView::updateSearchResultCountInfo()
+void NmMessageSearchListView::updateResultView()
 {
     NM_FUNCTION;
 
-    const int resultCount = mMsgListModel.rowCount();
-
-    if (resultCount) {
-        if (mInfoLabel) {
-            // Display the result count on the info label.
-            QString resultsString(hbTrId("txt_mail_list_search_results",resultCount));
-            mInfoLabel->setHeading(resultsString);
-
-            if (!mInfoLabel->isVisible()) {
-                mInfoLabel->show();
-            }
-        }
-    }
-    else {
-        // No search results!
-        if (mInfoLabel && mInfoLabel->isVisible()) {
-            mInfoLabel->hide();
-        }
-
-        // Display the "no messages" label and highlight the search term.
+    if (mMsgListModel.rowCount() < 1) {
+        // Display the "no messages".
         noMessagesLabelVisibility(true);
     }
-    
 }
 
 
@@ -379,29 +409,21 @@ void NmMessageSearchListView::updateSearchResultCountInfo()
 void NmMessageSearchListView::setSearchInputMode(NmSearchInputMode mode)
 {
     NM_FUNCTION;
-    
+
     if (!mLineEdit) {
         // No line edit widget!
         return;
     }
 
-    switch (mode) {
-        case NmNormalMode: {
-            mLineEdit->setEnabled(true);
-            break;
-        }
-        case NmHighlightedMode: {
-            mLineEdit->setEnabled(true);
-            mLineEdit->setFocus();
-            break;
-        }
-        case NmDimmedMode: {
-            mLineEdit->setEnabled(false);
-            break;
-        }
+    if (mode == NmNormalMode) {
+        mLineEdit->setEnabled(true);
+        mLineEdit->setFocus();
+    }
+    else {
+        mLineEdit->setEnabled(false);
+        mLineEdit->deselect();
     }
 }
-
 
 /*!
     From NmBaseView.
@@ -437,31 +459,6 @@ void NmMessageSearchListView::reloadViewContents(NmUiStartParam *startParam)
     }
 }
 
-
-/*!
-    Called when text is changed in the edit field. If there is no search term
-    in the edit field, the search button is dimmed and disabled. If the field
-    contains text, the button can be clicked.
-    
-    \param text The text in the field after the modification.
-*/
-void NmMessageSearchListView::criteriaChanged(QString text) 
-{
-    NM_FUNCTION;
-    NM_COMMENT(QString("NmMessageSearchListView::criteriaChanged %1").arg(text));
-    
-    // Check if the button should be disabled/enabled.
-    bool enabled = mPushButton->isEnabled();
-
-    if (!enabled && !text.isEmpty()) {
-        mPushButton->setEnabled(true);
-    }
-    else if (enabled && text.isEmpty()) {
-        mPushButton->setEnabled(false);
-    }
-}
-
-
 /*!
     Displays the item context menu. This method gets called if an item on the
     list is long pressed.
@@ -471,6 +468,11 @@ void NmMessageSearchListView::showItemContextMenu(
 {
     NM_FUNCTION;
     
+    // Stop search.
+    if (mSearchInProgress) {
+        toggleSearch();
+    }
+
     // Store long press item for later use with response.
     mLongPressedItem = 
         mMsgListModel.data(listViewItem->modelIndex(),
@@ -544,6 +546,10 @@ void NmMessageSearchListView::handleSelection()
             mStartParam->mailboxId(), modelItem->envelope().folderId(),
             modelItem->envelope().messageId());
 
+        // Hide VKB
+        vkbClosed();
+        sendSoftwareInputPanelRequest(QEvent::CloseSoftwareInputPanel);
+
         mApplication.enterNmUiView(startParam);
     }
 }
@@ -563,24 +569,24 @@ void NmMessageSearchListView::itemsAdded(const QModelIndex &parent, int start, i
     // The search is an asynchronous operation. If a user stops the search, it
     // might take a short while before the search is actually stopped and during
     // this time it is possible that messages matching the search are added.
-    // Therefore, update the result count info if items are added after the
+    // Therefore, update is needed if items are added after the
     // search has been stopped by the user.
     if (!mSearchInProgress) {
-        updateSearchResultCountInfo();
+        updateResultView();
     }
 
-    if (!start && mMessageListWidget) {
-        QList<HbAbstractViewItem*> items = mMessageListWidget->visibleItems();
+    if (!start && mMessageList) {
+        QList<HbAbstractViewItem*> items = mMessageList->visibleItems();
 
         if (items.count()) {
             QModelIndex index = items.at(0)->modelIndex();
 
             while (index.row() > 0) {
                 QModelIndex previous =
-                    mMessageListWidget->modelIterator()->previousIndex(index);
+                    mMessageList->modelIterator()->previousIndex(index);
 
                 if (previous.isValid()) {
-                    mMessageListWidget->scrollTo(previous);
+                    mMessageList->scrollTo(previous);
                 }
 
                 index = previous;
@@ -592,15 +598,14 @@ void NmMessageSearchListView::itemsAdded(const QModelIndex &parent, int start, i
 
 /*!
     This method gets called when an item is removed from the list. If the
-    search has completed (or stopped), the search result count information is
-    updated according to the number of messages in the list.
+    search has completed (or stopped), the search results needs to be updated.
 */
 void NmMessageSearchListView::itemsRemoved()
 {
     NM_FUNCTION;
     
     if (!mSearchInProgress) {
-        updateSearchResultCountInfo();
+        updateResultView();
     }
 }
 
@@ -612,10 +617,9 @@ void NmMessageSearchListView::refreshList()
 {
     NM_FUNCTION;
     
-    if (mMessageListWidget) {
+    if (mMessageList) {
         // Set the model.
-        mMessageListWidget->setModel(
-            static_cast<QStandardItemModel*>(&mMsgListModel));
+        mMessageList->setModel(static_cast<QStandardItemModel*>(&mMsgListModel));
 
         // Connect the signals.
         connect(&mMsgListModel, SIGNAL(rowsInserted(const QModelIndex&, int, int)),
@@ -627,13 +631,6 @@ void NmMessageSearchListView::refreshList()
         connect(&mMsgListModel, SIGNAL(setNewParam(NmUiStartParam*)),
                 this, SLOT(reloadViewContents(NmUiStartParam*)), Qt::UniqueConnection);
     }
-
-    // The info label cannot be hidden when constructed because doing so would
-    // ruin the layout (for example the line edit widget's width would be too
-    // short in lanscape).
-    if (mInfoLabel) {
-        mInfoLabel->hide();
-    }
 }
 
 
@@ -644,7 +641,7 @@ void NmMessageSearchListView::refreshList()
     starts an asynchronous search. Any previous search results are removed from
     the search list.
 
-    Stops search: Sets the number of search results into the info label.
+    Stops search: shows no messages label if no matching messages were found.
 */
 void NmMessageSearchListView::toggleSearch()
 {
@@ -668,34 +665,34 @@ void NmMessageSearchListView::toggleSearch()
         // Get the search input and start the search.
         QStringList searchStrings;
 
-        if (mLineEdit) {
-            searchStrings.append(mLineEdit->text());
+        if (mSearchPanel) {
+            searchStrings.append(mSearchPanel->criteria());
         }
-
-        mUiEngine.search(mStartParam->mailboxId(), searchStrings);
 
         // Hide the virtual keyboard
-        QInputContext *ic = qApp->inputContext();
-        if (ic) {
-            QEvent *closeEvent = new QEvent(QEvent::CloseSoftwareInputPanel);
-            ic->filterEvent(closeEvent);
-            delete closeEvent;
-        }
-        
+        sendSoftwareInputPanelRequest(QEvent::CloseSoftwareInputPanel);
+
         // Hide the "no messages" label if visible and dim the search input.
         noMessagesLabelVisibility(false);
         setSearchInputMode(NmDimmedMode);
 
-        // Display the info label.
-        if (mInfoLabel) {
-            mInfoLabel->setHeading(hbTrId("txt_mail_list_searching"));
-            mInfoLabel->show();
+        // Change "Go" button icon to spinner.
+        if (mProgressButton) {
+            // Create icon if not created yet.
+            if (!mSpinnerIcon) {
+                // Select one picture if animation loading has failed.
+                QString iconName = NmSearchListViewSpinnerImage;
+                if (mAnimationAddedToManger) {
+                    iconName = NmSearchListViewSpinnerAnimation;
+                }
+                mSpinnerIcon = new HbIcon(iconName);
+                mSpinnerIcon->setFlags(HbIcon::Colorized);
+            }
+            mProgressButton->setIcon(*mSpinnerIcon);
         }
 
-        // Change the push button text.
-        if (mPushButton) {
-            mPushButton->setIcon(HbIcon("qtg_mono_search_stop"));
-        }
+        // Start search
+        mUiEngine.search(mStartParam->mailboxId(), searchStrings);
     }
 }
 
@@ -711,26 +708,131 @@ void NmMessageSearchListView::handleSearchComplete()
     
     mSearchInProgress = false;
     
-    // Change the push button text.
-    if (mPushButton) {
-        mPushButton->setIcon(HbIcon("qtg_mono_search"));
+    // Change search button icon to magnifying glass.
+    if (mProgressButton) {
+        mProgressButton->setIcon(HbIcon("qtg_mono_search"));
     }
 
-    // Display the search result count.
-    updateSearchResultCountInfo();
+    // Update result view. Shows no message label if no matching messages were found.
+    updateResultView();
 
-    const int resultCount = mMsgListModel.rowCount();
+    // Undim the search input.
+    setSearchInputMode(NmNormalMode);
 
-    if (resultCount) {
-        // Undim the search input.
-        setSearchInputMode(NmNormalMode);
-    }
-    else {
-        // Highlight the search field.
+    // In no matching messages were found. Show no messages label and open VKB.
+    if (mMsgListModel.rowCount() < 1) {
         noMessagesLabelVisibility(true);
-        setSearchInputMode(NmHighlightedMode);
+
+        sendSoftwareInputPanelRequest(QEvent::RequestSoftwareInputPanel);
+
+        // Select text
+        mLineEdit->selectAll();
     }
 }
 
+/*!
+    By default search button is disabled but when some text is
+    written to search field, the search button is enabled. When search field is
+    erased, button is disabled.
+
+    \param text chaged text.
+*/
+void NmMessageSearchListView::textChanged(const QString &text)
+{
+    NM_FUNCTION;
+
+    if (!text.isEmpty()) {
+        if (!mProgressButton->isEnabled()) {
+            mProgressButton->setEnabled(true);
+        }
+    }
+    else {
+        if (mProgressButton->isEnabled()) {
+            mProgressButton->setEnabled(false);
+        }
+    }
+}
+
+/*!
+    When exit button is clicked, trigger back navigation action
+    which closes the search view.
+*/
+void NmMessageSearchListView::exitClicked()
+{
+    NM_FUNCTION;
+
+    navigationAction()->activate(QAction::Trigger);
+}
+
+/*!
+    Called before orientation chages. Checks if search criteria text
+    needs to be selected after the orientation has changed.
+*/
+void NmMessageSearchListView::orientationAboutToChange()
+{
+    NM_FUNCTION;
+
+    HbVkbHostBridge *instance = HbVkbHostBridge::instance();
+    if (instance &&
+        instance->keypadStatus() == HbVkbHost::HbVkbStatusOpened &&
+        mLineEdit &&
+        mLineEdit->hasSelectedText()) {
+        mSelectTextAfterOrientationChange = true;
+    }
+}
+
+/*!
+    Called when orientation has changed. Selects search criteria text if needed.
+    \sa  NmMessageSearchListView::orientationAboutToChange()
+*/
+void NmMessageSearchListView::orientationChanged()
+{
+    NM_FUNCTION;
+    if (mSelectTextAfterOrientationChange) {
+        mLineEdit->selectAll();
+        mSelectTextAfterOrientationChange = false;
+    }
+
+}
+
+/*!
+    Sends event to software input panel (VKB).
+
+    Used event types:
+    QEvent::RequestSoftwareInputPanel(opens VKB)
+    QEvent::CloseSoftwareInputPanel(closes VKB)
+*/
+void NmMessageSearchListView::sendSoftwareInputPanelRequest(QEvent::Type eventType)
+{
+    NM_FUNCTION;
+
+    QInputContext *ic = qApp->inputContext();
+    if (ic) {
+        QScopedPointer<QEvent> event(new QEvent(eventType));
+        ic->filterEvent(event.data());
+    }
+}
+
+/*!
+    Called when virtual keyboard is about to open.
+*/
+void NmMessageSearchListView::vkbOpened()
+{
+    NM_FUNCTION;
+
+    setContentFullScreen(true);
+    hideItems(Hb::ToolBarItem);
+}
+
+/*!
+    Called when virtual keyboard is about to close.
+*/
+void NmMessageSearchListView::vkbClosed()
+{
+    NM_FUNCTION;
+
+    setContentFullScreen(false);
+    showItems(Hb::ToolBarItem);
+}
 
 // End of file.

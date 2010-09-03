@@ -20,6 +20,7 @@
 
 #include <QStack>
 #include <QObject>
+#include <hbapplication.h>
 
 #include "nmuiviewids.h"
 
@@ -39,12 +40,15 @@ class NmAttachmentManager;
 class NmSettingsViewLauncher;
 class NmUiEffects;
 class HbMessageBox;
+class QTimer;
 
-class NmApplication : public QObject
+class NmApplication : public HbApplication
 {
     Q_OBJECT
 public:
-    NmApplication(QObject *parent, quint64 accountId=0);
+    
+    NmApplication(int &argc, char *argv[],
+                   Hb::ApplicationFlags flags = Hb::DefaultApplicationFlags );
     ~NmApplication();
     void enterNmUiView(NmUiStartParam *startParam);
     HbMainWindow* mainWindow();
@@ -102,6 +106,8 @@ private:
     bool mBackButtonPressed;
     NmId mCurrentMailboxId;
     bool mApplicationHidden;
+    QTimer* mErrorNoteTimer;                // Owned
+    NmId mLastErrorMailboxId;
 };
 
 #endif // NMAPPLICATION_H

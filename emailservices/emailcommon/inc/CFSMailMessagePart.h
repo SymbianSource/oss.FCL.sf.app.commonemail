@@ -266,7 +266,19 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      * @return content file handle 
      */
      IMPORT_C RFile GetContentFileL();
-       
+        
+    /**
+     * copies contents of this message part to given file
+     *
+     * @param aContentLocation defines file location as 
+     * a) directory, when plugin finds out corresponding file name
+     *    related to this part id, in this case last character should
+     *    be '/'
+     * b) directory & filename, when both directory and file name
+     *    are given by user
+     * 
+     */        
+     IMPORT_C void CopyContentFileL(const TDesC& aContentLocation);
     
     /**
      * returns email part full content size (in bytes)
@@ -293,6 +305,20 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
      * @param aContentSize content size to be set
      */
      IMPORT_C void SetFetchedContentSize(TUint aContentSize);
+
+    /**
+     * returns email part content current fetch state
+     * Intended as utility function for UI.
+     * If (0 == FetchedContentSize())
+     *    return EFSNone;
+     * else if (FetchedContentSize() < ContentSize()) then
+     *    return EFSPartial
+     * else
+     *    return EFSFull
+     *
+     * @return email fetch state (EFSNone / EFSPartial / EFSFull)
+     */
+     IMPORT_C TFSPartFetchState FetchLoadState() const;
 
     /**
      * copies email part contents to buffer given by user

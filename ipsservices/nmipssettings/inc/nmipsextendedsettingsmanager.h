@@ -18,7 +18,7 @@
 #ifndef NMIPSEXTENDEDSETTINGSMANAGER_H
 #define NMIPSEXTENDEDSETTINGSMANAGER_H
 
-#include <qvariant.h>
+#include <QVariant>
 #include "nmipssettingitems.h"
 
 class NmId;
@@ -30,7 +30,7 @@ class NmIpsExtendedSettingsManager
 public:
     NmIpsExtendedSettingsManager(const NmId &mailboxId);
     virtual ~NmIpsExtendedSettingsManager();
-    
+
     bool readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue) const;
     bool writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue);
     bool writeSetting(int profileMode, IpsServices::SettingItem settingItem, const QVariant &settingValue);

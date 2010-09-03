@@ -163,4 +163,6 @@ EXPORTS
 	_ZN20NmAttachmentListItem10setPressedEb @ 162 NONAME
 	_ZN22NmAttachmentListWidget10checkColorEv @ 163 NONAME
 	_ZN22NmAttachmentListWidget11changeEventEP6QEvent @ 164 NONAME
+	_ZN20NmAttachmentListItem18setBackgroundColorE6QColor @ 165 NONAME
+	_ZN22NmAttachmentListWidget18setBackgroundColorE6QColor @ 166 NONAME
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007-2008 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -50,87 +50,63 @@ NONSHARABLE_CLASS ( CFSMailPluginManager ) : public CFSMailRequestHandler
 
 public:
 
-  
+
     /**
      * destructor
-     */  
+     */
   	 ~CFSMailPluginManager();
 
     /**
      * two based constructor
      */
   	 static CFSMailPluginManager* NewL(TInt aConfiguration);
-  	
+
     /**
      * two based constructor
      */
   	 static CFSMailPluginManager* NewLC(TInt aConfiguration);
 
     /**
-     * adds new plugin to plugin list
-     *
-     */  
-	 void AppendPluginL(CFSMailPlugin* aPlugin,CImplementationInformation* aPluginInfo);
-
-    /**
      * returns plugin pointer by plugin table index
      *
      * @return plugin pointer
-     */  
+     */
 	 CFSMailPlugin* GetPluginByIndex(TUint aIndex);
 
     /**
-     * get plugin id by plugin table index
-     *
-     */  
-	 TUid GetPluginIdByIndex(TUint aIndex);
-	 	 
-    /**
      * returns count of existing plugins
      *
-     */  
-	 TUint GetPluginCount( );
-	 
-    /**
-     * loads plugin identified by plugin id
-     *
-     */  
-	 void LoadPluginL(TUid aPluginId);
+     */
+	 TUint GetPluginCount();
 
-    /**
-     * list ids of existing plugins
-     *
-     */  
-	 void ListPlugins( RArray<TUid>& aPluginList );
-	 
     /**
      * lists plugin pointers & plugin info
      *
-     */  
+     */
 	 void ListImplementationsL( RPointerArray<CFSMailPlugin>& aImplementations,
 	                            RPointerArray<CImplementationInformation>& aInfo );
-									 
+
 protected:
 
     /**
      * C++ default constructor.
      *
      */
- 
+
   	 CFSMailPluginManager();
 
     /**
      * ConstructL
      */
 	void ConstructL(TInt aConfiguration);
-	
+
 private: // data
 
-    /** plugin information table */  
+    /** plugin information table */
 	 RPointerArray<CImplementationInformation> 	iPluginInfo;
-	 
+
     };
-    
+
 
 #endif  // CFSMAILPLUGINMANAGER_H
 

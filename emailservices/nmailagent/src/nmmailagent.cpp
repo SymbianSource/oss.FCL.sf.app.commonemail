@@ -243,43 +243,43 @@ void NmMailAgent::initMailboxStatus()
             mPluginFactory->interfaceInstance(pluginObject);
         if (plugin) {
             plugin->listMailboxes(mailboxes);
-        }
-
-        // Add the indicators
-        // Must be made in reverse order to show them properly in
-        // HbIndicator menu
-        QListIterator<NmMailbox *> i(mailboxes);
-        i.toBack();
-        while (i.hasPrevious()) {
-            const NmMailbox *mailbox = i.previous();
-            if (mailbox) {
-                NmMailboxInfo *mailboxInfo = createMailboxInfo(*mailbox, plugin);
-                if (mailboxInfo) {
-                    bool activate = updateUnreadCount(mailbox->id(), *mailboxInfo);
-                    NM_COMMENT(QString("Mailbox %1 initial state: newUnread=%2 total=%3").
-                        arg(mailboxInfo->mName).
-                        arg(mailboxInfo->mNewUnreadMailIdList.count()).
-                        arg(mailboxInfo->mMailIdList.count()));
-
-                    bool wasActive = isMailboxActive(mailbox->id());
-                    if (!wasActive) {
-                        // do not activate the mailbox if it was left as hidden last time
-                        activate = false;
-                        mailboxInfo->mNewUnreadMailIdList.clear();
+            
+            // Add the indicators
+            // Must be made in reverse order to show them properly in
+            // HbIndicator menu
+            QListIterator<NmMailbox *> i(mailboxes);
+            i.toBack();
+            while (i.hasPrevious()) {
+                const NmMailbox *mailbox = i.previous();
+                if (mailbox) {
+                    NmMailboxInfo *mailboxInfo = createMailboxInfo(*mailbox, plugin);
+                    if (mailboxInfo) {
+                        bool activate = updateUnreadCount(mailbox->id(), *mailboxInfo);
+                        NM_COMMENT(QString("Mailbox %1 initial state: newUnread=%2 total=%3").
+                            arg(mailboxInfo->mName).
+                            arg(mailboxInfo->mNewUnreadMailIdList.count()).
+                            arg(mailboxInfo->mMailIdList.count()));
+    
+                        bool wasActive = isMailboxActive(mailbox->id());
+                        if (!wasActive) {
+                            // do not activate the mailbox if it was left as hidden last time
+                            activate = false;
+                            mailboxInfo->mNewUnreadMailIdList.clear();
+                        }
+    
+                        mailboxInfo->mOutboxMails = getOutboxCount(mailbox->id(),
+                            mailboxInfo->mOutboxFolderId);
+                        if (mailboxInfo->mOutboxMails > 0 && wasActive) {
+                            activate = true;
+                        }
+    
+                        // Create indicator for visible mailboxes
+                        updateMailboxState(mailbox->id(), activate, false);
                     }
-
-                    mailboxInfo->mOutboxMails = getOutboxCount(mailbox->id(),
-                        mailboxInfo->mOutboxFolderId);
-                    if (mailboxInfo->mOutboxMails > 0 && wasActive) {
-                        activate = true;
-                    }
-
-                    // Create indicator for visible mailboxes
-                    updateMailboxState(mailbox->id(), activate, false);
                 }
             }
+            qDeleteAll(mailboxes);
         }
-        qDeleteAll(mailboxes);
     }
     updateUnreadIndicator();
     updateSendIndicator();
@@ -468,7 +468,7 @@ bool NmMailAgent::updateMailboxState(const NmId &mailboxId,
         }
         else {
             // Indicator not anymore active. Release it.
-            if (mailboxInfo->mIndicatorIndex>=0) {
+            if (mailboxInfo->mIndicatorIndex >= 0) {
                 updateIndicator(false,*mailboxInfo);
                 mailboxInfo->mIndicatorIndex = NmAgentIndicatorNotSet;
             }
@@ -706,37 +706,39 @@ void NmMailAgent::handleMessageDeletedEvent(const NmId &folderId, const QList<Nm
     
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
 
-    if (mailboxInfo && folderId == mailboxInfo->mInboxFolderId) {
-        mailboxInfo->mInboxDeletedMessages++;
+    if (mailboxInfo) {
+        if (folderId == mailboxInfo->mInboxFolderId) {
+            mailboxInfo->mInboxDeletedMessages++;
 
-        // Clear the IDs from 'new unread messages' list
-        foreach (NmId messageId, messageIds) {
-            mailboxInfo->mNewUnreadMailIdList.removeAll(messageId);
+            // Clear the IDs from 'new unread messages' list
+            foreach (NmId messageId, messageIds) {
+                mailboxInfo->mNewUnreadMailIdList.removeAll(messageId);
+             }
+
+            // All new unread messages are now deleted
+            if (mailboxInfo->mNewUnreadMailIdList.count()==0) {
+                NM_COMMENT(" No more new unread messages");
+                updateUnreadIndicator();
+                updateMailboxState(mailboxId);
+            }
         }
 
-        // All new unread messages are now deleted
-        if (mailboxInfo->mNewUnreadMailIdList.count()==0) {
-            NM_COMMENT(" No more new unread messages");
-            updateUnreadIndicator();
+        // Deleted mails from the outbox
+        if (mailboxInfo->mOutboxFolderId == folderId) {
+            mailboxInfo->mOutboxMails -= messageIds.count();
+
+            // Sanity check for the outbox count
+            if (mailboxInfo->mOutboxMails < 0) {
+                mailboxInfo->mOutboxMails = 0;
+            }
+
+            // The last mail was now deleted from outbox
+            if (mailboxInfo->mOutboxMails == 0) {
+                NM_COMMENT("NmMailAgent: last mail deleted from outbox");
+                updateSendIndicator();
+            }
             updateMailboxState(mailboxId);
         }
-    }
-
-    // Deleted mails from the outbox
-    if (mailboxInfo->mOutboxFolderId == folderId) {
-        mailboxInfo->mOutboxMails -= messageIds.count();
-
-        // Sanity check for the outbox count
-        if (mailboxInfo->mOutboxMails < 0) {
-            mailboxInfo->mOutboxMails = 0;
-        }
-
-        // The last mail was now deleted from outbox
-        if (mailboxInfo->mOutboxMails == 0) {
-            NM_COMMENT("NmMailAgent: last mail deleted from outbox");
-            updateSendIndicator();
-        }
-        updateMailboxState(mailboxId);
     }
 }
 
@@ -754,10 +756,10 @@ int NmMailAgent::getFreeIndicatorIndex()
     do {
         found = false;
         foreach (NmMailboxInfo *mailbox, mMailboxes) {
-            if (mailbox->mIndicatorIndex == index &&
-                mailbox->mActive) {
+            if (mailbox->mIndicatorIndex == index) {
                 found = true;
                 index++;
+                break;
             }
         }
     }

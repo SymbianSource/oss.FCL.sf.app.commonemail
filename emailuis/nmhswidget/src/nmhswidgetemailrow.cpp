@@ -334,9 +334,8 @@ void NmHsWidgetEmailRow::setFontsSize( bool read )
         mTimeLabel->fontSpec().setRole(HbFontSpec::Secondary);
     }  
     
-    HbStyle style;
     qreal size;
-    bool found = style.parameter(QString("hb-param-text-height-secondary"), size );
+    bool found = style()->parameter(QString("hb-param-text-height-secondary"), size );
     if (found) {
         fontSpec.setTextHeight(size);
     }

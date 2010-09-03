@@ -74,7 +74,7 @@ CContainerStoreEncryption::~CContainerStoreEncryption()
 TBool CContainerStoreEncryption::Authenticated()
     {
     //always return true if authentication is not required
-    return ( iCryptoLibrary != NULL || !iAuthenticationRequired ); 
+    return ( iCryptoLibrary || !iAuthenticationRequired ); 
     } // end Authenticated
 
 // ==========================================================================
