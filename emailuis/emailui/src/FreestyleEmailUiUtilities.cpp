@@ -3020,10 +3020,10 @@ void TFsEmailUiUtility::BringFsEmailToForeground()
 // -----------------------------------------------------------------------------
 //
 HBufC* TFsEmailUiUtility::CreateDisplayNameLC( const TDesC& aFirstname,
-    const TDesC& aLastname )
+    const TDesC& aLastname, TBool aSwitchOrder )
     {
     FUNC_LOG;
-    return CreateDisplayNameLC( aFirstname, aLastname, KNullDesC );
+    return CreateDisplayNameLC( aFirstname, aLastname, KNullDesC, aSwitchOrder );
     }
 
 // -----------------------------------------------------------------------------
@@ -3031,7 +3031,7 @@ HBufC* TFsEmailUiUtility::CreateDisplayNameLC( const TDesC& aFirstname,
 // -----------------------------------------------------------------------------
 //
 HBufC* TFsEmailUiUtility::CreateDisplayNameLC( const TDesC& aFirstname,
-    const TDesC& aLastname, const TDesC& aEmailField )
+    const TDesC& aLastname, const TDesC& aEmailField, TBool aSwitchOrder )
 	{
     FUNC_LOG;
 	HBufC* displayname = NULL;
@@ -3073,10 +3073,19 @@ HBufC* TFsEmailUiUtility::CreateDisplayNameLC( const TDesC& aFirstname,
             TInt length = aFirstname.Length() + KSpace().Length() 
             		+ aLastname.Length();
             displayname = HBufC::NewLC( length );
-	    displayname->Des().Copy( aFirstname );
-	    displayname->Des().Append( KSpace );
-	    displayname->Des().Append( aLastname );
-	    }
+            if ( aSwitchOrder )
+                {
+                displayname->Des().Copy( aLastname );
+                displayname->Des().Append( KSpace );
+                displayname->Des().Append( aFirstname );
+                }
+            else
+                {
+                displayname->Des().Copy( aFirstname );
+                displayname->Des().Append( KSpace );
+                displayname->Des().Append( aLastname );
+                }
+            }
         }
 
 	return displayname;

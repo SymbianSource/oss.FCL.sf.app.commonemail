@@ -4908,7 +4908,6 @@ void CFsTreeVisualizerBase::WorldUpdatedL(const TWorld& /*aWorld*/)
         {
         UpdatePhysicsL();
         }
-    UpdateScrollBarL();
     }
 
 // ---------------------------------------------------------------------------

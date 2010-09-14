@@ -29,4 +29,5 @@ EXPORTS
 	?AddObserverL@CFSMailClient@@QAEXAAVMFSMailEventObserver@@@Z @ 28 NONAME ; void CFSMailClient::AddObserverL(class MFSMailEventObserver &)
 	?GetMailBoxByUidLC@CFSMailClient@@QAEPAVCFSMailBox@@VTFSMailMsgId@@@Z @ 29 NONAME ; class CFSMailBox * CFSMailClient::GetMailBoxByUidLC(class TFSMailMsgId)
 	?PrepareMrDescriptionL@CFSMailClient@@UAEXABVTFSMailMsgId@@0@Z @ 30 NONAME ; void CFSMailClient::PrepareMrDescriptionL(class TFSMailMsgId const &, class TFSMailMsgId const &)
+	?AreAllPluginsLoaded@CFSMailClient@@QAEHXZ @ 31 NONAME ; int CFSMailClient::AreAllPluginsLoaded(void)
 

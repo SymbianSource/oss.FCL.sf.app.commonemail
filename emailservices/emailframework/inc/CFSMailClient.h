@@ -398,6 +398,14 @@ NONSHARABLE_CLASS(CFSMailClient) : public CExtendableEmail
       */     
      IMPORT_C virtual void PrepareMrDescriptionL( const TFSMailMsgId& aMailBoxId,
                                                   const TFSMailMsgId& aMessageId );
+
+    /**
+     * Checks if plugins are loaded. If they aren't tries to load them
+     * 
+     * Returns ETrue if all plugins are loaded.           
+     */
+     IMPORT_C TBool AreAllPluginsLoaded( );
+
 public: // from  CExtendableEmail
 
     /**

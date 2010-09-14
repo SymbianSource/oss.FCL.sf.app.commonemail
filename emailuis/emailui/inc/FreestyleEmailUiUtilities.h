@@ -277,10 +277,10 @@ public:
 	static void StripDisplayName( HBufC& aDisplayName );
 
     // Creates a displayname of firstname and lastname components
-    static HBufC* CreateDisplayNameLC( const TDesC& aFirstname, const TDesC& aLastname );
+    static HBufC* CreateDisplayNameLC( const TDesC& aFirstname, const TDesC& aLastname, TBool aSwitchOrder = EFalse );
 
     // Creates a displayname of firstname, lastname, emailfield components
-    static HBufC* CreateDisplayNameLC( const TDesC& aFirstname, const TDesC& aLastname, const TDesC& aEmailField );
+    static HBufC* CreateDisplayNameLC( const TDesC& aFirstname, const TDesC& aLastname, const TDesC& aEmailField, TBool aSwitchOrder = EFalse );
     
     /**
      * Determines if the descriptor is a Chinese word

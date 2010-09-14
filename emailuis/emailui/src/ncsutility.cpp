@@ -308,29 +308,37 @@ HBufC* NcsUtility::FormatSubjectLineL(
         TPtr prefixPtr = prefix->Des();
         prefixPtr.Trim();
         
-        TInt subjectLineLength = formattedSubjectLinePtr.Length();
-        TInt length = subjectLineLength;
-        TInt prefixLength = prefixPtr.Length();
         HBufC* fwdPrefix = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_FORWARD_PREFIX );
+        HBufC* rePrefix = StringLoader::LoadLC( R_NCS_ENGINE_EMAIL_REPLY_PREFIX );
         TPtr fwdPrt = fwdPrefix->Des();
-        TInt fwdLength = fwdPrt.Length();
+        TPtr rePtr = rePrefix->Des();
         fwdPrt.Trim();
+        rePtr.Trim();
         
-          for(TInt index = formattedSubjectLinePtr.FindC( prefixPtr ); index != KErrNotFound ; index = formattedSubjectLinePtr.FindC( prefixPtr ))
+        TInt indexRe;
+        TInt indexFw;
+        
+        
+        // Start to analyse the original subject string and remove
+        // all prefixes at the beggining. When no prefix found as
+        // first word, than loop ends
+        do
             {
-                formattedSubjectLinePtr = formattedSubjectLinePtr.RightTPtr( length );
-                length = formattedSubjectLinePtr.Length() - index - prefixLength;
-            }
-           formattedSubjectLinePtr.Trim();
-           
-           for(TInt index = formattedSubjectLinePtr.FindC( fwdPrt) ; index != KErrNotFound  ; index = formattedSubjectLinePtr.FindC( fwdPrt ))
-              {
-                   formattedSubjectLinePtr = formattedSubjectLinePtr.RightTPtr( length );
-                   length = formattedSubjectLinePtr.Length() - index - fwdLength;
-              }
+		    indexRe = formattedSubjectLinePtr.FindC( rePtr );
+			if( indexRe == 0 )
+				{
+				formattedSubjectLinePtr.Delete( indexRe, rePtr.Length() );
+				formattedSubjectLinePtr.Trim();
+				}
 
-           formattedSubjectLinePtr.Trim();
-        
+			indexFw = formattedSubjectLinePtr.FindC( fwdPrt );
+			if( indexFw == 0 )
+				{
+				formattedSubjectLinePtr.Delete( indexFw, rePtr.Length() );
+				formattedSubjectLinePtr.Trim();
+				}
+            }
+        while( !( indexRe != 0 && indexFw != 0)  );
         
         HBufC* finalSubject = HBufC::NewL( formattedSubjectLinePtr.Length() + prefixPtr.Length() + KSpace().Length()  );
         TPtr ptr = finalSubject->Des();
@@ -348,6 +356,7 @@ HBufC* NcsUtility::FormatSubjectLineL(
             ptr.Append( formattedSubjectLinePtr );
         
             }
+        CleanupStack::PopAndDestroy( rePrefix );
         CleanupStack::PopAndDestroy( fwdPrefix );
         CleanupStack::PopAndDestroy( prefix );
         CleanupStack::PopAndDestroy( formattedSubjectLine );

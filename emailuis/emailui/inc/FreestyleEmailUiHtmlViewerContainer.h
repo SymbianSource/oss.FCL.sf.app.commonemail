@@ -353,6 +353,8 @@ private:
     
     void WriteToFileL( const TDesC& aFileName, RBuf& aHtmlText );
 
+    HBufC* CreateModifiedUrlIfNeededL( const TDesC& aUrl );
+    
 private: // data
 
     // Reference to AppUi.

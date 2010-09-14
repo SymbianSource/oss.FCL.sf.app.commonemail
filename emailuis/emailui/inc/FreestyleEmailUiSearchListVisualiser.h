@@ -252,8 +252,6 @@ private:
 	void UpdatePreviewPaneTextForItemL( CFsTreePlainTwoLineItemData* aItemData, CFSMailMessage* aMsgPtr );
 	void FilterPreviewPaneTextL( TDes& aText ) const;
 
-	void SetMskL();
-
     void DoFirstStartL();
 
     void SetHeaderAttributesL();

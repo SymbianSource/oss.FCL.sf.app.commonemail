@@ -2359,13 +2359,21 @@ void CIpsPlgSosBasePlugin::HandleTimerFiredL( const TFSMailMsgId& aMailboxId )
     FUNC_LOG;
     for ( TInt i = 0; i < iActivitytimers.Count(); i++ )
         {
-        // do not disconnect automatically mailboxes that are set to
-        // "connected"
+        // do disconnect automatically mailboxes that are set to
+        // "connected" when time expired
+		// if ConnOpRunning return ETrue, then reset the timer
         if ( iActivitytimers[i]->FSMailboxId().Id() == aMailboxId.Id() )
             {
-            // 0 for request id
-            DisconnectL( iActivitytimers[i]->FSMailboxId(), *this, 0 );
-            }
+		
+				if( !ConnOpRunning( aMailboxId ) )
+					{
+						// 0 for request id
+			            DisconnectL( iActivitytimers[i]->FSMailboxId(), *this, 0 );
+					}else 
+						{
+						iActivitytimers[i]->ResetTimerOperation();
+						}
+            } 
         }
     }
 

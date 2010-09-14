@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007 - 2010 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -1889,18 +1889,20 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
         case EMarkingModeBackgroundIcon:
             {
             TRect mailListRect(iAppUi->LayoutHandler()->GetListRect());
+            TRect appRect;
+            AknLayoutUtils::LayoutMetricsRect(AknLayoutUtils::EApplicationWindow, appRect);            
             if ( mailListRect.Width() > mailListRect.Height() )
                 {
-                iconSize.SetSize( mailListRect.Width(), mailListRect.Width() );            
+                iconSize.SetSize( appRect.Width(), appRect.Width() );            
                 }
             else
                 {
-                iconSize.SetSize( mailListRect.Height(), mailListRect.Height() );            
-                }                
+                iconSize.SetSize( appRect.Height(), appRect.Height() );            
+                }
             AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
                                  EMbmFreestyleemailuiCmail_marking_mode_bg,
                                  EMbmFreestyleemailuiCmail_marking_mode_bg);
-            }
+            }            
             break;
 		case EGridAboutTexture:
 		default:

@@ -172,7 +172,8 @@ CFSEmailUiClsListsHandler::CFSEmailUiClsListsHandler( RFs& aFs, CVPbkContactMana
 	iContactManager( aContactManager ),
 	iClsListObserver( NULL ), 
 	iFs( aFs ),
-	iMailBox ( NULL )
+	iMailBox ( NULL ),
+	iUseLastNameFirstOrder( EFalse )
 	{
     FUNC_LOG;
 	// Nothing
@@ -323,44 +324,29 @@ void CFSEmailUiClsListsHandler::SetSearchSettingsForPcsMatchObserverL()
         }
     searchSettings->SetSearchUrisL(databases);
 
-    // Set displayfields (first name, last name, email addresses)
-    RArray<TInt> displayFields(6);
-    CleanupClosePushL(displayFields);
-    displayFields.AppendL(R_VPBK_FIELD_TYPE_FIRSTNAME); 
-    displayFields.AppendL(R_VPBK_FIELD_TYPE_LASTNAME);
-    displayFields.AppendL(R_VPBK_FIELD_TYPE_EMAILGEN);
-    displayFields.AppendL(R_VPBK_FIELD_TYPE_EMAILHOME);
-    displayFields.AppendL(R_VPBK_FIELD_TYPE_EMAILWORK);
-    searchSettings->SetDisplayFieldsL(displayFields);
-    CleanupStack::Pop(&displayFields);
-    displayFields.Close();
-   
-    // Set the new sort order of data fields
+    // Set displayfields according to sort order
     RArray<TInt> sortOrder;
-    CleanupClosePushL(sortOrder);
-    
-    // change sorting order for Chinese to LNFN
-    if ( User::Language() == ELangPrcChinese )
+    CleanupClosePushL( sortOrder );
+    iRequestHandler->GetSortOrderL( *store1, sortOrder );
+    if ( sortOrder.Count() )
         {
-        sortOrder.AppendL( R_VPBK_FIELD_TYPE_LASTNAME );
-        sortOrder.AppendL( R_VPBK_FIELD_TYPE_FIRSTNAME );
+        iUseLastNameFirstOrder = ( sortOrder[0] == R_VPBK_FIELD_TYPE_LASTNAME );
         }
-    else // default sorting order FN LN
+    else
         {
-        sortOrder.AppendL( R_VPBK_FIELD_TYPE_FIRSTNAME );
-        sortOrder.AppendL( R_VPBK_FIELD_TYPE_LASTNAME );
+        iUseLastNameFirstOrder = EFalse; // default is not to change order
         }
-    
-    sortOrder.AppendL(R_VPBK_FIELD_TYPE_EMAILGEN);
-    sortOrder.AppendL(R_VPBK_FIELD_TYPE_EMAILHOME);
-    sortOrder.AppendL(R_VPBK_FIELD_TYPE_EMAILWORK);
-    iRequestHandler->ChangeSortOrderL(*store1, sortOrder);
-    if ( store2 )
-        {
-        iRequestHandler->ChangeSortOrderL(*store2, sortOrder);
-        }
-
-    CleanupStack::Pop(&sortOrder);
+    RArray<TInt> displayFields( 6 );
+    CleanupClosePushL( displayFields );
+    displayFields.AppendL( sortOrder[0] );
+    if ( sortOrder.Count() >= 1 ) displayFields.AppendL( sortOrder[1] );
+    displayFields.AppendL( R_VPBK_FIELD_TYPE_EMAILGEN );
+    displayFields.AppendL( R_VPBK_FIELD_TYPE_EMAILHOME );
+    displayFields.AppendL( R_VPBK_FIELD_TYPE_EMAILWORK );
+    searchSettings->SetDisplayFieldsL( displayFields );
+    CleanupStack::Pop( &displayFields );
+    CleanupStack::Pop( &sortOrder );
+    displayFields.Close();
     sortOrder.Close();
 
     // Set maximum for search results
@@ -437,3 +423,8 @@ void CFSEmailUiClsListsHandler::OperationErrorL( TInt aErrorCode )
 	iClsListObserver->OperationErrorL( aErrorCode );
 	}
 
+TBool CFSEmailUiClsListsHandler::UseLastNameFirstOrder()
+    {
+    FUNC_LOG;
+    return iUseLastNameFirstOrder;
+    }

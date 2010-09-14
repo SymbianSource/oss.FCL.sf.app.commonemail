@@ -101,7 +101,7 @@ EXPORT_C TBool CFreestyleMessageHeaderURLEventHandler::HandleEventL( const TDesC
                 iUrl = NULL;
                 }
             iUrl = aUri.AllocL();
-            LaunchWebAddressMenuL( );
+            iView.HandleWebAddressCommandL( EFsEmailUiCmdActionsOpenWeb, *iUrl );
             return ETrue;
             }
         //Link wasn't handled

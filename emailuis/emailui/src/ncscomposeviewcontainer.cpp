@@ -400,7 +400,7 @@ void CNcsComposeViewContainer::HandlePointerEventL(
 			   if ( iIsDragging )
 				   {
                     TPoint delta( 0, iPreviousPosition.iY - position.iY );
-                    if ( !iMessageField->SelectionLength() )
+                    if ( !( iMessageField->SelectionLength() || iReadOnlyQuoteField->SelectionLength() ) )
                     		iPhysics->RegisterPanningPosition( delta );
 				   }
                 }

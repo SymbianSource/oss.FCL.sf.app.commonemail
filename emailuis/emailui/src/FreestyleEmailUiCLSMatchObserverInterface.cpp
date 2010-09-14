@@ -259,7 +259,8 @@ void CFSEmailUiClsMatchObserver::HandlePsResultsUpdateL(
 			CleanupStack::PushL( matchSet );
 			
 			// Create display name, this will be used in UI.
-			displayname = TFsEmailUiUtility::CreateDisplayNameLC( firstname, lastname, KNullDesC );
+			displayname = TFsEmailUiUtility::CreateDisplayNameLC( 
+			        firstname, lastname, KNullDesC, iListHandler.UseLastNameFirstOrder() );
 			
 			RArray<TPsMatchLocation> matchLocation;
 			CleanupClosePushL( matchLocation );
@@ -294,7 +295,7 @@ void CFSEmailUiClsMatchObserver::HandlePsResultsUpdateL(
 				// contact does not contain either firstname nor lastname,
 				// the displayname is left empty.
 				displayname = TFsEmailUiUtility::CreateDisplayNameLC(
-					firstname, lastname );
+					firstname, lastname, iListHandler.UseLastNameFirstOrder() );
 				
 				// Create match text field, containing display field and email address
 				HBufC* matchText = HBufC::NewLC( displayname->Length() +

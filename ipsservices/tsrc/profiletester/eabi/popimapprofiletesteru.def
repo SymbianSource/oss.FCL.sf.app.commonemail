@@ -1,0 +1,5 @@
+EXPORTS
+	_Z9LibEntryLR13CTestModuleIf @ 1 NONAME
+	_ZTI13CTimeoutTimer @ 2 NONAME
+	_ZTV13CTimeoutTimer @ 3 NONAME
+

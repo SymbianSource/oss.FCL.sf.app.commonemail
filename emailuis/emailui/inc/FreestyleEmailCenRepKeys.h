@@ -93,6 +93,8 @@ const TUint32 KEmailHideFSHiLightUIFeature          = {0x0000FFFF};
 // PS2 variation
 // one centrep key for every feature, 0 means disabled
 const TUint32 KEmailFeatureSplitScreen                  = {0x00001001};
+const TUint32 KMfEFeatureCertificateBasedAuthentication = {0x00001003};
+const TUint32 KMfEFeatureAdvancedSecurity        	    = {0x00001004};
 
 //
 // TP Wizard repository in the central repository

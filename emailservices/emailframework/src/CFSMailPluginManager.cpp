@@ -140,10 +140,10 @@ TUint CFSMailPluginManager::GetPluginCount( )
 	}
 	
 // -----------------------------------------------------------------------------
-// CFSMailPluginManager::RecheckPlugins
+// CFSMailPluginManager::RecheckPluginsL
 // -----------------------------------------------------------------------------
 
-void CFSMailPluginManager::RecheckPlugins( )
+TBool CFSMailPluginManager::RecheckPluginsL( )
     {
     FUNC_LOG;
     
@@ -177,4 +177,6 @@ void CFSMailPluginManager::RecheckPlugins( )
                 }
             }
         }
+        // return ETrue if all plugins loaded 
+        return ( iPluginInfo.Count() == iPluginList.Count() );
     }

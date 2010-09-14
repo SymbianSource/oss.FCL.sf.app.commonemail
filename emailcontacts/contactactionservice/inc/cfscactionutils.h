@@ -20,9 +20,7 @@
 #define C_FSCACTIONUTILS_H
 
 #include <e32base.h>
-//<cmail>
 #include "mfscactionutils.h"
-//</cmail>
 #include <RPbkViewResourceFile.h>
 
 // FORWARD DECLARATIONS
@@ -238,7 +236,6 @@ private:
      */
     TPtrC GetFileDirL( const TDesC& aFilePath );
     
-    // Fix for EMZG-7M23KX
     /**
      * Find and add resource file to the list maintained by CCoeEnv.
      * Resource file must be deleted (remove from the list) after usage.
@@ -246,6 +243,26 @@ private:
      */
     TInt FindAndAddResourceFileL();
 
+    /**
+     * Helper method that appends a specific field to a buffer of contact 
+     * data.
+     * The method assumes that fsactionutils.rsc resource file has been
+     * already added to CCoeEnv before being called.
+     * 
+     * @param aContact         Buffer to which the field data is appended.
+     * @param aFieldResourceId Id of the field data (which is being added to
+     *                         contact buffer.
+     * @param aStoreContact    Reference to the contact in Phonebook store 
+     *                         from which the field data that is added to
+     *                         contact buffer is fetched.
+     * @param aAddSpace        Whether to add a whitespace before appending
+     *                         the field data to contact buffer.
+     */
+    void AppendFieldToContactL( TDes& aContact,
+            TInt aFieldResourceId,
+            MVPbkStoreContact& aStoreContact,
+            TBool aAddSpace = EFalse );
+    
 private:
     // Private members
 

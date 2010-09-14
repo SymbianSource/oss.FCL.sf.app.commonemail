@@ -130,7 +130,7 @@ EXPORT_C CFSMailBox* CFSMailClient::GetMailBoxByUidL(const TFSMailMsgId aMailBox
 	    }
 	else
 	    {
-        iFWImplementation->GetPluginManager().RecheckPlugins();
+        iFWImplementation->GetPluginManager().RecheckPluginsL();
         plugin = iFWImplementation->GetPluginManager().GetPluginByUid(aMailBoxId);
         if(plugin)
             {
@@ -251,7 +251,10 @@ EXPORT_C TInt CFSMailClient::ListMailBoxes(const TFSMailMsgId aPlugin,
 	CFSMailBox *mailBox = NULL;	
     // </cmail>	
 	
-	iFWImplementation->GetPluginManager().RecheckPlugins();
+	// it is ok to ignore leave of this, because calling this we just ensure 
+	// that all plugins are loaded and if not then it tries to load missing ones.
+	// Anyway we have to continue even not all plugins are loaded.
+	TRAP_IGNORE( iFWImplementation->GetPluginManager().RecheckPluginsL() );
 	
 	if(aPlugin.IsNullId())
 	{
@@ -580,6 +583,16 @@ EXPORT_C void CFSMailClient::PrepareMrDescriptionL(  const TFSMailMsgId& aMailBo
         // set MR description from the plugin
         plugin->PrepareMrDescriptionL( aMailBoxId, aMessageId );
         }  
+    }
+
+// -----------------------------------------------------------------------------
+// CFSMailClient::AreAllPluginsLoaded
+// -----------------------------------------------------------------------------
+EXPORT_C TBool CFSMailClient::AreAllPluginsLoaded( )
+    {
+    TBool result = EFalse;
+    TRAP_IGNORE( result = iFWImplementation->GetPluginManager().RecheckPluginsL( ) );
+    return result; 
     }
 
 // -----------------------------------------------------------------------------

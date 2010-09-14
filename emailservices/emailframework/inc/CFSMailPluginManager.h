@@ -110,10 +110,11 @@ public:
 	                            RPointerArray<CImplementationInformation>& aInfo );
 	
      /**
-      * recheck existing plugins
+      * Recheck existing plugins
       *
+      * Returns ETrue if all plugins loaded.      
       */                 								 
-     void CFSMailPluginManager::RecheckPlugins( );
+     TBool RecheckPluginsL( );
      
 protected:
 

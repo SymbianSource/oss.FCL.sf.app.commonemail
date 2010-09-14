@@ -80,6 +80,16 @@ private:
         // This is final commit, no more incoming changes
         EFinal
         };
+
+     // can't close view if ChildDoActivateL()
+     enum TChildActivationState 
+         {
+         EChildActivationDeactivated,
+         EChildActivationStarted,
+         EChildActivationError,  // error during activation
+         EChildActivationExitRequired, // activation ended, exit the view
+         EChildActivationProcessed
+         };
         
 public:   // constructors and destructor
 
@@ -724,6 +734,8 @@ private: // data
      * Flag indicating that adding attachment dialog is opened.
      */
     TBool iAddingAttachmentDialogOpened;
+    
+    TChildActivationState iChildActivationState;
     };
 
 /**

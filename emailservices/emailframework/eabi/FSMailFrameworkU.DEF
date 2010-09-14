@@ -43,4 +43,5 @@ EXPORTS
 	_ZTV26CFSClientAPIRequestHandler @ 42 NONAME
 	_ZN13CFSMailClient17GetMailBoxByUidLCE12TFSMailMsgId @ 43 NONAME
 	_ZN13CFSMailClient21PrepareMrDescriptionLERK12TFSMailMsgIdS2_ @ 44 NONAME
+	_ZN13CFSMailClient19AreAllPluginsLoadedEv @ 45 NONAME
 

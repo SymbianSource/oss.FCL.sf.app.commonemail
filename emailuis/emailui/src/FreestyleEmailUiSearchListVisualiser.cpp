@@ -443,8 +443,6 @@ void CFSEmailUiSearchListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevVie
 		iAppUi.SetActiveMailboxNameToStatusPaneL();	
 		}
     CAknEnv::Static()->GetCurrentGlobalUiZoom( iCurrentZoomLevel );
-	// Set msk always empty when view is activated.
-	SetMskL();
 	// <cmail>
 	ReScaleUiL(); // In case that Landscape/Portrait has changed.
 	// </cmail>
@@ -1696,8 +1694,6 @@ void CFSEmailUiSearchListVisualiser::StartSearchL()
     sortCriteria.iField = EFSMailSortByDate;
     sortCriteria.iOrder = EFSMailDescending;
    	iSearchOngoing = ETrue;
-	// Model and list is set to be empty, set also MSK to empty
-	SetMskL();
 	// Initialisr TextSearcher
 
 	// Start search.
@@ -1913,9 +1909,6 @@ void CFSEmailUiSearchListVisualiser::MatchFoundL( CFSMailMessage* aMatchMessage 
 				// Set the extendedability and extended size
 		   		iSearchTreeListVisualizer->SetItemsAlwaysExtendedL( EFalse );
 				}
-
-			// Set msk to "Open when first is found".
-			SetMskL();
 			}
 		}
 
@@ -2467,11 +2460,6 @@ void CFSEmailUiSearchListVisualiser::TreeListEventL( const TFsTreeListEvent aEve
                 LaunchStylusPopupMenuL( aPoint );
                 }
             break;
-        case MFsTreeListObserver::EFsTreeListItemWillGetFocused:
-            {
-            SetMskL();
-            break;
-            }
         case MFsTreeListObserver::EFsFocusVisibilityChange:
         	{
         	iAppUi.SetFocusVisibility( EFalse );
@@ -2562,27 +2550,6 @@ TBool CFSEmailUiSearchListVisualiser::CallToSenderL()
 			}
 		}
   return EFalse; //no calling key up will execute Call app
-	}
-
-
-// ---------------------------------------------------------------------------
-// Logic for changing msk
-// ---------------------------------------------------------------------------
-//
-void CFSEmailUiSearchListVisualiser::SetMskL()
-	{
-    FUNC_LOG;
-	if ( iFirstStartCompleted )
-	    {
-	    if ( iSearchList && iSearchList->Count() )
-	        {
-	        ChangeMskCommandL( R_FSE_QTN_MSK_OPEN );
-	        }
-	    else
-	        {
-	        ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
-	        }
-	    }
 	}
 
 //<cmail>

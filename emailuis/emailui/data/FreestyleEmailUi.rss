@@ -979,7 +979,7 @@ RESOURCE AVKON_VIEW r_fsemailui_attachments_view
 RESOURCE AVKON_VIEW r_fsemailui_mail_search_view
     {
     menubar = r_fsemailui_searchlist_menubar;  
-    cba = r_freestyle_emauil_ui_sk_options_back__open;
+    cba = r_freestyle_emauil_ui_sk_options_back;
     }   
 
 RESOURCE AVKON_VIEW r_fsemailui_html_view

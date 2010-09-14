@@ -1043,6 +1043,21 @@ TBool CFsEmailUiHtmlViewerContainer::ResolveLinkL( const TDesC& aUrl,
         }
     else
         {
+        // special handling for such file links that for which corresponding
+        // file is not found in local disk. We try to modify such links to
+        // have http prefix so that browser could open them as they're likely
+        // <href=www...> type tags (i.e., tags missing the scheme) which the
+        // browser control has interpreted as local files
+        HBufC* modifiedUrl = CreateModifiedUrlIfNeededL( aUrl );
+        if ( modifiedUrl )
+            {
+            TBool rVal( ETrue ); 
+            CleanupStack::PushL( modifiedUrl );
+            rVal = iEventHandler->HandleEventL( *modifiedUrl );
+            CleanupStack::PopAndDestroy( modifiedUrl );
+            return rVal;
+            }
+        
         if ( NeedToLaunchBrowserL( aUrl ) )
             {
             LaunchBrowserL( aUrl );
@@ -2165,6 +2180,42 @@ void CFsEmailUiHtmlViewerContainer::WriteToFileL(const TDesC& aFileName, RBuf& a
     CleanupStack::PopAndDestroy( content8 );
     }
 
+HBufC* CFsEmailUiHtmlViewerContainer::CreateModifiedUrlIfNeededL( 
+        const TDesC& aUrl )
+    {
+    _LIT( KFileLink, "file:///");        
+    HBufC* modifiedUrl = NULL;
+    
+    // check if this really is file-URL
+    if ( aUrl.Left( KFileLink().Length() ).CompareF( KFileLink ) == 0 )
+        {
+        // convert URL-style slashes to backslashes
+        _LIT( KBackslash, "\\" );
+        HBufC* url = aUrl.Mid( KFileLink().Length() ).AllocLC();
+        TPtr urlPtr = url->Des();
+        for ( TInt pos = urlPtr.Locate('/'); pos >= 0; pos = urlPtr.Locate('/') )
+            {
+            urlPtr.Replace( pos, 1, KBackslash );
+            }
+        // check if the file exists, if not convert the file-URL to http-URL
+        // (i.e., remove the whole path and replace the prefix with "http:")
+        if ( !BaflUtils::FileExists( iFs, *url ) )
+            {
+            TInt pos = url->FindF( iTempHtmlFolderPath );
+            if ( pos >= 0 )
+                {
+                _LIT( KHttpPrefix, "http://" );
+                TPtrC filename = url->Mid( pos + iTempHtmlFolderPath.Length() );
+                modifiedUrl = HBufC::NewL( filename.Length() + KHttpPrefix().Length() );
+                TPtr modifiedPtr = modifiedUrl->Des();
+                modifiedPtr.Append( KHttpPrefix );
+                modifiedPtr.Append( filename );
+                }
+            }
+        CleanupStack::PopAndDestroy( url );
+        }
+    return modifiedUrl;
+    }
 
 
 /******************************************************************************

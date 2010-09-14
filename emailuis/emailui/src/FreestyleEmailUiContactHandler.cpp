@@ -761,7 +761,6 @@ void CFSEmailUiContactHandler::VPbkSingleContactOperationCompleteL(
         CleanupStack::PopAndDestroy( selectedEmailAddress );
         selectedEmailAddress = NULL;
 
-        
         CleanupStack::PopAndDestroy( displayname );
         CleanupStack::PopAndDestroy( &emailAddresses );
         CleanupStack::PopAndDestroy( &lastname );
@@ -770,12 +769,17 @@ void CFSEmailUiContactHandler::VPbkSingleContactOperationCompleteL(
         
         // Get index of Next ContactLink if there's no LinkSet
         // or iCurrenLink index is set to 0
-        TInt index = (iLinksSet && iCurrentLink ? iLinksSet->Find
-                (*iCurrentLink) + 1 : 0);
-        
-        if (iLinksSet && index < iLinksSet->Count())
+        TInt index = ( iLinksSet && iCurrentLink ? 
+            iLinksSet->Find( *iCurrentLink ) + 1 : 0 );
+
+        if ( iLinksSet && index < iLinksSet->Count() )
             {
-            iCurrentLink = &iLinksSet->At(index);
+            delete iCurrentLink;
+            iCurrentLink = NULL;
+
+            iCurrentLink = iLinksSet->At(index).CloneLC();
+            CleanupStack::Pop();
+
             delete iLinkOperationFetch;
             iLinkOperationFetch = NULL;
 
@@ -789,7 +793,9 @@ void CFSEmailUiContactHandler::VPbkSingleContactOperationCompleteL(
             delete iLinkOperationFetch; 
             iLinkOperationFetch = NULL;
 
+            delete iCurrentLink;
             iCurrentLink = NULL;
+
             iState = EContactHandlerIdle;
             delete iLinksSet;
             iLinksSet = NULL;
@@ -860,7 +866,7 @@ void CFSEmailUiContactHandler::VPbkSingleContactOperationCompleteL(
             // Store contact
             iContactForMsgCreation = aContact;
             // Create clonelink for address selection
-            MVPbkContactLink* cloneLink = iCurrentLink->CloneLC();  
+            MVPbkContactLink* cloneLink = iCurrentLink->CloneLC();
             CleanupStack::Pop();
             switch ( iMsgCreationHelperState )
                 {
@@ -979,10 +985,15 @@ TInt CFSEmailUiContactHandler::HandleNotifyL( TInt aCmdId, TInt aEventId,
             CleanupStack::Pop();
             if ( iLinksSet->Count() )
                 {
-                iCurrentLink = &iLinksSet->At(0);
+                delete iCurrentLink;
+                iCurrentLink = NULL;
+
+                iCurrentLink = iLinksSet->At(0).CloneLC();
+                CleanupStack::Pop();
                 //Async operation, callback VPbkSingleContactOperationCompleteL
                 //Error situations: VPbkSingleContactOperationFailed
-                iLinkOperationFetch = iContactManager->RetrieveContactL( iLinksSet->At(0), *this );
+                iLinkOperationFetch = iContactManager->RetrieveContactL( 
+                    iLinksSet->At(0), *this );
                 }
 
             iContactManager->ContactStoresL().OpenAllL( *this );
@@ -1121,12 +1132,11 @@ void CFSEmailUiContactHandler::HandleCallL(
             delete iLinkOperationFetch;
             iLinkOperationFetch = NULL;
             }
-        
+
         //Async operation, callback VPbkSingleContactOperationCompleteL
         //Error situations: VPbkSingleContactOperationFailed
-        iLinkOperationFetch = iContactManager->RetrieveContactL
-        (*iCurrentLink, *this); 
-        
+        iLinkOperationFetch = iContactManager->RetrieveContactL(
+            *iCurrentLink, *this);
         }
     }
 
@@ -1238,8 +1248,8 @@ void CFSEmailUiContactHandler::CreateMessageL( const RPointerArray<CFSEmailUiCls
             
             //Async operation, callback VPbkSingleContactOperationCompleteL
             //Error situations: VPbkSingleContactOperationFailed
-            iLinkOperationFetch = iContactManager->RetrieveContactL
-            (*iCurrentLink, *this);                                         
+            iLinkOperationFetch = iContactManager->RetrieveContactL(
+                *iCurrentLink, *this);
             }
         }
     }

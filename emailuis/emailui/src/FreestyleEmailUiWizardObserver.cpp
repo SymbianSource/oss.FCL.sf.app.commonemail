@@ -417,7 +417,6 @@ void CFSEmailUiWizardObserver::DialogDismissedL( TInt aButtonId )
                 // back to the launcher grid, which should be the view at
                 // the bottom of the stack) and then erase the history just
                 // to make sure it's really all gone.
-                iAppUi->EnterFsEmailViewL( AppGridId );
                 iAppUi->EraseViewHistory();
                 // Now switch to the mail list.
                 iAppUi->EnterFsEmailViewL( MailListId, KStartListWithFolderId, 

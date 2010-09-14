@@ -125,6 +125,8 @@ public:  // new methods
 
 	void OperationErrorL( TInt aErrorCode );
 	
+	TBool UseLastNameFirstOrder();
+	
 protected:
 
     /**
@@ -240,6 +242,7 @@ private: // data
 
     TBool                               iRemoteLookupSupported;
   
+    TBool                               iUseLastNameFirstOrder;
     };
 
 #endif  // FREESTYLEEMAILUICLSLISTSHANDLER_H

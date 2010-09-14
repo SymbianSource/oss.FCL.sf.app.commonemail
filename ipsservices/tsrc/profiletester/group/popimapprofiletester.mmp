@@ -1,0 +1,65 @@
+/*
+*  Copyright ?2010-2010 Nokia and/or its subsidiary(-ies).  All rights reserved.
+*  This material, including documentation and any related computer
+*  programs, is protected by copyright controlled by Nokia.  All
+*  rights are reserved.  Copying, including reproducing, storing,
+*  adapting or translating, any or all of this material requires the
+*  prior written consent of Nokia.  This material also contains
+*  confidential information which may not be disclosed to others
+*  without the prior written consent of Nokia.
+*
+* Initial Contributors:
+* Nokia Corporation - initial contribution.
+*
+* Contributors:
+* 
+* Description: MMP file for STIF Test Framework's TestScripter 
+* testclass test module.
+*
+*/
+
+#include <platform_paths.hrh>
+
+TARGET          popimapprofiletester.dll
+TARGETTYPE      dll
+UID             0x1000008D 0x101FB3E9
+
+CAPABILITY      ALL -TCB
+
+// VENDORID     0x00000000
+// SECUREID     0x00000000
+   
+DEFFILE         popimapprofiletester.def
+
+USERINCLUDE     ../inc 
+
+APP_LAYER_SYSTEMINCLUDE
+
+
+SYSTEMINCLUDE /epoc32/include /epoc32/include/platform /epoc32/include/platform/loc /epoc32/include/platform/loc/sc /epoc32/include/app /epoc32/include/mw
+
+USERINCLUDE                     ..\inc
+USERINCLUDE                     \sf\app\commonemail\inc
+
+SOURCEPATH      ../src
+
+SOURCE          popimapprofiletester.cpp
+SOURCE          popimapprofiletesterBlocks.cpp 
+SOURCE 			timeouttimer.cpp
+
+LIBRARY         euser.lib
+LIBRARY         stiftestinterface.lib
+LIBRARY         stiftestengine.lib
+LIBRARY         imcm.lib        // CEmailAccounts
+
+// For creating mailboxes
+LIBRARY                         FSMailFramework.lib
+LIBRARY                         FSFWCommonLib.lib
+LANG            SC
+
+// Library to be tested
+
+
+// Other Libraries needed
+LIBRARY                         centralrepository.lib
+// End of File

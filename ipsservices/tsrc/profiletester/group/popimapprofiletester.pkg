@@ -1,0 +1,38 @@
+; ============================================================================
+;  Name        : ipsprofiletester.pkg
+;  Part of     : ips / popimapprofiletester
+;  Description : Package file for project mfeprofiletester
+;  Version     : %version: % << Don't touch! Updated by Synergy at check-out.
+;
+;  Copyright 2010-2010 Nokia and/or its subsidiary(-ies).  All rights reserved.
+;  This material, including documentation and any related computer
+;  programs, is protected by copyright controlled by Nokia.  All
+;  rights are reserved.  Copying, including reproducing, storing,
+;  adapting or translating, any or all of this material requires the
+;  prior written consent of Nokia.  This material also contains
+;  confidential information which may not be disclosed to others
+;  without the prior written consent of Nokia.
+; ============================================================================
+&EN
+
+; standard SIS file header
+#{"ipsprofiletester"},(0x101FB3E9),0,0,0,TYPE=SA
+
+;Supports S60 v 5.0
+[0x101F7961], 0, 0, 0, {"Series60ProductID"}
+
+;Localised Vendor name
+%{"Symbian"}
+
+;Unique Vendor name
+:"Symbian"
+
+"\epoc32\release\armv5\urel\popimapprofiletester.dll"      -"!:\sys\bin\popimapprofiletester.dll"
+
+; PRJ_TESTEXPORTS
+
+"..\conf\imapprofiletester.cfg"  -"!:\testframework\popimapprofiletester\imapprofiletester.cfg"
+"..\conf\popprofiletester.cfg"  -"!:\testframework\popimapprofiletester\popprofiletester.cfg"
+"..\init\popimapprofiletester.ini"  -"!:\testframework\testframework_ips.ini"
+
+

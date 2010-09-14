@@ -87,9 +87,10 @@ CNcsComposeView::CNcsComposeView( CFreestyleEmailUiAppUi& aAppUi,
      iMsvSession( aMsvSession ), iEnv( aEnv ),
      iFakeSyncGoingOn(EFalse), iFetchDialogCancelled(EFalse),
      iExecutingDoExitL( EFalse ),
-     iMessageTextPartModified( EFalse ), iMessageModified( EFalse )
+     iMessageTextPartModified( EFalse ), iMessageModified( EFalse ), 
+     iIncludeMessageTextAsync( EFalse ), iChildActivationState( EChildActivationDeactivated )
     {
-    FUNC_LOG;
+    FUNC_LOG; 
 
     iAttachmentListSaveDraft = EFalse;
 
@@ -289,7 +290,7 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
     TUid aCustomMessageId, const TDesC8& aCustomMessage )
     {
     FUNC_LOG;
-    
+    iChildActivationState = EChildActivationStarted;
     // needed when "Opening" (replying/forwarding)note is shown and 
     // we receive incoming call- Email application goes to background.
     // When coming back to application the view is activated and reseted.
@@ -435,41 +436,51 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         Toolbar()->SetDimmed( EFalse );
         RefreshToolbar();
         iContainer->ActivateL();
-        }
+
         
     // if there is a embedded app in FSEmail.
     if( iAppUi.EmbeddedApp() )
-        {
-        // Set email editor started from embedded app flag to true 
-        // so that we can switch view correct when sent email.
-        iAppUi.SetEditorStartedFromEmbeddedApp( ETrue );
+            {
+            // Set email editor started from embedded app flag to true 
+            // so that we can switch view correct when sent email.
+            iAppUi.SetEditorStartedFromEmbeddedApp( ETrue );
         
         RWsSession rwsSession;
-        User::LeaveIfError( rwsSession.Connect() );
-        CleanupClosePushL( rwsSession );
+            User::LeaveIfError( rwsSession.Connect() );
+            CleanupClosePushL( rwsSession );
         
         // Simulate a back key to exit embedded app 
-        // so that email editor could show on the top level.
-        TKeyEvent KeyEvent = TKeyEvent();
-        // this is neccesary for photogalery image viewer (don't remove)
-        KeyEvent.iScanCode = EStdKeyUpArrow;
-        rwsSession.SimulateKeyEvent( KeyEvent );
-        KeyEvent.iCode = EKeyCBA2;
-        rwsSession.SimulateKeyEvent( KeyEvent );
+            // so that email editor could show on the top level.
+            TKeyEvent KeyEvent = TKeyEvent();
+            // this is neccesary for photogalery image viewer (don't remove)
+            KeyEvent.iScanCode = EStdKeyUpArrow;
+            rwsSession.SimulateKeyEvent( KeyEvent );
+            KeyEvent.iCode = EKeyCBA2;
+            rwsSession.SimulateKeyEvent( KeyEvent );
 
         rwsSession.Close();
-        CleanupStack::PopAndDestroy( &rwsSession );
-        }
+            CleanupStack::PopAndDestroy( &rwsSession );
+            }
     
     if ( iIncludeMessageTextAsync )
-    	{
-		// including message body in async way
-		IncludeMessageTextAsyncL( ETrue );
-    	}
-    
-    iViewFullyActivated = ETrue;
+            {
+            // including message body in async way
+            IncludeMessageTextAsyncL( ETrue );
+            }
+
+        iViewFullyActivated = ETrue;
+        iChildActivationState = EChildActivationProcessed;
         
     TIMESTAMP( "Editor launched" );
+        return; // ok
+        }
+// problems with init close the view asynchronously
+    iViewFullyActivated = EFalse;
+    iChildActivationState = EChildActivationExitRequired;
+//    iFakeSyncGoingOn = EFalse; iExecutingDoExitL = EFalse;
+    iActiveHelper->Start(); // calls AsyncExit()
+    TIMESTAMP( "Editor NOT launched" );
+    return;
     }
 
 // -----------------------------------------------------------------------------
@@ -796,7 +807,9 @@ void CNcsComposeView::ChildDoDeactivate()
         {
         SaveAndCleanPreviousMessage();
         }
-
+    
+    iChildActivationState = EChildActivationDeactivated ;
+    
     }
 
 // -----------------------------------------------------------------------------
@@ -942,6 +955,10 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
             {
             case ENcsCmdSend:
                 {
+                // Set focus on body of message need for correct 
+                // MSK setting for CAknConfirmationNote dialog. 
+                iContainer->SetFocusToMessageFieldL();
+                
                 // Show query if the Subject field is empty
                 if ( iContainer->IsSubjectFieldEmpty() )
                     {
@@ -1060,29 +1077,38 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                 break;
             case ENcsCmdPriorityHigh:
             	{
-            	iNewMessage->ResetFlag( EFSMsgFlag_Low );
-            	iNewMessage->SetFlag( EFSMsgFlag_Important );
-            	iNewMessage->SaveMessageL();
-                iMessageModified = EFalse;
-            	iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityHigh );
+            	if ( iNewMessage )
+            	    {
+                    iNewMessage->ResetFlag( EFSMsgFlag_Low );
+                    iNewMessage->SetFlag( EFSMsgFlag_Important );
+                    iNewMessage->SaveMessageL();
+                    iMessageModified = EFalse;
+                    iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityHigh );
+            	    }
             	}
                 break;
         	case ENcsCmdPriorityNormal:
     	    	{
-            	iNewMessage->ResetFlag( EFSMsgFlag_Low );
-            	iNewMessage->ResetFlag( EFSMsgFlag_Important );
-            	iNewMessage->SaveMessageL();
-                iMessageModified = EFalse;
-            	iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityNormal );
+    	    	if ( iNewMessage )
+    	    	    {
+                    iNewMessage->ResetFlag( EFSMsgFlag_Low );
+                    iNewMessage->ResetFlag( EFSMsgFlag_Important );
+                    iNewMessage->SaveMessageL();
+                    iMessageModified = EFalse;
+                    iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityNormal );
+    	    	    }
     	    	}
                 break;
         	case ENcsCmdPriorityLow:
     	    	{
-            	iNewMessage->ResetFlag( EFSMsgFlag_Important );
-            	iNewMessage->SetFlag( EFSMsgFlag_Low );
-            	iNewMessage->SaveMessageL();
-                iMessageModified = EFalse;
-            	iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityLow );
+    	    	if ( iNewMessage )
+    	    	    {
+                    iNewMessage->ResetFlag( EFSMsgFlag_Important );
+                    iNewMessage->SetFlag( EFSMsgFlag_Low );
+                    iNewMessage->SaveMessageL();
+                    iMessageModified = EFalse;
+                    iStatusPaneIndicators->SetPriorityFlag( EMsgPriorityLow );
+    	    	    }
     	    	}
                 break;
             case ENcsCmdShowCc:
@@ -1169,7 +1195,8 @@ void CNcsComposeView::HandleCommandL( TInt aCommand )
                 break;
             case EAknSoftkeyClose:
                 {
-                DoSafeExit();
+                if ( !iAddingAttachmentDialogOpened )
+                    DoSafeExit();
                 }
                 break;
             case ENcsCmdExit:
@@ -1204,7 +1231,12 @@ void CNcsComposeView::DoSendL()
         User::Leave( KErrNotFound );
         }
 
-    CommitL( ETrue, EAllFields, ETrue );
+    TRAPD( commitErr, CommitL( ETrue, EAllFields, ETrue ) );
+    if ( KErrNone != commitErr )
+        {
+        iMailSendFailed = ETrue;
+        User::Leave( commitErr );
+        }
 
     TRAPD(r, iMailBox->SendMessageL( *iNewMessage ) );
     if ( KErrNone != r )
@@ -1780,7 +1812,7 @@ void CNcsComposeView::HandleDynamicVariantSwitchL(
 	{
     FUNC_LOG;
 
-    if ( iFirstStartCompleted && iContainer )
+    if ( iFirstStartCompleted && iContainer && !iExecutingDoExitL )
         {
         if ( aType == CFsEmailUiViewBase::EScreenLayoutChanged )
             {
@@ -2244,56 +2276,70 @@ void CNcsComposeView::CommitL( TBool aParseAddresses,
             break;
         }
 
-    if ( commitToField )
-        {
-        RPointerArray<CFSMailAddress>& recipients = 
-            iNewMessage->GetToRecipients();
-        recipients.ResetAndDestroy();
-        NcsUtility::ConvertAddressArrayL(
-            iContainer->GetToFieldAddressesL( aParseAddresses ), recipients );
-        }
-
-    if ( commitCcField )
-        {
-        RPointerArray<CFSMailAddress>& recipients = 
-            iNewMessage->GetCCRecipients();
-        recipients.ResetAndDestroy();
-        NcsUtility::ConvertAddressArrayL( 
-            iContainer->GetCcFieldAddressesL( aParseAddresses ), recipients );
-        }
-
-    if ( commitBccField )
-        {
-        RPointerArray<CFSMailAddress>& recipients = 
-            iNewMessage->GetBCCRecipients();
-        recipients.ResetAndDestroy();
-        NcsUtility::ConvertAddressArrayL( 
-            iContainer->GetBccFieldAddressesL( aParseAddresses ), recipients );
-        }
-
-	if ( commitSubjectField )
+	if ( iNewMessage )
 	    {
-	    // get subject from UI to MSG object
-	    HBufC* subject = iContainer->GetSubjectLC();
-	    TPtr ptr = subject->Des();
-		// replace new line characters with spaces as Subject is normally
-	    // one line only
-	    AknTextUtils::ReplaceCharacters( 
-	            ptr, KLineSeparators, KReplacementChar );
-	    iNewMessage->SetSubject( *subject );
-	    CleanupStack::PopAndDestroy( subject );
-	    }
+        if ( commitToField )
+            {
+            RPointerArray<CFSMailAddress>& recipients = 
+                iNewMessage->GetToRecipients();
+            recipients.ResetAndDestroy();
+            NcsUtility::ConvertAddressArrayL(
+                iContainer->GetToFieldAddressesL( aParseAddresses ), recipients );
+            }
+    
+        if ( commitCcField )
+            {
+            RPointerArray<CFSMailAddress>& recipients = 
+                iNewMessage->GetCCRecipients();
+            recipients.ResetAndDestroy();
+            NcsUtility::ConvertAddressArrayL( 
+                iContainer->GetCcFieldAddressesL( aParseAddresses ), recipients );
+            }
+    
+        if ( commitBccField )
+            {
+            RPointerArray<CFSMailAddress>& recipients = 
+                iNewMessage->GetBCCRecipients();
+            recipients.ResetAndDestroy();
+            NcsUtility::ConvertAddressArrayL( 
+                iContainer->GetBccFieldAddressesL( aParseAddresses ), recipients );
+            }
 
-    if ( commitBodyField )
-        {
-        HBufC* body = iContainer->GetBodyContentLC();
-        TPtr bodyPtr = body->Des(); // this TPtr is needed only because of
-        // incorrect argument type in FW API, can be removed when API fixed
-        iNewMessageTextPart->SetContent( bodyPtr );
-        CleanupStack::PopAndDestroy( body );
-        iMessageTextPartModified = ETrue;
+        if ( commitSubjectField )
+            {
+            // get subject from UI to MSG object
+            HBufC* subject = iContainer->GetSubjectLC();
+            TPtr ptr = subject->Des();
+            // replace new line characters with spaces as Subject is normally
+            // one line only
+            AknTextUtils::ReplaceCharacters( 
+                    ptr, KLineSeparators, KReplacementChar );
+            iNewMessage->SetSubject( *subject );
+            CleanupStack::PopAndDestroy( subject );
+            }
         }
-
+    else // iNewMessage is still NULL
+        {
+        User::Leave( KErrNotFound );
+        }
+	
+	if ( iNewMessageTextPart )
+	    {
+        if ( commitBodyField )
+            {
+            HBufC* body = iContainer->GetBodyContentLC();
+            TPtr bodyPtr = body->Des(); // this TPtr is needed only because of
+            // incorrect argument type in FW API, can be removed when API fixed
+            iNewMessageTextPart->SetContent( bodyPtr );
+            CleanupStack::PopAndDestroy( body );
+            iMessageTextPartModified = ETrue;
+            }
+	    }
+	else // iNewMessageTextPart is still NULL
+	    {
+        User::Leave( KErrNotFound );
+	    }
+        
     iMessageModified = ETrue;
     RefreshToolbar();
 
@@ -2872,6 +2918,10 @@ void CNcsComposeView::GenerateReplyMessageL( TBool aReplyAll )
         }
 
     TFsEmailUiUtility::CreatePlainTextPartL( *iNewMessage, iNewMessageTextPart );
+    if (NULL == iNewMessageTextPart) // problems with creating 
+        {
+        User::Leave( KErrUnknown );
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -2923,7 +2973,10 @@ void CNcsComposeView::GenerateForwardMessageL()
     
 	TFsEmailUiUtility::CreatePlainTextPartL( 
 	        *iNewMessage, iNewMessageTextPart );
-
+    if (NULL == iNewMessageTextPart) // problems with creating 
+        {
+        User::Leave( KErrUnknown );
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -3149,7 +3202,11 @@ TBool CNcsComposeView::FetchLogicComplete(
         {
         if ( !aError )
             {
+            // may leave if unable to create new message part
             TRAP( aError, InitReplyOrForwardUiL() );
+            }
+        if ( !aError )
+            {
             iAutoSaver->Enable( ETrue );
             }
         else
@@ -3199,6 +3256,16 @@ void CNcsComposeView::ExitComposer()
     {
     FUNC_LOG;
 
+    // dont exit while in child activation 
+    if ( EChildActivationStarted == iChildActivationState )
+        {
+        iChildActivationState = EChildActivationError;
+        }
+    if ( EChildActivationError == iChildActivationState )
+        {
+        return; 
+        }
+    
     if ( iStatusPaneIndicators )
         {
         iStatusPaneIndicators->HideStatusPaneIndicators();
@@ -3268,7 +3335,7 @@ void CNcsComposeView::ResetComposer()
         delete iContainer;
         iContainer = NULL;
         }
-
+    iIncludeMessageTextAsync = EFalse;
     }
 
 // -----------------------------------------------------------------------------
@@ -3326,7 +3393,11 @@ TInt CNcsComposeView::AsyncExit( TAny* aSelfPtr )
 void CNcsComposeView::AsyncExitL()
     {
     FUNC_LOG;
-    if ( iFakeSyncGoingOn || iExecutingDoExitL )
+    if ( EChildActivationExitRequired == iChildActivationState )
+        {
+        ExitComposer();
+        }
+    else if ( iFakeSyncGoingOn || iExecutingDoExitL )
         {
         // if some sync method is still going on, we continue waiting
         iActiveHelper->Cancel();
@@ -3493,7 +3564,9 @@ CActiveHelper::CActiveHelper( CNcsComposeView* aSession )
 void CActiveHelper::RunL()
     {
     if( iComposeView )
+        {
         iComposeView->AsyncExitL();
+        }
     }
 
 // ---------------------------------------------------------------------------

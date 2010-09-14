@@ -38,6 +38,8 @@
 #include <brctlinterface.h>
 #include <csxhelp/cmail.hlp.hrh>
 #include <baclipb.h> // for clipboard copy
+#include <fsmailserver.rsg>
+#include <aknnotewrappers.h>
 
 #ifdef SYMBIAN_ENABLE_SPLIT_HEADERS
 #include <txtclipboard.h>
@@ -349,7 +351,18 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                  break;
              case EFsEmailUiCmdActionsMoveMessage:
                  {
-                 OpenFolderListForMessageMovingL();
+                 TBool asyncFetchStatus = GetAsyncFetchStatus();
+                 if ( asyncFetchStatus )
+                     {
+                     HBufC* noteText = StringLoader::LoadLC( R_FS_MSERVER_TEXT_SERVER_CURRENTLY_BUSY_TRY_AGAIN );
+                     CAknInformationNote* note = new (ELeave) CAknInformationNote();
+                     note->ExecuteLD( *noteText );
+                     CleanupStack::PopAndDestroy( noteText );
+                     }
+                 else
+                     {
+                     OpenFolderListForMessageMovingL();
+                     }
                  }
                  break;
              case EFsEmailUiCmdActionsFlag:
@@ -635,6 +648,10 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
             iMessage = iOpenMessages->Head();
             iCreateNewMsgFromEmbeddedMsg = EFalse;
 
+            if (iMessage && !iMailBox)
+                {
+                iMailBox = iAppUi.GetMailClient()->GetMailBoxByUidL( iMessage->GetMailBoxId() );            
+                }
             delete iAttachmentsListModel;
             iAttachmentsListModel = NULL;
             iAttachmentsListModel = CFSEmailUiAttachmentsListModel::NewL( iAppUi, *this );
