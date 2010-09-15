@@ -34,7 +34,7 @@ public:
         
     NmIpsImap4SettingsManager(const NmId &mailboxId,
                               CEmailAccounts *account,
-                              TImapAccount imapAccount);
+                              TImapAccount &imapAccount);
     virtual ~NmIpsImap4SettingsManager();
     bool readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue);
     bool writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue);

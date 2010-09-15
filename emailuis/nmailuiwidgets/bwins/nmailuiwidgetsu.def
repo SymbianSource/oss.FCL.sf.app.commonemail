@@ -135,4 +135,7 @@ EXPORTS
 	?setPressed@NmAttachmentListItem@@QAEX_N@Z @ 134 NONAME ; void NmAttachmentListItem::setPressed(bool)
 	?setBackgroundColor@NmAttachmentListItem@@QAEXVQColor@@@Z @ 135 NONAME ; void NmAttachmentListItem::setBackgroundColor(class QColor)
 	?setBackgroundColor@NmAttachmentListWidget@@QAEXVQColor@@@Z @ 136 NONAME ; void NmAttachmentListWidget::setBackgroundColor(class QColor)
+	?addContacts@NmRecipientLineEdit@@QAEXV?$QList@PAVNmAddress@@@@@Z @ 137 NONAME ; void NmRecipientLineEdit::addContacts(class QList<class NmAddress *>)
+	?hasInputFocus@NmHtmlLineEdit@@QBE_NXZ @ 138 NONAME ; bool NmHtmlLineEdit::hasInputFocus(void) const
+	?hasInputFocus@NmEditorTextEdit@@QBE_NXZ @ 139 NONAME ; bool NmEditorTextEdit::hasInputFocus(void) const
 

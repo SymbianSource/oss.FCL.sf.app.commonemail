@@ -19,6 +19,8 @@
 //  INCLUDES
 #include "nmuiheaders.h"
 
+
+
 /*!
     \class NmStartParamDataHelper
     \brief A helper class for processing the data given to the actual service.
@@ -31,12 +33,14 @@ public:
         Class constructor.
     */
     inline NmStartParamDataHelper()
-    : mSubject(0),
-      mToAddresses(0),
-      mCcAddresses(0),
-      mBccAddresses(0),
-      mAttachmentList(0),
-      mEditorStartMode(NmUiEditorCreateNew)
+    : mSubject(NULL),
+      mToAddresses(NULL),
+      mCcAddresses(NULL),
+      mBccAddresses(NULL),
+      mAttachmentList(NULL),
+      mEditorStartMode(NmUiEditorCreateNew),
+	  mBodyText(NULL),
+	  mMimeType(NULL)
     {
         NM_FUNCTION;
     }
@@ -57,7 +61,7 @@ public:
     inline bool extractData(const QVariant &data)
     {
         NM_FUNCTION;
-        
+
         bool success(false);
 
         if (data.canConvert(QVariant::Map)) {
@@ -93,30 +97,36 @@ public:
     inline void deleteData()
     {
         NM_FUNCTION;
-        
+
         delete mSubject;
-        mSubject = 0;
+        mSubject = NULL;
 
         if (mToAddresses) {
             qDeleteAll(*mToAddresses);
             delete mToAddresses;
-            mToAddresses = 0;
+            mToAddresses = NULL;
         }
 
         if (mCcAddresses) {
             qDeleteAll(*mCcAddresses);
             delete mCcAddresses;
-            mCcAddresses = 0;
+            mCcAddresses = NULL;
         }
 
         if (mBccAddresses) {
             qDeleteAll(*mBccAddresses);
             delete mBccAddresses;
-            mBccAddresses = 0;
+            mBccAddresses = NULL;
         }
 
         delete mAttachmentList;
-        mAttachmentList = 0;
+        mAttachmentList = NULL;
+
+        delete mBodyText;
+        mBodyText = NULL;
+		
+		delete mMimeType;
+		mMimeType = NULL;
     }
 
 
@@ -130,7 +140,7 @@ private:
     inline bool processMap(const QMap<QString, QVariant> &map)
     {
         NM_FUNCTION;
-        
+
         QMap<QString, QVariant>::const_iterator i = map.constBegin();
         QString key;
         QVariant value;
@@ -162,6 +172,26 @@ private:
                 // Extract the "bcc" recipients.
                 addAddressesToList(value, &mBccAddresses);
             }
+            else if (!key.compare(emailSendBodyTextKey, Qt::CaseInsensitive)) {
+                // Make sure only the last bodytext is used
+                delete mBodyText;
+                mBodyText = NULL;
+                // Extract the "body" text
+                mBodyText = new QString(value.toString());
+            }
+            else if (!key.compare(emailSendAttachmentKey, Qt::CaseInsensitive)) {
+                // Extract the "attachment" part
+                if(!mAttachmentList) {
+				    mAttachmentList = new QStringList();
+				}
+				mAttachmentList->append(value.toStringList());
+            }
+            else if (!key.compare(emailSendBodyMimeTypeKey, Qt::CaseInsensitive)) {
+			    delete mMimeType;
+				mMimeType = NULL;
+                // Extract the "mime type" part
+				mMimeType = new QString(value.toString());
+            }
 
             ++i;
         }
@@ -181,7 +211,7 @@ private:
                                    QList<NmAddress*> **list)
     {
         NM_FUNCTION;
-        
+
         if (!list) {
             // Invalid argument!
             return;
@@ -193,7 +223,7 @@ private:
         switch (dataType) {
             case QVariant::String: {
                 // A single address.
-                NmAddress *address = new NmAddress(addresses.toString());
+                NmAddress *address = NmUtilities::qstringToNmAddress(addresses.toString());
                 foundAddresses.append(address);
                 break;
             }
@@ -202,7 +232,7 @@ private:
                 QStringList addressList = addresses.toStringList();
 
                 foreach (QString addressAsString, addressList) {
-                    NmAddress *address = new NmAddress(addressAsString);
+                    NmAddress *address = NmUtilities::qstringToNmAddress(addressAsString);
                     foundAddresses.append(address);
                 }
 
@@ -232,6 +262,8 @@ public: // Data
     QList<NmAddress*> *mBccAddresses; // Not owned.
     QStringList *mAttachmentList; // Not owned.
     NmUiEditorStartMode mEditorStartMode;
+    QString *mBodyText;
+    QString *mMimeType;
 };
 
 
@@ -267,7 +299,7 @@ NmSendServiceInterface::NmSendServiceInterface(QString interfaceName,
 NmSendServiceInterface::~NmSendServiceInterface()
 {
     NM_FUNCTION;
-    
+
     delete mStartParam;
     delete mSelectionDialog;
 }
@@ -281,7 +313,7 @@ NmSendServiceInterface::~NmSendServiceInterface()
 void NmSendServiceInterface::selectionDialogClosed(NmId &mailboxId)
 {
     NM_FUNCTION;
-    
+
     if (mailboxId.id()) { // mailbox selected
         launchEditorView(mailboxId);
     }
@@ -304,20 +336,20 @@ void NmSendServiceInterface::selectionDialogClosed(NmId &mailboxId)
 void NmSendServiceInterface::send(QVariant data)
 {
     NM_FUNCTION;
-    
+
     HbMainWindow *mainWindow(NULL);
-    
+
     // Make sure that qmail stays background if user presses back in editorview
     if (mApplication) {
         mApplication->updateVisibilityState();
-        
+
         mainWindow = mApplication->mainWindow();
         mCurrentView = mainWindow->currentView();
-    
+
         // Hide the current view.
         if (mCurrentView) {
             mCurrentView->hide();
-        }    
+        }
     }
 
     // Check the given data.
@@ -358,7 +390,9 @@ void NmSendServiceInterface::send(QVariant data)
         	true, // start as service
 	        dataHelper.mSubject, // message subject
 	        dataHelper.mCcAddresses, // list containing cc recipient addresses
-    	    dataHelper.mBccAddresses // list containing bcc recipient addresses
+    	    dataHelper.mBccAddresses, // list containing bcc recipient addresses
+    	    dataHelper.mBodyText, // body text
+    	    dataHelper.mMimeType // body text mime type
 	    );
 
         if (count == 1) {
@@ -378,7 +412,7 @@ void NmSendServiceInterface::send(QVariant data)
             if (!XQServiceUtil::isEmbedded()) {
                 XQServiceUtil::toBackground(false);
             }
-            
+
             connect(mSelectionDialog, SIGNAL(selectionDialogClosed(NmId&)),
                     this, SLOT(selectionDialogClosed(NmId&)));
             mSelectionDialog->open();
@@ -396,7 +430,7 @@ void NmSendServiceInterface::launchEditorView(NmId mailboxId)
 {
     NM_FUNCTION;
     NM_COMMENT(QString("NmSendServiceInterface::launchEditorView(): mailboxId=%1").arg(mailboxId.id()));
-    
+
     // Make the previous view visible again.
     if (mCurrentView) {
         mCurrentView->show();
@@ -406,9 +440,9 @@ void NmSendServiceInterface::launchEditorView(NmId mailboxId)
     if (mStartParam) {
         // Make sure the NMail application is in the foreground
         if (!XQServiceUtil::isEmbedded()) {
-            XQServiceUtil::toBackground(false);    
+            XQServiceUtil::toBackground(false);
         }
-        
+
         mStartParam->setMailboxId(mailboxId);
         mApplication->enterNmUiView(mStartParam);
         mStartParam = NULL; // ownership passed
@@ -420,7 +454,7 @@ void NmSendServiceInterface::launchEditorView(NmId mailboxId)
 void NmSendServiceInterface::cancelService()
 {
     NM_FUNCTION;
-    
+
     delete mStartParam;
     mStartParam = NULL;
 

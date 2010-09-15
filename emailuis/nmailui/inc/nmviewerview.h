@@ -107,6 +107,7 @@ private:
     void createToolBar();
     void setAttachmentList();
     void createAndShowWaitDialog();
+    bool isInlineImage(NmMessagePart* part);
 
 private:
     NmApplication &mApplication;
@@ -121,6 +122,7 @@ private:
     NmViewerHeader *mHeaderWidget;                   // Not owned
     NmAttachmentListWidget *mAttaListWidget;         // Not owned
     QPointF mHeaderStartScenePos;
+    QPointer<NmOperation> mMessagePartFetchingOperation;    // Not owned
     QPointer<NmOperation> mMessageFetchingOperation; // Not owned 
     QPointF mLatestScrollPos;
     bool mDisplayingPlainText;

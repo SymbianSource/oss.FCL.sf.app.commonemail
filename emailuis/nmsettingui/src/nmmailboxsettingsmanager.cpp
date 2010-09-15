@@ -44,7 +44,7 @@
 QStringList pluginFolders()
 {
     NM_FUNCTION;
-    
+
     const QString nmSettingsPluginFolderPath("resource/qt/plugins/nmail/settings");
     QStringList pluginDirectories;
     QFileInfoList driveList = QDir::drives();
@@ -57,7 +57,7 @@ QStringList pluginFolders()
             pluginDirectories.append(pluginDirectory);
         }
     }
-    
+
     return pluginDirectories;
 }
 
@@ -68,10 +68,10 @@ QStringList pluginFolders()
     Contructor of NmMailboxSettingsManager.
 */
 NmMailboxSettingsManager::NmMailboxSettingsManager()
-: mDataManager(0)
+: mDataManager(NULL)
 {
     NM_FUNCTION;
-    
+
     QScopedPointer<NmDataManager> dataManager(new NmDataManager());
     loadPlugins();
     mDataManager = dataManager.take();
@@ -84,7 +84,7 @@ NmMailboxSettingsManager::NmMailboxSettingsManager()
 NmMailboxSettingsManager::~NmMailboxSettingsManager()
 {
     NM_FUNCTION;
-    
+
     unloadPlugins();
     qDeleteAll(mPluginLoaders);
     mPluginLoaders.clear();
@@ -102,7 +102,7 @@ NmMailboxSettingsManager::~NmMailboxSettingsManager()
 void NmMailboxSettingsManager::listMailboxes(QList<NmMailbox *> &mailboxList)
 {
     NM_FUNCTION;
-    
+
     mDataManager->listMailboxes(mailboxList);
 }
 
@@ -116,7 +116,7 @@ void NmMailboxSettingsManager::listMailboxes(QList<NmMailbox *> &mailboxList)
 HbIcon &NmMailboxSettingsManager::mailboxIcon(const NmId &mailboxId) const
 {
     NM_FUNCTION;
-    
+
     Q_UNUSED(mailboxId);
     // TODO: use some branding feature when it is available.
     return NmIcons::getIcon(NmIcons::NmIconDefaultMailbox);
@@ -136,8 +136,8 @@ void NmMailboxSettingsManager::populateModel(HbDataFormModel &model,
     HbDataForm &form, const NmId &mailboxId) const
 {
     NM_FUNCTION;
-    
-    NmSettingsPluginInterface *plugin = 0;
+
+    NmSettingsPluginInterface *plugin = NULL;
 
     foreach (QPluginLoader *loader, mPluginLoaders) {
         QObject *pluginInstance = loader->instance();
@@ -182,7 +182,7 @@ void NmMailboxSettingsManager::populateModel(HbDataFormModel &model,
 void NmMailboxSettingsManager::loadPlugins()
 {
     NM_FUNCTION;
-    
+
     QStringList directories(pluginFolders());
 
     foreach (const QString &directoryPath, directories) {
@@ -205,7 +205,7 @@ void NmMailboxSettingsManager::loadPlugins()
 void NmMailboxSettingsManager::unloadPlugins()
 {
     NM_FUNCTION;
-    
+
     foreach (QPluginLoader *loader, mPluginLoaders) {
         loader->unload();
     }

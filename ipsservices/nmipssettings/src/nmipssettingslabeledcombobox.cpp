@@ -15,9 +15,9 @@
 *
 */
 
-#include <qgraphicslinearlayout.h>
-#include <hbcombobox.h>
-#include <hblabel.h>
+#include <QGraphicsLinearLayout>
+#include <HbComboBox>
+#include <HbLabel>
 
 #include "nmipssettingslabeledcombobox.h"
 
@@ -39,6 +39,7 @@ NmIpsSettingsLabeledComboBox::NmIpsSettingsLabeledComboBox(
 {
     // Create widget layout.
     QGraphicsLinearLayout* layout = new QGraphicsLinearLayout(Qt::Vertical);
+    layout->setContentsMargins(0,0,0,0);
     this->setLayout(layout); // Takes ownership
 
     // Create combobox.

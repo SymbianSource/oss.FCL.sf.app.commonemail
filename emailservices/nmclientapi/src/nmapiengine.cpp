@@ -17,7 +17,6 @@
 
 #include "nmapiheaders.h"
 
-
 NmApiEngine *NmApiEngine::mInstance = NULL;
 quint32 NmApiEngine::mReferenceCount = 0;
 
@@ -46,6 +45,20 @@ NmApiEngine::~NmApiEngine()
     NM_FUNCTION;
     
     NmApiDataPluginFactory::releaseInstance(mFactory);
+    
+    if (mMailPlugins.Count() > 0) {
+        CFSMailPlugin* plugin = NULL;
+        for (int i = 0; i < mMailPlugins.Count(); ++i) {
+            plugin = mMailPlugins[i];
+            
+            if (plugin) {
+                delete plugin;
+                plugin = NULL;
+            }
+            
+            CFSMailPlugin::Close();
+        }
+    }
 }
 
 /*!
@@ -94,11 +107,11 @@ void NmApiEngine::mailboxChangedArrived(NmMailboxEvent mailboxEvent, const QList
 {
     NM_FUNCTION;
     
-    NmApiMessage message;
-    message.objectType = EMailbox;
+    NmApiEvent event;
+    event.objectType = EMailbox;
     switch (mailboxEvent) {
         case NmMailboxCreated: {
-            message.action = ENew;
+            event.action = ENew;
             // subscribe all events also for these new mailboxes
             for(int i=0; i<mailboxIds.count(); i++) {
                 mFactory->interfaceInstance()->subscribeMailboxEvents(mailboxIds[i]);
@@ -106,7 +119,7 @@ void NmApiEngine::mailboxChangedArrived(NmMailboxEvent mailboxEvent, const QList
         }
             break;
         case NmMailboxDeleted: {
-            message.action = EDeleted;
+            event.action = EDeleted;
             // unsubscribe all events from deleted mailboxes
             for(int i=0; i<mailboxIds.count(); i++) {
                 mFactory->interfaceInstance()->unsubscribeMailboxEvents(mailboxIds[i]);
@@ -114,21 +127,21 @@ void NmApiEngine::mailboxChangedArrived(NmMailboxEvent mailboxEvent, const QList
         }
             break;
         case NmMailboxChanged: {
-            message.action = EChange;
+            event.action = EChange;
         }
             break;
         default:
             break;
     }
 
-    message.folderId = 0;
-    message.mailboxId = 0;
+    event.folderId = 0;
+    event.mailboxId = 0;
 
     for (int i = 0; i < mailboxIds.count(); i++) {
-        message.objectIds.append(mailboxIds.at(i).id());
+        event.objectIds.append(mailboxIds.at(i).id());
     }
 
-    emit emailStoreEvent(message);
+    emit emailStoreEvent(event);
 }
 
 /*!
@@ -148,33 +161,33 @@ void NmApiEngine::messageChangedArrived(
 {
     NM_FUNCTION;
     
-    NmApiMessage message;
-    message.objectType = EMessage;
+    NmApiEvent event;
+    event.objectType = EMessage;
     switch (messageEvent) {
         case NmMessageCreated: {
-            message.action = ENew;
+            event.action = ENew;
         }
             break;
         case NmMessageDeleted: {
-            message.action = EDeleted;
+            event.action = EDeleted;
         }
             break;
         case NmMessageChanged: {
-            message.action = EChange;
+            event.action = EChange;
         }
             break;
         default:
             break;
     }
 
-    message.folderId = folderId.id();
-    message.mailboxId = mailboxId.id();
+    event.folderId = folderId.id();
+    event.mailboxId = mailboxId.id();
 
     for (int i = 0; i < messageIds.count(); i++) {
-        message.objectIds.append(messageIds.at(i).id());
+        event.objectIds.append(messageIds.at(i).id());
     }
 
-    emit emailStoreEvent(message);
+    emit emailStoreEvent(event);
 }
 
 /*!
@@ -343,6 +356,57 @@ bool NmApiEngine::getEnvelopeById(
 }
 
 /*!
+   Return message given by mailbox, folder and message id.
+   
+   \param mailboxId Mailbox id from where message should come
+   \param folderId Folder id from where message should come
+   \param messageId Id of message which should be returned
+   \param message Envelope to fill.
+   
+   \return Return true if it will find any envelope
+ */
+bool NmApiEngine::getMessageById(
+    const quint64 mailboxId,
+    const quint64 folderId,
+    const quint64 messageId,
+    EmailClientApi::NmApiMessage &message)
+{
+    NM_FUNCTION;
+    
+    bool found = false;
+    
+    listMailPlugins();
+
+    CFSMailPlugin *plugin = NULL;
+    CFSMailMessage* fsMessage = NULL;
+    TFSMailMsgId fsMailBoxId = TFSMailMsgId(mailboxId);
+    TFSMailMsgId fsFolderId = TFSMailMsgId(folderId);
+    TFSMailMsgId fsMessageId = TFSMailMsgId(messageId);
+    
+    for (int i = 0; i < mMailPlugins.Count() && !fsMessage; i++){
+        plugin = mMailPlugins[i];
+        if (plugin) {
+            QT_TRY {
+                fsMessage = plugin->GetMessageByUidL(fsMailBoxId,
+                    fsFolderId,
+                    fsMessageId,
+                    EFSMsgDataStructure);
+            }
+            QT_CATCH(...){}
+        }
+    }
+    if (fsMessage) {
+        NmMessage *nmMessage = fsMessage->GetNmMessage();
+        EmailClientApi::NmApiMessage apiMessage = NmToApiConverter::NmMessage2NmApiMessage(*nmMessage);
+        message = apiMessage;
+        found = true;
+        delete fsMessage;
+    }
+    return found;
+}
+
+
+/*!
    Return mailbox given by mailbox id.
    
    \param mailboxId Id of Mailbox which should be returned
@@ -371,3 +435,65 @@ bool NmApiEngine::getMailboxById(const quint64 mailboxId, EmailClientApi::NmApiM
     
     return found;
 }
+
+/*!
+ \fn listMailPlugins 
+ \param mailPlugins List of mail plugins to be listed.
+ \return True if operation completed succesfully, otherwise false.
+ 
+ Lists all mail plugins.  
+ */
+bool NmApiEngine::listMailPlugins(RPointerArray<CFSMailPlugin> &mailPlugins)
+{
+    NM_FUNCTION;
+    bool ret = false;
+    if (mMailPlugins.Count() == 0) {
+        TRAPD(err, listMailPluginsL());
+        if (err == KErrNone){
+            ret = true;
+        }
+    } else {
+        ret = true;
+    }
+    mailPlugins = mMailPlugins;
+    
+    return ret;
+}
+
+/*!
+ \fn listMailPlugins 
+ 
+ Lists all mail plugins.  
+ */
+void NmApiEngine::listMailPlugins()
+{
+    NM_FUNCTION;
+    if (mMailPlugins.Count() == 0) {
+        TRAP_IGNORE(listMailPluginsL());
+    }
+}
+
+/*!
+ \fn ListMailPluginsL
+ 
+ Leaving version of listMailPlugins.
+ */
+void NmApiEngine::listMailPluginsL()
+{
+    NM_FUNCTION;
+
+    RPointerArray<CImplementationInformation> implInfo;
+    CFSMailPlugin::ListImplementationsL(implInfo);
+    CleanupClosePushL(implInfo);    
+    CFSMailPlugin* plugin = NULL;
+    for (int i = 0; i < implInfo.Count(); ++i) {
+        TUid id = implInfo[i]->ImplementationUid();
+        plugin = CFSMailPlugin::NewL(id);
+        
+        if (plugin) {
+            mMailPlugins.AppendL(plugin);
+        }
+    }
+    CleanupStack::Pop(&implInfo);
+}
+

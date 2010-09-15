@@ -26,7 +26,7 @@
 #include "nmipssettingsmultiselectionitem.h"
 
 // CONSTANTS
-const QChar NmIpsSettingsMultiSelectionItemSpace(' ');
+static const QChar NmIpsSettingsMultiSelectionItemSpace(' ');
 
 /*!
     \class NmIpsSettingsMultiSelectionItem
@@ -42,17 +42,17 @@ const QChar NmIpsSettingsMultiSelectionItemSpace(' ');
 NmIpsSettingsMultiSelectionItem::NmIpsSettingsMultiSelectionItem(
     QGraphicsItem *parent, Qt::WindowFlags wFlags)
  : HbWidget(parent, wFlags),
-   mButton(0),
-   mSelectionDialog(0)
+   mButton(NULL),
+   mSelectionDialog(NULL)
 {
     // Create widget layout.
     QScopedPointer<QGraphicsLinearLayout> layout(new QGraphicsLinearLayout(Qt::Vertical, this));
+    layout->setContentsMargins(0,0,0,0);
     this->setLayout(layout.data());
 
     // Create button.
-    mButton = new HbPushButton();
+    mButton = new HbPushButton(this);
     layout->addItem(mButton);
-
     connect(mButton, SIGNAL(clicked()), this, SLOT(launchSelectionDialog()));
     (void)layout.take();
 }
@@ -155,7 +155,7 @@ void NmIpsSettingsMultiSelectionItem::launchSelectionDialog()
 {
     if (mSelectionDialog) {
         delete mSelectionDialog;
-        mSelectionDialog = 0;
+        mSelectionDialog = NULL;
     }
 
     // Create the dialog.

@@ -281,11 +281,13 @@ private:
             CFSMailMessagePart *cfsParent, 
             NmMessagePart *nmParent);
 
+    void resetCache(const NmId &mailboxId);
+
     int RefreshMailboxL(NmId mailboxId);
     
-    int GoOnlineL(const NmId& mailboxId);
+    int GoOnlineL(const NmId &mailboxId);
 
-    int GoOfflineL(const NmId& mailboxId);
+    int GoOfflineL(const NmId &mailboxId);
 
     void handleMailboxEvent(
             TFSMailMsgId mailbox,
@@ -327,7 +329,8 @@ private: // Data
     CFSMailBox* mCurrentMailBox; // Owned
     CEmailExtension* mStateExtension; // not owned
 
-
+    NmId mCachedMailboxId;
+    NmId mCachedInboxId;
 };
 
 

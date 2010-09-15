@@ -39,9 +39,9 @@ public:
     bool isRunning() const;
     bool start();
     void stop();
-    void events(QList<NmApiMessage> &events);
+    void events(QList<NmApiEvent> &events);
 public slots:
-    void emailStoreEvent(const NmApiMessage &events);
+    void emailStoreEvent(const NmApiEvent &events);
 
 signals:
     void timedOut();
@@ -50,7 +50,7 @@ private:
     QTimer *mEmitSignals;
     NmApiEngine *mEngine;
     bool mIsRunning;
-    QList<NmApiMessage> mBufferOfEvents;
+    QList<NmApiEvent> mBufferOfEvents;
 };
 
 }

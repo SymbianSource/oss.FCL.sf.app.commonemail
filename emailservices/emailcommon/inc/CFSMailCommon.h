@@ -312,7 +312,7 @@ _LIT(KFSMailContentTypeParamCharset, " charset=");
 _LIT(KFSMailContentTypeTextCalendar, "text/calendar");
 
 
-_LIT(KFSMailContentDispAttachment, " attachment");
+_LIT(KFSMailContentDispAttachment, "attachment");
 //<qmail>
 _LIT(KFSMailContentDispInline, "inline");
 //</qmail>

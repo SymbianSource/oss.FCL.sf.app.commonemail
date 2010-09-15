@@ -62,7 +62,7 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId,
     idList.append(folderId);
     idList.append(messageId);
     QVariant idListAsVariant = QVariant::fromValue(idList);
-    viewMessage(idListAsVariant, QVariant());
+    viewMessage(idListAsVariant, QVariant(EmailBackReturnsToMessageList));
 }
 
 
@@ -78,7 +78,7 @@ void NmViewerServiceInterface::viewMessage(QVariant mailboxId,
 void NmViewerServiceInterface::viewMessage(QVariant idList, QVariant flags)
 {
     NM_FUNCTION;
-    
+
     mAsyncReqId = setCurrentRequestAsync();
 
     NmId mailboxId(0), folderId(0), messageId(0);
@@ -86,7 +86,7 @@ void NmViewerServiceInterface::viewMessage(QVariant idList, QVariant flags)
     // Check the given arguments.
     if (idList.canConvert(QVariant::List)) {
         QList<QVariant> ids = idList.toList();
-        
+
         if (ids.count() >= 3) {
             mailboxId = ids[0].toULongLong();
             folderId = ids[1].toULongLong();
@@ -123,7 +123,7 @@ void NmViewerServiceInterface::viewMessage(QVariant idList, QVariant flags)
 
         if (addMessageListViewToStack) {
             // Launch the message list view.
-            NmUiStartParam *startParam1 = 
+            NmUiStartParam *startParam1 =
                 new NmUiStartParam(NmUiViewMessageList,
                                    mailboxId,
                                    folderId,
@@ -135,7 +135,7 @@ void NmViewerServiceInterface::viewMessage(QVariant idList, QVariant flags)
 
             mApplication->enterNmUiView(startParam1);
         }
-        
+
         // Launch the message view.
         NmUiStartParam *startParam =
             new NmUiStartParam(NmUiViewMessageViewer,

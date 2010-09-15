@@ -60,11 +60,14 @@ EmailClientApi::NmApiMessageEnvelope NmToApiConverter::NmMessageEnvelope2NmApiMe
     
     QList<NmAddress> to = envelope.toRecipients();
     QList<NmAddress> cc = envelope.ccRecipients();
+    QList<NmAddress> bcc = envelope.bccRecipients();
     QList<EmailClientApi::NmApiEmailAddress> to_api = NmAddress2QString(to);
     QList<EmailClientApi::NmApiEmailAddress> cc_api = NmAddress2QString(cc);
+    QList<EmailClientApi::NmApiEmailAddress> bcc_api = NmAddress2QString(bcc);
 
     api_env.setToRecipients(to_api);
     api_env.setCcRecipients(cc_api);
+    api_env.setBccRecipients(bcc_api);
 
     api_env.setHasAttachments(envelope.hasAttachments());
     api_env.setId(envelope.messageId().id());
@@ -76,6 +79,8 @@ EmailClientApi::NmApiMessageEnvelope NmToApiConverter::NmMessageEnvelope2NmApiMe
     api_env.setSender(envelope.sender().address());
     api_env.setSentTime(envelope.sentTime());
     api_env.setSubject(envelope.subject());
+    api_env.setMailboxId(envelope.messageId().id());
+    api_env.setFlags(static_cast<EmailClientApi::NmApiMessageFlags>(static_cast<int>(envelope.flags())), true);
 
     return api_env;
 }
@@ -100,3 +105,55 @@ QList<EmailClientApi::NmApiEmailAddress> NmToApiConverter::NmAddress2QString(
     return nmAddresses;
 }
 
+/*!
+   converts nmmessage to client api NmApiMessage
+ */
+EmailClientApi::NmApiMessage NmToApiConverter::NmMessage2NmApiMessage(NmMessage &message)
+{
+    NM_FUNCTION;
+    
+    EmailClientApi::NmApiMessage api_message;
+    QList<NmMessagePart*> attachments;
+    message.attachmentList(attachments);
+
+    if (attachments.size() > 0){
+        QList<EmailClientApi::NmApiAttachment> api_attachments; 
+        for (int i = 0; i < attachments.size(); i++){
+            NmMessagePart *part = attachments.at(i);
+            if (part->contentType().compare(EmailClientApi::NmApiContentTypeTextPlain) != 0 && 
+                part->contentType().compare(EmailClientApi::NmApiContentTypeTextHtml) != 0) {
+                EmailClientApi::NmApiAttachment api_attachment;
+                api_attachment.setFileName(part->attachmentName());
+                api_attachment.setId(part->partId().id());
+                api_attachment.setContentType(part->contentType());
+                api_attachment.setSize(part->size());
+                api_attachments.append(api_attachment);
+            }
+        }
+        api_message.setAttachments(api_attachments);
+    }
+    
+    EmailClientApi::NmApiMessageEnvelope api_envelope = NmMessageEnvelope2NmApiMessageEnvelope(message.envelope());
+    api_message.setEnvelope(api_envelope);
+    const NmMessagePart *plaintext = message.plainTextBodyPart();
+    if (plaintext) {
+        EmailClientApi::NmApiTextContent api_plaintext;
+        api_plaintext.setContent(plaintext->textContent());
+        api_plaintext.setId(plaintext->partId().id());
+        api_plaintext.setContentType(plaintext->contentType());
+        api_plaintext.setSize(plaintext->size());
+        api_message.setPlainTextContent(api_plaintext);
+    }
+    
+    const NmMessagePart *htmlcontent = message.htmlBodyPart();
+    if (htmlcontent) {
+        EmailClientApi::NmApiTextContent api_htmlcontent;
+        api_htmlcontent.setContent(htmlcontent->textContent());
+        api_htmlcontent.setId(htmlcontent->partId().id());
+        api_htmlcontent.setContentType(htmlcontent->contentType());
+        api_htmlcontent.setSize(htmlcontent->size());
+        api_message.setHtmlContent(api_htmlcontent);
+    }
+    
+    return api_message;
+}

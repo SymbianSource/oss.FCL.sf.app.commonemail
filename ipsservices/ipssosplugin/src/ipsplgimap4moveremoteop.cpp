@@ -140,7 +140,7 @@ const TDesC8& CIpsPlgImap4MoveRemoteOp::ProgressL()
         // Completed, but with an error during move.
         return *iMoveErrorProgress;
         }        
-    TImap4SyncProgress progg;
+    TImap4SyncProgress progg = TImap4SyncProgress();
     progg.iErrorCode = KErrNone;
     progg.iFoldersNotFound = 0;
     TPckgBuf<TImap4SyncProgress> param(progg);

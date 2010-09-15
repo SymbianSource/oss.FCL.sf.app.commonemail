@@ -55,6 +55,10 @@ public:
 private:
     void createConnections();
     void removeEmbeddedImages(QString &bodyContent);
+    void convertBodyStylesToDivision(QString &bodyContent);
+    void createDivisionFromHead(QString &bodyContent);
+    void convertBodyToDiv(QString &bodyContent, const QString &replacementString);
+    void convertBGColorToStyle(QString &bodyContent);
 
 signals:
     void setPlainText(const QString&);

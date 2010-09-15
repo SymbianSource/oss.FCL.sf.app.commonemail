@@ -576,38 +576,14 @@ void CIpsPlgSosBasePlugin::GoOfflineL( const TFSMailMsgId& aMailBoxId )
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 const TFSProgress CIpsPlgSosBasePlugin::GetLastSyncStatusL(
-    const TFSMailMsgId& aMailBoxId )
+    const TFSMailMsgId& /*aMailBoxId*/ )
     {
     FUNC_LOG;
-    TMsvEntry tEntry;
-    TMsvId service;
-    TFSProgress progress = { TFSProgress::EFSStatus_Status, 0, 0, KErrNone };
-
     if( !iSessionOk )
         {
         User::Leave( KErrNotReady );
         }
-    iSession->GetEntry( aMailBoxId.Id(), service, tEntry );
-// <qmail>
-    TInt state(0);
-// </qmail>
-    switch( state )
-        {
-        case ESyncFinishedSuccessfully:
-            progress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
-            break;
-        case ESyncCancelled:
-            progress.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
-            break;
-        case ESyncError:
-            progress.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
-            progress.iError = KErrGeneral;
-            break;
-        default:
-            progress.iProgressStatus = TFSProgress::EFSStatus_Status;
-            progress.iError = state; // probably some symbian error code
-            break;
-        }
+    TFSProgress progress = { TFSProgress::EFSStatus_Status, 0, 0, KErrNone };
     return progress;
     }
 
@@ -1273,7 +1249,8 @@ TInt CIpsPlgSosBasePlugin::GetMessagePartFileL(
     const TFSMailMsgId& /* aParentFolderId */,
     const TFSMailMsgId& /* aMessageId */,
     const TFSMailMsgId& aMessagePartId,
-    RFile& aFileHandle)
+    RFile& aFileHandle,
+    TBool aForWriting)
 	{
     FUNC_LOG;
     TInt status( KErrNone );
@@ -1302,10 +1279,16 @@ TInt CIpsPlgSosBasePlugin::GetMessagePartFileL(
     if ( attachmentMgr.AttachmentCount() )
         {
 //<qmail>
+    if (aForWriting)
+        {
         // We need to open store for edit to support multipart/alternative
         // structure: we must have a possibility to modify text/html message part
-        //aFileHandle = attachmentMgr.GetAttachmentFileL( 0 );
         aFileHandle = attachmentMgr.GetAttachmentFileForWriteL( 0 );
+        }
+    else
+        {
+        aFileHandle = attachmentMgr.GetAttachmentFileL( 0 );
+        }
 //</qmail>
         }
     else
@@ -1588,7 +1571,7 @@ void CIpsPlgSosBasePlugin::SendMessageL(
 TFSProgress CIpsPlgSosBasePlugin::StatusL( TInt aRequestId )
 	{
     FUNC_LOG;
-	TFSProgress status;
+	TFSProgress status = TFSProgress();
 	status.iError = KErrNone;
 	status.iProgressStatus = TFSProgress::EFSStatus_RequestComplete;
 	for ( TInt i = 0; i < iOperations.Count(); i++ )

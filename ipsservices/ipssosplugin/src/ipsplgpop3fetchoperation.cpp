@@ -79,7 +79,7 @@ const TDesC8& CIpsPlgPop3FetchOperation::ProgressL()
         }
     else
         {
-        TPop3Progress progg;
+        TPop3Progress progg = TPop3Progress();
         progg.iTotalSize = 0;
         progg.iErrorCode = KErrNone;
         TPckgBuf<TPop3Progress> param(progg);

@@ -19,7 +19,6 @@
 #include "nmuiheaders.h"
 
 static const qreal NmHeaderLineOpacity = 0.4;
-static const int NmTextWrapWordOrAnywhere = 4;
 
 /*!
     \class NmViewerHeader
@@ -134,75 +133,100 @@ void NmViewerHeader::paint(
     }
 }
 
+
 /*!
-    Setter for message object
+    Sets the message and updates the UI according to the given message data.
+
+    \param message The message to set.
 */
 void NmViewerHeader::setMessage(NmMessage* message)
 {
     NM_FUNCTION;
     
-    mMessage=message;
+    mMessage = message;
     setHeaderData();
 }
 
 
 /*!
-    Function updates data in already created objects. New message pointer
-    comes from viewer view, ownership is not transferred.
-    This function gets called when message body is fetched and
-    to/cc/bcc data needs to be updated
+    Updates data in already created objects. The given message pointer comes
+    from the viewer view and the ownership of the instance is not transferred.
+    This method gets called when the message body is fetched and recipient
+    (to/cc/bcc) data needs to be updated.
+
+    Note that if the message has been changed, this method should not be called
+    since this method _only_ updates the recipient data! If the message has been
+    changed, call setMessage() instead.
+
+    \param message The message data.
 */
 void NmViewerHeader::updateMessageData(NmMessage* message)
 {
     NM_FUNCTION;
     
-    if (message){
-        mMessage=message;
-        // Set recipients to text edit field as html 
-        NmAddress sender = mMessage->envelope().sender();      
-        if (mRecipientsBox){  
-            mRecipientsBox->setHtml(formatRecipientList(addressToDisplay(sender),
+    if (message) {
+        mMessage = message;
+
+        // Set recipients to the text edit field as html. 
+        NmAddress sender = mMessage->envelope().sender();
+
+        if (mRecipientsBox) {  
+            mRecipientsBox->setHtml(
+                formatRecipientList(addressToDisplay(sender),
                                     mMessage->envelope().toRecipients(), 
                                     mMessage->envelope().ccRecipients()));
-        }       
+        }
     }
 }
 
+
 /*!
-    Function sets data to header area based on message data
+    Sets the data of the header area based on message data.
 */
 void NmViewerHeader::setHeaderData()
 {
     NM_FUNCTION;
     
     if (mMessage) {
-        // Background is all white always, so force text color to black
+        // Background is all white always, so force text color to black.
         QColor textColor(Qt::black);
+        
+        // Get the message envelope.
         const NmMessageEnvelope &envelope = mMessage->envelope();
+
+        // Set the sender.
         const QString dispName = envelope.sender().displayName();
-        if (dispName.length()>0){
+
+        if (dispName.length()) {
             mSenderName = NmUtilities::cleanupDisplayName(dispName);
         }
         else {
+            // Use the address instead.
             mSenderName = envelope.sender().address();
         }
+
         if (mHeaderBox) {
             mHeaderBox->setHeading(mSenderName);
         }
-        // Set subject text
+
+        // Set the subject text.
         if (mSubject){
             QString subjectText = envelope.subject();
-            if (subjectText.length()){
+
+            if (subjectText.length()) {
                 mSubject->setText(subjectText);
             }
             else{
                 mSubject->setText(hbTrId("txt_mail_dblist_val_no_subject"));
             }
-        mSubject->setTextColor(textColor);
+
+            mSubject->setTextColor(textColor);
         }
-        if (mSent){
+
+        if (mSent) {
             HbExtendedLocale locale = HbExtendedLocale::system();
-            QDateTime localTime = envelope.sentTime().addSecs(locale.universalTimeOffset());
+            QDateTime localTime =
+                envelope.sentTime().addSecs(locale.universalTimeOffset());
             QTime time = localTime.time();
             QDate sentLocalDate = localTime.date();
             QString shortDateSpec = r_qtn_date_without_year;
@@ -210,29 +234,34 @@ void NmViewerHeader::setHeaderData()
             QString text = locale.format(sentLocalDate, shortDateSpec);
             text += " ";
             text += locale.format(time, shortTimeSpec);
-            mSent->setText(text);
+            mSent->setText(HbStringUtil::convertDigits(text));
             mSent->setTextColor(textColor);
-        } 
-        if (mPrioIcon){
-            switch (envelope.priority()){
-                case NmMessagePriorityLow:
+        }
+
+        if (mPrioIcon) {
+            switch (envelope.priority()) {
+                case NmMessagePriorityLow: {
                     mPrioIcon->setObjectName("ViewerHeaderPriorityLow");
                     mPrioIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconPriorityLow));
                     mPrioIcon->show();
                     break;
-                case NmMessagePriorityHigh:
+                }
+                case NmMessagePriorityHigh: {
                     mPrioIcon->setObjectName("ViewerHeaderPriorityHigh");
                     mPrioIcon->setIcon(NmIcons::getIcon(NmIcons::NmIconPriorityHigh));
                     mPrioIcon->show();
                     break;
+                }
                 case NmMessagePriorityNormal:
-                default:
+                default: {
                     // Normal priority has no icon so hide the label hide.
                     mPrioIcon->setObjectName("ViewerHeaderPriorityNormal");
                     break;
+                }
             }
         }
     }
+
     createExpandableHeader();
 }
 
@@ -257,10 +286,15 @@ void NmViewerHeader::createExpandableHeader()
     
     if (mHeaderBox) {        // Initialize recipient box
         if (!mRecipientsBox) {
-            mRecipientsBox = new HbLabel();
-            HbStyle::setItemName(mRecipientsBox, "recipients");
+            mRecipientsBox = new HbTextEdit();
+            mRecipientsBox->setReadOnly(true);
+            mRecipientsBox->document()->
+                    defaultTextOption().setWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+            mRecipientsBox->setObjectName("toField");
+            mRecipientsBox->setBackgroundItem(NULL);
             mRecipientsBox->setFontSpec(HbFontSpec(HbFontSpec::Secondary)); 
-            mRecipientsBox->setTextWrapping((Hb::TextWrapping)NmTextWrapWordOrAnywhere);
+            connect(mRecipientsBox, SIGNAL(anchorTapped(const QString &)),
+                    this, SLOT(anchorTapped(const QString &)));                    
         }              
         if (mMessage) {
             // Set recipients to text edit field as html 
@@ -372,5 +406,17 @@ QString NmViewerHeader::addressToDisplay(const NmAddress &addr)
     ret.append(dispName);
     ret.append("</a>");
     return ret;
+}
+
+/*!
+    Function handles cursor position changes in header group box.
+    E.g link handler.
+*/
+void NmViewerHeader::anchorTapped(const QString &anchor)
+{
+    if (mViewerView&&anchor.contains("mailto:",Qt::CaseSensitive)){
+        QUrl url(anchor);     
+        mViewerView->linkClicked(url);
+    }
 }
 

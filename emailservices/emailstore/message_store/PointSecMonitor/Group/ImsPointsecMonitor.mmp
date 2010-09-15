@@ -45,3 +45,5 @@ APP_LAYER_SYSTEMINCLUDE
 
 LIBRARY         euser.lib
 LIBRARY			DebugLog.lib
+
+SMPSAFE

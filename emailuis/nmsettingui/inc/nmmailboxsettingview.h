@@ -39,7 +39,7 @@ public:
     explicit NmMailboxSettingView(const NmId &mailboxId,
         const QString &mailboxName,
         NmMailboxSettingsManager& settingsManager,
-        QGraphicsItem *parent = 0);
+        QGraphicsItem *parent = NULL);
 
     ~NmMailboxSettingView();
 
@@ -51,7 +51,12 @@ private slots:
 
     void mailboxPropertyChanged(const NmId &mailboxId, QVariant property, QVariant value);
 
-    void itemPress(const QModelIndex &index);
+    void itemActivated(const QModelIndex &index);
+
+    void disablePredictiveText(const QModelIndex &index);
+
+    void queuedScroll(const QModelIndex &index);
+
 
 private:
 

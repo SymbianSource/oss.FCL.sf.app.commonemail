@@ -84,3 +84,5 @@ LIBRARY	 estor.lib
 LIBRARY  efsrv.lib
 LIBRARY  debuglog.lib
 LIBRARY  MessageStoreServer.lib
+
+SMPSAFE

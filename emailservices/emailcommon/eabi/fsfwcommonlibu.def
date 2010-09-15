@@ -174,7 +174,7 @@ EXPORTS
 	_ZN18CFSMailMessagePart14SetContentTypeERK7TDesC16 @ 173 NONAME
 	_ZN18CFSMailMessagePart15AttachmentNameLEv @ 174 NONAME
 	_ZN18CFSMailMessagePart15GetContentClassEv @ 175 NONAME
-	_ZN18CFSMailMessagePart15GetContentFileLEv @ 176 NONAME
+	_ZN18CFSMailMessagePart15GetContentFileLEi @ 176 NONAME
 	_ZN18CFSMailMessagePart15SetContentClassERK7TDesC16 @ 177 NONAME
 	_ZN18CFSMailMessagePart16CopyContentFileLERK7TDesC16 @ 178 NONAME
 	_ZN18CFSMailMessagePart16GetNmMessagePartEv @ 179 NONAME
@@ -208,7 +208,7 @@ EXPORTS
 	_ZN18CFSMailMessagePartD2Ev @ 207 NONAME
 	_ZN21CFSMailRequestHandler10AddPluginLE4TUidP13CFSMailPlugin @ 208 NONAME
 	_ZN21CFSMailRequestHandler10ConstructLE13RPointerArrayI26CImplementationInformationES0_I13CFSMailPluginE @ 209 NONAME
-	_ZN21CFSMailRequestHandler12GetTempFileLE12TFSMailMsgId4TBufILi256EE @ 210 NONAME
+	_ZN21CFSMailRequestHandler12GetTempFileLE12TFSMailMsgIdR4TBufILi256EE @ 210 NONAME
 	_ZN21CFSMailRequestHandler14CancelRequestLEi @ 211 NONAME
 	_ZN21CFSMailRequestHandler14GetPluginByUidE12TFSMailMsgId @ 212 NONAME
 	_ZN21CFSMailRequestHandler15CompleteRequestEi @ 213 NONAME
@@ -222,48 +222,49 @@ EXPORTS
 	_ZN21CFSMailRequestHandlerD0Ev @ 221 NONAME
 	_ZN21CFSMailRequestHandlerD1Ev @ 222 NONAME
 	_ZN21CFSMailRequestHandlerD2Ev @ 223 NONAME
-	_ZNK10CFSMailBox16CurrentSyncStateEv @ 224 NONAME
-	_ZNK14CFSMailAddress14GetDisplayNameEv @ 225 NONAME
-	_ZNK14CFSMailAddress15GetEmailAddressEv @ 226 NONAME
-	_ZNK14CFSMailBoxBase5GetIdEv @ 227 NONAME
-	_ZNK14CFSMailBoxBase7GetNameEv @ 228 NONAME
-	_ZNK15CEmailExtension3UidEv @ 229 NONAME
-	_ZNK16TEmailExtensions13FindExtensionERK4TUid @ 230 NONAME
-	_ZNK16TEmailExtensions9ExtensionEi @ 231 NONAME
-	_ZNK17CFSMailFolderBase11GetFolderIdEv @ 232 NONAME
-	_ZNK17CFSMailFolderBase12GetMailBoxIdEv @ 233 NONAME
-	_ZNK17CFSMailFolderBase13GetFolderNameEv @ 234 NONAME
-	_ZNK17CFSMailFolderBase13GetFolderTypeEv @ 235 NONAME
-	_ZNK17CFSMailFolderBase14GetUnreadCountEv @ 236 NONAME
-	_ZNK17CFSMailFolderBase14GetUnseenCountEv @ 237 NONAME
-	_ZNK17CFSMailFolderBase15GetMessageCountEv @ 238 NONAME
-	_ZNK17CFSMailFolderBase17GetParentFolderIdEv @ 239 NONAME
-	_ZNK17CFSMailFolderBase17GetSubFolderCountEv @ 240 NONAME
-	_ZNK18CFSMailMessageBase10GetSubjectEv @ 241 NONAME
-	_ZNK18CFSMailMessageBase11GetFolderIdEv @ 242 NONAME
-	_ZNK18CFSMailMessageBase12GetMailBoxIdEv @ 243 NONAME
-	_ZNK18CFSMailMessageBase12GetMessageIdEv @ 244 NONAME
-	_ZNK18CFSMailMessageBase7GetDateEv @ 245 NONAME
-	_ZNK18CFSMailMessageBase8GetFlagsEv @ 246 NONAME
-	_ZNK18CFSMailMessageBase9GetSenderEv @ 247 NONAME
-	_ZNK18CFSMailMessageBase9IsFlagSetEi @ 248 NONAME
-	_ZNK18CFSMailMessagePart10IsMessageLEv @ 249 NONAME
-	_ZNK18CFSMailMessagePart11ContentSizeEv @ 250 NONAME
-	_ZNK18CFSMailMessagePart14FetchLoadStateEv @ 251 NONAME
-	_ZNK18CFSMailMessagePart14GetContentTypeEv @ 252 NONAME
-	_ZNK18CFSMailMessagePart16ReadOnlyPartSizeEv @ 253 NONAME
-	_ZNK18CFSMailMessagePart18FetchedContentSizeEv @ 254 NONAME
-	_ZNK18CFSMailMessagePart9GetPartIdEv @ 255 NONAME
-	_ZTI15CEmailExtension @ 256 NONAME
-	_ZTI16CExtendableEmail @ 257 NONAME
-	_ZTI21CFSMailRequestHandler @ 258 NONAME
-	_ZTV15CEmailExtension @ 259 NONAME
-	_ZTV16CExtendableEmail @ 260 NONAME
-	_ZTV21CFSMailRequestHandler @ 261 NONAME
-	_ZThn4_N15CFSMailIterator5NextLE12TFSMailMsgIdjR13RPointerArrayI14CFSMailMessageE @ 262 NONAME
-	_ZThn4_N15CFSMailIterator5NextLERK7TDesC16jR13RPointerArrayI14CFSMailMessageE @ 263 NONAME
-	_ZThn4_N15CFSMailIterator9PreviousLE12TFSMailMsgIdjR13RPointerArrayI14CFSMailMessageE @ 264 NONAME
-	_ZThn4_N15CFSMailIterator9PreviousLERK7TDesC16jR13RPointerArrayI14CFSMailMessageE @ 265 NONAME
-	_ZThn4_N15CFSMailIteratorD0Ev @ 266 NONAME
-	_ZThn4_N15CFSMailIteratorD1Ev @ 267 NONAME
+	_ZNK10CFSMailBox13HasCapabilityE22TFSMailBoxCapabilities @ 224 NONAME
+	_ZNK10CFSMailBox16CurrentSyncStateEv @ 225 NONAME
+	_ZNK14CFSMailAddress14GetDisplayNameEv @ 226 NONAME
+	_ZNK14CFSMailAddress15GetEmailAddressEv @ 227 NONAME
+	_ZNK14CFSMailBoxBase5GetIdEv @ 228 NONAME
+	_ZNK14CFSMailBoxBase7GetNameEv @ 229 NONAME
+	_ZNK15CEmailExtension3UidEv @ 230 NONAME
+	_ZNK16TEmailExtensions13FindExtensionERK4TUid @ 231 NONAME
+	_ZNK16TEmailExtensions9ExtensionEi @ 232 NONAME
+	_ZNK17CFSMailFolderBase11GetFolderIdEv @ 233 NONAME
+	_ZNK17CFSMailFolderBase12GetMailBoxIdEv @ 234 NONAME
+	_ZNK17CFSMailFolderBase13GetFolderNameEv @ 235 NONAME
+	_ZNK17CFSMailFolderBase13GetFolderTypeEv @ 236 NONAME
+	_ZNK17CFSMailFolderBase14GetUnreadCountEv @ 237 NONAME
+	_ZNK17CFSMailFolderBase14GetUnseenCountEv @ 238 NONAME
+	_ZNK17CFSMailFolderBase15GetMessageCountEv @ 239 NONAME
+	_ZNK17CFSMailFolderBase17GetParentFolderIdEv @ 240 NONAME
+	_ZNK17CFSMailFolderBase17GetSubFolderCountEv @ 241 NONAME
+	_ZNK18CFSMailMessageBase10GetSubjectEv @ 242 NONAME
+	_ZNK18CFSMailMessageBase11GetFolderIdEv @ 243 NONAME
+	_ZNK18CFSMailMessageBase12GetMailBoxIdEv @ 244 NONAME
+	_ZNK18CFSMailMessageBase12GetMessageIdEv @ 245 NONAME
+	_ZNK18CFSMailMessageBase7GetDateEv @ 246 NONAME
+	_ZNK18CFSMailMessageBase8GetFlagsEv @ 247 NONAME
+	_ZNK18CFSMailMessageBase9GetSenderEv @ 248 NONAME
+	_ZNK18CFSMailMessageBase9IsFlagSetEi @ 249 NONAME
+	_ZNK18CFSMailMessagePart10IsMessageLEv @ 250 NONAME
+	_ZNK18CFSMailMessagePart11ContentSizeEv @ 251 NONAME
+	_ZNK18CFSMailMessagePart14FetchLoadStateEv @ 252 NONAME
+	_ZNK18CFSMailMessagePart14GetContentTypeEv @ 253 NONAME
+	_ZNK18CFSMailMessagePart16ReadOnlyPartSizeEv @ 254 NONAME
+	_ZNK18CFSMailMessagePart18FetchedContentSizeEv @ 255 NONAME
+	_ZNK18CFSMailMessagePart9GetPartIdEv @ 256 NONAME
+	_ZTI15CEmailExtension @ 257 NONAME
+	_ZTI16CExtendableEmail @ 258 NONAME
+	_ZTI21CFSMailRequestHandler @ 259 NONAME
+	_ZTV15CEmailExtension @ 260 NONAME
+	_ZTV16CExtendableEmail @ 261 NONAME
+	_ZTV21CFSMailRequestHandler @ 262 NONAME
+	_ZThn4_N15CFSMailIterator5NextLE12TFSMailMsgIdjR13RPointerArrayI14CFSMailMessageE @ 263 NONAME
+	_ZThn4_N15CFSMailIterator5NextLERK7TDesC16jR13RPointerArrayI14CFSMailMessageE @ 264 NONAME
+	_ZThn4_N15CFSMailIterator9PreviousLE12TFSMailMsgIdjR13RPointerArrayI14CFSMailMessageE @ 265 NONAME
+	_ZThn4_N15CFSMailIterator9PreviousLERK7TDesC16jR13RPointerArrayI14CFSMailMessageE @ 266 NONAME
+	_ZThn4_N15CFSMailIteratorD0Ev @ 267 NONAME
+	_ZThn4_N15CFSMailIteratorD1Ev @ 268 NONAME
 

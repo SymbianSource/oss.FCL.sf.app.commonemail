@@ -42,7 +42,7 @@
 */
 NmIpsImap4SettingsManager::NmIpsImap4SettingsManager(const NmId &mailboxId,
     CEmailAccounts *account,
-    TImapAccount imapAccount)
+    TImapAccount &imapAccount)
 : NmIpsSettingsManagerBase(mailboxId, account, IpsServices::EMailImap),
   mImap4Account(imapAccount)
 {

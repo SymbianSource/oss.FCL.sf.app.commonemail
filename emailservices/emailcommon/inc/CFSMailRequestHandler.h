@@ -153,7 +153,7 @@ public:
       * @param aFileName file name
       */
      // <qmail>
-      RFile GetTempFileL( TFSMailMsgId aContentId,TFileName aFileName );
+      RFile GetTempFileL( TFSMailMsgId aContentId, TFileName &aFileName );
      // </qmail>
 protected:
 

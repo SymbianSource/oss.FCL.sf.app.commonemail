@@ -18,6 +18,8 @@
 #ifndef NMAPIENGINE_H
 #define NMAPIENGINE_H
 
+#include <CFSMailPlugin.h>
+
 #include "nmcommon.h"
 #include "nmapiprivateclasses.h"
 
@@ -28,6 +30,7 @@ namespace EmailClientApi
 class NmApiMailbox;
 class NmApiFolder;
 class NmApiMessageEnvelope;
+class NmApiMessage;
 }
 
 class NmApiEngine : public QObject
@@ -51,15 +54,23 @@ public:
 		
     bool getMailboxById(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailbox);
 
-    void startCollectingEvents();
+    bool getMessageById(
+        const quint64 mailboxId,
+        const quint64 folderId,
+        const quint64 messageId,
+        EmailClientApi::NmApiMessage &message);
     
+    void startCollectingEvents();
+
+    bool listMailPlugins(RPointerArray<CFSMailPlugin> &mailPlugins);
+
     signals:
     /*!
        It contains info about event in emailstore.
        
        \arg Contains info about event and related object (message or mailbox list)
      */
-    void emailStoreEvent(NmApiMessage message);
+    void emailStoreEvent(NmApiEvent event);
 
 private slots:
     void mailboxChangedArrived(NmMailboxEvent, const QList<NmId> &mailboxIds);
@@ -72,12 +83,15 @@ private slots:
 private:
     NmApiEngine();
     virtual ~NmApiEngine();
+    void listMailPlugins();
+    void listMailPluginsL();
 
 private:
     static NmApiEngine *mInstance;//!<Static instance of NmApiEngine. There can be only one instance of engine
     static quint32 mReferenceCount;//!<Count of refences to engine instance
 
     NmApiDataPluginFactory *mFactory;//!<Plugin factory. Is needed to get plugins for emails
+    RPointerArray<CFSMailPlugin> mMailPlugins;
 };
 
 #endif /* NMAPIENGINE_H */

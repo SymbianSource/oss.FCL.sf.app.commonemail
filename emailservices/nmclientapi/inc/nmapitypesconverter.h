@@ -24,6 +24,8 @@ class NmMailbox;
 class NmFolder;
 class NmMessageEnvelope;
 class NmAddress;
+class NmMessage;
+class NmMessagePart;
 /*!
    
  */
@@ -33,6 +35,8 @@ class NmApiMailbox;
 class NmApiFolder;
 class NmApiMessageEnvelope;
 class NmApiEmailAddress;
+class NmApiMessage;
+class NmApiAttachment;
 }
 
 
@@ -45,6 +49,8 @@ public:
         const NmMessageEnvelope &envelope);
     static QList<EmailClientApi::NmApiEmailAddress> NmAddress2QString(
         const QList<NmAddress> &addresses);
+    static EmailClientApi::NmApiMessage NmMessage2NmApiMessage(NmMessage &message);
+
 };
 
 #endif /* NMTOAPICONVERTER_H_ */

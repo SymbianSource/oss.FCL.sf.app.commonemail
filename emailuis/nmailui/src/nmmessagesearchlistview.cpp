@@ -29,6 +29,9 @@ static const QString NmSearchListViewLineEdit("lineedit");
 static const QString NmSearchListViewSpinnerAnimation("qtg_anim_mono_loading");
 static const QString NmSearchListViewSpinnerImage("qtg_anim_mono_loading_1");
 
+static const QString NmSearchListViewPortrait("portrait");
+static const QString NmSearchListViewLandscape("landscape");
+
 
 /*!
     \class NmMessageSearchListView
@@ -147,8 +150,12 @@ void NmMessageSearchListView::aboutToExitView()
 void NmMessageSearchListView::viewReady()
 {
     NM_FUNCTION;
+
+    // Load orientation specific sections.
+    loadOrientationSection();
     
     if (!mViewReady){
+
         // Set the mailbox name to the title pane.
         setViewTitle();
 
@@ -788,6 +795,9 @@ void NmMessageSearchListView::orientationAboutToChange()
 void NmMessageSearchListView::orientationChanged()
 {
     NM_FUNCTION;
+
+    loadOrientationSection();
+
     if (mSelectTextAfterOrientationChange) {
         mLineEdit->selectAll();
         mSelectTextAfterOrientationChange = false;
@@ -833,6 +843,19 @@ void NmMessageSearchListView::vkbClosed()
 
     setContentFullScreen(false);
     showItems(Hb::ToolBarItem);
+}
+
+/*!
+    Loads orientation specific sections from docml.
+*/
+void NmMessageSearchListView::loadOrientationSection()
+{
+    QString sectionName(NmSearchListViewPortrait);
+    if (mApplication.mainWindow()->orientation() == Qt::Horizontal) {
+        sectionName = NmSearchListViewLandscape;
+    }
+
+    mDocumentLoader->load(NMUI_MESSAGE_SEARCH_VIEW_XML, sectionName);
 }
 
 // End of file.

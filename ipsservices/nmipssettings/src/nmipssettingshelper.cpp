@@ -48,7 +48,7 @@
 // CONSTANTS
 
 // Dynamic receiving schedule items.
-const IpsServices::SettingItem NmIpsSettingsReceivingScheduleItems[] = {
+static const IpsServices::SettingItem NmIpsSettingsReceivingScheduleItems[] = {
         IpsServices::ReceptionInboxSyncWindow,
         IpsServices::ReceptionWeekDays,
         IpsServices::ReceptionDayStartTime,
@@ -56,17 +56,17 @@ const IpsServices::SettingItem NmIpsSettingsReceivingScheduleItems[] = {
         IpsServices::ReceptionRefreshPeriodDayTime};
 
 // Dynamic receiving schedule item count.
-const int NmIpsSettingsReceivingScheduleItemCount(
+static const int NmIpsSettingsReceivingScheduleItemCount(
     sizeof(NmIpsSettingsReceivingScheduleItems) / sizeof(NmIpsSettingsReceivingScheduleItems[0]));
 
 // Index of ReceptionDayStartTime in NmIpsSettingsReceivingScheduleItems array.
-const int NmIpsSettingsIndexOfReceptionDayStartTime(2);
+static const int NmIpsSettingsIndexOfReceptionDayStartTime(2);
 
 // Index of user defined mode.
-const int NmIpsSettingsIndexOfUserDefinedMode(3);
+static const int NmIpsSettingsIndexOfUserDefinedMode(3);
 
 // Receving schedule item not found value.
-const int NmIpsSettingsRecevingScheduleItemNotFound(-1);
+static const int NmIpsSettingsRecevingScheduleItemNotFound(-1);
 
 
 
@@ -92,13 +92,13 @@ NmIpsSettingsHelper::NmIpsSettingsHelper(NmIpsSettingsManagerBase &settingsManag
   mSettingsManager(settingsManager),
   mDataForm(dataForm),
   mDataFormModel(dataFormModel),
-  mDeleteConfirmationDialog(0),
-  mIncomingPortInputDialog(0),
-  mIncomingPortInputValidator(0),
-  mFolderPathInputDialog(0),
-  mOutgoingPortInputDialog(0),
-  mOutgoingPortInputValidator(0),
-  mDestinationDialog(0),
+  mDeleteConfirmationDialog(NULL),
+  mIncomingPortInputDialog(NULL),
+  mIncomingPortInputValidator(NULL),
+  mFolderPathInputDialog(NULL),
+  mOutgoingPortInputDialog(NULL),
+  mOutgoingPortInputValidator(NULL),
+  mDestinationDialog(NULL),
   mServerInfoDynamicItemsVisible(false),
   mAbortDynamicRSItemHandling(false),
   mCurrentRefreshIndex(-1)
@@ -316,10 +316,11 @@ void NmIpsSettingsHelper::createOrUpdateReceivingScheduleGroupDynamicItem(
                                      << HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_1_hour"))
                                      << HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_4_hours"));
                     formItemData->setContentWidgetData("items", refreshMailItems);
-                    
+                    formItemData->setContentWidgetData("displayMode","popup");
+
                     mDataForm.addConnection(formItemData, SIGNAL(finished(HbAction *)),
                            this, SLOT(refreshPeriodModified(HbAction *)));
-                    
+
                     mDataForm.addConnection(formItemData, SIGNAL(itemSelected(int)),
                            this, SLOT(refreshIndexModified(int)));
                 }
@@ -888,7 +889,7 @@ void NmIpsSettingsHelper::handleUserDefinedIncomingPortInput(HbAction *action)
 int NmIpsSettingsHelper::getCorrectIncomingPortRadioButtonIndex()
 {
     QVariant incomingPort;
-        mSettingsManager.readSetting(IpsServices::IncomingPort, incomingPort);
+    mSettingsManager.readSetting(IpsServices::IncomingPort, incomingPort);
     int index = 0;
     int port = mSettingsManager.determineDefaultIncomingPort();
     if (port == incomingPort.toInt()) {
@@ -1142,6 +1143,7 @@ void NmIpsSettingsHelper::handleReceivingScheduleSettingChange(
 {
     // Check what was currently active sync mode.
     QVariant setting;
+    bool profileChanged = false;
     mSettingsManager.readSetting(IpsServices::ReceptionActiveProfile, setting);
     int activeProfile(setting.toInt());
     if (activeProfile != NmIpsSettingsReceivingScheduleUserDefinedProfile) {
@@ -1153,10 +1155,17 @@ void NmIpsSettingsHelper::handleReceivingScheduleSettingChange(
             NmIpsSettingsReceivingScheduleUserDefinedProfile);
 
         // select 'user defined' mode
+        emit goOffline(mSettingsManager.mailboxId());
+        mEmitOnline = true;
+        profileChanged = true;
         mSettingsManager.writeSetting(IpsServices::ReceptionActiveProfile,
             NmIpsSettingsReceivingScheduleUserDefinedProfile);
     }
 
+    if (!profileChanged) {
+        emit goOffline(mSettingsManager.mailboxId());
+        mEmitOnline = true;
+    }
     // store selected setting
     mSettingsManager.writeSetting(settingItem, settingValue);
 

@@ -41,7 +41,7 @@
     \param imapAccount TImapAccount of the mailbox.
 */
 NmIpsPop3SettingsManager::NmIpsPop3SettingsManager(const NmId &mailboxId,
-    CEmailAccounts *account, TPopAccount popAccount)
+    CEmailAccounts *account, TPopAccount &popAccount)
 : NmIpsSettingsManagerBase(mailboxId, account, IpsServices::EMailPop),
   mPop3Account(popAccount)
 {

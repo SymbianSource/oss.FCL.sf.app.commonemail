@@ -57,6 +57,7 @@ public:
                                             QObject *receiver = 0,
                                             const char *member = 0);
     static QString createReplyHeader(const NmMessageEnvelope &env);
+    static NmAddress *qstringToNmAddress(QString str);
 };
 
 #endif /* NMUTILITIES_H_ */

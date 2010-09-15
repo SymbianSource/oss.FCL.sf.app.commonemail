@@ -460,9 +460,11 @@ void NmAttachmentListWidget::insertItemToLayout(NmAttachmentListItem* item)
     //check which orientation in use
     //if layout is horizontal, items need to be placed in 2 columns.
     if(Qt::Vertical == mOrientation){
+        item->setPreferredWidth( mLayout->geometry().width() );
         mLayout->addItem(item,layout_count,0);
     } else {
         // Qt FW sets the correct width automatically based on the width of the child widgets
+        item->setPreferredWidth( mLayout->geometry().width() / 2);
         mLayout->addItem(item,layout_count / 2, layout_count % 2);
     }
 }

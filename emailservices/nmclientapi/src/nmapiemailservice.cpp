@@ -73,6 +73,23 @@ bool NmApiEmailService::getMailbox(const quint64 mailboxId, EmailClientApi::NmAp
 }
 
 /*!
+   gets mail message envelope by id (see also NmEventNotifier)
+ */
+bool NmApiEmailService::getMessage(
+    const quint64 mailboxId,
+    const quint64 folderId,
+    const quint64 messageId,
+    EmailClientApi::NmApiMessage &message)
+{
+    NM_FUNCTION;
+    
+    if (!mEngine) {
+        return false;
+    }
+    return mEngine->getMessageById(mailboxId, folderId, messageId, message);
+}
+
+/*!
    Initialises email service. this must be called and initialised signal received 
    before services of the library are used.
  */

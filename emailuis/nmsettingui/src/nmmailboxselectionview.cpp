@@ -17,10 +17,10 @@
 
 #include <QScopedPointer>
 #include <QSignalMapper>
-#include <hbdataform.h>
-#include <hbdataformmodel.h>
-#include <hbpushbutton.h>
-#include <hbdataformviewitem.h>
+#include <HbDataForm>
+#include <HbDataFormModel>
+#include <HbPushButton>
+#include <HbDataFormViewItem>
 #include <cpitemdatahelper.h>
 #include <nmmailbox.h>
 
@@ -52,7 +52,7 @@ NmMailboxSelectionView::NmMailboxSelectionView(
   mRefreshForm(false)
 {
     NM_FUNCTION;
-    
+
     QScopedPointer<QSignalMapper> signalMapper(new QSignalMapper());
 
     // Connect the form's activated signal.
@@ -84,7 +84,7 @@ NmMailboxSelectionView::NmMailboxSelectionView(
 NmMailboxSelectionView::~NmMailboxSelectionView()
 {
     NM_FUNCTION;
-    
+
     delete mItemDataHelper;
     delete mModel;
     delete mSignalMapper;
@@ -100,7 +100,7 @@ NmMailboxSelectionView::~NmMailboxSelectionView()
 void NmMailboxSelectionView::buttonClick(QObject *item)
 {
     NM_FUNCTION;
-    
+
     NmMailboxEntryItem *entryItem = static_cast<NmMailboxEntryItem *>(item);
     const NmId &id = entryItem->id();
     const QString &name = entryItem->text();
@@ -108,7 +108,7 @@ void NmMailboxSelectionView::buttonClick(QObject *item)
 }
 
 /*!
-    Handels the dataform's activated signal when item is shown. 
+    Handels the dataform's activated signal when item is shown.
     Maps the signal/mailbox item for the buttons.
 
     \param index Data model index.
@@ -117,23 +117,23 @@ void NmMailboxSelectionView::buttonClick(QObject *item)
 void NmMailboxSelectionView::itemActivate(const QModelIndex &index)
 {
     NM_FUNCTION;
-    
+
     HbDataForm *form = qobject_cast<HbDataForm*>(widget());
     HbDataFormModel *model = static_cast<HbDataFormModel *>(form->model());
     NmMailboxEntryItem *item = static_cast<NmMailboxEntryItem *>(model->itemFromIndex(index));
-    
-    if (!mSignalMapper->mapping(item)) {
-        
-        HbDataFormViewItem *viewItem = 
+
+    if (item && !mSignalMapper->mapping(item)) {
+
+        HbDataFormViewItem *viewItem =
             static_cast<HbDataFormViewItem *>(form->itemByIndex(index));
-        HbPushButton *button = 
+        HbPushButton *button =
             static_cast<HbPushButton *>(viewItem->dataItemContentWidget());
-        
+
         connect(button, SIGNAL(pressed()), mSignalMapper, SLOT(map()));
-    
+
         mSignalMapper->setMapping(button, item);
-    
-        connect(mSignalMapper, SIGNAL(mapped(QObject *)), 
+
+        connect(mSignalMapper, SIGNAL(mapped(QObject *)),
             this, SLOT(buttonClick(QObject *)), Qt::UniqueConnection);
     }
 }
@@ -147,7 +147,7 @@ void NmMailboxSelectionView::itemActivate(const QModelIndex &index)
 void NmMailboxSelectionView::populateDataModel(const QList<NmMailbox *> &mailboxList)
 {
     NM_FUNCTION;
-    
+
     mModel->clear();
     foreach (NmMailbox *mailbox, mailboxList) {
         NmId id = mailbox->id();
@@ -158,7 +158,9 @@ void NmMailboxSelectionView::populateDataModel(const QList<NmMailbox *> &mailbox
         item.take();
     }
     HbDataForm *form = qobject_cast<HbDataForm*>(widget());
-    form->setModel(mModel);
+    if (form) {
+        form->setModel(mModel);
+	}
 }
 
 /*!
@@ -171,7 +173,7 @@ void NmMailboxSelectionView::mailboxListChanged(const NmId &mailboxId,
     NmSettings::MailboxEventType type)
 {
     NM_FUNCTION;
-    
+
     switch (type) {
         case NmSettings::MailboxDeleted: {
             // Search correct item.
@@ -210,9 +212,9 @@ void NmMailboxSelectionView::mailboxPropertyChanged(const NmId &mailboxId,
     QVariant property, QVariant value)
 {
     NM_FUNCTION;
-    
+
     // Search correct item.
-    NmMailboxEntryItem *entryItem = 0;
+    NmMailboxEntryItem *entryItem = NULL;
     const int itemCount(mModel->rowCount());
     for (int itemIndex(0); itemIndex < itemCount; ++itemIndex) {
         entryItem = static_cast<NmMailboxEntryItem *>(

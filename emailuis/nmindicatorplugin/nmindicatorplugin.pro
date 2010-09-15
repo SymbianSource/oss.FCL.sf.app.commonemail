@@ -48,6 +48,8 @@ symbian {
     LIBS += -leuser
     LIBS += -llibc
     LIBS += -lxqservice
+    
+    MMP_RULES += SMPSAFE
 }
 
 BLD_INF_RULES.prj_exports += \

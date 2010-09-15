@@ -94,6 +94,7 @@ symbian*: {
         "$${LITERAL_HASH}endif"
 
     MMP_RULES += defBlock
+    MMP_RULES += SMPSAFE
     
     BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
     "rom/emailclientapi.iby CORE_APP_LAYER_IBY_EXPORT_PATH(emailclientapi.iby)"    

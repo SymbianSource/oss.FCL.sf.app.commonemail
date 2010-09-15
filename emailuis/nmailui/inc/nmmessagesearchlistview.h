@@ -107,6 +107,7 @@ private slots:
     void sendSoftwareInputPanelRequest(QEvent::Type eventType = QEvent::RequestSoftwareInputPanel);
     void vkbOpened();
     void vkbClosed();
+    void loadOrientationSection();
 
 private: // Data
 

@@ -13,7 +13,7 @@
 #
 # Description: 
 #
-# Version : %version: e002sa38#31 %
+# Version : %version: e002sa38#32 %
 TEMPLATE = lib
 TARGET = nmframeworkadapter
 
@@ -94,7 +94,8 @@ symbian*: {
 
     BLD_INF_RULES.prj_exports += \
     "../rom/nmframeworkadapter.iby             CORE_APP_LAYER_IBY_EXPORT_PATH(nmframeworkadapter.iby)"
-
+    
+    MMP_RULES += SMPSAFE
 }
 
 win32 {

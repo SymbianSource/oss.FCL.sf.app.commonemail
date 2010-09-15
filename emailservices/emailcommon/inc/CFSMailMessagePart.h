@@ -262,10 +262,12 @@ NONSHARABLE_CLASS ( CFSMailMessagePart ) : public CFSMailMessageBase
     /**
      * Retrieves a read-only file handle for the content file of this message part.
      * The caller must close the file handle.
+     * 
+     * @param aForWriting Open the file for writing
      *
      * @return content file handle 
      */
-     IMPORT_C RFile GetContentFileL();
+     IMPORT_C RFile GetContentFileL( TBool aForWriting = EFalse );
         
     /**
      * copies contents of this message part to given file

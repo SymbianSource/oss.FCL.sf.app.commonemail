@@ -88,14 +88,15 @@ symbian*: {
     TARGET.UID3 = 0x2001FDA2
 	
     defBlock = \      
-	  "$${LITERAL_HASH}if defined(MARM)" \
-	  "DEFFILE  eabi/messagestoreclient.def" \
+      "$${LITERAL_HASH}if defined(MARM)" \
+      "DEFFILE  eabi/messagestoreclient.def" \
       "$${LITERAL_HASH}else" \
       "DEFFILE  bwins/messagestoreclient.def" \
       "$${LITERAL_HASH}endif"
-	
+
     MMP_RULES += defBlock
-}	
+    MMP_RULES += SMPSAFE
+}
 
 win32 {
 	DESTDIR = ../../../.../bin

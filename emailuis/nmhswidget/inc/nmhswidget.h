@@ -30,6 +30,11 @@ class HbFrameDrawer;
 class NmHsWidgetDateTimeObserver;
 class HbLabel;
 class HbDocumentLoader;
+class HbListView;
+class NmHsWidgetListModel;
+class NmHsWidgetListView;
+class QModelIndex;
+
 
 class NmHsWidget : public HbWidget
 {
@@ -48,6 +53,7 @@ public:
 public slots:
     //from home screen fw
     void onInitialize();
+    void onUninitialize();
     void onShow();
     void onHide();
     //engine
@@ -62,6 +68,8 @@ public slots:
     QString widgetStateProperty();
     //user actions
     void handleExpandCollapseEvent();
+    
+    void openMessage(const QModelIndex& index);
 
 signals: 
     void finished();
@@ -71,16 +79,14 @@ private:
     void setupLocalization();
     void setupUi();
     bool loadDocML(HbDocumentLoader &loader);
-    void updateMailRowsVisibility(const int visibleCount);
     void addNoMailsLabelToLayout();
     void removeNoMailsLabelFromLayout();
     void addEmailRowsToLayout();
     void removeEmailRowsFromLayout();
     void updateLayout(const int visibleCount);
     void toggleExpansionState();  
-
-protected:
     void createMailRowsList();
+protected:
     
 private:
     //UI components
@@ -89,7 +95,6 @@ private:
     HbWidget* mWidgetContainer;             //container including title row and mContentContainer
     NmHsWidgetTitleRow* mTitleRow;          //mailbox icon, name, unread count and expand button 
     HbWidget* mContentContainer;            //container for mail rows or mNoMailsLabel
-    QList<NmHsWidgetEmailRow*> mMailRows;   //list including mail row instances
     HbLabel* mNoMailsLabel;                 //label shown in mContentContainer when no mails in inbox
     QGraphicsLinearLayout* mContentLayout;  //layout used in mContentContainer    
     HbFrameDrawer* mBackgroundFrameDrawer;  //drawer for widget background shown in mWidgetContainer
@@ -100,6 +105,8 @@ private:
     QString mAccountIconName;               //name of mailbox icon shown in titlerow
     NmHsWidgetDateTimeObserver* mDateObserver;  //observer for time/locale changes    
     bool mIsExpanded;                       //true when widget expanded, false when collapsed  
+    HbListView* mListView;                  //list view for messages 
+    NmHsWidgetListModel* mListModel;        //list model for mListView
     
 public:    
     friend class TestNmHsWidget;     

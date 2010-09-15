@@ -92,3 +92,5 @@ LIBRARY     debuglog.lib
 #ifdef TRACE_INTO_FILE
 LIBRARY     flogger.lib
 #endif // TRACE_INTO_FILE
+
+SMPSAFE

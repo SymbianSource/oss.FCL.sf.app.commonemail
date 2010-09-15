@@ -33,7 +33,7 @@ public:
         
     NmIpsPop3SettingsManager(const NmId &mailboxId,
                              CEmailAccounts *account,
-                             TPopAccount popAccount);
+                             TPopAccount &popAccount);
     virtual ~NmIpsPop3SettingsManager();
     bool readSetting(IpsServices::SettingItem settingItem, QVariant &settingValue);
     bool writeSetting(IpsServices::SettingItem settingItem, const QVariant &settingValue);

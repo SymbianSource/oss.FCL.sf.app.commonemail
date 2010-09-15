@@ -60,7 +60,13 @@ private slots:
 
     void createUserDefinedMode();
     void showMailInInboxModified(HbAction*);
-    void inboxSelectionModified(int index);
+    void incomingSecureConnectionModified(HbAction*);
+    void incomingPortModified(HbAction*);
+    void outgoingSecureConnectionModified(HbAction*);
+    void outgoingPortModified(HbAction*);
+    void outgoingAuthenticationModified(HbAction*);
+    void folderPathModified(HbAction*);
+    void popupRadioButtonIndexModified(int index);
 
 private:
 
@@ -68,7 +74,7 @@ private:
     void initPreferenceItems(HbDataFormModelItem &item) const;
     void initReceivingScheduleItems(HbDataFormModelItem &item);
     void initUserInfoItems(HbDataFormModelItem &item) const;
-    void initServerInfoItems(HbDataFormModelItem &item) const;
+    void initServerInfoItems(HbDataFormModelItem &item);
     void setAlwaysOnlineState(TAlwaysOnlineServerAPICommands command, NmId mailboxId) const;
 
     Q_DISABLE_COPY(NmIpsSettingsPlugin)
@@ -80,7 +86,7 @@ private: // data.
     HbDataFormModel *mModel; // Not owned.
     HbDataForm *mForm; // Not owned.
     bool mHiddenItem;
-    int mCurrentInboxIndex;
+    int mSelectedPopupRadioButtonIndex;
 };
 
 #endif // NMIPSSETTINGS_H

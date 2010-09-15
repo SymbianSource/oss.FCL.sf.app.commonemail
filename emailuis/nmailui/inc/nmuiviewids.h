@@ -73,7 +73,9 @@ public:
         bool service = false,
         QString *subject = NULL,
         QList<NmAddress*> *ccAddressList = NULL,
-        QList<NmAddress*> *bccAddressList = NULL)
+        QList<NmAddress*> *bccAddressList = NULL,
+        QString *bodyText = NULL,
+        QString *bodyTextMimeType = NULL)
     {
         mViewId = viewId;
         mMailboxId = mailboxId;
@@ -86,6 +88,12 @@ public:
         mSubject = subject;
         mCcAddressList = ccAddressList;
         mBccAddressList = bccAddressList;
+        if (bodyText) {
+            mBodyText = *bodyText;
+		}
+		if (bodyTextMimeType) {
+		    mBodyTextMimeType = *bodyTextMimeType;
+		}
     }
 
     inline ~NmUiStartParam()
@@ -181,20 +189,30 @@ public:
         return *mBccAddressList;
     }
 
-    inline void setMailboxId(NmId mailboxId) 
+    inline void setMailboxId(NmId mailboxId)
     {
         mMailboxId = mailboxId;
     }
-    
-    inline void setFolderId(NmId folderId) 
+
+    inline void setFolderId(NmId folderId)
     {
         mFolderId = folderId;
     }
-    
-    inline void setMessageId(NmId messageId) 
+
+    inline void setMessageId(NmId messageId)
     {
         mMessageId = messageId;
     }
+
+    inline const QString &bodyText() const
+    {
+		return mBodyText;
+	}
+
+    inline const QString &bodyMimeType() const
+    {
+		return mBodyTextMimeType;
+	}
 
 private: // Data
 
@@ -209,6 +227,8 @@ private: // Data
     QString *mSubject; // owned
     QList<NmAddress*> *mCcAddressList; // owned
     QList<NmAddress*> *mBccAddressList; // owned
+    QString mBodyText;
+    QString mBodyTextMimeType;
 };
 
 

@@ -16,8 +16,8 @@
 */
 
 #include <cpitemdatahelper.h>
-#include <hbicon.h>
-#include <hbdataformmodelitem.h>
+#include <HbIcon>
+#include <HbDataFormModelItem>
 
 #include "nmmailboxentryitem.h"
 
@@ -61,8 +61,8 @@ NmMailboxEntryItem::~NmMailboxEntryItem()
 CpBaseSettingView *NmMailboxEntryItem::createSettingView() const
 {
     NM_FUNCTION;
-    
-    return 0;
+
+    return NULL;
 }
 
 /*!
@@ -71,6 +71,6 @@ CpBaseSettingView *NmMailboxEntryItem::createSettingView() const
 const NmId &NmMailboxEntryItem::id() const
 {
     NM_FUNCTION;
-    
+
     return mMailboxId;
 }

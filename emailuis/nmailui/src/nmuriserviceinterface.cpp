@@ -34,7 +34,8 @@ public:
     : mSubject(NULL),
       mToAddresses(NULL),
       mCcAddresses(NULL),
-      mBccAddresses(NULL)
+      mBccAddresses(NULL),
+      mBodyText(NULL)
     {
         NM_FUNCTION;
     }
@@ -66,6 +67,10 @@ public:
             QString to = uri.path();
             QString cc = uri.queryItemValue(emailSendCcKey);
             QString bcc = uri.queryItemValue(emailSendBccKey);
+			QString bodyText = uri.queryItemValue(emailSendBodyTextKey);
+			if (bodyText.length()) {
+			    mBodyText = new QString(bodyText);
+			}
             
             addAddressesToList(to, &mToAddresses);
             addAddressesToList(cc, &mCcAddresses);
@@ -123,25 +128,28 @@ public:
         NM_FUNCTION;
         
         delete mSubject;
-        mSubject = 0;
+        mSubject = NULL;
 
         if (mToAddresses) {
             qDeleteAll(*mToAddresses);
             delete mToAddresses;
-            mToAddresses = 0;
+            mToAddresses = NULL;
         }
 
         if (mCcAddresses) {
             qDeleteAll(*mCcAddresses);
             delete mCcAddresses;
-            mCcAddresses = 0;
+            mCcAddresses = NULL;
         }
 
         if (mBccAddresses) {
             qDeleteAll(*mBccAddresses);
             delete mBccAddresses;
-            mBccAddresses = 0;
+            mBccAddresses = NULL;
         }
+        
+        delete mBodyText;
+        mBodyText = NULL;
     }
 
 public: // Data
@@ -150,6 +158,7 @@ public: // Data
     QList<NmAddress*> *mToAddresses; // Not owned.
     QList<NmAddress*> *mCcAddresses; // Not owned.
     QList<NmAddress*> *mBccAddresses; // Not owned.
+    QString *mBodyText;
 };
 
 /*!
@@ -265,11 +274,12 @@ bool NmUriServiceInterface::view(const QString& uri)
     	    0, // message id
     	    NmUiEditorMailto, // editor start mode
 	        dataHelper.mToAddresses, // address list
-    	    0, // attachment list
+    	    NULL, // attachment list
         	true, // start as service
 	        dataHelper.mSubject, // message subject
 	        dataHelper.mCcAddresses, // list containing cc recipient addresses
-    	    dataHelper.mBccAddresses // list containing bcc recipient addresses
+    	    dataHelper.mBccAddresses, // list containing bcc recipient addresses
+    	    dataHelper.mBodyText // body text
 	    );
 
         if (count == 1) {

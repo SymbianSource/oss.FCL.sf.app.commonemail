@@ -20,65 +20,49 @@
 
 #include <QObject>
 #include <QList>
+#include <QVariant>
 
 #include <nmapidef.h>
-
-struct NmApiMessage;
-class NmApiEmailMessage;
+#include <nmapimessage.h>
 
 namespace EmailClientApi {
 
-class NmApiFolder;
 class NmApiMessageManagerPrivate;
 
 class NMAPI_EXPORT NmApiMessageManager : public QObject
 {
     Q_OBJECT
-	
 public:
-    NmApiMessageManager(quint64 mailboxId,QObject *parent = 0);
+    NmApiMessageManager(QObject *parent,quint64 mailboxId);
 
     virtual ~NmApiMessageManager();
 
 public slots:
     bool createDraftMessage(const QVariant *initData);
     
-    bool createForwardMessage(const QVariant *initData);
+    bool createForwardMessage(NmApiMessage *orig,const QVariant *initData);
     
-    bool createReplyMessage(const QVariant *initData,bool replyAll);
+    bool createReplyMessage(const NmApiMessage *orig,const QVariant *initData,bool replyAll);
     
-    bool moveMessages(const QList<quint64> messageIds,
-		quint64 sourceFolderId,quint64 targetFolderId);
+    bool moveMessages(const QList<quint64> messageIds,quint64 sourceFolderId,quint64 targetFolderId);
     
-    bool copyMessages(const QList<quint64> messageIds,					
-					quint64 sourceFolder,
-					quint64 targetFolder);
-    
-    bool saveMessage(const ::NmApiMessage &message);
+    bool saveMessage(const NmApiMessage &message);
     
     bool deleteMessages(const QList<quint64> messageIds);
     
-    bool fetch(const NmApiMessage &message);
+    bool fetchMessage(quint64 messageId);
     
-    bool send(const NmApiMessage &message);
+    bool sendMessage(const NmApiMessage &message);
     
-    bool createAttachment(NmApiEmailMessage &message,const QVariant &attachmenSpec);
+    bool createAttachment(NmApiMessage &message,const QVariant &attachmenSpec);
 
-    bool removeAttachment(NmApiEmailMessage &message,quint64 attachmentId);
+    bool removeAttachment(NmApiMessage &message,quint64 attachmentId);
     
-signals:
-	void messagesCopied(int result);
-
-	void messagesCreated(int result);
-
-	void messagesMoved(int result);
-
-	void messagesDeleted(int result);
-
+	bool fetchAttachment(const NmApiMessage &relatedMessage,quint64 attachmentId);
+	
 private:
-	NmApiMessageManagerPrivate *d;
+    NmApiMessageManagerPrivate* d;
 };
 
-}
-
-#endif
+} // namespace EmailClientApi
+#endif /*NMAPIMESSAGEMANAGER_H_ */

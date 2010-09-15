@@ -20,18 +20,22 @@ CONFIG += debug
 TEMPLATE = lib
 TARGET = nmutilities
 QT += core
-DEFINES += BUILD_UTILITIES_DLL
+DEFINES += BUILD_UTILITIES_DLL \
+           NMCHMAPI_LIBRARY
 
 CONFIG += mobility
-MOBILITY += systeminfo
+MOBILITY += systeminfo \
+            contacts
 
 INCLUDEPATH += inc \
+               ../../email_plat/contact_history_model_api \
                ../../inc \
                ../../../inc \
                $$MW_LAYER_SYSTEMINCLUDE
 
 DEPENDPATH += src \
               inc \
+              ../../email_plat/contact_history_model_api \
               ../../../inc 
 
 MOC_DIR = tmp
@@ -40,12 +44,20 @@ HEADERS   += nmcenrepkeys.h \
              emailutilitiesdef.h \
              emailmailboxinfo_p.h \
              emailmailboxinfo.h \
+             emailmru.h \
              nmuieventsnotifier.h \
-             nmutilitiescommonheaders.h
+             nmutilitiescommonheaders.h \
+             nmcontacthistorymodel_p.h \
+             inc/nmcontacthistorymodelcommon.h \
+             inc/nmcontacthistorymodel.h
              
 SOURCES   += emailmailboxinfo_p.cpp \
              emailmailboxinfo.cpp \
-             nmuieventsnotifier.cpp
+             nmuieventsnotifier.cpp \
+             emailmru.cpp \
+             nmcontacthistorymodelitem.cpp \
+             nmcontacthistorymodel_p.cpp \
+             nmcontacthistorymodel.cpp
 
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1
@@ -65,6 +77,7 @@ symbian*: {
       "$${LITERAL_HASH}endif"
     
     MMP_RULES += defBlock
+    MMP_RULES += SMPSAFE
     
     LIBS += -lcentralrepository 
     LIBS += -ltimezonelocalization 
@@ -96,8 +109,12 @@ BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
                              "data/2001E277.txt                     /epoc32/release/winscw/udeb/z/private/10202be9/2001E277.txt" \
                              "data/2001E277.txt                     /epoc32/release/winscw/urel/z/private/10202be9/2001E277.txt" \
                              "data/2001E277.txt                     /epoc32/data/z/private/10202be9/2001E277.txt" \
+                             "data/2003EA97.txt /epoc32/release/winscw/udeb/z/private/10202be9/2003EA97.txt" \
+                             "data/2003EA97.txt /epoc32/release/winscw/urel/z/private/10202be9/2003EA97.txt" \
+                             "data/2003EA97.txt /epoc32/data/z/private/10202be9/2003EA97.txt" \
                              "data/nmutilities.confml               APP_LAYER_CONFML(nmutilities.confml)" \
                              "data/nmutilities_200255BA.crml        APP_LAYER_CRML(nmutilities_200255BA.crml)" \
+                             "inc/emailmru.h APP_LAYER_PLATFORM_EXPORT_PATH(emailmru.h)" \
                              "inc/emailmailboxinfo.h                APP_LAYER_PLATFORM_EXPORT_PATH(emailmailboxinfo.h)" \
                              "inc/nmutilitiescommonheaders.h        APP_LAYER_PLATFORM_EXPORT_PATH(nmutilitiescommonheaders.h)" \
                              "inc/emailutilitiesdef.h               APP_LAYER_PLATFORM_EXPORT_PATH(emailutilitiesdef.h)" \

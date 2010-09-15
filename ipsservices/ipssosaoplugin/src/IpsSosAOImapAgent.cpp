@@ -284,10 +284,15 @@ void CIpsSosAOImapAgent::GetUsername(
 TBool CIpsSosAOImapAgent::IsConnected() const
     {
     FUNC_LOG;
+    TBool ret = EFalse;
     TMsvEntry tentry;
     TMsvId service;
-    iSession.GetEntry( iServiceId, service, tentry );
-    return tentry.Connected();
+    TInt err = iSession.GetEntry( iServiceId, service, tentry );
+    if ( err == KErrNone )
+    {
+        ret = tentry.Connected();
+    }
+    return ret;
     }
 
 // ----------------------------------------------------------------------------
@@ -342,7 +347,7 @@ void CIpsSosAOImapAgent::StartFetchMessagesL(
         const RArray<TMsvId>& /*aFetchMsgArray*/ )
     {
     FUNC_LOG;
-    
+    // implementation removed when not needed anywhere
     }
 
 // ----------------------------------------------------------------------------

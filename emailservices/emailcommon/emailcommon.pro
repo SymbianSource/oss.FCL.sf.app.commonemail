@@ -79,7 +79,8 @@ symbian*: {
     -lecom \
     -lcntmodel \
     -lQtCore  \
-    -lnmailbase
+    -lnmailbase \
+    -lnmutilities
 	
 	defBlock = \      
       "$${LITERAL_HASH}if defined(MARM)" \
@@ -89,8 +90,8 @@ symbian*: {
       "$${LITERAL_HASH}endif"
     
     MMP_RULES += defBlock
-
-    MMP_RULES -= "OPTION_REPLACE ARMCC --export_all_vtbl -D__QT_NOEFFECTMACRO_DONOTUSE"
+    MMP_RULES += SMPSAFE
+    MMP_RULES -= "OPTION_REPLACE ARMCC --export_all_vtbl -D__QT_NOEFFECTMACRO_DONOTUSE"    
 }
 
 win32 {

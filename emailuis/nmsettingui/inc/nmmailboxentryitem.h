@@ -36,7 +36,7 @@ public:
         const NmId &mailboxId,
         const QString &mailboxName = QString(),
         const HbIcon &mailboxIcon = HbIcon(),
-        const HbDataFormModelItem *parent = 0,
+        const HbDataFormModelItem *parent = NULL,
         const QString &mailboxDescription = QString());
 
     virtual ~NmMailboxEntryItem();

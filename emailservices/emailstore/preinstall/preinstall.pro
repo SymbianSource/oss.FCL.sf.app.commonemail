@@ -45,6 +45,7 @@ symbian*: {
     TARGET.UID3 = 0x20021190
     MMP_RULES += "EPOCPROCESSPRIORITY background"
     MMP_RULES += EXPORTUNFROZEN
+    MMP_RULES += SMPSAFE
 }	
 
 win32 {

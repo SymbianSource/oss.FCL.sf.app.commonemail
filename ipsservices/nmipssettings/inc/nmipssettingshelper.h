@@ -27,7 +27,6 @@
 #include "nmsettingscommon.h"
 #include "nmipssettingitems.h"
 
-class QModelIndex;
 class HbDataFormModelItem;
 class HbDataFormModel;
 class HbDataForm;
@@ -59,12 +58,12 @@ public:
     void insertContentItem(IpsServices::SettingItem key, HbDataFormModelItem *value);
     HbDataFormModelItem *contentItem(IpsServices::SettingItem key) const;
     bool isOffline();
-    
+
     void setReceivingScheduleGroupItem(HbDataFormModelItem *item);
     void setServerInfoGroupItem(HbDataFormModelItem *item);
     void createOrUpdateReceivingScheduleGroupDynamicItem(IpsServices::SettingItem item);
     void createServerInfoGroupDynamicItems(bool hiddenItem);
-    
+
     int getCorrectIncomingPortRadioButtonIndex();
     int getCorrectIncomingSecureRadioButtonIndex();
     int getCorrectOutgoingSecureRadioButtonIndex();
@@ -74,7 +73,13 @@ public:
     void handleReceivingScheduleSettingChange(IpsServices::SettingItem settingItem,
         const QVariant &settingValue);
     QString destinationNameFromIdentifier(uint identifier);
-    
+    void incomingSecureConnectionItemChange(int index);
+    void incomingPortChange(int index);
+    void outgoingSecureConnectionItemChange(int index);
+    void outgoingPortChange(int index);
+    void outgoingAuthenticationChange(int index);
+    void folderPathChange(int index);
+
 signals:
 
     void mailboxListChanged(const NmId &mailboxId, NmSettings::MailboxEventType type);
@@ -95,7 +100,7 @@ public slots:
     void saveIncomingPassword();
     void saveOutgoingUserName();
     void outgoingUserNameTextChange(const QString &text);
-    void saveOutgoingPassword();     
+    void saveOutgoingPassword();
     void saveReplyTo();
     void replyToTextChange(const QString &text);
     void deleteButtonPress();
@@ -104,12 +109,6 @@ public slots:
     void incomingMailServerTextChange(const QString &text);
     void saveOutgoingMailServer();
     void outgoingMailServerTextChange(const QString &text);
-    void incomingPortChange(int index);
-    void incomingSecureConnectionItemChange(int index);
-    void folderPathChange(int index);
-    void outgoingPortChange(int index);
-    void outgoingSecureConnectionItemChange(int index);
-    void outgoingAuthenticationChange(int index);
     void connectionButtonPress();
 
 private slots:
@@ -125,7 +124,7 @@ private slots:
     void handleUserDefinedOutgoingPortInput(HbAction *action);
     void handleConnectionSelected(uint status);
     void refreshIndexModified(int index);
-    
+
 private:
 
     enum AppLibUpdateOperation

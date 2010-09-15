@@ -22,7 +22,7 @@
 #include <HbDateTimePicker>
 #include <HbAction>
 #include <HbExtendedLocale>
-
+#include <HbStringUtil>
 #include "nmipssettingstimeeditor.h"
 
 /*!
@@ -44,14 +44,14 @@ NmIpsSettingsTimeEditor::NmIpsSettingsTimeEditor(QGraphicsItem *parent, Qt::Wind
 {
     // Create widget layout.
     QGraphicsLinearLayout* layout = new QGraphicsLinearLayout(Qt::Vertical);
+    layout->setContentsMargins(0,0,0,0);
     this->setLayout(layout); // Takes ownership
 
     // Create label.
     mButton = new HbPushButton();
     layout->addItem(mButton); // Takes ownership
 
-    connect( mButton, SIGNAL(clicked()),
-             this, SLOT(launchTimePicker()));
+    connect( mButton, SIGNAL(clicked()), this, SLOT(launchTimePicker()));
 }
 
 /*!
@@ -78,7 +78,8 @@ QTime NmIpsSettingsTimeEditor::time() const
 void NmIpsSettingsTimeEditor::setTime(QTime time)
 {
     mTime = time;
-    mButton->setText(mTime.toString(timeFormat()));
+    HbExtendedLocale locale(HbExtendedLocale::system());
+    mButton->setText(HbStringUtil::convertDigits(locale.format( mTime, r_qtn_time_usual )));
 }
 
 /*!

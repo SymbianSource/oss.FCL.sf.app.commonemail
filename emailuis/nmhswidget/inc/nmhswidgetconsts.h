@@ -51,10 +51,12 @@ const int KMaxNumberOfMailsShown = KMaxNumberOfEnvelopesProvided;
 /** Widget's localization file name*/
 const QString KNmHsWidgetLocFileName = "mailwidget_";
 /** Widget's localization file location*/
-const QString KNmHsWidgetLocLocation = "z:/resource/qt/translations/";
+const QString KNmHsWidgetLocLocation = "/resource/qt/translations/";
 /** Widget's state property values */
 const QString KNmHsWidgetStateCollapsed = "collapsed";
 const QString KNmHsWidgetStateExpanded = "expanded";
+/** maximum home screen widget height in units */
+const int KNmHsWidgetHSMaxWidgetHeightInUnits = 39;
 
 /**************************************************
  * Title row widget

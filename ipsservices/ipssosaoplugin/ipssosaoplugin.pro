@@ -96,7 +96,8 @@ symbian*: {
     MMP_RULES += ecomResourceBlock \
     defBlock
     
-    MMP_RULES += "TARGETTYPE plugin"  
+    MMP_RULES += "TARGETTYPE plugin"
+    MMP_RULES += SMPSAFE
     
     LIBS += \
     -lecom \

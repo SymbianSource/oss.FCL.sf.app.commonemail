@@ -35,6 +35,7 @@ public:
 
     // Get the emailaddress list generated from the content of the lineedit.
     QList<NmAddress> emailAddressList();
+    void addContacts(QList<NmAddress *> contacts);
 	
 public slots:
 #ifdef Q_OS_SYMBIAN

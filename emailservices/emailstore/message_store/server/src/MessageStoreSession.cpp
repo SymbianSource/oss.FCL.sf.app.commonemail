@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -78,7 +78,7 @@ CSearchResult::CSearchResult( TContainerId aMessageId, TContainerId aFolderId )
 // ==========================================================================
 void CSearchResult::ConstructL( const TDesC8& aPropertyBuf )
     {
-    iPropertyBuf.Create( aPropertyBuf );
+    iPropertyBuf.CreateL( aPropertyBuf );
     }
 
 // ==========================================================================
@@ -686,7 +686,7 @@ void CMessageStoreSession::DoGetEventsL( const RMessage2& aMessage )
 // ==========================================================================
 // FUNCTION: SendEventToObserver
 // ==========================================================================
-void CMessageStoreSession::SendEventToObserver( TMsgStoreEvent aEvent )
+void CMessageStoreSession::SendEventToObserver( TMsgStoreEvent &aEvent )
 	{
 	__LOG_ENTER( "SendEventToObserver" )
 	
@@ -2556,11 +2556,11 @@ void CMessageStoreSession::DoSetMruAddressListL( const RMessage2& aMessage )
     
     RBuf8 addressBuf;
     CleanupClosePushL( addressBuf );
-    addressBuf.Create( KInitialAddressBufSize );
+    addressBuf.CreateL( KInitialAddressBufSize );
     
     RBuf8 dispNameBuf;
     CleanupClosePushL( dispNameBuf );
-    dispNameBuf.Create( KInitialAddressBufSize );
+    dispNameBuf.CreateL( KInitialAddressBufSize );
     
     TInt position = 0;
     while( position < bufSize )
@@ -2571,7 +2571,7 @@ void CMessageStoreSession::DoSetMruAddressListL( const RMessage2& aMessage )
         
         if ( addressBuf.MaxLength() < length16 )
             {
-            addressBuf.ReAlloc( length16 );
+            addressBuf.ReAllocL( length16 );
             }
         aMessage.ReadL( 1, addressBuf, position );
         
@@ -2587,7 +2587,7 @@ void CMessageStoreSession::DoSetMruAddressListL( const RMessage2& aMessage )
         
         if ( dispNameBuf.MaxLength() < length16 )
             {
-            dispNameBuf.ReAlloc( length16 );
+            dispNameBuf.ReAllocL( length16 );
             }
         aMessage.ReadL( 1, dispNameBuf, position );
         

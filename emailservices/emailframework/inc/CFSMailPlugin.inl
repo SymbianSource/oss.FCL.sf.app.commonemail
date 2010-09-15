@@ -152,3 +152,14 @@ inline HBufC* CFSMailPlugin::GetSignatureL( const TFSMailMsgId& /*aMailBoxId*/ )
     return NULL;
     }
 // </qmail>
+
+// <qmail>
+// -----------------------------------------------------------------------------
+// CFSMailPlugin::Id
+// -----------------------------------------------------------------------------
+inline TUid CFSMailPlugin::Id( ) const
+    {
+    return iDtor_ID_Key;
+    }
+// </qmail>
+

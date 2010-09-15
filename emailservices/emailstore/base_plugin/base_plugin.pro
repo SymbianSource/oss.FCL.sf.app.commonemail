@@ -68,15 +68,17 @@ symbian*: {
     TARGET.UID2 = 0x1000008d
     TARGET.UID3 = 0x2001FDA9
 	
-	defBlock = \      
-	  "$${LITERAL_HASH}if defined(MARM)" \
-	  "DEFFILE  eabi/baseplugin.def" \
+	defBlock = \
+      "$${LITERAL_HASH}if defined(MARM)" \
+      "DEFFILE  eabi/baseplugin.def" \
       "$${LITERAL_HASH}else" \
       "DEFFILE  bwins/baseplugin.def" \
       "$${LITERAL_HASH}endif"
-	
+
     MMP_RULES += "SYSTEMINCLUDE /epoc32/include/ecom" \
-		defBlock
+                 defBlock \
+                 SMPSAFE
+
     MMP_RULES -= "OPTION_REPLACE ARMCC --export_all_vtbl -D__QT_NOEFFECTMACRO_DONOTUSE"
 }
 

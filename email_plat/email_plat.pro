@@ -22,4 +22,5 @@ symbian*: {
     include(nmail_settings_api/nmail_settings_api.pri)
     include(nmail_client_api/nmail_client_api.pri)
     include(email_client_api/email_client_api.pri)
+    include(contact_history_model_api/contact_history_model_api.pri)    
 }

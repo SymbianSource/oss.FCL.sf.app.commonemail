@@ -49,7 +49,7 @@ NmSendingIndicator::~NmSendingIndicator()
 */
 QVariant NmSendingIndicator::indicatorData(int role) const
 {
-    if (role==DecorationNameRole || role==MonoDecorationNameRole) {
+    if (role==DecorationNameRole) {
 		// Must return non-empty to make the indicator visible
 		return " ";
 	}
@@ -76,7 +76,7 @@ void NmSendingIndicator::hideSendIndicator()
 
     \sa RequestType, HbIndicator
 */
-bool NmSendingIndicator::handleClientRequest( RequestType type,
+bool NmSendingIndicator::handleClientRequest(RequestType type,
         const QVariant &parameter)
 {
     NM_FUNCTION;

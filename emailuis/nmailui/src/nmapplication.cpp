@@ -49,7 +49,9 @@ NmApplication::NmApplication(int &argc, char *argv[], Hb::ApplicationFlags flags
   mQueryDialog(NULL),
   mBackButtonPressed(false),
   mApplicationHidden(false),
-  mErrorNoteTimer(NULL)
+  mErrorNoteTimer(NULL),
+  mActivation(NULL),
+  mActivityStorage(NULL)
 {
     // Load the translation file.
     QTranslator *translator = new QTranslator(this);
@@ -60,9 +62,12 @@ NmApplication::NmApplication(int &argc, char *argv[], Hb::ApplicationFlags flags
     installTranslator(translator);
     setApplicationName(hbTrId("txt_mail_title_mail"));
     
+    mActivation = new AfActivation(this);
+    mActivityStorage = new AfActivityStorage(this);
+    
     quint64 accountId = 0;
     QString activateId = this->activateId();
-    if (activateReason() == Hb::ActivationReasonActivity &&
+    if (mActivation->reason() == Af::ActivationReasonActivity &&
         activateId.startsWith(NmActivityName) ) {
         QString accountIdString = activateId.mid(NmActivityName.length());
         accountId = accountIdString.toULongLong();
@@ -102,7 +107,9 @@ NmApplication::NmApplication(int &argc, char *argv[], Hb::ApplicationFlags flags
     
     mEffects = new NmUiEffects(*mMainWindow);
     
-    QObject::connect(this, SIGNAL(activate()), this, SLOT(activityActivated()));
+    QObject::connect(
+            mActivation, SIGNAL(activated(Af::ActivationReason, QString, QVariantHash)), 
+            this, SLOT(activityActivated()));
 }
 
 
@@ -161,6 +168,8 @@ NmApplication::~NmApplication()
     delete mMainWindow;
     delete mAttaManager;
     delete mSettingsViewLauncher;
+    delete mActivityStorage;
+    delete mActivation;
 }
 
 
@@ -252,6 +261,7 @@ void NmApplication::viewReady()
             currentView->viewReady();
             emit applicationReady();
         }
+    NM_TIMESTAMP("Application view ready.");
     }
 }
 
@@ -394,7 +404,10 @@ void NmApplication::hideApplication()
     taskSettings.setVisibility(false);
     
     // Remove also the mailbox item from the task switcher
-    activityManager()->removeActivity(NmActivityName);
+    bool ok = mActivityStorage->removeActivity(NmActivityName);
+    if(!ok) {
+        NM_COMMENT("Remove activity from Task Switcher failed.");
+    }
 }
 
 
@@ -645,7 +658,10 @@ void NmApplication::exitApplication()
 {
     NM_FUNCTION;
     
-    activityManager()->removeActivity(NmActivityName);
+    bool ok = mActivityStorage->removeActivity(NmActivityName);
+    if(!ok) {
+        NM_COMMENT("Remove activity from Task Switcher failed.");
+    }
     
     delete mSendServiceInterface;
     mSendServiceInterface = NULL;
@@ -832,8 +848,8 @@ bool NmApplication::updateVisibilityState()
 */
 void NmApplication::updateActivity()
 {
+    bool ok(false);
     NmMailboxMetaData *meta = mUiEngine->mailboxById(mCurrentMailboxId);
-    
     // This will ensure that when service is started as a embedded service and a mail 
     // process already exists the task activity will show the embedded service inside the 
     // calling processes activity and the already running mail process in its own activity.
@@ -845,11 +861,16 @@ void NmApplication::updateActivity()
             metadata.insert(ActivityScreenshotKeyword, QPixmap::grabWidget(mainWindow(), mainWindow()->rect()));
             metadata.insert(ActivityApplicationName, meta->name());
             metadata.insert(ActivityVisibility, true);
-            activityManager()->removeActivity(NmActivityName);
-            activityManager()->addActivity(NmActivityName, QVariant(), metadata);
+            ok = mActivityStorage->saveActivity(NmActivityName, QVariant(), metadata);
+            if(!ok) {
+                NM_COMMENT("Save activity to Task Switcher failed.");
+            }
         }
         else {
-            activityManager()->removeActivity(NmActivityName);
+            ok = mActivityStorage->removeActivity(NmActivityName);
+            if(!ok) {
+                NM_COMMENT("Remove activity from Task Switcher failed.");
+            }
             TsTaskSettings tasksettings;
             tasksettings.setVisibility(true);
         }
@@ -863,7 +884,7 @@ void NmApplication::activityActivated()
 {
     quint64 accountId(0);
     QString activateId = this->activateId();
-    if (activateReason() == Hb::ActivationReasonActivity &&
+    if (mActivation->reason() == Af::ActivationReasonActivity &&
             activateId.startsWith(NmActivityName) ) {
         QString accountIdString = activateId.mid(NmActivityName.length());
         accountId = accountIdString.toULongLong();

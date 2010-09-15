@@ -139,6 +139,19 @@ private:
      */
     void RemoveOrphanLogicsL();
     
+    /**
+     * Takes care of reacting to entries created type of events
+     */
+    void handleEntriesCreatedL(const TAny* aArg1);
+
+    /**
+     * Takes the first entryId from the given selection and 
+     * instantiates a TMsvEntry for that entry.
+     * @param aSelection array of entry ids
+     * @param aEntry On completion, contains the TMsvEntry data
+     */
+    void getFirstEntryFromSelectionL(const CMsvEntrySelection* aSelection, TMsvEntry& aEntry);
+
 private:
     
     CMsvSession&                        iSession;

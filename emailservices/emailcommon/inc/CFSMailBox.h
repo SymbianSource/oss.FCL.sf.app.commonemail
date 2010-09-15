@@ -37,6 +37,8 @@ class CFSMailMessage;
 class CFSMailRequestHandler;
 // </qmail>
 
+class EmailMRU;
+
 /**
  *  mailbox data handling
  *
@@ -396,6 +398,13 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      * @return connection status, online / offline
      */
 	    IMPORT_C TFSMailBoxStatus GetMailBoxStatus( );
+	    
+    /**
+     * mailbox capability check for user
+     *
+     * @param aCapa mailbox capability to be checked
+     */
+     IMPORT_C TBool HasCapability(const TFSMailBoxCapabilities aCapability) const; 
 
 
 public: // from  CExtendableEmail
@@ -425,6 +434,21 @@ private:
      */
   	 CFSMailBox();
 
+    /**
+     * Function used internally to inform that Mru list related to this
+     * mailbox should now be updated using the given recipient info. In
+     * other words this function makes sure that the given recipients are
+     * found from the common email mru list.
+     *
+     * @param aRecipients email recipients in TO-field
+     * @param aCCRecipients email recipients in CC-field
+     * @param aBCCRecipients email recipients in BCC-field
+     */
+    void UpdateMrusL(
+        const RPointerArray<CFSMailAddress>& aRecipients,
+        const RPointerArray<CFSMailAddress>& aCCRecipients,
+        const RPointerArray<CFSMailAddress>& aBCCRecipients ) const;
+
  private: // data
 
     /**
@@ -436,6 +460,11 @@ private:
      * mailbox folder list
      */
 	 RPointerArray<CFSMailFolder> iFolders;
+
+   /**
+    * MRU list
+    */
+   EmailMRU* iMru;
 
 };
 

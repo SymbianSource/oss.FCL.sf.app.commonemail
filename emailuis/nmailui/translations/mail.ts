@@ -3,7 +3,7 @@
 <TS version="3.0" sourcelanguage="en_GB">
 <context>
 <message numerus="no" id="txt_mail_viewer_no_subject">
-    <comment>text for subject field if there is no subject in the mail message in Mail viewer. In the same field on the previous row the date and time of the message are displayed.</comment>        
+    <comment>Text for subject field if there is no subject in the mail message in Mail viewer. In the same field on the previous row the date and time of the message are displayed.</comment>        
     <source>(No Subject)</source>
     <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_list_pri</extra-loc-layout_id>    
@@ -23,12 +23,12 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_mail_connection_error">
-    <comment>Error note. This is shown when the sending, receiving etc. occurs.</comment>        
+    <comment>Error note. Occurs when the user switch phone to offline mode and select Refresh from the Options menu. NOTE! Changed to discreet popup (26.08.)</comment>        
     <source>Mail connection error.</source>
     <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
+    <extra-loc-layout_id>qtl_notifdialog_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
+    <extra-loc-positionid>dpopinfo</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -63,7 +63,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_you_can_not_send_more_than_l1_kb">
-    <comment>Information note. %L1 is the maximum size of all attachments the server allows to be sent at once. If the adds  attachments, which overall size exceeds the limit and presses send this note is shown and the mail is not sent. Maximum number of digits replacing the parameter is 4.</comment>        
+    <comment>Information note. %L1 is the maximum size of all attachments the server allows to be sent at once. If the adds  attachments, which overall size exceeds the limit and presses send this note is shown and the mail is not sent. Maximum number of digits replacing the parameter is 4. Maybe 10.2 content</comment>        
     <source>You can not send more than %L1 Mb as attachments </source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
@@ -99,6 +99,16 @@
     <extra-loc-layout_id>qtl_toolbar_tiny_2</extra-loc-layout_id>    
     <extra-loc-viewid>mail_004</extra-loc-viewid>
     <extra-loc-positionid>button</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mail_dpopinfo_loading_failed">
+    <comment>Shown when loading of the attachment fails (the user opens a mail with attachments &gt; selects forward &gt; editor starts loading attachments but fails). Linguistic check. NOTE! Status changed (26.08.)</comment>        
+    <source>Loading failed</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
+    <extra-loc-viewid>mail</extra-loc-viewid>
+    <extra-loc-positionid>dpopinfo</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -153,7 +163,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_cannot_download_attachment_1">
-    <comment>Error note. If the user tries to open / save an attachment but downloading it for server fails for some reason. %[]1 is replaced with the name of the attachment.</comment>        
+    <comment>Error note. If the user tries to open / save an attachment but downloading it for server fails for some reason. %[]1 is replaced with the name of the attachment. Maybe 10.2 content?</comment>        
     <source>Cannot download attachment: %[]1 </source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
@@ -233,7 +243,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_sending_failed">
-    <comment>This is error note is shown if sending fails. %[]1 is replaced with the name of mail the sending of which failed.</comment>        
+    <comment>This is error note is shown if sending fails. %[]1 is replaced with the name of mail the sending of which failed. Maybe 10.2 content</comment>        
     <source>Sending mail %[]1 failed. Try to send it again or press back to cancel</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
@@ -263,7 +273,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_still_sending">
-    <comment>The user cannot access the editor as long as the sending process is ongoing. This note is shown if the user tries to enter email editor. %[]1 is replaced with the name of mail being sent.</comment>        
+    <comment>The user cannot access the editor as long as the sending process is ongoing. This note is shown if the user tries to enter email editor. %[]1 is replaced with the name of mail being sent. Maybe 10.2 content</comment>        
     <source>Still sending mail %[]1. Please wait operation to complete</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
@@ -283,7 +293,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_unable_to_complete_command">
-    <comment>Generic error note in mail application</comment>        
+    <comment>Generic error note in mail application. In practice, impossible to tell how to reproduce. Reserved for situations where we don&apos;t have any other text to show. Linguistic verification.</comment>        
     <source>Unable to complete the command</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
@@ -313,7 +323,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_list_l1_mb">
-    <comment>the size of the attachment. Maximum number of digits replacing the parameter is 3. The file name truncates if needed. Displayed on the same row and after the name of the attachment.</comment>        
+    <comment>The size of the attachment. Maximum number of digits replacing the parameter is 3. The file name truncates if needed. Displayed on the same row and after the name of the attachment.</comment>        
     <source>(%L1 Mb)</source>
     <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_list_pri</extra-loc-layout_id>    
@@ -343,7 +353,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_opt_change_folder">
-    <comment>options menu item for changing the folder </comment>        
+    <comment>Options menu item for changing the folder </comment>        
     <source>Folders</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_menu_pri</extra-loc-layout_id>    
@@ -443,7 +453,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_loading_mail_content">
-    <comment>Wait note shown until the mail content is loaded. Dublicate. I need to check which one is used in implementation.</comment>        
+    <comment>Wait note shown until the mail content is loaded. </comment>        
     <source>Loading mail content</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri3</extra-loc-layout_id>    
@@ -512,19 +522,9 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mail_dialog_invalid_mail_address">
-    <comment>Note in editor when the user has typed incorrect mail address (e.g. without @-character). %[]1 is replaced with the name of the invalid mail address.</comment>        
-    <source>Invalid mail address: %[]1</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
-    <extra-loc-viewid>mail</extra-loc-viewid>
-    <extra-loc-positionid>dialog</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
 <message numerus="no" id="txt_mail_list_new_video">
-    <comment>Attach toolbar extension item in the editor, opens camera for taking a new video</comment>        
-    <source>Camcorder</source>
+    <comment>Attach toolbar extension item in the editor, opens camera for taking a new video. EE changed back to previous based on the mail discussion.</comment>        
+    <source>New video</source>
     <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_list_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_004_b</extra-loc-viewid>
@@ -545,7 +545,7 @@
 <message numerus="no" id="txt_mail_dialog_select_file">
     <comment>Title text in file picker view. File picker view is opened when the user selects &quot;Other&quot; option from attachment list. For attaching files to mail messages. Underneath a list of selectable files is displayed.</comment>        
     <source>Select file</source>
-    <translation variants="yes" type="unfinished"></translation>
+    <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_007</extra-loc-viewid>
     <extra-loc-positionid>dpophead</extra-loc-positionid>
@@ -593,7 +593,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_deleting_mailbox">
-    <comment>Wait note for the case where the mailbox is beign deleted.</comment>        
+    <comment>Wait note for the case where the mailbox is being deleted.</comment>        
     <source>Deleting mailbox</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri3</extra-loc-layout_id>    
@@ -643,7 +643,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_unable_to_open_attachment_file_ty">
-    <comment>Error note. If the user tries to open an attachment which cannot be viewed</comment>        
+    <comment>Error note. Try to open an attachment of a type which can not be opened in a 10.1 device, e.g. zip or ppt file.</comment>        
     <source>Unable to open. Attachment file type not supported</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
@@ -655,7 +655,7 @@
 <message numerus="no" id="txt_mail_dialog_send_via">
     <comment>Title for send via dialog. This dialog lists all mailboxes the user has. Underneath the title, a list of mailboxes is displayed. </comment>        
     <source>Send via</source>
-    <translation variants="yes" type="unfinished"></translation>
+    <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
@@ -715,7 +715,7 @@
 <message numerus="no" id="txt_mail_select_contacts">
     <comment>Title text shown in status pane when contacts are fetched from Phonebook.</comment>        
     <source>Select contacts</source>
-    <translation variants="yes" type="unfinished"></translation>
+    <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>dpophead</extra-loc-positionid>
@@ -725,7 +725,7 @@
 <message numerus="no" id="txt_mail_dialog_no">
     <comment>Button for notes txt_mail_dialog_server_settings_incorrect and txt_mail_dialog_address_or_password_incorrect.</comment>        
     <source>No</source>
-    <translation variants="yes" type="unfinished"></translation>
+    <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_softkey_2</extra-loc-layout_id>    
     <extra-loc-viewid>mail_dialog_14_15</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
@@ -792,16 +792,6 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mail_dpophead_loading_mail_content">
-    <comment>Discreet pop-up shown in case the loading of mail content takes more than 2 seconds</comment>        
-    <source>Loading mail content</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_notifdialog_pri2_medium_graphic</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_002</extra-loc-viewid>
-    <extra-loc-positionid>dpophead</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
 <message numerus="no" id="txt_mail_opt_folder_sub_inbox">
     <comment>Submenu item for Options menus item Folder (txt_mail_opt_change_folder)</comment>        
     <source>Inbox </source>
@@ -823,7 +813,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_unable_to_add_attachment">
-    <comment>Error note for the case where the selected file cannot be attached (it&apos;s deleted, moved etc. at the same time)</comment>        
+    <comment>Error note. Very rare case, no certain way for reproducing. Only linguistic verification recommended.</comment>        
     <source>Unable to add attachment </source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
@@ -835,7 +825,7 @@
 <message numerus="no" id="txt_mail_dialog_yes">
     <comment>Button for notes txt_mail_dialog_server_settings_incorrect and txt_mail_dialog_address_or_password_incorrect.</comment>        
     <source>Yes</source>
-    <translation variants="yes" type="unfinished"></translation>
+    <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_softkey_2</extra-loc-layout_id>    
     <extra-loc-viewid>mail_dialog_14_15</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
@@ -843,7 +833,8 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_button_download_rest">
-    <comment>Button that is shown if all the message content is not downloaded while message is opened.</comment>        
+    <comment>Button that is shown if all the message content is not downloaded while message is opened in viewer. Not yet implemented
+</comment>        
     <source>Download rest</source>
     <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
@@ -883,7 +874,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_mail_address_incorrect">
-    <comment>The information dialog that is shown if the user&apos;s own mail address is incorrect and the user tries to sync or send mail.</comment>        
+    <comment>The information dialog that is shown if the user&apos;s own mail address is incorrect and the user tries to sync or send mail. Linguistic verification is enough at this point. Not implemented yet</comment>        
     <source>Your mail address is incorrect. Check the mail address settings?</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
@@ -903,7 +894,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_status_menu_waiting_to_send">
-    <comment>Text for status menu item: indicates that there are unsent messages in outbox. %L1 is the number of unsent mails in that mailbox. L1% is usually less than 10 but can be also more.</comment>        
+    <comment>Visible in the indicator menu when there are emails in the outbox. %L1 is the number of unsent mails in that mailbox. L1% is usually less than 10 but can be also more. To reproduce, start composing a message, change the device to Offline mode and press Send. Then open the indicator menu.</comment>        
     <source>Waiting to send (%L1)</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_notifdialog_sec_medium_graphic</extra-loc-layout_id>    
@@ -913,7 +904,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_do_you_want_to_delete_mfe">
-    <comment>Confirmation note for mailbox deleting. This will delete also contacts, calendar and tasks data, which has been synchronized via this account. This MfE protocol only</comment>        
+    <comment>Confirmation note for mailbox deleting. This will delete also contacts, calendar and tasks data, which has been synchronized via this account. This is for MfE protocol only</comment>        
     <source>Do you want to delete all mail, calendar, contacts and tasks data related to this account?</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
@@ -1013,8 +1004,8 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_list_new_photo">
-    <comment>Attach toolbar extension item in the editor, opens camera for taking a new photo</comment>        
-    <source>Camera</source>
+    <comment>Attach toolbar extension item in the editor, opens camera for taking a new photo. EE changed back to previous based on the mail discussion.</comment>        
+    <source>New photo</source>
     <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_list_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_004_b</extra-loc-viewid>

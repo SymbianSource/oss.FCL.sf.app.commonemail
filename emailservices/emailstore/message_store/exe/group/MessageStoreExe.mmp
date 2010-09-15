@@ -50,4 +50,4 @@ SOURCE        MessageStoreExe.cpp
 LIBRARY euser.lib 
 LIBRARY MessageStoreServer.lib
 
-
+SMPSAFE

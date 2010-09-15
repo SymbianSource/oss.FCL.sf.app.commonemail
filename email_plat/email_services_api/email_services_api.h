@@ -44,9 +44,13 @@ static const QString emailSendSubjectKey = "subject";
 static const QString emailSendToKey = "to";
 static const QString emailSendCcKey = "cc";
 static const QString emailSendBccKey = "bcc";
+
+// MIME type for body text, e.g. "text/html". If this key is not defined,
+// emailSendBodyValueKey is treated as "text/plain".
+static const QString emailSendBodyMimeTypeKey = "mimeType";
+
 static const QString emailSendBodyTextKey = "body";
 static const QString emailSendAttachmentKey = "attachment";
-
 
 /*!
     Mail service name
@@ -157,7 +161,7 @@ static const QString emailFullServiceNameMessage = emailServiceName + "." + XQI_
                  given mailbox and folder IDs) into the view stack. This means
                  that when the back button is pressed from the viewer view, the
                  message list view will be shown.
-                     
+
     \return 1 if message was opened. 0 if one of the IDs was incorrect.
 
 

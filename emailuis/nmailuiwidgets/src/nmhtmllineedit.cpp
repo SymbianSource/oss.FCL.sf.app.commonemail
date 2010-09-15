@@ -102,6 +102,28 @@ void NmHtmlLineEdit::setPlainText (const QString &text)
 }
 
 /*!
+ *  Returns true if this widget has the input focus.
+ */
+bool NmHtmlLineEdit::hasInputFocus() const
+{
+    NM_FUNCTION;
+
+    bool ret = false;
+    
+    HbInputMethod* inputMethod = HbInputMethod::activeInputMethod();
+    
+    if (inputMethod) {
+        HbInputFocusObject *focusObject = inputMethod->focusObject();
+        if (focusObject) {
+            ret = (focusObject->object() == this);
+        }
+    }
+    
+    return ret; 
+}
+
+
+/*!
  *  Returns the rectangle for the cursor.
  */
 QRectF NmHtmlLineEdit::rectForCursorPosition() const

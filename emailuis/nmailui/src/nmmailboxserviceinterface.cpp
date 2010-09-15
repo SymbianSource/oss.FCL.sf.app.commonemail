@@ -59,8 +59,8 @@ NmMailboxServiceInterface::~NmMailboxServiceInterface()
 void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 {
     NM_FUNCTION;
-
-
+    NM_TIMESTAMP("Opening message list view starts.");
+    
     // Get the given ID and convert it into NmId type.
     NmId mailboxNmId(data.toULongLong());
 

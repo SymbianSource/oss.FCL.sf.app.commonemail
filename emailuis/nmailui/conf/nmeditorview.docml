@@ -129,6 +129,12 @@
                     </layout>
                 </widget>
             </widget>
+            <widget name="attachmentTypeToolbarExtension" type="HbListWidget">
+                <sizepolicy horizontalPolicy="Minimum" horizontalStretch="0" verticalPolicy="Preferred" verticalStretch="0"/>
+                <sizehint type="PREFERRED" width="expr(var(hb-param-screen-short-edge)*2/3)"/>
+                <sizehint height="0" type="MINIMUM" width="expr(var(hb-param-screen-short-edge)*2/3)"/>
+                <sizehint type="MAXIMUM" width="var(hb-param-screen-short-edge)"/>
+            </widget>
             <layout type="anchor">
                 <anchoritem dst="scrollArea" dstEdge="LEFT" spacing="0un" src="" srcEdge="LEFT"/>
                 <anchoritem dst="scrollArea" dstEdge="TOP" spacing="0un" src="" srcEdge="TOP"/>
@@ -136,7 +142,6 @@
                 <anchoritem dst="scrollArea" dstEdge="BOTTOM" spacing="0un" src="" srcEdge="BOTTOM"/>
             </layout>
         </widget>
-        <string name="title"/>
     </widget>
     <metadata activeUIState="Common ui state" display="NHD-3.2-inch_portrait" unit="un">
         <uistate name="Common ui state" sections="#common"/>

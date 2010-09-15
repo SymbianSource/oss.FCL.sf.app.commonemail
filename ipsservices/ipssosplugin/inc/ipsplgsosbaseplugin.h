@@ -364,7 +364,8 @@ public: // from CFSMailPlugin
         const TFSMailMsgId& aParentFolderId,
         const TFSMailMsgId& aMessageId,
         const TFSMailMsgId& aMessagePartId,
-        RFile& aFileHandle);
+        RFile& aFileHandle,
+        TBool aForWriting = EFalse);
 
     virtual void CopyMessagePartFileL(
         const TFSMailMsgId& aMailBoxId,

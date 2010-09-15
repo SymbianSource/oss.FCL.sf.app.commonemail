@@ -43,7 +43,7 @@ NmFrameworkAdapter::NmFrameworkAdapter()
   mStateExtension(NULL)
 {
     NM_FUNCTION;
-    
+
     // get s60 email framework
     TRAP_IGNORE(mFSfw = CFSMailClient::NewL());
 
@@ -58,12 +58,12 @@ NmFrameworkAdapter::NmFrameworkAdapter()
 NmFrameworkAdapter::~NmFrameworkAdapter()
 {
     NM_FUNCTION;
-    
+
     delete mCurrentMailBox;
     mCurrentMailBox = NULL;
-    
-    mStateExtension = NULL;    
-    
+
+    mStateExtension = NULL;
+
     if (mSearchObserver) {
         delete mSearchObserver;
         mSearchObserver = NULL;
@@ -87,7 +87,7 @@ NmFrameworkAdapter::~NmFrameworkAdapter()
 int NmFrameworkAdapter::listMailboxIds(QList<NmId>& mailboxIdList)
 {
     NM_FUNCTION;
-    
+
     QList<NmMailbox*> mailboxList;
     int ret = listMailboxes(mailboxList);
 
@@ -151,7 +151,7 @@ int NmFrameworkAdapter::listMailboxes(QList<NmMailbox*>& mailboxList)
 int NmFrameworkAdapter::getMailboxById(const NmId& id, NmMailbox*& mailbox)
 {
     NM_FUNCTION;
-    
+
     const TFSMailMsgId mailMsgId(id.pluginId32(), id.id32());
     CFSMailBox *box(NULL);
     TRAPD(err, box = mFSfw->GetMailBoxByUidL(mailMsgId));
@@ -173,6 +173,9 @@ int NmFrameworkAdapter::getMailboxById(const NmId& id, NmMailbox*& mailbox)
 QPointer<NmOperation> NmFrameworkAdapter::deleteMailboxById(const NmId& mailboxId)
 {
     NM_FUNCTION;
+
+    resetCache(mailboxId);
+
     QPointer<NmOperation> oper = new NmFwaDeleteMailboxOperation(mailboxId, *mFSfw);
     return oper;
 }
@@ -283,7 +286,7 @@ int NmFrameworkAdapter::listFolders(
 {
     NM_FUNCTION;
     int err(NmNoError);
-    CFSMailBox* currentMailbox(NULL); 
+    CFSMailBox* currentMailbox(NULL);
     TRAP(err, currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId));
     if (KErrNone == err && currentMailbox) {
         RPointerArray<CFSMailFolder> folders = currentMailbox->ListFolders();
@@ -664,7 +667,7 @@ void NmFrameworkAdapter::updateActiveFolder(
 QPointer<NmOperation> NmFrameworkAdapter::removeDraftMessage(NmMessage *message)
 {
     NM_FUNCTION;
-    
+
     QPointer<NmOperation> oper = new NmFwaRemoveDraftMessageOperation(*this, message, *mFSfw);
     return oper;
 }
@@ -878,6 +881,13 @@ NmId NmFrameworkAdapter::getStandardFolderId(
 {
     NM_FUNCTION;
 
+	// Use cached inbox ID when available
+    if (folderType==NmFolderInbox &&
+        mailboxId==mCachedMailboxId &&
+        mCachedInboxId!=0) {
+        return mCachedInboxId;
+    }
+
     TFSMailMsgId folderId;
     NmId resultId(0);
     CFSMailBox* currentMailbox(NULL);
@@ -916,7 +926,26 @@ NmId NmFrameworkAdapter::getStandardFolderId(
     resultId.setPluginId32(static_cast<quint32>(folderId.PluginId().iUid));
     resultId.setId32(folderId.Id());
 
+    // Store cached inbox ID
+    if (folderType==NmFolderInbox) {
+        mCachedMailboxId = mailboxId;
+        mCachedInboxId = resultId;
+    }
+
     return resultId;
+}
+
+/*!
+    Reset cache for the specific mailbox
+
+    \param mailboxId id of the mailbox that cache will be reseted
+*/
+void NmFrameworkAdapter::resetCache(const NmId &mailboxId)
+{
+	if (mailboxId==mCachedMailboxId) {
+        mCachedMailboxId=0;
+        mCachedInboxId=0;
+	}
 }
 
 /*!
@@ -928,7 +957,9 @@ NmId NmFrameworkAdapter::getStandardFolderId(
 int NmFrameworkAdapter::refreshMailbox(NmId mailboxId)
 {
     NM_FUNCTION;
-    
+
+    resetCache(mailboxId);
+
     TRAPD(err, RefreshMailboxL(mailboxId)); // return value not used
     return (err == KErrNone) ? NmNoError : NmGeneralError;
 }
@@ -942,7 +973,7 @@ int NmFrameworkAdapter::refreshMailbox(NmId mailboxId)
 int NmFrameworkAdapter::goOnline(const NmId& mailboxId)
 {
     NM_FUNCTION;
-    
+
     TRAPD(err, GoOnlineL(mailboxId)); // return value not used
     return (err == KErrNone) ? NmNoError : NmGeneralError;
 }
@@ -956,7 +987,7 @@ int NmFrameworkAdapter::goOnline(const NmId& mailboxId)
 int NmFrameworkAdapter::goOffline(const NmId& mailboxId)
 {
     NM_FUNCTION;
-    
+
     TRAPD(err, GoOfflineL(mailboxId)); // return value not used
     return (err == KErrNone) ? NmNoError : NmGeneralError;
 }
@@ -1222,11 +1253,11 @@ void NmFrameworkAdapter::EventL(
             break;
 
         // Folder related events:
-        case TFSEventFoldersDeleted:                 
+        case TFSEventFoldersDeleted:
             handleFoldersEvent(param1, param2, NmFolderIsDeleted, mailbox);
             break;
         case TFSEventNewFolder:
-            handleFoldersEvent(param1, param2, NmFolderIsCreated, mailbox);            
+            handleFoldersEvent(param1, param2, NmFolderIsCreated, mailbox);
             break;
 
         // Mailbox related events:
@@ -1305,7 +1336,7 @@ void NmFrameworkAdapter::EventL(
             emit connectionEvent(Connected, id, NmNoError);
             }
             break;
-            
+
         // param1: errorcode
         case TFSEventMailboxOffline: {
             NmId id = NmConverter::mailMsgIdToNmId(mailbox);
@@ -1377,7 +1408,7 @@ int NmFrameworkAdapter::getSignature(const NmId &mailboxId, QString *&signature)
 {
     NM_FUNCTION;
     TRAPD(error, getSignatureL(mailboxId, signature));
-    
+
     return error;
 }
 
@@ -1389,7 +1420,7 @@ int NmFrameworkAdapter::getSignature(const NmId &mailboxId, QString *&signature)
 void NmFrameworkAdapter::subscribeMailboxEvents(const NmId& mailboxId)
 {
     NM_FUNCTION;
-    
+
     TRAP_IGNORE(mFSfw->SubscribeMailboxEventsL(mailboxId, *this));
 }
 
@@ -1401,7 +1432,7 @@ void NmFrameworkAdapter::subscribeMailboxEvents(const NmId& mailboxId)
 void NmFrameworkAdapter::unsubscribeMailboxEvents(const NmId& mailboxId)
 {
     NM_FUNCTION;
-    
+
     mFSfw->UnsubscribeMailboxEvents(mailboxId, *this);
 }
 
@@ -1469,7 +1500,7 @@ void NmFrameworkAdapter::copyMessagesL(
 void NmFrameworkAdapter::getSignatureL(const NmId &mailboxId, QString *&signature)
 {
     NM_FUNCTION;
-    
+
     HBufC *sig = mFSfw->GetSignatureL(TFSMailMsgId(mailboxId));
 
     if (sig) {
@@ -1756,7 +1787,7 @@ void NmFrameworkAdapter::handleMailCopied(TAny* param1,TAny* param2, TFSMailMsgI
 void NmFrameworkAdapter::handleSyncstateEvent(TAny* param1, TFSMailMsgId mailbox)
 {
     NM_FUNCTION;
-    
+
     TSSMailSyncState* state = static_cast<TSSMailSyncState*>( param1 );
     NmOperationCompletionEvent event;
     event.mMailboxId = NmConverter::mailMsgIdToNmId(mailbox);
@@ -1766,12 +1797,14 @@ void NmFrameworkAdapter::handleSyncstateEvent(TAny* param1, TFSMailMsgId mailbox
         {
         case StartingSync:
             {
+            NM_TIMESTAMP("Sync started.");
             event.mCompletionCode = NmNoError;
             emit syncStateEvent(Synchronizing, event);
             break;
             }
         case FinishedSuccessfully:
             {
+            NM_TIMESTAMP("Sync completed successfully.");
             event.mCompletionCode = NmNoError;
             emit syncStateEvent(SyncComplete, event);
             break;
@@ -1813,21 +1846,23 @@ void NmFrameworkAdapter::handleFoldersEvent(
     TAny* param1, TAny* param2, NmFolderEvent event, TFSMailMsgId mailbox)
 {
     NM_FUNCTION;
+    
+    Q_UNUSED(param2);
 
     // aParam1: RArray<TFSMailMsgId>* aEntries
     // aParam2: TFSMailMsgId* aParentFolder
-    // aParam3: NULL      
+    // aParam3: NULL
 
     NmId mailboxId(0);
     mailboxId = mailbox.GetNmId();
 
     NmId nmMsgId(0);
-    QList<NmId> folderIds;    
+    QList<NmId> folderIds;
 
+    resetCache(mailboxId);
+    
     RArray<TFSMailMsgId>* fsEntries = reinterpret_cast<RArray<TFSMailMsgId>*> (param1);
-    TFSMailMsgId* fsFolderId = reinterpret_cast<TFSMailMsgId*> (param2);
-    NmId folderId = fsFolderId->GetNmId();
-    NmId inputFolderId = NmFrameworkAdapter::getStandardFolderId(mailboxId, NmFolderInbox);
+    NmId folderId(0);
 
     TFSMailMsgId fsMsgId;
     for(TInt i = 0; i < fsEntries->Count(); i++){

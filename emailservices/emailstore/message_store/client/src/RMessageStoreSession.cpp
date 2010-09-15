@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -80,14 +80,14 @@ RMessageStoreSession::~RMessageStoreSession()
 // ==========================================================================
 // FUNCTION: Connect
 // ==========================================================================
-TInt RMessageStoreSession::Connect( TBool aLaunchServerIfNeeded, TBool aRetryIndefinitely )
+TInt RMessageStoreSession::Connect( TBool /*aLaunchServerIfNeeded*/, TBool aRetryIndefinitely )
     {
     __LOG_ENTER( "Connect" )
 
     // This flag should only be used in the case where the message store server is being launched as a separate
     // thread within some other process.  In that case, the flag is used to control exactly which process the
     // server will be launched in.  Otherwise, always launch the server on reference.
-    aLaunchServerIfNeeded = ETrue;
+    //aLaunchServerIfNeeded = ETrue;
 
     TBool again = ETrue;    
     TInt  returnValue;
@@ -116,10 +116,18 @@ TInt RMessageStoreSession::Connect( TBool aLaunchServerIfNeeded, TBool aRetryInd
                 // Do not retry again.
                 again = EFalse;
                 }
-            else if( (returnValue == KErrNotFound) && aLaunchServerIfNeeded )
+            else if( (returnValue == KErrNotFound) || (returnValue == KErrServerTerminated) )
                 {
                 // Start the server as a thread within the current process.            
                 returnValue = StartServer();
+                if ( returnValue != KErrNone )
+                    {
+            				__LOG_WRITE8_FORMAT1_ERROR( "StartServer failed %i", returnValue )
+		                // Wait before trying again.
+		                User::After( KServerRetryIntervalMicroSeconds );             
+		                //stay in the loop even if we failed to start the server,
+		                // in the next look, the CreateSession will fail but we get to try StartServer again
+                    }
                 }
             else
                 {
@@ -1622,7 +1630,7 @@ void RMessageStoreSession::AddMruAddressesL( TMsgStoreId aMailBoxId, RPointerArr
     
     RBuf8 serializedBuf;
     CleanupClosePushL( serializedBuf );
-    serializedBuf.Create( totalSize );
+    serializedBuf.CreateL( totalSize );
     
     for( TInt i = 0 ; i < count ; i++ )
         {

@@ -21,7 +21,7 @@
 namespace EmailClientApi
 {
 
-NmApiMessageManagerPrivate::NmApiMessageManagerPrivate(quint64 mailboxId,QObject *parent)
+NmApiMessageManagerPrivate::NmApiMessageManagerPrivate(QObject *parent,quint64 mailboxId)
 : QObject(parent),
   mState(NmApiMessageManagerPrivate::EIdle), mMailboxId(mailboxId)
 {

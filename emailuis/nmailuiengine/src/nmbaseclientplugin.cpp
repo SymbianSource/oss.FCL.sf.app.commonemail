@@ -601,17 +601,9 @@ void NmBaseClientPlugin::createViewerViewCommands(
         case NmActionToolbar:
         {
             mViewerViewRequest = request;
-			Qt::Orientation orientation = Qt::Horizontal;
-			HbMainWindow *mainWindow = static_cast<HbMainWindow*>(HbApplication::activeWindow());
-			if( mainWindow ) {
-            	orientation = mainWindow->orientation();
-			}
 
             // ToolBar Reply action
             NmAction *replyAction = new NmAction(0);
-            if (Qt::Horizontal == orientation) {
-                replyAction->setText(hbTrId("txt_mail_button_reply"));
-            }
             replyAction->setToolTip(hbTrId("txt_mail_button_reply"));
             replyAction->setIcon(NmIcons::getIcon(NmIcons::NmIconReply));
             replyAction->setObjectName("baseclientplugin_reply");
@@ -620,9 +612,6 @@ void NmBaseClientPlugin::createViewerViewCommands(
 
             // ToolBar Reply all action
             NmAction *replyAllAction = new NmAction(0);
-            if (Qt::Horizontal == orientation) {
-                replyAllAction->setText(hbTrId("txt_mail_button_reply_all"));
-            }
             replyAllAction->setToolTip(hbTrId("txt_mail_button_reply_all"));
             replyAllAction->setIcon(NmIcons::getIcon(NmIcons::NmIconReplyAll));
             replyAllAction->setObjectName("baseclientplugin_reply_all");
@@ -631,9 +620,6 @@ void NmBaseClientPlugin::createViewerViewCommands(
 
             // ToolBar Forward action
             NmAction *forwardAction = new NmAction(0);
-            if (Qt::Horizontal == orientation) {
-                forwardAction->setText(hbTrId("txt_mail_button_forward"));
-            }
             forwardAction->setToolTip(hbTrId("txt_mail_button_forward"));
             forwardAction->setIcon(NmIcons::getIcon(NmIcons::NmIconForward));
             forwardAction->setObjectName("baseclientplugin_forward");
@@ -642,9 +628,6 @@ void NmBaseClientPlugin::createViewerViewCommands(
 
             // ToolBar Delete action
             NmAction *deleteAction = new NmAction(0);
-            if (Qt::Horizontal == orientation) {
-                deleteAction->setText(hbTrId("txt_mail_button_delete"));
-            }
             deleteAction->setToolTip(hbTrId("txt_mail_button_delete"));
             deleteAction->setIcon(NmIcons::getIcon(NmIcons::NmIconDelete));
             deleteAction->setObjectName("baseclientplugin_delete");
@@ -682,7 +665,6 @@ void NmBaseClientPlugin::createEditorViewCommands(
             // ToolBar Attach action
             NmAction *attachAction = new NmAction(0);
             attachAction->setObjectName("baseclientplugin_attachaction");
-            attachAction->setText(hbTrId("txt_mail_button_attach"));
             attachAction->setIcon(NmIcons::getIcon(NmIcons::NmIconAttach));
             // Action only available when attachment can be added
             attachAction->setAvailabilityCondition(NmAction::NmAttachable);
@@ -693,7 +675,6 @@ void NmBaseClientPlugin::createEditorViewCommands(
             // ToolBar Send action
             NmAction *sendAction = new NmAction(0);
             sendAction->setObjectName("baseclientplugin_sendaction");
-            sendAction->setText(hbTrId("txt_common_button_send"));
             sendAction->setIcon(NmIcons::getIcon(NmIcons::NmIconSend));
             // Action only available when the message related to it can be sent.
             sendAction->setAvailabilityCondition(NmAction::NmSendable);

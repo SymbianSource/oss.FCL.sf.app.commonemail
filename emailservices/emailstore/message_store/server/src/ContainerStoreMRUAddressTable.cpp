@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -73,8 +73,8 @@ CMruAddress::CMruAddress( TUint aMruNum )
 // ==========================================================================
 void CMruAddress::ConstructL( const TDesC& aEmailAddress, const TDesC& aDisplayName )
     {
-    iEmailAddress.Create( aEmailAddress );
-    iDisplayName.Create( aDisplayName );
+    iEmailAddress.CreateL( aEmailAddress );
+    iDisplayName.CreateL( aDisplayName );
     }
 
 // ==========================================================================
@@ -725,7 +725,7 @@ void CContainerStoreMruAddressTable::ReadStringFieldL( RDbRowSet& aRowSet, TInt 
     
     RBuf8 string8;
     CleanupClosePushL( string8 );
-    string8.Create( iEncryptedBuffer.Length() );
+    string8.CreateL( iEncryptedBuffer.Length() );
     
     if( aString.Size() < iEncryptedBuffer.Length() )
         {        

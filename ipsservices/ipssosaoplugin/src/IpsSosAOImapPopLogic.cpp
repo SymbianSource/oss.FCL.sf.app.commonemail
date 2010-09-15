@@ -18,9 +18,8 @@
 
 #include "ipssosaopluginheaders.h"
 
-//const TInt KAOSmtpStartDelaySeconds = 310;
 const TInt KIpsSosAOImapPopLogicDefGra = 1;
-//const TInt KIpsSosAoImapPopLogicEventGra = 2;
+const TInt KMailboxCreatedTimeout = 500000; // 0.5 sec
 
 // ----------------------------------------------------------------------------
 // class CIpsSosAOImapPopLogic
@@ -216,6 +215,7 @@ void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
     switch( aEvent )
         {
         case MMsvSessionObserver::EMsvEntriesCreated:
+            handleEntriesCreatedL(aArg1);
             break;
         case MMsvSessionObserver::EMsvEntriesChanged:
             {
@@ -511,5 +511,42 @@ void CIpsSosAOImapPopLogic::RemoveOrphanLogicsL()
     
     CleanupStack::PopAndDestroy( 3, cEntry );
     }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void CIpsSosAOImapPopLogic::handleEntriesCreatedL(const TAny* aArg1)
+    {
+    FUNC_LOG;
+    TMsvEntry entry;
+    getFirstEntryFromSelectionL(static_cast<const CMsvEntrySelection*>(aArg1), entry);
+
+    if( entry.iMtm==KSenduiMtmImap4Uid || entry.iMtm==KSenduiMtmPop3Uid)
+        {
+        // handling imap4 or pop3 entry
+        if(entry.iType.iUid==KUidMsvServiceEntryValue)
+            {
+            // new mailbox has been created, starting sync for it
+            User::After(KMailboxCreatedTimeout); // sleep for 0.5 sec; guarantees that mailbox is fully set up, and message server ready to serve it
+            RefreshMailboxListL();
+            SendCommandToSpecificMailboxL( entry.Id(), CIpsSosAOMBoxLogic::ECommandStart );
+            SendCommandToSpecificMailboxL( entry.Id(), CIpsSosAOMBoxLogic::ECommandStartSync );
+            }
+        }
+    }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void CIpsSosAOImapPopLogic::getFirstEntryFromSelectionL(const CMsvEntrySelection* aSelection, TMsvEntry& aEntry)
+    {
+    FUNC_LOG;
+    if ( aSelection->Count() == 0)
+        {
+        User::Leave( KErrArgument );
+        }
+
+    TMsvId dummy( KMsvNullIndexEntryIdValue );
+    User::LeaveIfError( iSession.GetEntry( aSelection->At(0), dummy, aEntry ) );
+    }
+
 // End of file
 

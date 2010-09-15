@@ -39,13 +39,13 @@ public: // Data types
 
 public:
 
-    NmSettingsFormCustomItems(QGraphicsItem *parent=0);
+    NmSettingsFormCustomItems(QGraphicsItem *parent=NULL);
 
     ~NmSettingsFormCustomItems();
 
     bool canSetModelIndex(const QModelIndex &index) const;
 
-    virtual HbAbstractViewItem* createItem();
+    HbAbstractViewItem* createItem();
 
 public slots:
 
@@ -53,7 +53,7 @@ public slots:
 
 protected:
 
-    virtual HbWidget* createCustomWidget();
+    HbWidget* createCustomWidget();
 };
 
 

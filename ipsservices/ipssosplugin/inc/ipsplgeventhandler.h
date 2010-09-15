@@ -378,6 +378,11 @@ private:
      * Signal sync completed event via p&s api to all plugin instances
      */
     void SignalSyncCompletedL( const TFSMailMsgId& aAccount, TInt aError );
+    
+    /**
+     * Helper function to check if this is a mailbox related event
+     */
+    TBool IsMailboxOrMediaEvent( MMsvSessionObserver::TMsvSessionEvent aEvent, TAny* aArg );
 
 private: // datak
 

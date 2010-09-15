@@ -38,6 +38,7 @@ BLD_INF_RULES.prj_exports += "resource/nmregister.xml 			z:/private/2002DD16/nmr
 BLD_INF_RULES.prj_exports += "rom/nmregister.iby		CORE_APP_LAYER_IBY_EXPORT_PATH(nmregister.iby)"
 BLD_INF_RULES.prj_exports += "rom/nmregisterlanguage.iby 		LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(nmregisterlanguage.iby)"
 TARGET.EPOCALLOWDLLDATA = 1
+MMP_RULES += SMPSAFE
 }
 
 TARGET.CAPABILITY = ALL -TCB

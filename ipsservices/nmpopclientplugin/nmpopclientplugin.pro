@@ -52,6 +52,8 @@ symbian*: {
     LIBS += -lnmailbase \
             -lnmsettingui \
             -lnmailuiengine
+            
+    MMP_RULES += SMPSAFE
 }
 
 win32 {    

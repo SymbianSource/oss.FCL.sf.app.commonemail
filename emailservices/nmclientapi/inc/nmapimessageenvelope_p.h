@@ -32,16 +32,24 @@ public:
     {
     }
 
+    NmApiMessageFlags flags() const;
+    void setFlags(const NmApiMessageFlags flags, bool set);
+    void setFlag(const NmApiMessageFlag flag, bool set);
+    bool isFlagSet(const NmApiMessageFlag flag) const;
+
+public:
     bool read;
     bool attachments;
     bool forwarded;
     bool replied;
 
-    QList<EmailClientApi::NmApiEmailAddress> ccRecipients;
     QList<EmailClientApi::NmApiEmailAddress> toRecipients;
+    QList<EmailClientApi::NmApiEmailAddress> ccRecipients;
+    QList<EmailClientApi::NmApiEmailAddress> bccRecipients;
 
     quint64 id;
     quint64 parentFolder;
+    quint64 mailboxId;
 
     QString contentType;
     QString subject;
@@ -52,6 +60,10 @@ public:
     quint64 fetchedSize;
 
     QDateTime sentTime;
+
+private:
+    NmApiMessageFlags messageFlags;
+
 };
 }
 

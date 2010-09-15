@@ -23,6 +23,7 @@
 #include <QList>
 
 #include <nmapidef.h>
+#include <nmapicommon.h>
 
 class QString;
 class QDateTime;
@@ -72,6 +73,11 @@ public:
     quint64 parentFolder() const;
 
     /*!
+       getter for id of mailbox
+     */
+    quint64 mailboxId() const;
+    
+    /*!
        getter for subject
      */
     QString subject() const;
@@ -90,6 +96,11 @@ public:
        getter for cc recipients
      */
     void getCcRecipients(QList<EmailClientApi::NmApiEmailAddress> &ccRecipients);
+
+    /*!
+       getter for bcc recipients
+     */
+    void getBccRecipients(QList<EmailClientApi::NmApiEmailAddress> &bccRecipients);
 
     /*!
        getter for sent time
@@ -142,6 +153,21 @@ public:
     quint64 fetchedSize() const;
 
     /*!
+        getter for priority
+     */
+    NmApiMessagePriority priority() const;
+
+    /*!
+        getter for flags
+     */
+    NmApiMessageFlags flags() const;
+
+    /*!
+        getter for flag
+     */
+     bool isFlagSet(const NmApiMessageFlag flag) const;
+
+    /*!
        setter for id 
      */
     void setId(quint64 id);
@@ -151,6 +177,11 @@ public:
      */
     void setParentFolder(quint64 parentFolder);
 
+    /*!
+       setter for mailbox id
+     */
+    void setMailboxId(quint64 mailboxId);
+    
     /*!
        setter for subject 
      */
@@ -170,6 +201,11 @@ public:
        setter for cc recipients 
      */
     void setCcRecipients(const QList<EmailClientApi::NmApiEmailAddress> &ccRecipients);
+
+    /*!
+       setter for bcc recipients 
+     */
+    void setBccRecipients(const QList<EmailClientApi::NmApiEmailAddress> &bccRecipients);
 
     /*!
        setter for sent time 
@@ -202,19 +238,34 @@ public:
     void setContentType(const QString &contentType);
 
     /*!
-       getter for messages plain text 
+       setter for messages plain text 
      */
     void setPlainText(const QString &plainText);
 
     /*!
-       getter for messages fetched size 
+       setter for messages fetched size 
      */
     void setTotalSize(quint64 totalSize);
 
     /*!
-       getter for messages fetched size 
+       setter for messages fetched size 
      */
     void setFetchedSize(quint64 fetchedSize);
+
+    /*!
+       setter for priority
+     */
+    void setPriority(NmApiMessagePriority forwarded);
+
+    /*!
+        setter for flags
+     */
+    void setFlags(const NmApiMessageFlags flags, bool set);
+
+    /*!
+        setter for flag
+     */
+    void setFlag(const NmApiMessageFlag flag, bool set);
 
 private:
     QExplicitlySharedDataPointer<NmApiMessageEnvelopePrivate> d;

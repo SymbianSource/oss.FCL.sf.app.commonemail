@@ -188,7 +188,8 @@ symbian*: {
       "inc/ipsplgpropertywatcher.h |../inc/ipsplgpropertywatcher.h"
       
     MMP_RULES -= "OPTION_REPLACE ARMCC --export_all_vtbl -D__QT_NOEFFECTMACRO_DONOTUSE"
-      
+
+    MMP_RULES += SMPSAFE
 }
 
 win32 {

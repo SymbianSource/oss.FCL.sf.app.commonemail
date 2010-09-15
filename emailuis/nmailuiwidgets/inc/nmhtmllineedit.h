@@ -37,6 +37,8 @@ public:
 
     QString toPlainText() const;
     QString toHtml() const;
+    
+    bool hasInputFocus() const;
 
     QRectF rectForCursorPosition() const;
 

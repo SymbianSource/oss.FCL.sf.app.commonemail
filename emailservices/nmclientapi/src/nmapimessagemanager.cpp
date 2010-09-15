@@ -27,14 +27,10 @@
 namespace EmailClientApi
 {
 
- NmApiMessageManager::NmApiMessageManager(quint64 mailboxId,QObject *parent)
+NmApiMessageManager::NmApiMessageManager(QObject *parent, quint64 mailboxId)
 	:QObject(parent)
 {
-	d = new NmApiMessageManagerPrivate(mailboxId,this);	
-	connect(d, SIGNAL(messagesCopied(int)),this,SIGNAL(messagesCopied(int)));
-	connect(d, SIGNAL(messagesCreated(int)),this,SIGNAL(messagesCreated(int)));
-	connect(d, SIGNAL(messagesMoved(int)),this,SIGNAL(messagesMoved(int)));
-	connect(d, SIGNAL(messagesDeleted(int)),this,SIGNAL(messagesDeleted(int)));	
+	d = new NmApiMessageManagerPrivate(this, mailboxId);
 }
 
 NmApiMessageManager::~NmApiMessageManager()
@@ -56,20 +52,22 @@ bool NmApiMessageManager::createDraftMessage(const QVariant *initData)
     // creates fw message
     // signaled with forwardMessageCreated(NmApiMessage *message,int result) 
     //    * ownership transferred
- bool NmApiMessageManager::createForwardMessage(const QVariant *initData)
+ bool NmApiMessageManager::createForwardMessage(NmApiMessage *orig,const QVariant *initData)
  {
     NM_FUNCTION;
     Q_UNUSED(initData);
+    Q_UNUSED(orig);
 	return false;
  }
     
     // creates reply message
     // signaled with replyMessageCreated(NmApiMessage *message,int result) 
     //    * ownership transferred
-bool NmApiMessageManager::createReplyMessage(const QVariant *initData,
-													bool replyAll)
+bool NmApiMessageManager::createReplyMessage(const NmApiMessage *orig,
+        const QVariant *initData,bool replyAll)
 {
     NM_FUNCTION;
+    Q_UNUSED(orig);
     Q_UNUSED(initData);
     Q_UNUSED(replyAll);
 	return false;
@@ -89,24 +87,12 @@ bool NmApiMessageManager::moveMessages(const QList<quint64> messageIds,
 									quint64 sourceFolderId,
 									quint64 targetFolderId)
 {    
-	return d->moveMessages(messageIds,sourceFolderId,targetFolderId);
-}
-
-/*!
- \fn copyMessages 
- \param messageIds Id list of source messages.
- \param sourceFolder Id of the source folder.
- \param targetFolder Id of the target folder.
- \return true if operation was successfully started.
- 
- Starts async copy operation for given messages.  
- Completion signalled with messagesCopied(int result).
- */
-bool NmApiMessageManager::copyMessages(const QList<quint64> messageIds,								
-									quint64 sourceFolder,
-									quint64 targetFolder)
-{
-	return d->copyMessages(messageIds, sourceFolder, targetFolder);
+    NM_FUNCTION;
+    Q_UNUSED(messageIds);
+    Q_UNUSED(sourceFolderId);
+    Q_UNUSED(targetFolderId);
+    return false;
+	//return d->moveMessages(messageIds,sourceFolderId,targetFolderId);
 }
     
 // signaled with messageSaved(quint64 messageId, int result)
@@ -126,15 +112,15 @@ bool NmApiMessageManager::deleteMessages(const QList<quint64> messageIds)
     
     // starts fetching rest of message body from server
     // signaled with messageFetched(quint64 messageId, int result)
-bool NmApiMessageManager::fetch(const NmApiMessage &message)
+bool NmApiMessageManager::fetchMessage(quint64 messageId)
 {
-    Q_UNUSED(message);
+    Q_UNUSED(messageId);
 	return false;
 }
     
     // moves message to outbox. Actual sending time may be immediate or scheduled
     // signaled with messageSent(quint64 messageId, int result)
-bool NmApiMessageManager::send(const NmApiMessage &message)
+bool NmApiMessageManager::sendMessage(const NmApiMessage &message)
 {
     Q_UNUSED(message);
 	return false;
@@ -143,7 +129,7 @@ bool NmApiMessageManager::send(const NmApiMessage &message)
 // creates new attachment for a message. Currently attachment can be specified as file name (attachmentSpec is QString)
 // signaled with attachmentCreated(quint64 attachemntId)
 //  * 
-bool NmApiMessageManager::createAttachment(NmApiEmailMessage &message,
+bool NmApiMessageManager::createAttachment(NmApiMessage &message,
 										const QVariant &attachmenSpec)
 {
     Q_UNUSED(message);
@@ -153,10 +139,19 @@ bool NmApiMessageManager::createAttachment(NmApiEmailMessage &message,
                                                       
 // removes attachment from a message
 // signaled with attachmentRemoved(int result)
-bool NmApiMessageManager::removeAttachment(NmApiEmailMessage &message,
-quint64 /*attachmentId*/)
+bool NmApiMessageManager::removeAttachment(NmApiMessage &message,
+quint64 attachmentId)
 {    
     Q_UNUSED(message);
+    Q_UNUSED(attachmentId);
+    return false;
+}
+
+bool NmApiMessageManager::fetchAttachment(const NmApiMessage &relatedMessage,
+        quint64 attachmentId)
+{
+    Q_UNUSED(relatedMessage);
+    Q_UNUSED(attachmentId);
     return false;
 }
  

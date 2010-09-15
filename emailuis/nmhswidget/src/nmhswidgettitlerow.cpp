@@ -298,8 +298,18 @@ void NmHsWidgetTitleRow::gestureEvent(QGestureEvent *event)
     //to avoid opening email account mistakenly  when tabbing expand/collapse button
     //we dont handle events that are on the top, down or right side of the button
     QPointF posFromScene = mapFromScene(event->mapToGraphicsScene(gesture->position()));
-    if(posFromScene.x() < mUnreadCountLabel->geometry().right())
-        {    
+    bool inArea = false;
+    
+    if(this->layoutDirection() == Qt::LeftToRight &&  
+       posFromScene.x() < mUnreadCountLabel->geometry().right()) {
+        inArea = true;
+    }
+    else if(this->layoutDirection() == Qt::RightToLeft && 
+            posFromScene.x() > mUnreadCountLabel->geometry().right()) {
+        inArea = true;
+    }
+    
+    if (inArea) {    
         switch (gesture->state()) {
             case Qt::GestureStarted:
                 setHighlighedFontsColor(true);

@@ -292,21 +292,20 @@ void CIpsPlgEventHandler::HandleSessionEventL(
         IPSAccountsL();
         return;
         }
-    if ( !iPluginObserver && iMBoxObservers.Count()==0 )
+    if ( iMBoxObservers.Count() == 0 )
         {
-        //if no observer we can't relay these events.
-        return;
+        if ( !iPluginObserver )
+            {
+            //if no observer we can't relay these events.
+            return;
+            }
+        if ( !IsMailboxOrMediaEvent(aEvent, aArg2) )
+            {
+            // event is related to messages / folders, can return
+            // because no mailbox observers found
+            return;
+            }
         }
-    //<cmail>
-    if ( iMBoxObservers.Count() == 0 && aArg2 &&
-        (*(TMsvId*) (aArg2)) != KMsvRootIndexEntryIdValue &&
-        aEvent != EMsvMediaChanged )
-        {
-        // event is related to messages / folders, can return
-        // because no mailbox observers found
-        return;
-        }
-    //</cmail>
     
     switch( aEvent )
         {
@@ -1151,19 +1150,22 @@ void CIpsPlgEventHandler::HandleEntriesChangedL(
 void CIpsPlgEventHandler::HandleMediaChangedL( 
     TAny* aArg1, TAny* aArg2, TAny* /*aArg3*/ )
     {
-    TAny* arg1=NULL;
-    TAny* arg2=NULL;
-    TAny* arg3=NULL;    
+    TAny* arg1(NULL);
+    TAny* arg2(NULL);
+    TAny* arg3(NULL);    
     TMsvId service;
     TMsvEntry tChanged;
     TFSMailMsgId mbox;
     TFSMailEvent event( TFSEventMailboxDeleted );
     TInt startPoint(iIPSAccounts.Count()-1);
+
+    if ( !aArg1 || !aArg2 )
+        {
+        return; 
+        }
     TInt from(*(TInt*) (aArg1));
     TInt to(*(TInt*) (aArg2));
-
-    if ( !aArg1 || !aArg2 || 
-         from>KMaxDriveUnitValue || to>KMaxDriveUnitValue )
+    if ( from > KMaxDriveUnitValue || to > KMaxDriveUnitValue )
         {
         // Possibly duplicate event 
         // or some other disinformation
@@ -1738,6 +1740,23 @@ void CIpsPlgEventHandler::CollectSubscribedFoldersL( TMsvId /*aMailboxId*/ )
     FUNC_LOG;
 // <qmail> code removed as it does nothing; keeping the func as it probably will be needed
     }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+TBool CIpsPlgEventHandler::IsMailboxOrMediaEvent( MMsvSessionObserver::TMsvSessionEvent aEvent, 
+                                           TAny* aArg )
+{
+   TBool ret(EFalse); 
+   if ( aArg ) 
+       {
+       if ( (*(TMsvId*)(aArg)) == KMsvRootIndexEntryIdValue 
+             || aEvent == EMsvMediaChanged ) 
+           {
+           ret = ETrue;
+           }
+   }
+   return ret;
+}
 
 // <qmail> not needed
 // ----------------------------------------------------------------------------

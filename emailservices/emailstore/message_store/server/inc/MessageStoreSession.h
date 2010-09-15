@@ -97,7 +97,7 @@ class CMessageStoreSession : public  CSession2,
         void ContainerStoreAvailable();
 
         // Called by the server to propogate events to the session clients.
-        void SendEventToObserver( TMsgStoreEvent aEvent );
+        void SendEventToObserver( TMsgStoreEvent &aEvent );
 
         // inherited from CSession2
         void CreateL();

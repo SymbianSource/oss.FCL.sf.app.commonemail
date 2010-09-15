@@ -79,6 +79,8 @@ symbian: {
     
     CONFIG += mobility
     MOBILITY += bearer serviceframework
+    
+    MMP_RULES += SMPSAFE
 }
 
 symbian: plugin { # copy qtstub and manifest

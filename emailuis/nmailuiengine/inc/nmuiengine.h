@@ -225,12 +225,17 @@ private:
     NmUiEngine();
 
     virtual ~NmUiEngine();
-    
+
     void handleFolderDeletedEvent(const QList<NmId> &folderIds,
                             const NmId& mailboxId);
-    
+
     void handleFolderCreatedEvent(const QList<NmId> &folderIds,
-                            const NmId& mailboxId);    
+                            const NmId& mailboxId);
+
+    void createMessageListModel(
+            NmMessageListModel **model,
+            const NmId &mailboxId,
+            const NmId &folderId);
 
 
 private: // Data

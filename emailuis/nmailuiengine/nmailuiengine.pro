@@ -80,6 +80,7 @@ symbian*: {
       "$${LITERAL_HASH}endif"
     
     MMP_RULES += defBlock
+    MMP_RULES += SMPSAFE
 }
 
 RESOURCES += nmailuiengine.qrc

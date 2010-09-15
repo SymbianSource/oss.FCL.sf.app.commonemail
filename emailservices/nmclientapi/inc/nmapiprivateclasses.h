@@ -44,7 +44,7 @@ enum NmApiObjectType
    It is grouped in list of object by event when mailbox change and by
    event, mailboxId anf folderId when messages change.
  */
-struct NmApiMessage
+struct NmApiEvent
 {
     NmApiAction action;
     NmApiObjectType objectType;
@@ -55,6 +55,6 @@ struct NmApiMessage
     quint64 folderId;
 
 };
-Q_DECLARE_METATYPE(NmApiMessage)
+Q_DECLARE_METATYPE(NmApiEvent)
 
 #endif /* NMAPIPRIVATECLASSES_H */

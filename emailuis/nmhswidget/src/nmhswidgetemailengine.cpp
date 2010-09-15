@@ -11,7 +11,7 @@
  *
  * Contributors:
  *
- * Description: 
+ * Description:
  *
  */
 
@@ -20,6 +20,7 @@
 #include <qpluginloader.h>
 #include <xqapplicationmanager.h>
 #include <xqaiwdeclplat.h>
+#include <email_services_api.h>
 #include "nmcommon.h"
 #include "nmmessageenvelope.h"
 #include "nmhswidgetemailengine.h"
@@ -34,14 +35,14 @@
  Constructor
  */
 NmHsWidgetEmailEngine::NmHsWidgetEmailEngine(const NmId& monitoredMailboxId) :
-    mMailboxId(monitoredMailboxId), 
-    mFolderId(0), 
-    mAccountName(), 
+    mMailboxId(monitoredMailboxId),
+    mFolderId(0),
+    mAccountName(),
     mUnreadCount(-1),
-    mEmailInterface(0), 
-    mFactory(0), 
+    mEmailInterface(0),
+    mFactory(0),
     mAccountEventReceivedWhenSuspended(false),
-    mMessageEventReceivedWhenSuspended(false), 
+    mMessageEventReceivedWhenSuspended(false),
     mSuspended(false),
     mUpdateTimer(0),
     mAiwRequest(0)
@@ -58,18 +59,18 @@ NmHsWidgetEmailEngine::NmHsWidgetEmailEngine(const NmId& monitoredMailboxId) :
 bool NmHsWidgetEmailEngine::initialize()
 {
     NM_FUNCTION;
-        
+
     if (!constructNmPlugin()) {
         //if plugin connection fails, there's no reason to proceed
         return false;
     }
     updateData();
     updateAccount();
-    
+
     mUpdateTimer = new QTimer(this);
     mUpdateTimer->setInterval(NmHsWidgetEmailEngineUpdateTimerValue);
     connect(mUpdateTimer, SIGNAL(timeout()), this, SLOT(handleUpdateTimeout()) );
-    
+
     return true;
 }
 
@@ -102,21 +103,21 @@ bool NmHsWidgetEmailEngine::constructNmPlugin()
 
     if (!mEmailInterface) {
         NM_ERROR(1,"NmHsWidgetEmailEngine::constructNmPlugin() -- mEmailInterface FAILED");
-        return false;       
+        return false;
     }
     //Verify that the mailbox we are interested actually exists.
     //Otherwise emit account deleted event (instead of just returning)
-    QList<NmId> ids; 
+    QList<NmId> ids;
     mEmailInterface->listMailboxIds(ids);
     if(!ids.contains(mMailboxId)){
         NM_ERROR(1,"NmHsWidgetEmailEngine::constructNmPlugin() -- !ids.contains(mMailboxId) FAILED");
         emit exceptionOccured(NmEngineExcAccountDeleted);
         return false;
     }
-    
+
     //retrieve folderID for this mailbox's inbox
     //If NmId equals zero, we don't have the Initial sync done for the account
-    //This is valid at least for IMAP accounts. 
+    //This is valid at least for IMAP accounts.
     //Folder ID is then retrieved later when first message event is received
     mFolderId = mEmailInterface->getStandardFolderId(mMailboxId, NmFolderInbox);
 
@@ -128,6 +129,10 @@ bool NmHsWidgetEmailEngine::constructNmPlugin()
             const QList<NmId>&, const NmId&) ), this,
         SLOT( handleMessageEvent(NmMessageEvent, const NmId&,
                 const QList<NmId>&, const NmId&) ));
+
+    connect( pluginInstance, SIGNAL( void folderEvent(
+             NmFolderEvent, const QList<NmId>, const NmId&) ), this,
+             SLOT( void handleFolderEvent( NmFolderEvent, const QList<NmId>, const NmId&)));
 
     connect(pluginInstance, SIGNAL( mailboxEvent(NmMailboxEvent, const QList<NmId>& ) ), this,
         SLOT( handleMailboxEvent(NmMailboxEvent, const QList<NmId>&) ));
@@ -159,7 +164,7 @@ NmHsWidgetEmailEngine::~NmHsWidgetEmailEngine()
     if (mFactory) {
         NmDataPluginFactory::releaseInstance(mFactory);
     }
-    
+
     if (mUpdateTimer){
         mUpdateTimer->stop();
         delete mUpdateTimer;
@@ -169,22 +174,18 @@ NmHsWidgetEmailEngine::~NmHsWidgetEmailEngine()
 /*!
  getEnvelopes() provides message envelopes as a list of stack objects
  Amount of message envelopes in the list parameter is the smallest of the following factors:
- 'KMaxNumberOfEnvelopesProvided', 'maxEnvelopeAmount', 'amount of available envelopes'. 
- 
+ 'KMaxNumberOfEnvelopesProvided', 'maxEnvelopeAmount', 'amount of available envelopes'.
+
  \param list list to be filled with message envelopes
- \param maxEnvelopeAmount Client side limit for amount of message envelope count. 
+ \param maxEnvelopeAmount Client side limit for amount of message envelope count.
  \return count of envelopes added to list
  */
-int NmHsWidgetEmailEngine::getEnvelopes(QList<NmMessageEnvelope> &list, int maxEnvelopeAmount)
+int NmHsWidgetEmailEngine::getEnvelopes(QList<NmMessageEnvelope*> &list, int maxEnvelopeAmount)
 {
     NM_FUNCTION;
     list.clear(); //Reset the parameter list to avoid side effects
-    int i = 0;
-    for (; i < mEnvelopeList.count() && i < maxEnvelopeAmount; i++) {
-        NmMessageEnvelope env(*mEnvelopeList.at(i));
-        list.append(env);
-    }
-    return i;
+    list.append(mEnvelopeList.mid(0, maxEnvelopeAmount));
+    return list.count();
 }
 
 /*!
@@ -212,12 +213,12 @@ QString NmHsWidgetEmailEngine::accountName()
 /*!
  Refresh email data.
  \post mEnvelopeList is refreshed with valid content so that it has
-       valid data with maximum of KMaxNumberOfEnvelopesProvided envelopes. 
-       
+       valid data with maximum of KMaxNumberOfEnvelopesProvided envelopes.
+
  - emits exceptionOccured(NmEngineExcFailure) if fatal error occurs.
  - emits mailDataChanged() if new mail data is set into mEnvelopeList
  - emits unreadCountChanged(mUnreadCount), if mUnreadCount is updated
- 
+
  \return true if everything succeeded, otherwise false
  */
 bool NmHsWidgetEmailEngine::updateData()
@@ -236,7 +237,7 @@ bool NmHsWidgetEmailEngine::updateData()
     int msgErr = mEmailInterface->listMessages(mMailboxId, mFolderId, mEnvelopeList,
         KMaxNumberOfEnvelopesProvided);
     if (msgErr) {
-        //retrieval of messages failed.  
+        //retrieval of messages failed.
         return false;
     }
     //emit signal about new message data right away
@@ -282,16 +283,16 @@ void NmHsWidgetEmailEngine::handleMessageEvent(
     NM_FUNCTION;
     Q_UNUSED(event);
     Q_UNUSED(messageIds);
-    
+
     if (!mEmailInterface) {
         NM_ERROR(1,"NmHsWidgetEmailEngine::handleMessageEvent() -- Interface missing");
         emit exceptionOccured(NmEngineExcFailure); //fatal error
         return; //if interface is missing there's nothing to do
     }
-    
+
     if (mFolderId == NmId(0)) {
-        // inbox was not created in construction phase, so let's
-        // get id now as received first mail event
+        // inbox was not created in construction phase or the folder was deleted in some point,
+        //so let's get the id now as we received first mail event
         mFolderId = mEmailInterface->getStandardFolderId(mMailboxId, NmFolderInbox);
     }
     if ((folderId == mFolderId) && (mailboxId == mMailboxId)) {
@@ -305,6 +306,29 @@ void NmHsWidgetEmailEngine::handleMessageEvent(
         }
     }
 }
+
+/*!
+ handleFolderEvent slot.
+ If the monitored folder is deleted, clear the envelope list and unread count.
+ Also the mFolderId is set to 0 to indicate the current state so that in device boot up
+ we don't query any messages. When the first message event arrives, the folder ID must be
+ retrieved again.
+ */
+void NmHsWidgetEmailEngine::handleFolderEvent( NmFolderEvent event,
+    const QList<NmId> &folderIds, const NmId& mailboxId)
+{
+    NM_FUNCTION;
+    //react only if the monitored folder for monitored account is deleted
+    if (event == NmFolderIsDeleted && mailboxId == mMailboxId && folderIds.contains(mFolderId) )
+    {
+        resetEnvelopeList();    //cached envelopes to be cleared
+        mUnreadCount = 0;       //unread count to 0
+        mFolderId = NmId(0);    //folder id to zero (indicates the situation where folder is not available)
+        emit mailDataChanged(); //emit data change for UI
+        emit unreadCountChanged(mUnreadCount); // emit unread count change to UI
+    }
+}
+
 
 /*!
  handleMailboxEvent slot.
@@ -348,7 +372,7 @@ void NmHsWidgetEmailEngine::handleUpdateTimeout()
 
 /*!
  Update Account data
- \post if mEmailInterface exists, the mAccountName is refreshed from adapter 
+ \post if mEmailInterface exists, the mAccountName is refreshed from adapter
  and accountNameChanged signal is emitted.
  */
 bool NmHsWidgetEmailEngine::updateAccount()
@@ -408,22 +432,23 @@ void NmHsWidgetEmailEngine::activate()
 void NmHsWidgetEmailEngine::launchMailAppInboxView()
 {
     NM_FUNCTION;
-    
-    QT_TRY{ 
+    NM_TIMESTAMP("Launch mail application from widget.");
+
+    QT_TRY{
         if (!mAiwRequest) {
             XQApplicationManager appManager;
             mAiwRequest = appManager.create(
                     XQI_EMAIL_INBOX_VIEW, XQOP_EMAIL_INBOX_VIEW,
                     false);
-            
+
             if (mAiwRequest) {
-                connect(mAiwRequest, SIGNAL( requestError(int, const QString&) ), 
+                connect(mAiwRequest, SIGNAL( requestError(int, const QString&) ),
                         this, SLOT( aiwRequestError(int, const QString&) ));
-                connect(mAiwRequest, SIGNAL( requestOk(const QVariant&) ), 
+                connect(mAiwRequest, SIGNAL( requestOk(const QVariant&) ),
                         this, SLOT( aiwRequestOk(const QVariant&) ));
                 QList<QVariant> list;
                 list.append(QVariant(mMailboxId.id()));
-            
+
                 mAiwRequest->setSynchronous(false);
                 mAiwRequest->setArguments(list);
                 mAiwRequest->send();
@@ -445,27 +470,31 @@ void NmHsWidgetEmailEngine::launchMailAppInboxView()
 void NmHsWidgetEmailEngine::launchMailAppMailViewer(const NmId &messageId)
 {
     NM_FUNCTION;
+    NM_TIMESTAMP("Launch mail viewer from widget.");
 
     QT_TRY{
         if (!mAiwRequest) {
             XQApplicationManager appManager;
             mAiwRequest = appManager.create(
-                    XQI_EMAIL_MESSAGE_VIEW, XQOP_EMAIL_MESSAGE_VIEW,
+                    XQI_EMAIL_MESSAGE_VIEW, "viewMessage(QVariant,QVariant)",
+					//XQOP_EMAIL_MESSAGE_VIEW,
                     false);
-            
+
             if (mAiwRequest) {
-                connect(mAiwRequest, SIGNAL( requestError(int, const QString&) ), 
+                connect(mAiwRequest, SIGNAL( requestError(int, const QString&) ),
                         this, SLOT( aiwRequestError(int, const QString&) ));
-                connect(mAiwRequest, SIGNAL( requestOk(const QVariant&) ), 
+                connect(mAiwRequest, SIGNAL( requestOk(const QVariant&) ),
                         this, SLOT( aiwRequestOk(const QVariant&) ));
 
+                QVariantList messageIdList;
+                messageIdList.append(mMailboxId.id());
+                messageIdList.append(mFolderId.id());
+                messageIdList.append(messageId.id());
+
                 QList<QVariant> argList;
-                QList<QVariant> messageIdList;
-                messageIdList.append(QVariant(mMailboxId.id()));
-                messageIdList.append(QVariant(mFolderId.id()));
-                messageIdList.append(QVariant(messageId.id()));
-                argList.append(messageIdList);
-            
+                argList.append(QVariant(messageIdList));
+                argList.append(quint64(EmailBackReturnsToMessageList));
+
                 mAiwRequest->setSynchronous(false);
                 mAiwRequest->setArguments(argList);
                 mAiwRequest->send();
@@ -487,7 +516,7 @@ void NmHsWidgetEmailEngine::aiwRequestOk(const QVariant& result)
     NM_FUNCTION;
 
     Q_UNUSED(result);
-    
+
     deleteAiwRequest();
 }
 
@@ -500,7 +529,7 @@ void NmHsWidgetEmailEngine::aiwRequestError(int errorCode, const QString& errorM
 
     Q_UNUSED(errorCode);
     Q_UNUSED(errorMessage);
-    
+
     deleteAiwRequest();
 }
 
@@ -512,6 +541,6 @@ void NmHsWidgetEmailEngine::deleteAiwRequest()
     NM_FUNCTION;
 
     delete mAiwRequest;
-    mAiwRequest = NULL;    
+    mAiwRequest = NULL;
 }
 

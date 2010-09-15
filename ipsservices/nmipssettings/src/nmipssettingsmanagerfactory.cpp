@@ -10,7 +10,7 @@
 * Nokia Corporation - initial contribution.
 *
 * Contributors:
-* 
+*
 * Description:
 *
 */
@@ -32,22 +32,22 @@
 /*!
     Static factory function that creates the appropriate settingsmanager.
     \param mailboxId Id of the mailbox.
-    \return <code>NmIpsImap4SettingsManager</code> if Imap4 mailbox otherwise 
+    \return <code>NmIpsImap4SettingsManager</code> if Imap4 mailbox otherwise
             <code>NmIpsPop3SettingsManager</code> if Pop3 mailbox
 */
 NmIpsSettingsManagerBase *NmIpsSettingsManagerFactory::createSettingManager(const NmId &mailboxId)
 {
-    NmIpsSettingsManagerBase *settingManager = 0;  
+    NmIpsSettingsManagerBase *settingManager = NULL;
     TImapAccount imapAccount;
     TPopAccount popAccount;
-    
+
     QScopedPointer<CEmailAccounts> emailAccounts;
     TRAPD(err, emailAccounts.reset(CEmailAccounts::NewL()));
-    
+
     if (err == KErrNone) {
-        bool isImapAccount = false;        
+        bool isImapAccount = false;
         isImapAccount = isImap4MailAccount(*emailAccounts, mailboxId, imapAccount);
-        if (isImapAccount) { 
+        if (isImapAccount) {
             settingManager = new NmIpsImap4SettingsManager(mailboxId, emailAccounts.data(), imapAccount);
             (void)emailAccounts.take();
         } else {
@@ -70,16 +70,16 @@ NmIpsSettingsManagerBase *NmIpsSettingsManagerFactory::createSettingManager(cons
     \param imapAccount TImapAccount reference for returning the Imap mailbox if found.
     \return <code>true</code> if the Imap4 mailbox were found otherwise <code>false</code>
 */
-bool NmIpsSettingsManagerFactory::isImap4MailAccount(CEmailAccounts &emailAccounts, 
+bool NmIpsSettingsManagerFactory::isImap4MailAccount(CEmailAccounts &emailAccounts,
     const NmId &mailboxId, TImapAccount &imapAccount)
 {
     bool result = false;
     RArray<TImapAccount> imapAccounts;
     TRAPD(err, emailAccounts.GetImapAccountsL( imapAccounts ));
     if (err == KErrNone) {
-        TInt accountCount( imapAccounts.Count() );        
+        TInt accountCount( imapAccounts.Count() );
         for ( TInt accountIndex( 0 ); accountIndex < accountCount; ++accountIndex ) {
-            // mailboxId.mId contains exactly same value as account.iImapAccountId 
+            // mailboxId.mId contains exactly same value as account.iImapAccountId
             // when refering to same mailbox.
             TImapAccount account = imapAccounts[accountIndex];
             if ( account.iImapService == mailboxId.id32()) {
@@ -87,8 +87,8 @@ bool NmIpsSettingsManagerFactory::isImap4MailAccount(CEmailAccounts &emailAccoun
                 result = true; //is imap4 box
                 break;
             }
-        } 
-    }  
+        }
+    }
     return result;
 }
 
@@ -100,23 +100,23 @@ bool NmIpsSettingsManagerFactory::isImap4MailAccount(CEmailAccounts &emailAccoun
     \param popAccount TPopAccount reference for returning the pop mailbox if found.
     \return <code>true</code> if the Pop3 mailbox were found otherwise <code>false</code>
 */
-bool NmIpsSettingsManagerFactory::isPop3MailAccount(CEmailAccounts &emailAccounts, 
+bool NmIpsSettingsManagerFactory::isPop3MailAccount(CEmailAccounts &emailAccounts,
     const NmId &mailboxId, TPopAccount &popAccount)
 {
     bool result = false;
     RArray<TPopAccount> popAccounts;
     TRAPD(err, emailAccounts.GetPopAccountsL(popAccounts));
     if (err == KErrNone) {
-        TInt accountCount = popAccounts.Count();          
+        TInt accountCount = popAccounts.Count();
         for (TInt i = 0; i < accountCount; ++i) {
-            // mailboxId.mId contains exactly same value as account.iPopAccountId 
+            // mailboxId.mId contains exactly same value as account.iPopAccountId
             // when refering to same mailbox.
             TPopAccount account = popAccounts[i];
             if (popAccounts[i].iPopService == mailboxId.id32()) {
                 popAccount = account;
                 result = true; //is pop3 box
                 break;
-            }        
+            }
         }
     }
     return result;

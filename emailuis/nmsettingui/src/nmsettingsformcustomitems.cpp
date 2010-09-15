@@ -58,14 +58,14 @@ NmSettingsFormCustomItems::~NmSettingsFormCustomItems()
 HbAbstractViewItem *NmSettingsFormCustomItems::createItem()
 {
     NM_FUNCTION;
-    
+
     return new NmSettingsFormCustomItems(*this);
 }
 
 bool NmSettingsFormCustomItems::canSetModelIndex(const QModelIndex &index) const
 {
     NM_FUNCTION;
-    
+
     int type(index.data(HbDataFormModelItem::ItemTypeRole).toInt());
     return type==NmButtonItem;
 }
@@ -76,7 +76,7 @@ bool NmSettingsFormCustomItems::canSetModelIndex(const QModelIndex &index) const
 void NmSettingsFormCustomItems::restore()
 {
     NM_FUNCTION;
-    
+
     HbDataFormModelItem::DataItemType itemType = static_cast<HbDataFormModelItem::DataItemType>(
         modelIndex().data(HbDataFormModelItem::ItemTypeRole).toInt());
      if (itemType==NmButtonItem) {
@@ -102,12 +102,12 @@ void NmSettingsFormCustomItems::restore()
 HbWidget *NmSettingsFormCustomItems::createCustomWidget()
 {
     NM_FUNCTION;
-    
+
     HbDataFormModelItem::DataItemType itemType =
         static_cast<HbDataFormModelItem::DataItemType>(
             modelIndex().data(HbDataFormModelItem::ItemTypeRole).toInt());
 
-    HbWidget *widget = 0;
+    HbWidget *widget = NULL;
 
     switch (itemType) {
       case NmButtonItem: {

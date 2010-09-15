@@ -70,6 +70,7 @@ symbian: {
         "$${LITERAL_HASH}endif"
         
     MMP_RULES += defBlock
+    MMP_RULES += SMPSAFE
     
     # Build.inf rules
     BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \

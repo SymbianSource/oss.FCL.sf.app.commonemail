@@ -29,7 +29,6 @@ class CpItemDataHelper;
 class QString;
 class NmId;
 class HbIcon;
-class HbMainWindow;
 
 
 /*!

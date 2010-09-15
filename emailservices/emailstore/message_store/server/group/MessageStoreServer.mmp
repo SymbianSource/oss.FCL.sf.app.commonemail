@@ -95,3 +95,5 @@ LIBRARY charconv.lib
 LIBRARY DebugLog.lib
 LIBRARY ImsPointSecMonitor.lib
 LIBRARY platformenv.lib
+
+SMPSAFE

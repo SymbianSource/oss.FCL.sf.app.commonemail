@@ -59,3 +59,5 @@ LIBRARY         apparc.lib      //TApaAppInfo
 LIBRARY         apgrfx.lib      //RApaLsSession
 LIBRARY         bafl.lib
 LIBRARY         DebugLog.lib
+
+SMPSAFE

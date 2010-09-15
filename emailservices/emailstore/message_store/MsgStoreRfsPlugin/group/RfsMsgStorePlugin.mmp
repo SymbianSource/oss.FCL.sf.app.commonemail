@@ -58,5 +58,7 @@ LIBRARY    platformenv.lib
 LIBRARY	   bafl.lib
 LIBRARY    estor.lib
 
+SMPSAFE
+
 // END FILE RfsMsgStorePlugin.mmp
 

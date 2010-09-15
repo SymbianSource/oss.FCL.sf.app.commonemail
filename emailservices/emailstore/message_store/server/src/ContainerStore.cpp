@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -2385,7 +2385,7 @@ void CContainerStore::CreateSystemFoldersL( TContainerId aMailboxId )
     totalLength += KMsgStorePropertyLocal().Length() + boolPckg.Length() + TPropertiesSerializer::EPerNodeOverhead;
     
     RBuf8 properties;
-    properties.Create( totalLength );
+    properties.CreateL( totalLength );
     CleanupClosePushL( properties );
     
     for ( TUint32 i = EMsgStoreInbox; i <= EMsgStoreDeleted; i++ )

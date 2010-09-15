@@ -21,7 +21,6 @@
 #include <QDateTime>
 #include <HbWidget>
 
-class QGraphicsLinearLayout;
 class QGraphicsItem;
 class HbPushButton;
 class HbDialog;
@@ -68,7 +67,7 @@ private: // data
 
     QTime mTime;
     QString mLabel;
-    
+
     // Not owned.
     HbAction *mPrimaryAction;
 };

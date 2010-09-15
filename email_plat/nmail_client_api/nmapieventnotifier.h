@@ -22,7 +22,7 @@
 #include <nmapidef.h>
 #include <nmapicommon.h>
 
-struct NmApiMessage;
+struct NmApiEvent;
 
 namespace EmailClientApi
 {

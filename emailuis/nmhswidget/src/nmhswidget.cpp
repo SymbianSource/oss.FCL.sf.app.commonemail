@@ -15,22 +15,27 @@
  *
  */
 #include <QtGui>
+#include <QTranslator>
 #include <QGraphicsLinearLayout>
 #include <hbcolorscheme.h>
 #include <hbdocumentloader.h>
-#include <QTranslator>
 #include <hbframedrawer.h>
 #include <hbframeitem.h>
 #include <hblabel.h>
+#include <hbstyleloader.h>
+#include <hblistview.h>
+#include <hbdeviceprofile.h>
 #include "nmcommon.h"
+#include "nmmessageenvelope.h"
 #include "nmhswidget.h"
 #include "nmhswidgetemailengine.h"
-#include "nmmessageenvelope.h"
 #include "nmhswidgettitlerow.h"
-#include "nmhswidgetemailrow.h"
 #include "nmhswidgetconsts.h"
 #include "nmhswidgetdatetimeobserver.h"
+#include "nmhswidgetlistviewitem.h"
+#include "nmhswidgetlistmodel.h"
 #include "emailtrace.h"
+
 
 NmHsWidget::NmHsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
     : HbWidget(parent, flags), 
@@ -47,7 +52,9 @@ NmHsWidget::NmHsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
       mAccountId(0),
       mAccountIconName(),
       mDateObserver(0),
-      mIsExpanded(false)
+      mIsExpanded(false),
+      mListView(0),
+	  mListModel(0)
 {
     NM_FUNCTION;
 }
@@ -149,6 +156,7 @@ bool NmHsWidget::loadDocML(HbDocumentLoader &loader)
         mContentContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetContentContainer));
         mEmptySpaceContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetEmptySpaceContainer));
         mNoMailsLabel = static_cast<HbLabel*> (loader.findWidget(KNmHsWidgetNoMailsLabel));
+        mListView = static_cast<HbListView*> (loader.findWidget("mailListView"));
         if (!mMainContainer || !mWidgetContainer || !mContentContainer 
                 || !mEmptySpaceContainer || !mNoMailsLabel ) {
             //something failed in documentloader, no point to continue
@@ -170,9 +178,16 @@ void NmHsWidget::setupLocalization()
     //Use correct localisation
     mTranslator = new QTranslator();
     QString lang = QLocale::system().name();
-    mTranslator->load(KNmHsWidgetLocFileName + lang, KNmHsWidgetLocLocation);
+
+    //try to load translation from c drive. If not found then try z.
+    bool loadingSucceed = mTranslator->load(KNmHsWidgetLocFileName + lang, "c:" + KNmHsWidgetLocLocation);
+    if(!loadingSucceed){
+        mTranslator->load(KNmHsWidgetLocFileName + lang, "z:" + KNmHsWidgetLocLocation);
+    }
+    
     QCoreApplication::installTranslator(mTranslator);
 }
+
 
 /*!
  Initializes UI. Everything that is not done in docml files should be here.
@@ -212,6 +227,22 @@ void NmHsWidget::setupUi()
 }
 
 /*!
+ Sets correct properties and mail item proto type for mail list view 
+ */
+void NmHsWidget::createMailRowsList()
+{
+	  NM_FUNCTION;
+    connect(mListView, SIGNAL(activated(const QModelIndex&)), this,
+        SLOT(openMessage(const QModelIndex&)));
+
+    // Set the list widget properties.
+    NmHsWidgetListViewItem *prototype = new NmHsWidgetListViewItem(mListView);
+    mListView->setItemPrototype(prototype);
+    mListModel = new NmHsWidgetListModel();
+    mListView->setModel(mListModel);  
+}
+
+/*!
  Initializes the widget.
  
  called by home screen fw when widget is added to home screen
@@ -221,6 +252,10 @@ void NmHsWidget::onInitialize()
     NM_FUNCTION;
     
     QT_TRY {
+    
+	    HbStyleLoader::registerFilePath(":/layout/nmhswidgetlistviewitem.widgetml");
+	    HbStyleLoader::registerFilePath(":/layout/nmhswidgetlistviewitem.css");
+	    
 	    // Use document loader to load the contents
 	    HbDocumentLoader loader;
 		//setup localization before docml loading
@@ -257,12 +292,13 @@ void NmHsWidget::onInitialize()
             return;
         }
 
+		//set account name to title row
         mTitleRow->updateAccountName(mEngine->accountName());
 
         //create observer for date/time change events
         mDateObserver = new NmHsWidgetDateTimeObserver();
 
-        //Crete MailRows and associated connections
+      	//Crete list for mail items
         createMailRowsList();
 
         updateMailData();
@@ -287,6 +323,9 @@ void NmHsWidget::onInitialize()
 	    connect(mTitleRow, SIGNAL( expandCollapseButtonPressed() )
 	            ,this, SLOT( handleExpandCollapseEvent() ) );
 	    
+	    //Get date/time events from date observer
+	    connect(mDateObserver, SIGNAL(dateTimeChanged())
+	            , this, SLOT(updateMailData()));
 	    setMinimumSize(mTitleRow->minimumWidth(), 
 	            mEmptySpaceContainer->minimumHeight() + mTitleRow->minimumHeight());
     }
@@ -297,22 +336,34 @@ void NmHsWidget::onInitialize()
 }
 
 /*!
+ Uninitializes the widget.
+ 
+ called by home screen fw when widget is removed from home screen
+ */
+void NmHsWidget::onUninitialize()
+{
+    NM_FUNCTION;
+    HbStyleLoader::unregisterFilePath(":/layout/nmhswidgetlistviewitem.widgetml");
+    HbStyleLoader::unregisterFilePath(":/layout/nmhswidgetlistviewitem.css");
+}
+
+/*!
  updateMailData slot
  */
 void NmHsWidget::updateMailData()
 {
     NM_FUNCTION;
-
-    QList<NmMessageEnvelope> envelopes;
-    int count = 0;
-    if (mIsExpanded) {
-        count = mEngine->getEnvelopes(envelopes, KMaxNumberOfMailsShown);
-    }
-
-    updateLayout(count);
-    //count is safe for envelopes and mMailRows
-    for (int i = 0; i < count; i++) {
-        mMailRows.at(i)->updateMailData(envelopes.at(i));
+    QT_TRY {
+        QList<NmMessageEnvelope*> envelopes; 
+        int count = 0;
+        if (mIsExpanded) {
+            count = mEngine->getEnvelopes(envelopes, KMaxNumberOfMailsShown);
+        }
+        mListModel->refresh( envelopes );
+        updateLayout(count);
+    }QT_CATCH(...) {
+           NM_ERROR(1,"NmHsWidget::updateMailData fail @ catch");
+           emit error();
     }
 }
 
@@ -422,30 +473,6 @@ QString NmHsWidget::widgetStateProperty()
     }
 }
 
-/*!
- Updates mMailRows list to include KMaxNumberOfMailsShown mail row widgets
- /post mMailRows contains KMaxNumberOfMailsShown mailRows 
- */
-void NmHsWidget::createMailRowsList()
-{
-    NM_FUNCTION;
-
-    //make sure that there are as many email rows as needed
-    while (mMailRows.count() < KMaxNumberOfMailsShown) {
-        NmHsWidgetEmailRow *row = new NmHsWidgetEmailRow(this);
-        if (!row->setupUI()) {
-            NM_ERROR(1, "NmHsWidget::createMailRowsList row->setUpUI() fails");
-            //if setupUI fails no point to proceed
-            emit error();
-            return;
-        }
-        connect(row, SIGNAL(mailViewerLaunchTriggered(const NmId&)), mEngine,
-            SLOT(launchMailAppMailViewer(const NmId&)));
-        connect(mDateObserver, SIGNAL(dateTimeChanged()), row, SLOT(updateDateTime()));
-        mMailRows.append(row);
-    }
-
-}
 
 /*!
  Updates the Layout to contain the right items
@@ -460,12 +487,13 @@ void NmHsWidget::createMailRowsList()
 void NmHsWidget::updateLayout(const int mailCount)
 {
     NM_FUNCTION;
-
+    
+	//collapsed size
+    qreal totalHeight = mEmptySpaceContainer->preferredHeight() + mTitleRow->containerHeight();
+    
     if (mIsExpanded) {
-        //set container height to content height 
-        qreal contentHeight = KMaxNumberOfMailsShown
-                * mMailRows.first()->maximumHeight();
-        mContentContainer->setMaximumHeight(contentHeight);
+        //when expanded, grow as big as possible
+        totalHeight = KNmHsWidgetHSMaxWidgetHeightInUnits * HbDeviceProfile::current().unitValue();
         mContentContainer->setVisible(true);
         if (mailCount == 0) {
             addNoMailsLabelToLayout();
@@ -479,22 +507,18 @@ void NmHsWidget::updateLayout(const int mailCount)
     else {
         removeNoMailsLabelFromLayout();
         removeEmailRowsFromLayout();
-        mContentContainer->setVisible(false);
-        mContentContainer->setMaximumHeight(0);        
+        mContentContainer->setVisible(false);        
     }
 
-    //resize the widget to new layout size
-    qreal totalHeight = mEmptySpaceContainer->preferredHeight() + mTitleRow->containerHeight() + mContentContainer->maximumHeight();
     //set maximum sizes, otherwise widget will stay huge also when collapsed
     setMaximumHeight(totalHeight);
     mMainContainer->setMaximumHeight(totalHeight);
     mWidgetContainer->setMaximumHeight(totalHeight - mEmptySpaceContainer->preferredHeight());
     //resize here or widget cannot draw mail rows when expanding
+    //TODO: check if this is still needed as list used
     resize(mTitleRow->maximumWidth(), totalHeight);
     mMainContainer->resize(mTitleRow->maximumWidth(), totalHeight);
     mWidgetContainer->resize(mTitleRow->maximumWidth(), totalHeight - mEmptySpaceContainer->preferredHeight());
-
-    updateMailRowsVisibility(mailCount);
 }
 
 /*!
@@ -507,7 +531,7 @@ void NmHsWidget::addNoMailsLabelToLayout()
 {
     NM_FUNCTION;
 
-    if (mNoMailsLabel->isVisible() || mMailRows.isEmpty()) {
+    if ( mNoMailsLabel->isVisible() ) {
         return;
     }
     //Add mNoMailsLabel to layout if not yet there and show it
@@ -529,50 +553,40 @@ void NmHsWidget::removeNoMailsLabelFromLayout()
 }
 
 /*!
- addEmailRowsToLayout adds every emailrow to the layout
- /post all elements in mMailRows are added to mContentLayout
+ addEmailRowsToLayout adds list widget to content layout
  */
 void NmHsWidget::addEmailRowsToLayout()
 {
     NM_FUNCTION;
-    foreach(NmHsWidgetEmailRow *row, mMailRows)
-        {
-            mContentLayout->addItem(row);
-        }
+    
+    mContentLayout->addItem(mListView);
+    
+    mListView->setVisible(true);
+    
 }
 
 /*!
- removeEmailRowsFromLayout removes every emailrow from the layout
- /post none of the elements in mMailRows are in mContentLayout
+ removeEmailRowsFromLayout removes and hides list widget 
+ from content layout
  */
 void NmHsWidget::removeEmailRowsFromLayout()
 {
     NM_FUNCTION;
-    foreach(NmHsWidgetEmailRow *row, mMailRows)
-        {
-            mContentLayout->removeItem(row);
-        }
+    mContentLayout->removeItem(mListView);
+    mListView->setVisible(false);
 }
 
 /*!
- Updates mail row visibilities in static widget
- /param visibleCount defines how many items do have mail data
- /post all row items having mail data are visible, other rows are hidden
+ openMessage slot
  */
-void NmHsWidget::updateMailRowsVisibility(const int visibleCount)
+void NmHsWidget::openMessage(const QModelIndex& index)
 {
-    NM_FUNCTION;
+     QVariant var = mListModel->data(index,Qt::DisplayRole);
+     if(!var.isNull()){
+         NmMessageEnvelope *envelope = var.value<NmMessageEnvelope*>();
+         mEngine->launchMailAppMailViewer(envelope->messageId());
+     }
 
-    // set visible as many rows as requested by visibleCount param
-    bool isVisible;
-
-    for (int i = 0; i < mMailRows.count(); i++) {
-        isVisible = false;
-        if ((mIsExpanded) && (i < visibleCount)) {
-            isVisible = true;
-        }
-        mMailRows.at(i)->setVisible(isVisible);
-    }
 }
 
 /*!

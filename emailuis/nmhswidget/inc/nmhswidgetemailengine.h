@@ -46,7 +46,7 @@ public:
     bool initialize(); 
     ~NmHsWidgetEmailEngine();
 
-    int getEnvelopes(QList<NmMessageEnvelope> &list, int maxEnvelopeAmount);
+    int getEnvelopes(QList<NmMessageEnvelope*> &list, int maxEnvelopeAmount);
     int unreadCount();
     QString accountName();
     void deleteAiwRequest();
@@ -58,6 +58,12 @@ public slots:
             const QList<NmId> &messageIds,
             const NmId& mailboxId);
 
+    void handleFolderEvent(
+                NmFolderEvent event,
+                const QList<NmId> &folderIds,
+                const NmId& mailboxId);
+
+    
     void handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &mailboxIds);
    
     //Activity control

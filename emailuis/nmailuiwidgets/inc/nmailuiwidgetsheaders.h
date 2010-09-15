@@ -51,7 +51,7 @@
 #include <hbcolorscheme.h>
 #include <hbtapgesture.h>
 #include <hbevent.h>
-
+#include <hbinputmethod.h>
 
 // nmail
 #include <nmaddress.h>

@@ -69,10 +69,10 @@ bool NmApiEventNotifierPrivate::start()
     }
     else {
         qRegisterMetaType<QList<quint64> > ("QList<quint64>");
-        qRegisterMetaType<NmApiMessage> ("NmApiMessage");
+        qRegisterMetaType<NmApiEvent> ("NmApiEvent");
 
-        connect(mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
-                SLOT(emailStoreEvent(NmApiMessage)));
+        connect(mEngine, SIGNAL(emailStoreEvent(NmApiEvent)), this,
+                SLOT(emailStoreEvent(NmApiEvent)));
             
         mEngine->startCollectingEvents();
             
@@ -89,14 +89,14 @@ void NmApiEventNotifierPrivate::stop()
 {
     mIsRunning = false;
     mEmitSignals->stop();
-    disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
-            SLOT(emailStoreEvent(NmApiMessage)));
+    disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiEvent)), this,
+            SLOT(emailStoreEvent(NmApiEvent)));
 }
 
 /*!
     Returns event buffer, after function call the buffer is empty
  */
-void NmApiEventNotifierPrivate::events(QList<NmApiMessage> &events)
+void NmApiEventNotifierPrivate::events(QList<NmApiEvent> &events)
 {
     while (!mBufferOfEvents.isEmpty()) {
         events << mBufferOfEvents.takeFirst();
@@ -107,10 +107,10 @@ void NmApiEventNotifierPrivate::events(QList<NmApiMessage> &events)
    Add one email event into buffer.
    
    It is run by \sa NmApiEngine::emailStoreEvent signal.
-   \sa NmApiMessage
+   \sa NmApiEvent
    \param events It contains full info about object and it event.
  */
-void NmApiEventNotifierPrivate::emailStoreEvent(const NmApiMessage &events)
+void NmApiEventNotifierPrivate::emailStoreEvent(const NmApiEvent &events)
 {
     NM_FUNCTION;
     mBufferOfEvents << events;
@@ -127,8 +127,8 @@ void NmApiEventNotifierPrivate::cancel()
     mIsRunning = false;
     mEmitSignals->stop();
 
-    disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiMessage)), this,
-            SLOT(emailStoreEvent(NmApiMessage)));
+    disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiEvent)), this,
+            SLOT(emailStoreEvent(NmApiEvent)));
 
     mBufferOfEvents.clear();
 }

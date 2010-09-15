@@ -250,7 +250,7 @@ QString NmUtilities::attachmentSizeString(const int sizeInBytes)
         // NmMinAttachmentSize (0.1Mb) is the minimum size shown for attachment
         sizeMb = NmMinAttachmentSize;
     }   
-    return QString().sprintf("(%.1f Mb)", sizeMb); // Use loc string when available
+    return HbStringUtil::convertDigits(hbTrId("txt_mail_list_l1_mb").arg(sizeMb, 0, 'f', 1));
 }
 
 /*!
@@ -373,4 +373,29 @@ QString NmUtilities::createReplyHeader(const NmMessageEnvelope &env)
     }
     ret+="<br></body></html>";
     return ret;
+}
+
+/*
+ * Function creates NmAddress object from a string, which can
+ * be just an email address or display name and email address in format
+ * Firstname Lastname <firstname.lastname@example.com>.
+ * \param str email address string
+ * \return NmAddress with address and possible display name 
+ */
+NmAddress *NmUtilities::qstringToNmAddress(QString str)
+{
+    QRegExp NmEmailDisplayNamePattern("<"+NmEmailAddressPattern.pattern()+">$");
+    NmAddress *nmAddress = NULL;
+    str = str.simplified();
+    if (str.contains(NmEmailDisplayNamePattern)) {
+        QString original = str;
+        QString displayName = str.remove(NmEmailDisplayNamePattern).trimmed();
+        QRegExp NmEmailGreaterThenLessThen(">|<");
+        QString address = original.remove(displayName).remove(NmEmailGreaterThenLessThen).trimmed();
+        nmAddress = new NmAddress(displayName,address);
+    }
+    else {
+        nmAddress = new NmAddress(str);
+    }
+    return nmAddress;
 }

@@ -57,7 +57,9 @@ NmSettingsViewFactory::NmSettingsViewFactory(
     const HbIcon &icon,
     const HbDataFormModelItem *parent)
  : CpSettingFormEntryItemData(itemDataHelper, text, description, icon, parent),
-   mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(0),mPrevView(0)
+   mSettingsManager(new NmMailboxSettingsManager()),
+   mSettingsViewLauncher(NULL),
+   mPrevView(NULL)
 {
     NM_FUNCTION;
 }
@@ -82,8 +84,9 @@ NmSettingsViewFactory::NmSettingsViewFactory(
     const HbIcon &icon,
     const HbDataFormModelItem *parent)
  : CpSettingFormEntryItemData(itemDataHelper, text, description, icon, parent),
-     mSettingsManager(new NmMailboxSettingsManager()), mSettingsViewLauncher(viewLauncher),
-     mPrevView(0)
+     mSettingsManager(new NmMailboxSettingsManager()),
+     mSettingsViewLauncher(viewLauncher),
+     mPrevView(NULL)
 {
     NM_FUNCTION;
 }
@@ -111,7 +114,7 @@ CpBaseSettingView *NmSettingsViewFactory::createSettingView() const
 {
     NM_FUNCTION;
 
-    CpBaseSettingView *view = 0;
+    CpBaseSettingView *view = NULL;
     QList<NmMailbox *> mailboxList;
     mSettingsManager->listMailboxes(mailboxList);
     const int mailboxCount(mailboxList.count());
@@ -254,7 +257,7 @@ void NmSettingsViewFactory::backPress()
             mainWindow->removeView(currentView);
             currentView->deleteLater();
         }
-        mPrevView = 0;
+        mPrevView = NULL;
     }
 }
 

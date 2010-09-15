@@ -39,8 +39,9 @@
 #include <iapprefs.h>
 #include <cemailaccounts.h>
 
+#include <e32base.h>
 
-#include <smtpset.h>
+#include <SMTPSET.H>
 
 #include <xqconversions.h>
 
@@ -56,7 +57,11 @@
 
 #include <emailtrace.h>
 
+#include <ecom/ecom.h>
+#include <ecom/implementationinformation.h>
 
+#include <CFSMailPlugin.h>
+#include <CFSMailBox.h>
 
 // nmail_settings_api
 #include <nmapimailboxsettings.h>
@@ -76,8 +81,12 @@
 #include <nmapimessagebody.h>
 #include <nmapimessageenvelope.h>
 #include <nmapimessagetask.h>
+#include <nmapimessage.h>
 #include <nmapimessagemanager.h>
-
+#include <nmapimessagesearch.h>
+#include <nmapimessagecontent.h>
+#include <nmapitextcontent.h>
+#include <nmapiattachment.h>
 
 // own headers
 #include "nmapidatapluginfactory.h"
@@ -97,6 +106,11 @@
 #include "nmapipopimapsettingsmanager.h"
 #include "nmapiprivateclasses.h"
 #include "nmapitypesconverter.h"
+#include "nmapimessagesearch_p.h"
+#include "nmapimessage_p.h"
+#include "nmapimessagecontent_p.h"
+#include "nmapitextcontent_p.h"
+#include "nmapiattachment_p.h"
 
 
 #endif // NMAPIHEADERS_H

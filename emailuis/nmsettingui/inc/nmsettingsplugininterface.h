@@ -61,6 +61,7 @@ public:
 
 signals:
 
+    /* These signals are available when using the interface  */
     virtual void mailboxListChanged(const NmId &mailboxId, NmSettings::MailboxEventType type) = 0;
     virtual void mailboxPropertyChanged(const NmId &mailboxId, QVariant property, QVariant value) = 0;
     virtual void goOnline(const NmId &mailboxId) = 0;

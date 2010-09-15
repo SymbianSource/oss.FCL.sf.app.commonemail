@@ -33,6 +33,8 @@ public:
     void setCustomTextColor(bool useCustom, const QColor& color = Qt::black);
     QPair<bool, QColor> customTextColor() const;
 
+    bool hasInputFocus() const;
+
     QRectF rectForCursorPosition() const;
 
 public slots:

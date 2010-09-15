@@ -31,6 +31,7 @@
 #include "CFSMailFolder.h"
 #include "CFSMailAddress.h"
 // </qmail>
+#include <emailmru.h>
 
 
 // ================= MEMBER FUNCTIONS ==========================================
@@ -68,6 +69,9 @@ CFSMailBox::CFSMailBox()
 
     // get requesthandler pointer
     iRequestHandler = static_cast<CFSMailRequestHandler*>(Dll::Tls());
+    QT_TRYCATCH_LEAVING({
+    iMru = new EmailMRU();
+    });
 }
 
 // -----------------------------------------------------------------------------
@@ -78,6 +82,9 @@ EXPORT_C CFSMailBox::~CFSMailBox()
     NM_FUNCTION;
     // <qmail> Not using KMailboxExtMrCalInfo </qmail>
     iFolders.ResetAndDestroy();
+    QT_TRYCATCH_LEAVING({
+    delete iMru;
+    });
 }
 
 // -----------------------------------------------------------------------------
@@ -424,7 +431,9 @@ EXPORT_C void CFSMailBox::SendMessageL( CFSMailMessage& aMessage )
 
     if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetId()))
         {
-        // <qmail> Removed UpdateMrusL. </qmail>
+        UpdateMrusL( aMessage.GetToRecipients(),
+                     aMessage.GetCCRecipients(),
+                     aMessage.GetBCCRecipients() );
         plugin->SendMessageL( aMessage );
         }
 	}
@@ -445,7 +454,10 @@ EXPORT_C TInt CFSMailBox::SendMessageL(
 
     if ( plugin )
         {
-        // <qmail> Removed UpdateMrusL. </qmail>
+        UpdateMrusL( aMessage.GetToRecipients(),
+                     aMessage.GetCCRecipients(),
+                     aMessage.GetBCCRecipients() );
+
 
         // init asynchronous request
         request = iRequestHandler->InitAsyncRequestL( GetId().PluginId(),
@@ -663,6 +675,79 @@ EXPORT_C TFSMailBoxStatus CFSMailBox::GetMailBoxStatus()
 }
 
 // -----------------------------------------------------------------------------
+// CFSMailBox::HasCapability
+// -----------------------------------------------------------------------------
+EXPORT_C TBool CFSMailBox::HasCapability( const TFSMailBoxCapabilities aCapability ) const
+{
+    NM_FUNCTION;
+    
+    TBool capability = EFalse;
+    if ( CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() ) )
+        {
+        TRAPD( err,capability = plugin->MailboxHasCapabilityL( aCapability,GetId() )) ;
+        if ( err != KErrNone )
+            {
+            capability = EFalse;
+            }
+        }
+    return capability;
+}
+
+// -----------------------------------------------------------------------------
+
+// -----------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
+// CFSMailBox::UpdateMrusL
+// -----------------------------------------------------------------------------
+void CFSMailBox::UpdateMrusL(
+    const RPointerArray<CFSMailAddress>& aRecipients,
+    const RPointerArray<CFSMailAddress>& aCCRecipients,
+    const RPointerArray<CFSMailAddress>& aBCCRecipients ) const
+    {
+    NM_FUNCTION;
+
+    QT_TRYCATCH_LEAVING({
+        TUint count( aRecipients.Count() );
+        TUint indexer( 0 );
+        while ( indexer < count )
+            {
+            TDesC& address(aRecipients[indexer]->GetEmailAddress() );
+            TDesC& name(aRecipients[indexer]->GetDisplayName() );
+            QString qaddress = QString::fromUtf16(address.Ptr(), address.Length());
+            QString qname = QString::fromUtf16(name.Ptr(), name.Length());
+            iMru->updateMRU(qname, qaddress);
+            indexer++;
+            }
+
+        count = aCCRecipients.Count();
+        indexer = 0 ;
+        while ( indexer < count )
+            {
+            TDesC& address(aCCRecipients[indexer]->GetEmailAddress() );
+            TDesC& name(aCCRecipients[indexer]->GetDisplayName() );
+            QString qaddress = QString::fromUtf16(address.Ptr(), address.Length());
+            QString qname = QString::fromUtf16(name.Ptr(), name.Length());
+            iMru->updateMRU(qname, qaddress);
+            indexer++;
+            }
+
+        count = aBCCRecipients.Count();
+        indexer = 0 ;
+        while ( indexer < count )
+            {
+            TDesC& address(aBCCRecipients[indexer]->GetEmailAddress() );
+            TDesC& name(aBCCRecipients[indexer]->GetDisplayName() );
+            QString qaddress = QString::fromUtf16(address.Ptr(), address.Length());
+            QString qname = QString::fromUtf16(name.Ptr(), name.Length());
+            iMru->updateMRU(qname, qaddress);
+            indexer++;
+            }
+
+    });
+
+    }
+
+// -----------------------------------------------------------------------------
 // CFSMailBox::ReleaseExtension
 // -----------------------------------------------------------------------------
 EXPORT_C void CFSMailBox::ReleaseExtension( CEmailExtension* aExtension )
@@ -716,4 +801,5 @@ EXPORT_C CEmailExtension* CFSMailBox::ExtensionL( const TUid& aInterfaceUid )
         }
     return extension;
     }
+    
 

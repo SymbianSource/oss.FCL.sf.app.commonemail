@@ -19,54 +19,78 @@
 #define EMAILTRACE_H
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDebug>
 #include <QFile>
-#include <QThread>
-#include <QDateTime>
+#include <QTextStream>
+#include <QAbstractFileEngine>
 
 /*
- * The macros NM_COMMENT_TRACES, NM_ERROR_TRACES, and NM_FUNCTION_TRACES
- * control which debug messages are printed. The trace logging is controlled
- * with the NM_LOG_TO_FILE macro, whereas the NM_LOG_DIRECTORY macro defines
- * which directory is to be used to store the log files. The print_trace()
- * helper function implements printing. Log files are named according to
- * process and thread IDs. If NM_LOG_TO_FILE is zero or a log file cannot be
- * opened, the messages are printed to qDebug(). The DSC2STR() function can
- * be used to convert Symbian descriptors to QString objects.
+ * The macros NM_COMMENT_TRACES, NM_ERROR_TRACES, NM_FUNCTION_TRACES, and
+ * NM_TIMESTAMP_TRACES control which debug messages are printed. The trace
+ * logging is controlled with the NM_LOG_TO_FILE macro, whereas the
+ * NM_LOG_DIRECTORY macro defines which directory is to be used to store the
+ * log files. The print_trace() helper function implements printing. Log
+ * files are named according to process thread IDs. If NM_LOG_TO_FILE is zero
+ * or a log file cannot be opened, the messages are printed to qDebug(). The
+ * DSC2STR() function can be used to convert Symbian descriptors to QString
+ * objects.
+ * 
+ * NOTICE that you can control the tracing system for a component tree by
+ * using qmake. For example, if you only want to enable timestamps for a
+ * component, you can invoke
+ * 
+ *     qmake "DEFINES += DEBUG NM_TIMESTAMP_TRACES=1" -r
+ * 
+ * before compiling the component. You can add as many macro definitions
+ * between the quotation marks as you wish. For example, if you want to log
+ * the trace messages to "c:/logs", add the definitions
+ * 
+ *     NM_LOG_TO_FILE=1 NM_LOG_DIRECTORY=\\\"c:/logs/\\\"
+ * 
+ * between the quotation marks. Do not forget to add the terminating slash
+ * character and notice how the quotation marks around the directory path
+ * have been escaped. This does not work if the log directory does not exist.
  */
-#if defined(DEBUG) || defined(_DEBUG) || NM_COMMENT_TRACES || NM_ERROR_TRACES || NM_FUNCTION_TRACES
+
+// Timestamp traces always ON
+#ifndef NM_TIMESTAMP_TRACES
+#define NM_TIMESTAMP_TRACES 1
+#endif
+
+#ifndef NM_LOG_TO_FILE
+#define NM_LOG_TO_FILE   1
+#endif
+#ifndef NM_LOG_DIRECTORY
+#define NM_LOG_DIRECTORY "c:/data/logs/"
+#endif
+
+#if defined(DEBUG) || defined(_DEBUG)
 
 #ifndef NM_COMMENT_TRACES
-#define NM_COMMENT_TRACES  0
+#define NM_COMMENT_TRACES   0
 #endif
-
 #ifndef NM_ERROR_TRACES
-#define NM_ERROR_TRACES    0
+#define NM_ERROR_TRACES     0
 #endif
-
 #ifndef NM_FUNCTION_TRACES
-#define NM_FUNCTION_TRACES 0
+#define NM_FUNCTION_TRACES  0
 #endif
 
 #if NM_COMMENT_TRACES || NM_ERROR_TRACES || NM_FUNCTION_TRACES
 
-#define NM_LOG_TO_FILE   1
-#define NM_LOG_DIRECTORY "c:/data/logs/"
-
 inline void print_trace(const QString& msg)
 {
     static QFile file(NM_LOG_DIRECTORY+
-                      QString("nmail_p%1_t%2.log").
-                      arg(QCoreApplication::applicationPid()).
-                      arg(QThread::currentThreadId()));
+                      QString("nmail_p%1.log").
+                      arg(QCoreApplication::applicationPid()));
     if (NM_LOG_TO_FILE && !file.isOpen()) {
         file.open(QIODevice::Append | QIODevice::Text);
     }
-    QDateTime dt = QDateTime::currentDateTime ();
     if (file.isWritable()) {
-        QDebug(&file).nospace() << dt.toString(Qt::ISODate) << " " << msg << '\n';
+        QTextStream(&file) << msg << '\n';
     } else {
-        qDebug().nospace() << "[Nmail] " << msg;
+        qDebug("[Nmail] %s",msg.toLatin1().data());
     }
 }
 
@@ -216,5 +240,40 @@ private:
 #define FUNC_LOG
 
 #endif /* NM_FUNCTION_TRACES */
+
+/*
+ * The function NM_TIMESTAMP() prints a timestamp with a message. These traces do not
+ * go to class specific log -files, but to one file called nmail_timestamps.log.
+ */
+#if NM_TIMESTAMP_TRACES
+
+inline void NM_TIMESTAMP(const QString& msg)
+{ 
+    QString timestamp ("TIMESTAMP : " + 
+                       QDateTime::currentDateTime().toUTC().toString("hh:mm:ss.zzz ") + 
+                       msg);
+    
+    QDir directory("c:/data/");
+            if (directory.exists()) {
+                directory.mkdir("logs");
+            }
+            
+    static QFile file(NM_LOG_DIRECTORY +
+                      QString("nmail_timestamps.log"));
+        if (NM_LOG_TO_FILE && !file.isOpen()) {
+            file.open(QIODevice::Append | QIODevice::Text | QIODevice::ReadWrite);
+        }
+        if (file.isWritable()) {
+            QTextStream(&file) << timestamp << '\n';
+        } else {
+            qDebug("[Nmail] %s",timestamp.toLatin1().data());
+        }
+}
+
+#else
+
+#define NM_TIMESTAMP(msg)
+
+#endif /* NM_TIMESTAMP_TRACES */
 
 #endif /* EMAILTRACE_H */

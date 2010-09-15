@@ -36,7 +36,7 @@ class NmApiMessageManagerPrivate : public QObject
 {
  Q_OBJECT  
 public:
-    NmApiMessageManagerPrivate(quint64 mailboxId,QObject *parent = 0);
+    NmApiMessageManagerPrivate(QObject *parent,quint64 mailboxId);
     virtual ~NmApiMessageManagerPrivate();
     
 private:

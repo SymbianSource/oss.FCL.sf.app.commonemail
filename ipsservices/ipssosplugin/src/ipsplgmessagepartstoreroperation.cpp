@@ -284,7 +284,7 @@ void CIpsPlgMessagePartStorerOperation::StoreTextHtmlPartL(
 	CnvUtfConverter::ConvertFromUnicodeToUtf8(ptr8, *data16);
 
 	// Get text/html part file for write
-	RFile file = aPart->GetContentFileL();
+	RFile file = aPart->GetContentFileL(ETrue);
 	CleanupClosePushL(file);
 
     // if we don't do SetSize(0) characters from the original mail are left in the end of the mail

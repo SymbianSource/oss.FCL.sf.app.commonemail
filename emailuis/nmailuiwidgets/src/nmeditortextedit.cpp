@@ -154,6 +154,27 @@ QPair<bool, QColor> NmEditorTextEdit::customTextColor() const
 }
 
 /*!
+ *  Returns true if this widget has the input focus.
+ */
+bool NmEditorTextEdit::hasInputFocus() const
+{
+    NM_FUNCTION;
+
+    bool ret = false;
+    
+    HbInputMethod *inputMethod = HbInputMethod::activeInputMethod();
+    
+    if (inputMethod) {
+        HbInputFocusObject *focusObject = inputMethod->focusObject();
+        if (focusObject) {
+            ret = (focusObject->object() == this);
+        }
+    }
+    
+    return ret; 
+}
+
+/*!
  *  Returns the rectangle for the cursor.
  */
 QRectF NmEditorTextEdit::rectForCursorPosition() const

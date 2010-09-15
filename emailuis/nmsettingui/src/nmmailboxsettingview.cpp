@@ -15,14 +15,14 @@
 *
 */
 
-#include <qinputcontext.h>
+#include <QInputContext>
 
-#include <hbinstance.h>
-#include <hbmainwindow.h>
-#include <hbaction.h>
-#include <hbdataform.h>
-#include <hbdataformmodel.h>
-#include <hbdocumentloader.h>
+#include <HbInstance>
+#include <HbMainWindow>
+#include <HbAction>
+#include <HbDataForm>
+#include <HbDataFormModel>
+#include <HbDocumentLoader>
 
 #include "nmmailboxsettingview.h"
 #include "nmmailboxsettingsmanager.h"
@@ -59,7 +59,7 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
       mMailboxId(mailboxId.id())
 {
     NM_FUNCTION;
-    
+
     setTitle(mailboxName);
 
     HbDocumentLoader documentLoader;
@@ -78,10 +78,13 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
     }
 
     if (mForm) {
-        
-        connect(mForm, SIGNAL(pressed(QModelIndex)),
-                this, SLOT(itemPress(QModelIndex)));
-        
+
+        qRegisterMetaType<QModelIndex>("QModelIndex");
+        connect(mForm, SIGNAL(activated(QModelIndex)),
+                this, SLOT(itemActivated(QModelIndex)));
+        connect(mForm, SIGNAL(itemShown(QModelIndex)),
+                this, SLOT(disablePredictiveText(QModelIndex)));
+
         // Fix for dataform item recycling.
         mForm->setItemRecycling(false);
 
@@ -108,7 +111,7 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
 NmMailboxSettingView::~NmMailboxSettingView()
 {
     NM_FUNCTION;
-    
+
     delete mForm;
     delete mModel;
 }
@@ -124,7 +127,7 @@ void NmMailboxSettingView::mailboxListChanged(const NmId &mailboxId,
     NmSettings::MailboxEventType type)
 {
     NM_FUNCTION;
-    
+
     Q_UNUSED(mailboxId);
     Q_UNUSED(type);
 
@@ -147,7 +150,7 @@ void NmMailboxSettingView::mailboxPropertyChanged(const NmId &mailboxId,
                                                   QVariant value)
 {
     NM_FUNCTION;
-    
+
     Q_UNUSED(mailboxId);
 
     switch (property.toInt()) {
@@ -162,7 +165,7 @@ void NmMailboxSettingView::mailboxPropertyChanged(const NmId &mailboxId,
 }
 
 /*!
-    Returns the mailbox id for this mailbox setting view.    
+    Returns the mailbox id for this mailbox setting view.
 */
 NmId NmMailboxSettingView::mailboxId()
 {
@@ -170,22 +173,22 @@ NmId NmMailboxSettingView::mailboxId()
 }
 
 /*!
-    Called when item is pressed on the view.
+    Called when item is activated on the view.
 
     \param index Index to the pressed item.
 */
-void NmMailboxSettingView::itemPress(const QModelIndex &index)
+void NmMailboxSettingView::itemActivated(const QModelIndex &index)
 {
     NM_FUNCTION;
-    
+
     int type(index.data(HbDataFormModelItem::ItemTypeRole).toInt());
-    
+
     if (type == HbDataFormModelItem::GroupItem) {
-        // Scroll the groupitem to top if needed.
-        HbDataFormViewItem *item = static_cast<HbDataFormViewItem *>(mForm->itemByIndex(index));
-        
-        if (!item->isExpanded()) {
-            mForm->scrollTo(index, HbAbstractItemView::PositionAtTop);
+
+        // Scroll the groupitem to top.
+        if (!mForm->isExpanded(index)) {
+            QMetaObject::invokeMethod(this, "queuedScroll",
+                Qt::QueuedConnection, Q_ARG(QModelIndex, index));
         }else {
             // Hide the virtual keyboard
             QInputContext *ic = qApp->inputContext();
@@ -196,12 +199,40 @@ void NmMailboxSettingView::itemPress(const QModelIndex &index)
             }
         }
     }
-    
+
+
+}
+
+/*!
+    Called when item is shown on the view.
+
+    \param index Index to the shown item.
+*/
+void NmMailboxSettingView::disablePredictiveText(const QModelIndex &index)
+{
+    NM_FUNCTION;
+
+    int type(index.data(HbDataFormModelItem::ItemTypeRole).toInt());
+
     if (type == HbDataFormModelItem::TextItem) {
         // Turn off predictive input for line-edit.
         HbDataFormViewItem *item = static_cast<HbDataFormViewItem *>(mForm->itemByIndex(index));
         HbWidget *widget = item->dataItemContentWidget();
-        widget->setInputMethodHints(Qt::ImhNoPredictiveText);
+        if (widget) {
+            widget->setInputMethodHints(Qt::ImhNoPredictiveText);
+		}
     }
+}
+
+/*!
+    Called when view needs to be scrolled.
+
+    \param index Index to the item.
+*/
+void NmMailboxSettingView::queuedScroll(const QModelIndex &index)
+{
+    NM_FUNCTION;
+
+    mForm->scrollTo(index, HbAbstractItemView::PositionAtTop);
 }
 // End of file.

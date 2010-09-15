@@ -165,4 +165,7 @@ EXPORTS
 	_ZN22NmAttachmentListWidget11changeEventEP6QEvent @ 164 NONAME
 	_ZN20NmAttachmentListItem18setBackgroundColorE6QColor @ 165 NONAME
 	_ZN22NmAttachmentListWidget18setBackgroundColorE6QColor @ 166 NONAME
+	_ZN19NmRecipientLineEdit11addContactsE5QListIP9NmAddressE @ 167 NONAME
+	_ZNK14NmHtmlLineEdit13hasInputFocusEv @ 168 NONAME
+	_ZNK16NmEditorTextEdit13hasInputFocusEv @ 169 NONAME
 

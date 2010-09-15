@@ -45,7 +45,7 @@ public:
         const NmSettingsViewFactory &settingsFactory,
         NmMailboxSettingsManager &settingsManager,
         const QList<NmMailbox *> &mailboxList,
-        QGraphicsItem *parent = 0);
+        QGraphicsItem *parent = NULL);
 
     virtual ~NmMailboxSelectionView();
 

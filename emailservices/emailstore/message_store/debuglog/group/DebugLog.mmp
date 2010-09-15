@@ -49,7 +49,9 @@ APP_LAYER_SYSTEMINCLUDE
 
 LIBRARY         euser.lib
 LIBRARY         efsrv.lib
-LIBRARY				  sysutil.lib
+LIBRARY         sysutil.lib
+
+SMPSAFE
 
 // END FILE DebugLog.mmp
 

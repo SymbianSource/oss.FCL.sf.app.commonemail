@@ -249,7 +249,7 @@ const TDesC8& CIpsPlgImap4PopulateOp::ProgressL()
         }
     else
         {
-        TImap4SyncProgress progg;
+        TImap4SyncProgress progg = TImap4SyncProgress();
     	progg.iFoldersNotFound = 0;
         progg.iErrorCode = KErrNone;
         TPckgBuf<TImap4SyncProgress> param(progg);

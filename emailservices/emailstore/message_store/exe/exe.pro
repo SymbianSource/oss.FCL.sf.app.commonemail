@@ -37,6 +37,7 @@ symbian*: {
     TARGET.EPOCHEAPSIZE = 0x400 \ 
     					0x200000
     MMP_RULES += EXPORTUNFROZEN
+    MMP_RULES += SMPSAFE
 }	
 
 win32 {

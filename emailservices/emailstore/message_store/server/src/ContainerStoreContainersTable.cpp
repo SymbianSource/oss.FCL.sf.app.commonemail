@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -626,7 +626,7 @@ void CContainerStoreContainersTable::MoveL( TContainerId aNewParentId, TDes8& aT
 	
 	RBuf8 myDescendentCounts;
 	CleanupClosePushL( myDescendentCounts );
-	myDescendentCounts.Create( iTable.ColLength( iChildrenCountsColNum ) );
+	myDescendentCounts.CreateL( iTable.ColLength( iChildrenCountsColNum ) );
 	
 	ChildrenCountsL( myDescendentCounts, ETrue  );
 	

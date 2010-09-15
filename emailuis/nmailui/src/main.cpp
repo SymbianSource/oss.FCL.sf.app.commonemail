@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
     }
     
     NmApplication app(argc,argv);
-
+    NM_TIMESTAMP("Application started.");
     int ret = app.exec();
     return ret;
 }

@@ -15,9 +15,9 @@
 *
 */
 
-#include <xqsettingsmanager.h>
-#include <xqcentralrepositoryutils.h>
-#include <xqcentralrepositorysearchcriteria.h>
+#include <XQSettingsManager>
+#include <XQCentralRepositoryUtils>
+#include <XQCentralRepositorySearchCriteria>
 #include <QList>
 
 #include "nmipsextendedsettingsmanager.h"
@@ -34,7 +34,7 @@
 // ======== MEMBER FUNCTIONS ========
 
 /*!
-    Constructor    
+    Constructor
     Creates the NmIpsExtendedSettingsManagerfor loading and saving extended mailbox settings.
     \param mailboxId Mailbox identifier.
 */
@@ -54,7 +54,7 @@ NmIpsExtendedSettingsManager::~NmIpsExtendedSettingsManager()
     delete mSettingsManager;
 }
 
-/*!     
+/*!
     Reads extended mailbox setting.
     \param settingItem SettingItem enum of the setting to return.
     \param QVariant SettingValue of the found setting value.
@@ -116,8 +116,8 @@ bool NmIpsExtendedSettingsManager::readSetting(IpsServices::SettingItem settingI
     }
     return ret;
 }
-   
-/*!     
+
+/*!
     Writes extended mailbox setting.
     \param settingItem SettingItem enum of the setting to replace.
     \param settingValue QVariant of the new setting value.
@@ -129,8 +129,12 @@ bool NmIpsExtendedSettingsManager::writeSetting(IpsServices::SettingItem setting
     return writeSettingToCenRep(mActiveProfileOffset, settingItem, settingValue);
 }
 
-/*!     
-
+/*!
+    Writes extended mailbox setting.
+    \param profileMode profile to save the setting
+    \param settingItem SettingItem enum of the setting to replace.
+    \param settingValue QVariant of the new setting value.
+    \return bool <true> when the setting item was written, otherwise <false>.
 */
 bool NmIpsExtendedSettingsManager::writeSetting(int profileMode,
     IpsServices::SettingItem settingItem, const QVariant &settingValue)
@@ -164,7 +168,11 @@ void NmIpsExtendedSettingsManager::deleteSettings()
 }
 
 /*!
-
+    Writes extended mailbox setting.
+    \param pfileOffset offset for the profile
+    \param settingItem SettingItem enum of the setting to replace.
+    \param settingValue QVariant of the new setting value.
+    \return bool <true> when the setting item was written, otherwise <false>.
 */
 bool NmIpsExtendedSettingsManager::writeSettingToCenRep(qint32 profileOffset,
     IpsServices::SettingItem settingItem, const QVariant &settingValue)
@@ -249,6 +257,9 @@ bool NmIpsExtendedSettingsManager::writeToCenRep(quint32 key, const QVariant &va
     return mSettingsManager->writeItemValue(settingKey, value);
 }
 
+/*!
+    Calculate CenRep offset for current mailbox
+*/
 void NmIpsExtendedSettingsManager::calculateMailboxOffset()
 {
     // Find all the keys that match the criteria 0xZZZZZ000, where Z=don't care.
@@ -281,7 +292,9 @@ void NmIpsExtendedSettingsManager::calculateActiveProfileOffset()
 }
 
 /*!
-
+    Calculate the offset for profile
+    \param profile profile id
+    \return offset for the profile
 */
 qint32 NmIpsExtendedSettingsManager::convertToProfileOffset(int profile)
 {

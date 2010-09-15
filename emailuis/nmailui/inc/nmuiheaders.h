@@ -98,6 +98,7 @@
 #include <HbIconAnimationManager>
 #include <HbVkbHostBridge>
 #include <hbevent.h>
+#include <hbstringutil.h>
 
 #include <cntservicescontact.h>
 #include <xqservicerequest.h>
@@ -110,6 +111,8 @@
 #include <fmfiledialog.h>
 #include <xqaiwdecl.h>
 #include <afstorageglobals.h>
+#include <afactivitystorage.h>
+#include <afactivation.h>
 #include <tstasksettings.h>
 
 #include <nmcommon.h>

@@ -67,7 +67,8 @@ symbian*: {
 
       
     MMP_RULES += debuggerBlock \
-	             defBlock
+	             defBlock \
+                 SMPSAFE
     
     LIBS += -lbafl \
     -leuser \

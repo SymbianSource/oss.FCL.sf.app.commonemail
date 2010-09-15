@@ -125,10 +125,18 @@ void NmEditorContent::setBodyContent(NmUiEditorStartMode editorStartMode,
     }
  
     if (htmlPart) {
-        bodyContent.append(htmlPart->textContent());
-        if(editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll ) {
-            removeEmbeddedImages(bodyContent);
+        QString bodyText(htmlPart->textContent());
+        if (editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll || 
+                editorStartMode==NmUiEditorForward) {
+            convertBodyStylesToDivision(bodyText);
         }
+        
+        if(editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll ) {
+            removeEmbeddedImages(bodyText);
+        }
+        
+        bodyContent.append(bodyText);
+        cursor.insertHtml(bodyContent);
     }
     else if (plainPart) {
         // Plain text part was present, set it to HbTextEdit as HTML
@@ -273,43 +281,45 @@ void NmEditorContent::setEditorContentWidth()
 void NmEditorContent::ensureCursorVisibility()
 {
     NM_FUNCTION;
-
-    // check which of the editors has the focus and get the x/y coordinates for the cursor position
-    QGraphicsWidget *focused = mScrollAreaContents->focusWidget();
     
-    if (focused) {
-        QRectF localRect(0, 0, 0, 0);
-        bool notFound = false;
-        
-        if (focused == mHeader->toEdit()) {
-            localRect = mHeader->toEdit()->rectForCursorPosition();
-        }
-        else if (focused == mHeader->ccEdit()) {
-            localRect = mHeader->ccEdit()->rectForCursorPosition();
-        }
-        else if (focused == mHeader->bccEdit()) {
-            localRect = mHeader->bccEdit()->rectForCursorPosition();
-        }
-        else if (focused == mHeader->subjectEdit()) {
-            localRect = mHeader->subjectEdit()->rectForCursorPosition();
-        }
-        else if (focused == mEditorWidget) {
-            localRect = mEditorWidget->rectForCursorPosition();
-        }
-        else {
-            notFound = true;
-        }
+    QGraphicsItem *focused = NULL;
+    QRectF localRect; // set to empty
+    
+    // find out which widget has the input focus and get the cursor position ractangle
+    if (mHeader->toEdit() && mHeader->toEdit()->hasInputFocus()) {
+        focused = mHeader->toEdit();
+        localRect = mHeader->toEdit()->rectForCursorPosition();
+    }
+    else if (mHeader->ccEdit() && mHeader->ccEdit()->hasInputFocus()) {
+        focused = mHeader->ccEdit();
+        localRect = mHeader->ccEdit()->rectForCursorPosition();
+    }
+    else if (mHeader->bccEdit() && mHeader->bccEdit()->hasInputFocus()) {
+        focused = mHeader->bccEdit();
+        localRect = mHeader->bccEdit()->rectForCursorPosition();
+    }
+    else if (mHeader->subjectEdit() && mHeader->subjectEdit()->hasInputFocus()) {
+        focused = mHeader->subjectEdit();
+        localRect = mHeader->subjectEdit()->rectForCursorPosition();
+    }
+    else if (mEditorWidget->hasInputFocus()) {
+        focused = mEditorWidget;
+        localRect = mEditorWidget->rectForCursorPosition();
+    }
 
-        if (!notFound) {
-            QPointF topLeftPos = focused->mapToItem(mScrollAreaContents, localRect.topLeft());
-            QPointF bottomRightPos =
-                focused->mapToItem(mScrollAreaContents, localRect.bottomRight());
-            qreal marginRight = 0;
+    // ensure that the cursor position is visible
+    if (focused && !localRect.isEmpty()) {
+        QPointF topLeftPos = focused->mapToItem(mScrollAreaContents, localRect.topLeft());
+        QPointF bottomRightPos =
+            focused->mapToItem(mScrollAreaContents, localRect.bottomRight());
+        qreal marginRight = 0;
+        if (mScrollArea->style()) {
             mScrollArea->style()->parameter("hb-param-margin-gene-right", marginRight);
-            bottomRightPos.rx() += marginRight;
-            mScrollArea->ensureVisible(topLeftPos);
-            mScrollArea->ensureVisible(bottomRightPos);
         }
+        bottomRightPos.rx() += marginRight;
+
+        mScrollArea->ensureVisible(topLeftPos);
+        mScrollArea->ensureVisible(bottomRightPos);
     }
 }
 /*!
@@ -359,3 +369,170 @@ void NmEditorContent::repositHeader(const QPointF &scrollPosition)
     mHeader->repositHeader(tr);
 }
 
+/*!
+    Removes body bgcolor tag from content and creates DIV from it.
+ */
+void NmEditorContent::convertBodyStylesToDivision(QString &bodyContent)
+{
+    NM_FUNCTION;
+    convertBGColorToStyle(bodyContent);
+  
+    // Make division from the head style body tag
+    createDivisionFromHead(bodyContent);
+}
+
+/*!
+ *  Creates div.reply from the html header styles (if there is any) and applies this 
+ *  style to the message by surrounding the message with the div.reply element.
+ *  
+ *  Example:
+ *  <html><head>
+ *  <style type="text/css">
+ *  body {
+ *  color: #FF0000;
+ *  background-color: #ffffff }
+ *  h3{ color: blue }
+ *  </style></head>
+ *  <body>
+ *  <h3>This is bigger text.</h3>
+ *  This is the body text.
+ *  </body></html>
+ *  
+ *      ---->
+ *      
+ *  <html><head>
+ *  <style type="text/css">
+ *  div.reply {
+ *  color: #FF0000;
+ *  background-color: #ffffff }
+ *  h3 { color: blue }
+ *  </style></head>
+ *  <body>
+ *  <div class="reply">
+ *  <h3>This is bigger text.</h3>
+ *  This is the body text.
+ *  </div></body></html> 
+ *  
+ */
+void NmEditorContent::createDivisionFromHead(QString &bodyContent)
+{
+    NM_FUNCTION;
+    
+    // Regular expression string for searching <head> part that contains <style>
+    QString bodyStyleDefined(
+        "<head"
+        "(\\s)*"    // 0-* white spaces, browsers seem to accept this too.
+        ">"
+        "(.)*"      // 0-* any characters
+        "<style"
+        "(.)*"      // 0-* any characters
+        "</head"
+        "(\\s)*"    // 0-* white spaces
+        ">");
+    QRegExp bodyStyleDefinedRegExp(bodyStyleDefined, Qt::CaseInsensitive);
+    bodyStyleDefinedRegExp.setMinimal(true);
+    
+    QString bodyStartReplacement("<body>\n<div");
+    
+    if(bodyContent.contains(bodyStyleDefinedRegExp)) {
+        QString headPartString = bodyStyleDefinedRegExp.cap(0);
+        QString headBodyStyleString("body(\\s)*");
+        QRegExp bodyStyleReplacementRegExp(headBodyStyleString, Qt::CaseInsensitive);
+        
+        if(headPartString.contains(bodyStyleReplacementRegExp)) {
+            headPartString.replace(bodyStyleReplacementRegExp, "div.reply ");
+            bodyContent.replace(bodyStyleDefinedRegExp, headPartString);
+            
+            bodyStartReplacement = "<body>\n<div class=\"reply\"";
+        }
+    }
+    
+    convertBodyToDiv(bodyContent, bodyStartReplacement);
+}
+
+/*!
+ *  Renames <body...></body> to <div...></div> and creates new <body> element.
+ *  
+ *  Example:
+ *  <body style="background: #00ff00; color: red; border: solid">
+ *  This is the body text.
+ *  </body>
+ *
+ *      ---->
+ *  
+ *  <body>    
+ *  <div style="background: #00ff00; color: red; border: solid">
+ *  This is the body text.
+ *  </div>
+ *  </body>
+ *  
+ *  TODO: T‰m‰ tapahtuu toistaiseksi riippumatta siit‰ onko bodyssa style-m‰‰rittely‰.
+ *  TODO: Ent‰ jos dokumentissa on m‰‰ritelty useampi <body>? 
+ */
+void NmEditorContent::convertBodyToDiv(QString &bodyContent, const QString &replacementString)
+{
+    NM_FUNCTION;
+    
+    QString bodyStart("<body");
+    QString bodyEnd("</body>");
+    QString bodyEndReplacement("</div></body>");
+    QRegExp bodyStartRegExp(bodyStart, Qt::CaseInsensitive);
+    QRegExp bodyEndRegExp(bodyEnd, Qt::CaseInsensitive);
+    
+    bodyContent.replace(bodyStartRegExp, replacementString);
+    bodyContent.replace(bodyEndRegExp, bodyEndReplacement);    
+}
+
+/*!
+ *  Converts "body bgcolor=#color" attribute to "body style=background: #color".
+ *  
+ *  Example:
+ *  <body bgcolor="blue"></body> 
+ *  
+ *              ----->
+ *  
+ *  <body style="background:blue"></div></body>
+ */
+void NmEditorContent::convertBGColorToStyle(QString &bodyContent)
+{
+    NM_FUNCTION;
+    
+    QString bgColorInBodyFetchString("<body[^<]+(bgcolor(\\s|)=(\\s|)(\"|)(#|))*>");
+    QRegExp bgColorInBodyRegExp(bgColorInBodyFetchString, Qt::CaseInsensitive);
+    
+    if(bodyContent.contains(bgColorInBodyRegExp)) {
+        // There can be only one meaningful bgcolor, the first one.
+        QString bgColorString = bgColorInBodyRegExp.cap(0);
+        
+        // Extract the color code from the string
+        QString colorCode(bgColorString);
+        QRegExp removeBeginningRegExp(
+            "<body"
+            "[^<]+"         // 1...* any character except '<'
+            "bgcolor"
+            "(\\s|)"        // White space or nothing
+            "="
+            "(\\s|)"        // White space or nothing
+            "(\"|)"         // '"' or nothing
+            "(#|)",         // '#' or nothing
+            Qt::CaseInsensitive);
+        colorCode.remove(removeBeginningRegExp);
+        
+        QRegExp removeEndRegExp(""
+            "((\"|\\s)"     // '"' or white space
+            "([^<]*)"       // 0...* any characters except '<'
+            ">)"            // '>'           
+            "|>");          // ... or nothing before this, just '>'
+        colorCode.remove(removeEndRegExp);
+        
+        QString plainBgColorFetchString("bgcolor(\\s|)*=(\\s|)*[^\\s]+(\\s|(?=>))");
+        QString bgColorReplacement("style=\"background: #"+colorCode+"\" ");
+        QRegExp plainBgColorFetchRegExp(plainBgColorFetchString, Qt::CaseInsensitive);
+        
+        // Create temporary string for bgcolor
+        bgColorString.replace(plainBgColorFetchRegExp, bgColorReplacement);
+        
+        // Copy the contents of the temporary string to the message
+        bodyContent.replace(bgColorInBodyRegExp, bgColorString);
+    }    
+}

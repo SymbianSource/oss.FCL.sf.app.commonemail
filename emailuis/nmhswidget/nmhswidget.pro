@@ -45,27 +45,34 @@ DEPLOYMENT += addFiles
 BLD_INF_RULES.prj_exports += "resources/nmhswidget.xml 			z:/private/2002DD15/nmhswidget.xml"
 BLD_INF_RULES.prj_exports += "rom/nmhswidget.iby				CORE_APP_LAYER_IBY_EXPORT_PATH(nmhswidget.iby)"
 BLD_INF_RULES.prj_exports += "rom/nmhswidgetlanguage.iby 		LANGUAGE_APP_LAYER_IBY_EXPORT_PATH(nmhswidgetlanguage.iby)"
+BLD_INF_RULES.prj_exports += "sis/nmhswidget_stub.sis     		/epoc32/data/z/system/install/nmhswidget_stub.sis"
 TARGET.EPOCALLOWDLLDATA = 1
+
+MMP_RULES += SMPSAFE
 }
 
 TARGET.CAPABILITY = ALL -TCB
     
 SOURCES += src/nmhswidget.cpp \
     src/nmhswidgetemailengine.cpp \
-    src/nmhswidgetemailrow.cpp \
     src/nmhswidgettitlerow.cpp \
     src/nmhswidgetplugin.cpp \
     src/nmhswidgetdatetimeobserver.cpp \
-    src/nmhswidgetdatetimeobserver_p.cpp
+    src/nmhswidgetdatetimeobserver_p.cpp \
+    src/nmhswidgetlistviewitem.cpp \
+    src/nmhswidgetlistmodel.cpp \
+    src/nmhswidgetlistmodelitem.cpp
 
 HEADERS += inc/nmhswidget.h \
     inc/nmhswidgetconsts.h \
     inc/nmhswidgetemailengine.h \
-    inc/nmhswidgetemailrow.h \
     inc/nmhswidgettitlerow.h \
     inc/nmhswidgetplugin.h \
     inc/nmhswidgetdatetimeobserver.h \
-    inc/nmhswidgetdatetimeobserver_p.h
+    inc/nmhswidgetdatetimeobserver_p.h \
+    inc/nmhswidgetlistviewitem.h \
+    inc/nmhswidgetlistmodel.h \
+    inc/nmhswidgetlistmodelitem.h
 
 INCLUDEPATH += ./inc \
     ../../inc \
@@ -75,5 +82,4 @@ INCLUDEPATH += ./inc \
 DEPENDPATH += .
 TRANSLATIONS = mailwidget.ts
 
-DOCML += conf/nmhswidgetmail.docml \
-         conf/nmhswidget.docml
+DOCML += conf/nmhswidget.docml

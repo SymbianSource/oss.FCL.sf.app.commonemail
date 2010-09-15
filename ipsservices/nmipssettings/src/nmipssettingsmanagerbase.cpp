@@ -18,7 +18,7 @@
 #include <QVariant>
 #include <smtpset.h>
 #include <iapprefs.h>
-#include <xqconversions.h>
+#include <XqConversions>
 
 #include "nmipssettingsmanagerbase.h"
 #include "nmipsextendedsettingsmanager.h"
@@ -42,7 +42,7 @@
     successful construction.
     \param accountType AccountType identifier.
 */
-NmIpsSettingsManagerBase::NmIpsSettingsManagerBase(const NmId &mailboxId, CEmailAccounts *account, 
+NmIpsSettingsManagerBase::NmIpsSettingsManagerBase(const NmId &mailboxId, CEmailAccounts *account,
     IpsServices::TIpsSetAccountTypes accountType)
     : mAccountType(accountType),
       mMailboxId(mailboxId.id())
@@ -67,10 +67,10 @@ NmIpsSettingsManagerBase::~NmIpsSettingsManagerBase()
     delete mExtendedSettingsManager;
 }
 
-/*!     
+/*!
     Finds and returns the SMTP specific setting or uses NmIpsExtendedSettingsManager to find
     extended settings.
-    \param settingItem SettingItem enum of the setting to return 
+    \param settingItem SettingItem enum of the setting to return
     \param QVariant SettingValue of the found setting value.
     \return bool <true> when the setting item was found otherwise <false>.
 */
@@ -78,16 +78,16 @@ bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
                                            QVariant &settingValue)
 {
     bool found(false);
-    
+
     switch (settingItem) {
         case IpsServices::EmailAlias:
             settingValue = XQConversions::s60DescToQString(mSmtpSettings->EmailAlias());
             found = true;
-            break; 
+            break;
         case IpsServices::EmailAddress:
             settingValue = XQConversions::s60DescToQString(mSmtpSettings->EmailAddress());
             found = true;
-            break; 
+            break;
         case IpsServices::ReplyAddress:
             settingValue = XQConversions::s60DescToQString(mSmtpSettings->ReplyToAddress());
             found = true;
@@ -95,7 +95,7 @@ bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
         case IpsServices::OutgoingMailServer:
             settingValue = XQConversions::s60DescToQString(mSmtpSettings->ServerAddress());
             found = true;
-            break; 
+            break;
         case IpsServices::OutgoingPort:
             settingValue = mSmtpSettings->Port();
             found = true;
@@ -103,19 +103,19 @@ bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
         case IpsServices::OutgoingLoginName:
             settingValue = XQConversions::s60Desc8ToQString(mSmtpSettings->LoginName());
             found = true;
-            break; 
+            break;
         case IpsServices::OutgoingPassword:
             settingValue = XQConversions::s60Desc8ToQString(mSmtpSettings->Password());
             found = true;
-            break; 
+            break;
         case IpsServices::SMTPAuthentication:
             settingValue = mSmtpSettings->SMTPAuth();
             found = true;
-            break; 
+            break;
         case IpsServices::OutgoingSecureSockets:
         	settingValue = mSmtpSettings->SecureSockets();
             found = true;
-            break;  
+            break;
         case IpsServices::OutgoingSSLWrapper:
         	settingValue = mSmtpSettings->SSLWrapper();
             found = true;
@@ -133,11 +133,11 @@ bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
         default:
             found = mExtendedSettingsManager->readSetting(settingItem, settingValue);
             break;
-    }   
+    }
     return found;
 }
-   
-/*!     
+
+/*!
     Writes SMTP settings or passes the extended settings to NmIpsExtendedSettingsManager.
     \param settingItem SettingItem enum of the setting to replace.
     \param settingValue QVariant of the new setting value.
@@ -146,9 +146,9 @@ bool NmIpsSettingsManagerBase::readSetting(IpsServices::SettingItem settingItem,
 bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem,
                                             const QVariant &settingValue)
 {
-    HBufC *tmp = 0;
-    HBufC8 *tmp8 = 0;
-    
+    HBufC *tmp = NULL;
+    HBufC8 *tmp8 = NULL;
+
     bool ret(false);
     TInt err(KErrNone);
 
@@ -160,7 +160,7 @@ bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem
             if (err==KErrNone) {
                 ret = saveSettings();
             }
-            break; 
+            break;
         case IpsServices::EmailAddress:
             tmp = XQConversions::qStringToS60Desc(settingValue.toString());
             TRAP(err, mSmtpSettings->SetEmailAddressL(*tmp));
@@ -168,7 +168,7 @@ bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem
             if (err==KErrNone) {
                 ret = saveSettings();
             }
-            break; 
+            break;
         case IpsServices::ReplyAddress:
             tmp = XQConversions::qStringToS60Desc(settingValue.toString());
             TRAP(err, mSmtpSettings->SetReplyToAddressL(*tmp));
@@ -185,7 +185,7 @@ bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem
                 ret = saveSettings();
             }
             break;
-        case IpsServices::OutgoingPort:            
+        case IpsServices::OutgoingPort:
             mSmtpSettings->SetPort(settingValue.toInt());
             ret = saveSettings();
             break;
@@ -205,14 +205,14 @@ bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem
                 ret = saveSettings();
             }
             break;
-        case IpsServices::SMTPAuthentication:            
+        case IpsServices::SMTPAuthentication:
             mSmtpSettings->SetSMTPAuth(settingValue.toBool());
             ret = saveSettings();
             break;
         case IpsServices::OutgoingSecureSockets:
             mSmtpSettings->SetSecureSockets(settingValue.toBool());
             ret = saveSettings();
-            break;  
+            break;
         case IpsServices::OutgoingSSLWrapper:
             mSmtpSettings->SetSSLWrapper(settingValue.toBool());
             ret = saveSettings();
@@ -222,12 +222,12 @@ bool NmIpsSettingsManagerBase::writeSetting(IpsServices::SettingItem settingItem
             break;
         default:
             ret = mExtendedSettingsManager->writeSetting(settingItem, settingValue);
-            break;    
+            break;
     }
     return ret;
 }
 
-/*!     
+/*!
     Deletes the mailbox.
     \return Error code <code>0</code> if mailbox deletion was successful, otherwise error
             code is returned.
@@ -241,7 +241,7 @@ int NmIpsSettingsManagerBase::deleteMailbox()
     return err;
 }
 
-/*!     
+/*!
     Returns the NmId of the mailbox.
     \return Mailbox id.
 */
@@ -250,7 +250,7 @@ NmId NmIpsSettingsManagerBase::mailboxId() const
     return mMailboxId;
 }
 
-/*!     
+/*!
     Returns the mailbox account type.
     \return Account type.
 */
@@ -268,7 +268,7 @@ int NmIpsSettingsManagerBase::determineDefaultOutgoingPort()
     int port(IpsServices::standardSmtpPort);
     if (mSmtpSettings->SSLWrapper()) {
         port = IpsServices::secureSmtpPort;
-    }        
+    }
     return port;
 }
 

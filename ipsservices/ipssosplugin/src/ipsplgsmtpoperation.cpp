@@ -361,12 +361,12 @@ EXPORT_C TInt CIpsPlgSmtpOperation::EmptyOutboxFromPendingMessagesL(
         iMsvSession.GetEntry( childs->At(i), service, entry );
         TUint sendState = entry.SendingState();
         
-        if ( iSmtpService == entry.iServiceId &&
-            ( sendState != KMsvSendStateUnknown
-              || sendState != KMsvSendStateUponRequest
-              || sendState != KMsvSendStateSent ) )
+        if ( iSmtpService == entry.iServiceId 
+		     && sendState != KMsvSendStateUnknown
+	         && sendState != KMsvSendStateUponRequest
+              && sendState != KMsvSendStateSent ) 
             {
-            // chage suspended flag to waiting
+            // change suspended flag to waiting
             // is it safe to change flag from suspended to waiting?
             if ( sendState == KMsvSendStateSuspended )
                 {

@@ -41,6 +41,8 @@ class NmSettingsViewLauncher;
 class NmUiEffects;
 class HbMessageBox;
 class QTimer;
+class AfActivation;
+class AfActivityStorage;
 
 class NmApplication : public HbApplication
 {
@@ -108,6 +110,8 @@ private:
     bool mApplicationHidden;
     QTimer* mErrorNoteTimer;                // Owned
     NmId mLastErrorMailboxId;
+    AfActivation* mActivation;              // Owned
+    AfActivityStorage* mActivityStorage;    // Owned
 };
 
 #endif // NMAPPLICATION_H

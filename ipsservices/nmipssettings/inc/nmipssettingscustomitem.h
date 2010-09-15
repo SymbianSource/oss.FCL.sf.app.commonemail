@@ -36,10 +36,10 @@ public:
            TimeEditor, MultiSelectionItem};
 
     explicit NmIpsSettingsCustomItem(QGraphicsItem *parent=0);
-    virtual ~NmIpsSettingsCustomItem();
-    virtual HbAbstractViewItem* createItem();
-    virtual bool canSetModelIndex(const QModelIndex &index) const;
-	
+    ~NmIpsSettingsCustomItem();
+    HbAbstractViewItem* createItem();
+    bool canSetModelIndex(const QModelIndex &index) const;
+
 protected:
 
     virtual HbWidget* createCustomWidget();

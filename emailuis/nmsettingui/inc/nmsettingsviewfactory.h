@@ -31,7 +31,6 @@ class HbDataFormModelItem;
 class NmId;
 class NmSettingsViewLauncher;
 class HbView;
-class HbAction;
 
 class NMAILSETTINGUI_EXPORT NmSettingsViewFactory : public CpSettingFormEntryItemData
 {
@@ -43,18 +42,18 @@ public:
         const QString &text = QString(),
         const QString &description = QString(),
         const HbIcon &icon = HbIcon(),
-        const HbDataFormModelItem *parent = 0);
+        const HbDataFormModelItem *parent = NULL);
 
     explicit NmSettingsViewFactory(const NmSettingsViewLauncher *viewLauncher,
         CpItemDataHelper &itemDataHelper,
         const QString &text = QString(),
         const QString &description = QString(),
         const HbIcon &icon = HbIcon(),
-        const HbDataFormModelItem *parent = 0);
-    
-    virtual ~NmSettingsViewFactory();
+        const HbDataFormModelItem *parent = NULL);
 
-    virtual CpBaseSettingView *createSettingView() const;
+    ~NmSettingsViewFactory();
+
+    CpBaseSettingView *createSettingView() const;
 
     void launchSettingView(const NmId &mailboxId,
                            const QString &mailboxName) const;
@@ -62,7 +61,7 @@ public:
 signals:
 
 	void aboutToClose();
-	
+
 private slots:
 
     void backPress();
@@ -75,7 +74,7 @@ private: // data
 
     // Owned.
     NmMailboxSettingsManager *mSettingsManager;
-    
+
     // Not owned.
     const NmSettingsViewLauncher *mSettingsViewLauncher;
 

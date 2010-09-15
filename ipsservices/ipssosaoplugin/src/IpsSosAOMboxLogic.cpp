@@ -893,7 +893,8 @@ TBool CIpsSosAOMBoxLogic::CanConnectIfRoamingL()
     CleanupClosePushL(mgr);
     TRAPD(err, mgr.OpenL());
     
-    TCmGenConnSettings set;
+    TCmGenConnSettings set = { ECmUsageOfWlanKnown, 
+            ECmCellularDataUsageConfirm, ECmCellularDataUsageConfirm };
     if(err==KErrNone){
         TRAP(err, mgr.ReadGenConnSettingsL(set));
         }

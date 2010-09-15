@@ -59,6 +59,7 @@ LIBS += -lnmailuiwidgets
 LIBS += -lnmsettingui
 LIBS += -lnmutilities
 LIBS += -ltstaskmonitorclient
+LIBS += -lafservice
 
 symbian*: {
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
@@ -74,6 +75,8 @@ symbian*: {
         -lxqserviceutil \
         -lqtcontacts \
         -lfmfiledialog
+
+    MMP_RULES += SMPSAFE
 }
 
 HEADERS += inc/nmeditorcontent.h \

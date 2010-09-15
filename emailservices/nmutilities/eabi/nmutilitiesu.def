@@ -22,4 +22,52 @@ EXPORTS
 	_ZNK18NmUiEventsNotifier9keysEqualERK13XQSettingsKeyRK32XQPublishAndSubscribeSettingsKey @ 21 NONAME
 	_ZTI18NmUiEventsNotifier @ 22 NONAME
 	_ZTV18NmUiEventsNotifier @ 23 NONAME
+	_ZN21NmContactHistoryModel11qt_metacallEN11QMetaObject4CallEiPPv @ 24 NONAME
+	_ZN21NmContactHistoryModel11qt_metacastEPKc @ 25 NONAME
+	_ZN21NmContactHistoryModel14modelCompletedEi @ 26 NONAME
+	_ZN21NmContactHistoryModel16staticMetaObjectE @ 27 NONAME DATA 16
+	_ZN21NmContactHistoryModel19getStaticMetaObjectEv @ 28 NONAME
+	_ZN21NmContactHistoryModel20handleQueryCompletedEi @ 29 NONAME
+	_ZN21NmContactHistoryModel5queryERK7QString @ 30 NONAME
+	_ZN21NmContactHistoryModelC1E25NmContactHistoryModelType @ 31 NONAME
+	_ZN21NmContactHistoryModelC2E25NmContactHistoryModelType @ 32 NONAME
+	_ZN21NmContactHistoryModelD0Ev @ 33 NONAME
+	_ZN21NmContactHistoryModelD1Ev @ 34 NONAME
+	_ZN21NmContactHistoryModelD2Ev @ 35 NONAME
+	_ZN25NmContactHistoryModelItem12setContactIdEj @ 36 NONAME
+	_ZN25NmContactHistoryModelItem13appendSubItemE28NmContactHistoryModelSubItem @ 37 NONAME
+	_ZN25NmContactHistoryModelItemC1ERKS_ @ 38 NONAME
+	_ZN25NmContactHistoryModelItemC1Ev @ 39 NONAME
+	_ZN25NmContactHistoryModelItemC2ERKS_ @ 40 NONAME
+	_ZN25NmContactHistoryModelItemC2Ev @ 41 NONAME
+	_ZN25NmContactHistoryModelItemD1Ev @ 42 NONAME
+	_ZN25NmContactHistoryModelItemD2Ev @ 43 NONAME
+	_ZN8EmailMRU10entryIndexEi @ 44 NONAME
+	_ZN8EmailMRU10readCenRepEi @ 45 NONAME
+	_ZN8EmailMRU10writeEntryEi7QStringS0_ @ 46 NONAME
+	_ZN8EmailMRU11updateEntryEi7QString @ 47 NONAME
+	_ZN8EmailMRU11writeCenRepEi7QString @ 48 NONAME
+	_ZN8EmailMRU16searchForAddressE7QString @ 49 NONAME
+	_ZN8EmailMRU17getNextEntryIndexEv @ 50 NONAME
+	_ZN8EmailMRU19nameKeyByEntryIndexEi @ 51 NONAME
+	_ZN8EmailMRU22addressKeyByEntryIndexEi @ 52 NONAME
+	_ZN8EmailMRU5resetEv @ 53 NONAME
+	_ZN8EmailMRU8getEntryEiR7QStringS1_ @ 54 NONAME
+	_ZN8EmailMRU9moveEntryEii @ 55 NONAME
+	_ZN8EmailMRU9nameOrderEv @ 56 NONAME
+	_ZN8EmailMRU9updateMRUE7QStringS0_ @ 57 NONAME
+	_ZN8EmailMRUC1Ev @ 58 NONAME
+	_ZN8EmailMRUC2Ev @ 59 NONAME
+	_ZN8EmailMRUD1Ev @ 60 NONAME
+	_ZN8EmailMRUD2Ev @ 61 NONAME
+	_ZNK21NmContactHistoryModel10metaObjectEv @ 62 NONAME
+	_ZNK21NmContactHistoryModel4dataERK11QModelIndexi @ 63 NONAME
+	_ZNK21NmContactHistoryModel8rowCountERK11QModelIndex @ 64 NONAME
+	_ZNK25NmContactHistoryModelItem10subEntriesEv @ 65 NONAME
+	_ZNK25NmContactHistoryModelItem12subItemCountEv @ 66 NONAME
+	_ZNK25NmContactHistoryModelItem9contactIdEv @ 67 NONAME
+	_ZNK25NmContactHistoryModelItem9subItemAtEi @ 68 NONAME
+	_ZNK8EmailMRU10entryCountEv @ 69 NONAME
+	_ZTI21NmContactHistoryModel @ 70 NONAME
+	_ZTV21NmContactHistoryModel @ 71 NONAME
 

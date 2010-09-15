@@ -528,6 +528,7 @@ void NmMessageListView::handleActionCommand(NmActionResponse &actionResponse)
             case NmActionResponseCommandNewMail: {
                 // Check that given start response has mailbox and folder id's
                 if (actionResponse.mailboxId()!=0){
+                    NM_TIMESTAMP("New Mail chose from menu.");
                     NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                             actionResponse.mailboxId(), mStartParam->folderId());
                     // startParam ownerhips transfers
@@ -564,16 +565,27 @@ void NmMessageListView::handleActionCommand(NmActionResponse &actionResponse)
         switch (actionResponse.responseCommand()){
            case NmActionResponseCommandOpen:{
                if (mLongPressedItem){
-                   NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageViewer,
-                       mStartParam->mailboxId(), mStartParam->folderId(),
-                       mLongPressedItem->envelope().messageId());
-                   mApplication.enterNmUiView(startParam);
-                   mLongPressedItem=NULL;
+                   NmFolderType folderType = mUiEngine.folderTypeById(mStartParam->mailboxId(),
+                                                mStartParam->folderId());
+                   if (folderType==NmFolderDrafts){
+                       NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
+                           mStartParam->mailboxId(), mStartParam->folderId(),
+                           mLongPressedItem->envelope().messageId(),NmUiEditorFromDrafts);
+                       mApplication.enterNmUiView(startParam);
                    }
-               }
-               break;
-           default:
-               break;
+                   else if (folderType!=NmFolderOutbox){
+                       NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageViewer,
+                           mStartParam->mailboxId(), mStartParam->folderId(),
+                           mLongPressedItem->envelope().messageId());
+                       mApplication.enterNmUiView(startParam);
+                   }
+                   mLongPressedItem=NULL;
+                 }
+               break;           
+           }
+           default: {
+               break;           
+           }
         }
     }
 
@@ -582,6 +594,7 @@ void NmMessageListView::handleActionCommand(NmActionResponse &actionResponse)
         if ( actionResponse.responseCommand() == NmActionResponseCommandNewMail ) {
             // Check that given start response has mailbox and folder id's
             if (actionResponse.mailboxId()!=0){
+                NM_TIMESTAMP("New Mail chose from toolbar.");
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                         actionResponse.mailboxId(), mStartParam->folderId());
                 // startParam ownerhips transfers
@@ -636,9 +649,6 @@ void NmMessageListView::createToolBar()
     NmActionRequest request(this, NmActionToolbar, NmActionContextViewMessageList,
             NmActionContextDataNone, mStartParam->mailboxId(), mStartParam->folderId() );
     NmUiExtensionManager &extMngr = mApplication.extManager();
-    if (!&extMngr) {
-        return;
-    }
     QList<NmAction *> list;
     extMngr.getActions(request, list);
     for (int i = 0; i < list.count(); i++) {

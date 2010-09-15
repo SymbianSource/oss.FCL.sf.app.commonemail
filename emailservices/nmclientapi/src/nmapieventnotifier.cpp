@@ -94,10 +94,10 @@ void NmApiEventNotifier::sendEventsFromBuffer()
     qRegisterMetaType<EmailClientApi::NmApiMailboxEvent> ("EmailClientApi::NmApiMailboxEvent");
     qRegisterMetaType<EmailClientApi::NmApiMessageEvent> ("EmailClientApi::NmApiMessageEvent");
     
-    QList<NmApiMessage> events;
+    QList<NmApiEvent> events;
     mNmApiEventNotifierPrivate->events(events);
     while (!events.isEmpty()) {
-        NmApiMessage event = events.takeFirst();
+        NmApiEvent event = events.takeFirst();
         switch (event.objectType) {
             case EMailbox:
                 switch (event.action) {

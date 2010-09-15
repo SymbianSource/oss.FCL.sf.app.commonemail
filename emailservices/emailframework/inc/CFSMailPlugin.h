@@ -160,6 +160,17 @@ public: // Methods
      virtual TFSMailBoxStatus GetMailBoxStatus( const TFSMailMsgId& aMailBoxId ) = 0;
 
     /**
+     * checks if mailbox supports given capability
+     *
+     * @param aCapability capability to be checked
+     * @param aMailBoxId id of the target mailbox
+     *
+     * @return true/false
+     */
+     virtual TBool MailboxHasCapabilityL(   TFSMailBoxCapabilities aCapability,
+                                            TFSMailMsgId aMailBoxId ) = 0;
+
+    /**
      * lists existing mailboxes contained by plugin
      *
      * @param aMailBoxes plugin writes list of existing mailboxes into this
@@ -796,7 +807,7 @@ public: // Methods
                                                const TFSMailMsgId& aMessagePartId) = 0;
 
     /**
-     * Retrieves a read-only file handle for the content file of this message part.
+     * Retrieves a file handle for the content file of this message part.
      * Should return KErrNotSupported if handle can not be given directly. In that case
      * FW will next ask to copy file to a temporary location so that FW can open the RFile
      * itself. Ownership of the handle is transferred. Caller is responsible for closing the
@@ -806,13 +817,15 @@ public: // Methods
      * @param aParentFolderId id of the parent folder where email is located
      * @param aMessageId id of the email part belongs to
      * @param aMessagePartId id of the message part
-     * @param aFileHandle returns the opened read-only file handle
+     * @param aFileHandle returns the opened file handle
+     * @param aForWriting pass ETrue if the file should be opened for writing instead of read-only
      */
      virtual TInt GetMessagePartFileL( const TFSMailMsgId& aMailBoxId,
                                        const TFSMailMsgId& aParentFolderId,
                                        const TFSMailMsgId& aMessageId,
                                        const TFSMailMsgId& aMessagePartId,
-                                       RFile& aFileHandle) = 0;
+                                       RFile& aFileHandle,
+                                       TBool aForWriting = EFalse) = 0;
 
     /**
      * copies contents of this message part to given file
@@ -1046,6 +1059,11 @@ public: // Methods
      * @param aMailboxId mailbox id
      */
     virtual HBufC* GetSignatureL( const TFSMailMsgId& aMailBoxId );
+   
+    /**
+     * Returns plugin implementation uid
+     */
+    inline TUid Id( ) const;
 
 protected:
 

@@ -74,10 +74,10 @@ void NmRecipientField::createConnections()
         this, SIGNAL(editingFinished()));
     connect(mRecipientsEditor, SIGNAL(selectionChanged()),
         this, SIGNAL(selectionChanged()));
-    connect(mLaunchContactsPickerButton, SIGNAL(pressed()),
-            this, SIGNAL(launchContactsPickerButtonClicked()));
-    connect(mLaunchContactsPickerButton, SIGNAL(pressed()),
-            this, SLOT(launchContactsPicker()));
+    connect(mLaunchContactsPickerButton, SIGNAL(clicked()),
+        this, SIGNAL(launchContactsPickerButtonClicked()));
+    connect(mLaunchContactsPickerButton, SIGNAL(clicked()),
+        this, SLOT(launchContactsPicker()), Qt::QueuedConnection);
 }
 
 

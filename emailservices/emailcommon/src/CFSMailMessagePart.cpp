@@ -493,7 +493,7 @@ EXPORT_C void CFSMailMessagePart::SetContentIDL(const TDesC& aContentID)
 // -----------------------------------------------------------------------------
 // CFSMailMessagePart::GetContentFileL
 // -----------------------------------------------------------------------------
-EXPORT_C RFile CFSMailMessagePart::GetContentFileL()
+EXPORT_C RFile CFSMailMessagePart::GetContentFileL( TBool aForWriting )
 	{
     NM_FUNCTION;
 	
@@ -501,7 +501,7 @@ EXPORT_C RFile CFSMailMessagePart::GetContentFileL()
 		{
 		TInt rcode = plugin->GetMessagePartFileL( GetMailBoxId(), GetFolderId(),
 					                            GetMessageId(), GetPartId(),
-					                            iFile );
+					                            iFile, aForWriting);
 		// if content is encrypted, use temp dir files
 		if(rcode == KErrNotSupported)
 		    {
@@ -960,7 +960,7 @@ EXPORT_C void CFSMailMessagePart::SetAttachmentNameL(const TDesC& aFilePath)
 	        {
             buffer->Des().Append(KFSMailContentDispInline);
 	        }
-	    else
+	    else if (ContentDisposition().FindF(KFSMailContentDispAttachment) != KErrNotFound)
 	        {
             buffer->Des().Append(KFSMailContentDispAttachment);
 	        }

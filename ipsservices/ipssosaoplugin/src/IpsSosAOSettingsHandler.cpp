@@ -19,7 +19,7 @@
 #include "ipssosaopluginheaders.h"
 
 const TInt KAOMinutesInHour = 60;
-
+   
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 CIpsSosAOSettingsHandler* CIpsSosAOSettingsHandler::NewL( 
@@ -383,7 +383,7 @@ IpsServices::TAOInfo CIpsSosAOSettingsHandler::LastUpdateInfo() const
 
     TDateTime time;        
     info.iLastSuccessfulUpdate = time; 
-    
+    info.iUpdateSuccessfulWithCurSettings = ETrue;
     QVariant high=NULL;
     QVariant low=NULL;
     QVariant fail=NULL;
@@ -507,7 +507,8 @@ TBool CIpsSosAOSettingsHandler::IsDaytime() const
     //create blanc time object for comparison.
     //real current time cannot be used because we only want to
     //compare hours & minutes
-    TDateTime dtNow;
+    TTime zeroTime( 0 );
+    TDateTime dtNow = zeroTime.DateTime();
     dtNow.SetMinute(tmp.Minute());
     dtNow.SetHour(tmp.Hour());
     

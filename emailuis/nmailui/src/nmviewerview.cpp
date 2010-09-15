@@ -33,6 +33,8 @@ static const QString NmParamTextHeightSecondary = "hb-param-text-height-secondar
 static const QString NmHttpLinkScheme = "http";
 static const QString NmHttpsLinkScheme = "https";
 static const QString NmMailtoLinkScheme = "mailto";
+static const QString NmImagePartInline = "inline";
+static const QString NmImagePartAttachment = "attachment";
 
 // Local constants
 const qreal NmZoomFactor = 1.5;
@@ -64,6 +66,7 @@ mScrollArea(NULL),
 mViewerContent(NULL),
 mWebView(NULL),
 mHeaderWidget(NULL),
+mMessagePartFetchingOperation(NULL),
 mMessageFetchingOperation(NULL),
 mDisplayingPlainText(false),
 mDocumentLoader(NULL),
@@ -258,6 +261,7 @@ void NmViewerView::viewReady()
 void NmViewerView::loadMessage()
 {
     NM_FUNCTION;
+    NM_TIMESTAMP("Loading message starts.");
     
     if (mMessage) {
         delete mMessage;
@@ -296,7 +300,18 @@ void NmViewerView::fetchMessage()
             if (mMessageFetchingOperation && mMessageFetchingOperation->isRunning()) { 
                 mMessageFetchingOperation->cancelOperation();
             }
-            mMessageFetchingOperation = mUiEngine.fetchMessage(mailboxId, folderId, msgId);
+            if (mMessagePartFetchingOperation && mMessagePartFetchingOperation->isRunning()) { 
+                mMessagePartFetchingOperation->cancelOperation();
+            }
+            
+            if(body)
+                {
+                mMessagePartFetchingOperation = mUiEngine.fetchMessagePart(mailboxId, folderId, msgId,body->partId());
+                }
+            else
+                {
+                mMessageFetchingOperation = mUiEngine.fetchMessage(mailboxId, folderId, msgId);
+                }
 
             if (mMessageFetchingOperation) {
                 connect(mMessageFetchingOperation,
@@ -305,6 +320,15 @@ void NmViewerView::fetchMessage()
                         SLOT(messageFetched(int)));
                 createAndShowWaitDialog();
             }
+            
+            if (mMessagePartFetchingOperation) {
+                connect(mMessagePartFetchingOperation,
+                        SIGNAL(operationCompleted(int)),
+                        this,
+                        SLOT(messageFetched(int)));
+                createAndShowWaitDialog();
+            }
+            
         } else {
             // message is fetched
             setMessageData();
@@ -321,7 +345,7 @@ void NmViewerView::messageFetched(int result)
     disconnect(mWaitDialog->mainWindow(), SIGNAL(orientationChanged(Qt::Orientation)),
                 this, SLOT(orientationChanged(Qt::Orientation)));
     
-    if (result == NmNoError && mMessageFetchingOperation) {
+    if (result == NmNoError && (mMessageFetchingOperation || mMessagePartFetchingOperation)) {
         if (mMessage) {
             delete mMessage;
             mMessage = NULL;
@@ -351,6 +375,10 @@ void NmViewerView::waitNoteCancelled()
         if (mMessageFetchingOperation && mMessageFetchingOperation->isRunning()) { 
 	        mMessageFetchingOperation->cancelOperation();
         }
+        if (mMessagePartFetchingOperation && mMessagePartFetchingOperation->isRunning()) { 
+            mMessagePartFetchingOperation->cancelOperation();
+        }
+        
         mWaitNoteCancelled = true;
         QMetaObject::invokeMethod(&mApplication, "prepareForPopView", Qt::QueuedConnection);
     }
@@ -433,9 +461,8 @@ void NmViewerView::setAttachmentList()
         mMessage->attachmentList(messageParts);
         for (int i = 0; i < messageParts.count();i++) {
             NmMessagePart *part = messageParts[i];
-            if (part &&
-                ((part->contentDisposition().trimmed().startsWith("inline", Qt::CaseInsensitive)==false) ||
-                 (part->contentType().trimmed().startsWith("image", Qt::CaseInsensitive)==false))) {
+            // Inline images are not displayed in attachment list
+            if (part && !isInlineImage(part)) {               
                 QString fileName = part->attachmentName();
                 // index starts from zero, next index is same as count
                 int attaIndex = mAttaWidget->count();
@@ -448,7 +475,7 @@ void NmViewerView::setAttachmentList()
                     mAttaIndexUnderFetch = attaIndex;
                 }
                 inserted = true;
-            }
+            }   
         }
         if (inserted) {
             QObject::connect(mAttaWidget, SIGNAL(itemActivated(int)),
@@ -553,8 +580,9 @@ QString NmViewerView::formatHtmlMessage(NmMessagePart *html)
             // Browse through embedded image parts and add those
             // the web view.
             bool isFetched = child->fetchedSize() >= child->size();
-            if(child->contentType().startsWith("image", Qt::CaseInsensitive) &&
-               child->contentDisposition().trimmed().startsWith("inline", Qt::CaseInsensitive)) {
+            // Read inline images to webkit memory if msg part content type IS image and
+            // content disposition IS NOT marked to be attachment
+            if(isInlineImage(child)) {
                 QString contentId = child->contentId();
                 if (isFetched) {
                     int ret = mUiEngine.contentToMessagePart(
@@ -628,31 +656,46 @@ QString NmViewerView::formatPlainTextMessage(NmMessagePart *plain)
     return msg;
 }
 
+
 /*!
-    Reload view contents with new start parameters
-    Typically when view is already open and external view activation occurs
-    for this same view
+    Reloads the view contents with new given start parameters. Typically, this
+    method is called when the view is already open and an external view
+    activation occurs for this same view.
+
+    \param startParam The new parameters.
 */
 void NmViewerView::reloadViewContents(NmUiStartParam* startParam)
 {
-    // Check start parameter validity, message view cannot
-    // be updated if given parameter is zero.
+    NM_FUNCTION;
+
+    // Check the validity of the start parameters. The message view cannot be
+    // updated if the given message ID is invalid (zero).
     if (startParam && startParam->viewId() == NmUiViewMessageViewer &&
-        startParam->messageId()!= 0) {
-        // Delete existing start parameter data
+        startParam->messageId() != 0) {
+        // Delete the existing start parameters and store the given parameters.
         delete mStartParam;
-        mStartParam = NULL;
-        // Store new start parameter data
         mStartParam = startParam;
-        // Reload viewer with new message information
-        setMessageData();
+
+        // Reload the view using the new message information.
+        setMailboxName();
+        loadMessage(); // Updates mMessage.
+
+        if (mHeaderWidget && mMessage) {
+            // Update the sender, recipient and subject etc.
+            mHeaderWidget->setMessage(mMessage);
+        }
+
+        setMessageData();        
     }
     else {
-        NMLOG("nmailui: Invalid viewer start parameter");
-        // Unused start parameter needs to be deleted
+        NMLOG("NmViewerView::reloadViewContents(): Invalid start parameters!");
+
+        // Since we will not take ownership, the given parameters need to be
+        // deleted.
         delete startParam;
     }
 }
+
 
 /*!
     nmailViewId
@@ -953,6 +996,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandReplyAll: {
+                NM_TIMESTAMP("Reply All chose.");
                 mAttaManager.cancelFetch();
                 NmUiStartParam *startParam = new NmUiStartParam(NmUiViewMessageEditor,
                     mStartParam->mailboxId(), mStartParam->folderId(),
@@ -969,6 +1013,7 @@ void NmViewerView::handleActionCommand(NmActionResponse &actionResponse)
             }
             break;
             case NmActionResponseCommandDeleteMail: {
+                NM_TIMESTAMP("Delete from viewer chose.");
                 mAttaManager.cancelFetch();
                 deleteMessage();
                 }
@@ -1033,6 +1078,7 @@ void NmViewerView::messageDeleted(const NmId &mailboxId, const NmId &folderId, c
         && (mStartParam->mailboxId()== mailboxId)
         && (mStartParam->folderId()== folderId)
         && (mStartParam->messageId()== messageId)) {
+        NM_TIMESTAMP("Message deleted.");
         mApplication.prepareForPopView();
     }
 }
@@ -1056,3 +1102,34 @@ void NmViewerView::createAndShowWaitDialog()
     // Display wait dialog
     mWaitDialog->show(); 
 }
+
+
+/*!
+    Helper function to determine whether message part is inline image.
+*/
+bool NmViewerView::isInlineImage(NmMessagePart* part)
+{
+    bool ret(false);
+    if (part){
+        // Check whether the message part is image
+        if (part->contentType().trimmed().startsWith("image", Qt::CaseInsensitive)) {
+            bool isMarkedInline(false);
+            bool isMarkedAttachment(false);
+            // Check whether the image has been marked correctly as an inline image
+            if (part->contentDisposition().trimmed().startsWith(NmImagePartInline, Qt::CaseInsensitive)) {
+                isMarkedInline=true;
+            }            
+            // Check whether the image has been marked correctly as an attachment
+            else if (part->contentDisposition().trimmed().startsWith(NmImagePartAttachment, Qt::CaseInsensitive)) {
+                isMarkedAttachment=true;
+            }       
+            // UI handles image as inline if it is correctly marked to be inline
+            // or hasn't been marked at all with content disposition
+            if (isMarkedInline || (!isMarkedInline && !isMarkedAttachment) ) {
+                ret=true;
+            }            
+        }
+    }
+    return ret;
+}
+

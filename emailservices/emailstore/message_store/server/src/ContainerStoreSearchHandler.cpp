@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2006 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -492,12 +492,12 @@ void CContainerStoreSearchHandler::TPtrC8ToRBuf16L( const TPtrC8& aPtr8, RBuf& a
     RBuf8 val8;
     CleanupClosePushL( val8 );
     
-    val8.Create( aPtr8 );
+    val8.CreateL( aPtr8 );
     
     const TUint16* valuePtr16 = reinterpret_cast<const TUint16*>( val8.Ptr() );
     TPtrC16 val16( valuePtr16, val8.Length() / 2 );
     
-    aBuf.Create( val16.Length() );
+    aBuf.CreateL( val16.Length() );
     aBuf.Copy( val16 );
     
     CleanupStack::PopAndDestroy( &val8 );

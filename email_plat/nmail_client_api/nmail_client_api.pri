@@ -31,5 +31,11 @@ symbian*: {
             "nmail_client_api/nmapimessagebody.h       APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagebody.h)" \
             "nmail_client_api/nmapimessageenvelope.h   APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessageenvelope.h)" \
             "nmail_client_api/nmapimessagetask.h       APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagetask.h)" \
-            "nmail_client_api/nmapimessagemanager.h    APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagemanager.h)"
+            "nmail_client_api/nmapimessagemanager.h    APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagemanager.h)" \
+            "nmail_client_api/nmapimessagesearch.h     APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagesearch.h)" \
+            "nmail_client_api/nmapimessage.h           APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessage.h)" \
+            "nmail_client_api/nmapimessagecontent.h    APP_LAYER_PLATFORM_EXPORT_PATH(nmapimessagecontent.h)" \
+            "nmail_client_api/nmapitextcontent.h       APP_LAYER_PLATFORM_EXPORT_PATH(nmapitextcontent.h)" \
+            "nmail_client_api/nmapiattachment.h        APP_LAYER_PLATFORM_EXPORT_PATH(nmapiattachment.h)"
+
 }

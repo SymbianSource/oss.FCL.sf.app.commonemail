@@ -80,8 +80,9 @@ symbian*: {
         "$${LITERAL_HASH}endif"
     
     MMP_RULES += resourceBlock \
-	  defBlock
-    
+                 defBlock \
+                 SMPSAFE
+
     LIBS += -leuser \
     -lcone \
     -lbafl \

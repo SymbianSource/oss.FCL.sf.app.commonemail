@@ -156,10 +156,10 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
     if (dividersActive || sentLocalDate == currentdate) {
         QString shortTimeSpec = r_qtn_time_usual;
         QTime time = localTime.time();
-        mTime->setText(locale.format(time, shortTimeSpec));
+        mTime->setText( HbStringUtil::convertDigits(locale.format(time, shortTimeSpec)) );
     } else {
         QString shortDateSpec = r_qtn_date_without_year;
-        mTime->setText(locale.format(sentLocalDate, shortDateSpec));
+        mTime->setText( HbStringUtil::convertDigits(locale.format(sentLocalDate, shortDateSpec)) );
     }
 
     // Subject.

@@ -33,6 +33,7 @@ namespace EmailClientApi
 
 class NmApiMessageEnvelope;
 class NmApiMailbox;
+class NmApiMessage;
 
 class NMAPI_EXPORT NmApiEmailService : public QObject
 {
@@ -73,6 +74,16 @@ public:
      */
     bool getMailbox(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailboxInfo);
 
+    /*!
+       gets mail message by id (see also NmApiEventNotifier)
+     */
+    bool getMessage(const quint64 mailboxId, 
+                     const quint64 folderId, 
+                     const quint64 messageId, 
+                     EmailClientApi::NmApiMessage &message);
+
+
+    
     /*!
        returns isrunning flag value
      */

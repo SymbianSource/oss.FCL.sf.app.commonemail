@@ -5,7 +5,7 @@
 <message numerus="no" id="txt_mailips_setlabel_security_val_on_starttls">
     <comment>Value for txt_mailips_setlabel_secure_connection. Secure connection on with StartTLS (name of the secure connection protocol )</comment>        
     <source>On (StartTLS)</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_11_12_val</extra-loc-positionid>
@@ -55,7 +55,7 @@
 <message numerus="no" id="txt_mailips_setlabel_folder_path_val_default">
     <comment>Value for txt_mailips_setlabel_folder_path. Default folder path will be used. Refers to all folders. </comment>        
     <source>Default</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_9_val</extra-loc-positionid>
@@ -85,7 +85,7 @@
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_every_day">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. The value text for Receiving weekdays if all seven days are selected. </comment>        
     <source>Every day</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
@@ -95,7 +95,7 @@
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_tue">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. Tuesdays setting item</comment>        
     <source>Tue</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
@@ -113,9 +113,9 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_val_every_1_hour">
-    <comment>Value for txt_mailips_setlabel_refresh_mail. The mailbox is refreshed every hour</comment>        
-    <source>Every 1 hour</source>
-    <translation variants="no" type="unfinished"></translation>
+    <comment>Value for txt_mailips_setlabel_refresh_mail. The mailbox is refreshed every hour. NOTE! Removed the unnecessary number 1 from the draft English</comment>        
+    <source>Every hour</source>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_f</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
@@ -143,7 +143,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_list_the_mailbox_is_refreshed_as_defin">
-    <comment>info text to explain the profile (txt_mailmfe_setlabel_selected_mode_val_user_defined)</comment>        
+    <comment>Info text to explain the profile (txt_mailips_setlabel_selected_mode_val_user_defined)</comment>        
     <source>The mailbox is refreshed as defined by the user</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
@@ -175,7 +175,7 @@
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_sun">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. Sunday setting item</comment>        
     <source>Sun</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
@@ -185,7 +185,7 @@
 <message numerus="no" id="txt_mailips_setlabel_folder_path_user_defined">
     <comment>Value for txt_mailips_setlabel_folder_path. User is able to define the folder path.</comment>        
     <source>User defined</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_9_val</extra-loc-positionid>
@@ -265,7 +265,7 @@
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_mon">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. Monday setting item</comment>        
     <source>Mon</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
@@ -275,7 +275,7 @@
 <message numerus="no" id="txt_mailips_setlabel_outgoing_authentication_same">
     <comment>Value for txt_mailips_setlabel_outgoing_mail_authentication. Same authentication as for incoming mail</comment>        
     <source>Same as for incoming</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_10_val</extra-loc-positionid>
@@ -293,8 +293,8 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_list_the_mailbox_is_refreshed_every_15">
-    <comment>info text to explain the profile (txt_mailmfe_setlabel_selected_mode_val_save_energy)</comment>        
-    <source>The mailbox is refreshed every 15 minutes during daytime</source>
+    <comment>Info text to explain the profile (txt_mailips_setlabel_selected_mode_val_save_energy). NOTE! Draft English changed. Updating happens every 1 hour.</comment>        
+    <source>The mailbox is refreshed every hour during daytime</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b</extra-loc-viewid>
@@ -325,7 +325,7 @@
 <message numerus="no" id="txt_mailips_setlabel_val_keep_uptodate">
     <comment>Value for txt_mailips_setlabel_refresh_mail. The mailbox is kept up-to-date</comment>        
     <source>Keep up-to-date</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_f</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
@@ -333,7 +333,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_list_the_mailbox_is_uptodate_during">
-    <comment>info text to explain the profile (txt_mailmfe_setlabel_selected_mode_val_keep_uptoda)</comment>        
+    <comment>info text to explain the profile (txt_mailips_setlabel_selected_mode_val_keep_uptoda)</comment>        
     <source>The mailbox is up-to-date during daytime</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
@@ -355,7 +355,7 @@
 <message numerus="no" id="txt_mailips_setlabel_security_val_on_ssltls">
     <comment>Value for txt_mailips_setlabel_secure_connection. Secure connection on with SLL/TLS (name of the secure connection protocol )</comment>        
     <source>On (SLL/TLS)</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_11_12_val</extra-loc-positionid>
@@ -415,7 +415,7 @@
 <message numerus="no" id="txt_mailips_setlabel_val_all">
     <comment>One of the values for txt_mailips_setlabel_show_mail_in_inbox and txt_mailips_setlabel_show_mail_in_other_folders. The user can select that all the mail messages in the mailbox are synced to phone..</comment>        
     <source>All</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_1_2_val</extra-loc-positionid>
@@ -445,7 +445,7 @@
 <message numerus="no" id="txt_mailips_setlabel_outgoing_authentication_none">
     <comment>Value for txt_mailips_setlabel_outgoing_mail_authentication. No authetication</comment>        
     <source>None</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_10_val</extra-loc-positionid>
@@ -485,7 +485,7 @@
 <message numerus="no" id="txt_mailips_setlabel_incoming_port_default">
     <comment>Value for txt_mailips_setlabel_incoming_port</comment>        
     <source>Default</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_13_val</extra-loc-positionid>
@@ -555,7 +555,7 @@
 <message numerus="no" id="txt_mailips_subhead_preferences">
     <comment>Subheding. Group box for expanding/ collapsing preferences in settings view. Opens list of preferences where the user can define the name of the user (My name), Mailbox name and other settings.</comment>        
     <source>Preferences</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_a</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
@@ -595,7 +595,7 @@
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_wed">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. Wednesday setting item</comment>        
     <source>Wed</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
@@ -605,7 +605,7 @@
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_sat">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. Saturday setting item</comment>        
     <source>Sat</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
@@ -625,7 +625,7 @@
 <message numerus="no" id="txt_mailips_setlabel_security_val_off">
     <comment>Value for txt_mailips_setlabel_secure_connection. Secure connection off</comment>        
     <source>Off</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_11_12_val</extra-loc-positionid>
@@ -655,7 +655,7 @@
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_none">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. Shown if none of the days are selected.</comment>        
     <source>None</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
@@ -715,7 +715,7 @@
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_thu">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. Thursday setting item</comment>        
     <source>Thu</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
@@ -725,7 +725,7 @@
 <message numerus="no" id="txt_mailips_subhead_receiving_schedule">
     <comment>Subheading. Group box for expanding/ collapsing synchronization settings in settings view. Opens list of settings related to how often/at what intervals the mailbox is synchronized with the content on the mail server ie. how often/at what intervals the devices receives data from the mail server.</comment>        
     <source>Receiving Schedule</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
@@ -735,7 +735,7 @@
 <message numerus="no" id="txt_mailips_subhead_server_info">
     <comment>Subheading. Group box for expanding/ collapsing Server settings in settings view. Opens list of settings related to Server settings (server name, domain name, secure connection on/off). </comment>        
     <source>Server info</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
@@ -765,7 +765,7 @@
 <message numerus="no" id="txt_mailips_setlabel_val_when_i_open_mailbox">
     <comment>Value for txt_mailips_setlabel_refresh_mail. The mailbox is refreshed only and always when the user opens the mailbox</comment>        
     <source>When I open mailbox</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_f</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
@@ -795,7 +795,7 @@
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_fri">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. Friday setting item</comment>        
     <source>Fri</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_c</extra-loc-viewid>
     <extra-loc-positionid>setlabel_3_val</extra-loc-positionid>
@@ -805,7 +805,7 @@
 <message numerus="no" id="txt_mailips_setlabel_val_every_4_hours">
     <comment>Value for txt_mailips_setlabel_refresh_mail. The mailbox is refreshed every four hours</comment>        
     <source>Every 4 hours</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_f</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
@@ -815,7 +815,7 @@
 <message numerus="no" id="txt_mailips_setlabel_incoming_port_user_defined">
     <comment>Value for txt_mailips_setlabel_incoming_port</comment>        
     <source>User defined</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_13_val</extra-loc-positionid>
@@ -845,7 +845,7 @@
 <message numerus="no" id="txt_mailips_setlabel_outgoing_authentication_user">
     <comment>Value for txt_mailips_setlabel_outgoing_mail_authentication. User defines the authentication</comment>        
     <source>User authentication</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_10_val</extra-loc-positionid>
@@ -875,7 +875,7 @@
 <message numerus="no" id="txt_mailips_setlabel_val_every_15_minutes">
     <comment>Value for txt_mailips_setlabel_refresh_mail. The mailbox is refreshed every 15 minutes</comment>        
     <source>Every 15 minutes</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_f</extra-loc-viewid>
     <extra-loc-positionid>setlabel_6_val</extra-loc-positionid>
@@ -883,7 +883,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_list_the_mailbox_is_refreshed_only_by">
-    <comment>info text to explain the profile (txt_mailmfe_setlabel_selected_mode_val_fetch_manually)</comment>        
+    <comment>Info text to explain the profile (txt_mailips_setlabel_selected_mode_val_fetch_manually)</comment>        
     <source>The mailbox is refreshed only by user request</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
@@ -895,7 +895,7 @@
 <message numerus="no" id="txt_mailips_subhead_user_info">
     <comment>Subheading. Group box for expanding/ collapsing credential settings in settings view. Opens list of settings related to the user info (mail address, username, password) for the mailbox. </comment>        
     <source>User info</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_group_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_c</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
@@ -935,7 +935,7 @@
 <message numerus="no" id="txt_mailips_button_delete_mailbox">
     <comment>Button for deleting the mailbox. </comment>        
     <source>Delete mailbox</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_button_sec</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006</extra-loc-viewid>
     <extra-loc-positionid>Button</extra-loc-positionid>

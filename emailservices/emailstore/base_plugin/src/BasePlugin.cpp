@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -1548,7 +1548,7 @@ CFSMailAddress* CBasePlugin::FetchEmailAddressL(
                 //copy the body content from the original.
                 TInt startOffset = 0;
                 RBuf8 buf;
-                buf.Create( KQuotedReadBufferSize );
+                buf.CreateL( KQuotedReadBufferSize );
                 CleanupClosePushL( buf );
 
                 do

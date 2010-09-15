@@ -319,3 +319,16 @@ void NmRecipientLineEdit::handleTextChanged(const QString &text)
     Q_UNUSED(text);
     mNeedToGenerateEmailAddressList = true;
 }
+
+/*
+ * If recipient is added from Contacts by Contacts, we need to add it to the list.
+ */
+void NmRecipientLineEdit::addContacts(QList<NmAddress *> contacts)
+{
+    foreach (NmAddress *nmContact,contacts) {
+        if (nmContact && nmContact->displayName().length() > 0) {
+            mRecipientsAddedFromContacts.append(*nmContact);
+            mNeedToGenerateEmailAddressList = true;
+        }
+    }
+}

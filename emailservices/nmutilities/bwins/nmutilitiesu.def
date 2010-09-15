@@ -20,4 +20,47 @@ EXPORTS
 	?metaObject@NmUiEventsNotifier@@UBEPBUQMetaObject@@XZ @ 19 NONAME ; struct QMetaObject const * NmUiEventsNotifier::metaObject(void) const
 	?parseKeyValue@NmUiEventsNotifier@@ABE_NABVQByteArray@@AAW4NmUiEventType@1@AAW4NmUiViewId@@AAVNmId@@@Z @ 20 NONAME ; bool NmUiEventsNotifier::parseKeyValue(class QByteArray const &, enum NmUiEventsNotifier::NmUiEventType &, enum NmUiViewId &, class NmId &) const
 	?keysEqual@NmUiEventsNotifier@@ABE_NABVXQSettingsKey@@ABVXQPublishAndSubscribeSettingsKey@@@Z @ 21 NONAME ; bool NmUiEventsNotifier::keysEqual(class XQSettingsKey const &, class XQPublishAndSubscribeSettingsKey const &) const
+	?tr@NmContactHistoryModel@@SA?AVQString@@PBD0@Z @ 22 NONAME ; class QString NmContactHistoryModel::tr(char const *, char const *)
+	?qt_metacall@NmContactHistoryModel@@UAEHW4Call@QMetaObject@@HPAPAX@Z @ 23 NONAME ; int NmContactHistoryModel::qt_metacall(enum QMetaObject::Call, int, void * *)
+	?writeEntry@EmailMRU@@AAE_NHVQString@@0@Z @ 24 NONAME ; bool EmailMRU::writeEntry(int, class QString, class QString)
+	?handleQueryCompleted@NmContactHistoryModel@@AAEXH@Z @ 25 NONAME ; void NmContactHistoryModel::handleQueryCompleted(int)
+	?tr@NmContactHistoryModel@@SA?AVQString@@PBD0H@Z @ 26 NONAME ; class QString NmContactHistoryModel::tr(char const *, char const *, int)
+	??0EmailMRU@@QAE@XZ @ 27 NONAME ; EmailMRU::EmailMRU(void)
+	?writeCenRep@EmailMRU@@AAE_NHVQString@@@Z @ 28 NONAME ; bool EmailMRU::writeCenRep(int, class QString)
+	?subItemAt@NmContactHistoryModelItem@@QBE?AVNmContactHistoryModelSubItem@@H@Z @ 29 NONAME ; class NmContactHistoryModelSubItem NmContactHistoryModelItem::subItemAt(int) const
+	?getStaticMetaObject@NmContactHistoryModel@@SAABUQMetaObject@@XZ @ 30 NONAME ; struct QMetaObject const & NmContactHistoryModel::getStaticMetaObject(void)
+	?updateMRU@EmailMRU@@QAE_NVQString@@0@Z @ 31 NONAME ; bool EmailMRU::updateMRU(class QString, class QString)
+	?staticMetaObject@NmContactHistoryModel@@2UQMetaObject@@B @ 32 NONAME ; struct QMetaObject const NmContactHistoryModel::staticMetaObject
+	?addressKeyByEntryIndex@EmailMRU@@CAHH@Z @ 33 NONAME ; int EmailMRU::addressKeyByEntryIndex(int)
+	?contactId@NmContactHistoryModelItem@@QBEIXZ @ 34 NONAME ; unsigned int NmContactHistoryModelItem::contactId(void) const
+	?query@NmContactHistoryModel@@QAEXABVQString@@@Z @ 35 NONAME ; void NmContactHistoryModel::query(class QString const &)
+	?moveEntry@EmailMRU@@AAEXHH@Z @ 36 NONAME ; void EmailMRU::moveEntry(int, int)
+	?trUtf8@NmContactHistoryModel@@SA?AVQString@@PBD0H@Z @ 37 NONAME ; class QString NmContactHistoryModel::trUtf8(char const *, char const *, int)
+	?metaObject@NmContactHistoryModel@@UBEPBUQMetaObject@@XZ @ 38 NONAME ; struct QMetaObject const * NmContactHistoryModel::metaObject(void) const
+	??1NmContactHistoryModelItem@@QAE@XZ @ 39 NONAME ; NmContactHistoryModelItem::~NmContactHistoryModelItem(void)
+	??_ENmContactHistoryModel@@UAE@I@Z @ 40 NONAME ; NmContactHistoryModel::~NmContactHistoryModel(unsigned int)
+	?reset@EmailMRU@@QAEXXZ @ 41 NONAME ; void EmailMRU::reset(void)
+	?appendSubItem@NmContactHistoryModelItem@@QAEXVNmContactHistoryModelSubItem@@@Z @ 42 NONAME ; void NmContactHistoryModelItem::appendSubItem(class NmContactHistoryModelSubItem)
+	?getEntry@EmailMRU@@QAE_NHAAVQString@@0@Z @ 43 NONAME ; bool EmailMRU::getEntry(int, class QString &, class QString &)
+	?updateEntry@EmailMRU@@AAE_NHVQString@@@Z @ 44 NONAME ; bool EmailMRU::updateEntry(int, class QString)
+	?readCenRep@EmailMRU@@AAE?AVQString@@H@Z @ 45 NONAME ; class QString EmailMRU::readCenRep(int)
+	?searchForAddress@EmailMRU@@AAEHVQString@@@Z @ 46 NONAME ; int EmailMRU::searchForAddress(class QString)
+	?subEntries@NmContactHistoryModelItem@@QBE?AV?$QList@VNmContactHistoryModelSubItem@@@@XZ @ 47 NONAME ; class QList<class NmContactHistoryModelSubItem> NmContactHistoryModelItem::subEntries(void) const
+	??1NmContactHistoryModel@@UAE@XZ @ 48 NONAME ; NmContactHistoryModel::~NmContactHistoryModel(void)
+	?getNextEntryIndex@EmailMRU@@AAEIXZ @ 49 NONAME ; unsigned int EmailMRU::getNextEntryIndex(void)
+	?trUtf8@NmContactHistoryModel@@SA?AVQString@@PBD0@Z @ 50 NONAME ; class QString NmContactHistoryModel::trUtf8(char const *, char const *)
+	??0NmContactHistoryModelItem@@QAE@ABV0@@Z @ 51 NONAME ; NmContactHistoryModelItem::NmContactHistoryModelItem(class NmContactHistoryModelItem const &)
+	?entryCount@EmailMRU@@QBEIXZ @ 52 NONAME ; unsigned int EmailMRU::entryCount(void) const
+	?nameKeyByEntryIndex@EmailMRU@@CAHH@Z @ 53 NONAME ; int EmailMRU::nameKeyByEntryIndex(int)
+	?setContactId@NmContactHistoryModelItem@@QAEXI@Z @ 54 NONAME ; void NmContactHistoryModelItem::setContactId(unsigned int)
+	??0NmContactHistoryModelItem@@QAE@XZ @ 55 NONAME ; NmContactHistoryModelItem::NmContactHistoryModelItem(void)
+	?rowCount@NmContactHistoryModel@@UBEHABVQModelIndex@@@Z @ 56 NONAME ; int NmContactHistoryModel::rowCount(class QModelIndex const &) const
+	?data@NmContactHistoryModel@@UBE?AVQVariant@@ABVQModelIndex@@H@Z @ 57 NONAME ; class QVariant NmContactHistoryModel::data(class QModelIndex const &, int) const
+	?entryIndex@EmailMRU@@CAHH@Z @ 58 NONAME ; int EmailMRU::entryIndex(int)
+	?qt_metacast@NmContactHistoryModel@@UAEPAXPBD@Z @ 59 NONAME ; void * NmContactHistoryModel::qt_metacast(char const *)
+	?subItemCount@NmContactHistoryModelItem@@QBEHXZ @ 60 NONAME ; int NmContactHistoryModelItem::subItemCount(void) const
+	??0NmContactHistoryModel@@QAE@W4NmContactHistoryModelType@@@Z @ 61 NONAME ; NmContactHistoryModel::NmContactHistoryModel(enum NmContactHistoryModelType)
+	??1EmailMRU@@QAE@XZ @ 62 NONAME ; EmailMRU::~EmailMRU(void)
+	?modelCompleted@NmContactHistoryModel@@IAEXH@Z @ 63 NONAME ; void NmContactHistoryModel::modelCompleted(int)
+	?nameOrder@EmailMRU@@SAHXZ @ 64 NONAME ; int EmailMRU::nameOrder(void)
 

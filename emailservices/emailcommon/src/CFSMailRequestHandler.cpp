@@ -251,7 +251,7 @@ void CFSMailRequestHandler::RemoveAllRequests()
 // -----------------------------------------------------------------------------
 // CFSMailRequestHandler::GetTempFileL( )
 // -----------------------------------------------------------------------------
- RFile CFSMailRequestHandler::GetTempFileL( TFSMailMsgId aContentId, TFileName aFileName )
+ RFile CFSMailRequestHandler::GetTempFileL( TFSMailMsgId aContentId, TFileName &aFileName )
 {
     NM_FUNCTION;
 

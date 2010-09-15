@@ -26,7 +26,7 @@ class NmAddress;
 class NmViewerView;
 class HbTextItem;
 class HbGroupBox;
-class HbLabel;
+class HbTextEdit;
 class HbIconItem;
 
 class NmViewerHeader : public HbWidget
@@ -43,7 +43,10 @@ public:
     void rescaleHeader(const QSizeF layoutReso);
     void setView(NmViewerView* view);
     void updateMessageData(NmMessage* message);
-       
+
+private slots:
+    void anchorTapped(const QString &anchor);
+
 private:
     void loadWidgets();
     void setHeaderData();
@@ -60,7 +63,7 @@ private:
     HbTextItem *mSent;                     // Not owned
     HbIconItem *mPrioIcon;              // Not owned
     HbGroupBox *mHeaderBox;             // not owned
-    HbLabel *mRecipientsBox;         // Not owned
+    HbTextEdit *mRecipientsBox;         // Not owned
     NmViewerView *mViewerView;          // Not owned
 
 };

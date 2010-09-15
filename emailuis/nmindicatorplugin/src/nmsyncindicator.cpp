@@ -30,11 +30,9 @@ NmSyncIndicator::~NmSyncIndicator()
 
 QVariant NmSyncIndicator::indicatorData(int role) const
 {
-    if (role == DecorationNameRole || role == MonoDecorationNameRole) {
+    if (role == DecorationNameRole) {
         // Must return non-empty to make the indicator visible
         return " ";
     }
-    else {
-        return QVariant();
-    }
+    return QVariant();
 }

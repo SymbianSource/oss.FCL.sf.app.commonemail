@@ -21,6 +21,55 @@
 
 namespace EmailClientApi
 {
+
+/*!
+    getter for flags
+ */
+NmApiMessageFlags NmApiMessageEnvelopePrivate::flags() const
+{
+    NM_FUNCTION;
+    
+    return messageFlags;
+}
+
+/*!
+    setter for flags
+ */
+void NmApiMessageEnvelopePrivate::setFlags(const NmApiMessageFlags flags, bool set)
+{
+    NM_FUNCTION;
+    
+    if (set) {
+        messageFlags |= flags;
+    } else {
+        messageFlags &= ~flags;
+    }
+}
+
+/*!
+    setter for flag
+ */
+void NmApiMessageEnvelopePrivate::setFlag(const NmApiMessageFlag flag, bool set)
+{
+    NM_FUNCTION;
+    
+    if (set) {
+        messageFlags |= flag;
+    } else {
+        messageFlags &= ~flag;
+    }
+}
+
+/*!
+    getter for flag
+ */
+bool NmApiMessageEnvelopePrivate::isFlagSet(const NmApiMessageFlag flag) const
+{
+    NM_FUNCTION;
+    
+    return messageFlags.testFlag(flag);
+}
+
 /*!
    copying constructor for nmmessageenvelope
  */
@@ -96,6 +145,16 @@ quint64 NmApiMessageEnvelope::parentFolder() const
 }
 
 /*!
+   getter for id of mailbox Id
+ */
+quint64 NmApiMessageEnvelope::mailboxId() const
+{
+    NM_FUNCTION;
+    
+    return d->mailboxId;
+}
+
+/*!
    getter for subject
  */
 QString NmApiMessageEnvelope::subject() const
@@ -133,6 +192,16 @@ void NmApiMessageEnvelope::getCcRecipients(QList<EmailClientApi::NmApiEmailAddre
     NM_FUNCTION;
     
     ccRecipients = d->ccRecipients;
+}
+
+/*!
+   getter for bcc recipients
+ */
+void NmApiMessageEnvelope::getBccRecipients(QList<EmailClientApi::NmApiEmailAddress> &bccRecipients)
+{
+    NM_FUNCTION;
+    
+    bccRecipients = d->bccRecipients;
 }
 
 /*!
@@ -228,6 +297,16 @@ void NmApiMessageEnvelope::setParentFolder(quint64 parentFolder)
 }
 
 /*!
+   setter for mailbox id 
+ */
+void NmApiMessageEnvelope::setMailboxId(quint64 mailboxId)
+{
+    NM_FUNCTION;
+    
+    d->mailboxId = mailboxId;
+}
+
+/*!
    setter for subject 
  */
 void NmApiMessageEnvelope::setSubject(const QString &subject)
@@ -267,6 +346,17 @@ void NmApiMessageEnvelope::setCcRecipients(
     NM_FUNCTION;
     
     d->ccRecipients = ccRecipients;
+}
+
+/*!
+   setter for bcc recipients 
+ */
+void NmApiMessageEnvelope::setBccRecipients(
+    const QList<EmailClientApi::NmApiEmailAddress> &bccRecipients)
+{
+    NM_FUNCTION;
+    
+    d->bccRecipients = bccRecipients;
 }
 
 /*!
@@ -388,5 +478,84 @@ quint64 NmApiMessageEnvelope::fetchedSize() const
     
     return d->fetchedSize;
 }
+
+/*!
+    setter for message priority
+ */
+void NmApiMessageEnvelope::setPriority(NmApiMessagePriority priority)
+{
+    NM_FUNCTION;
+    
+    if (priority == NmApiMessagePriorityLow) {
+        d->setFlag(NmApiMessageFlagLow, true);
+        d->setFlag(NmApiMessageFlagImportant, false);
+    }
+    else if (priority == NmApiMessagePriorityHigh) {
+        d->setFlag(NmApiMessageFlagLow, false);
+        d->setFlag(NmApiMessageFlagImportant, true);
+    }
+    else {
+        d->setFlag(NmApiMessageFlagLow, false);
+        d->setFlag(NmApiMessageFlagImportant, false);
+    }
+}
+
+/*!
+    getter for message priority
+ */
+NmApiMessagePriority NmApiMessageEnvelope::priority() const
+{
+    NM_FUNCTION;
+    
+    NmApiMessagePriority ret = NmApiMessagePriorityNormal;
+    if (d->isFlagSet(NmApiMessageFlagImportant)) {
+        ret = NmApiMessagePriorityHigh;
+    }
+    else if (d->isFlagSet(NmApiMessageFlagLow)) {
+        ret = NmApiMessagePriorityLow;
+    }
+    return ret;
+}
+
+/*!
+    Returns message flags
+ */
+NmApiMessageFlags NmApiMessageEnvelope::flags() const
+{
+    NM_FUNCTION;
+    
+    return d->flags();
+}
+
+/*!
+    Returns message flags
+ */
+void NmApiMessageEnvelope::setFlags(const NmApiMessageFlags flags, bool set)
+{
+    NM_FUNCTION;
+    
+    return d->setFlags(flags, set);
+}
+
+/*!
+    Returns message flags
+ */
+void NmApiMessageEnvelope::setFlag(const NmApiMessageFlag flag, bool set)
+{
+    NM_FUNCTION;
+    
+    return d->setFlag(flag, set);
+}
+
+/*!
+    Returns message flags
+ */
+bool NmApiMessageEnvelope::isFlagSet(const NmApiMessageFlag flag) const
+{
+    NM_FUNCTION;
+    
+    return d->isFlagSet(flag);
+}
+
 }
 

@@ -13,13 +13,27 @@
                     <string locid="txt_mail_widget_info_no_messages" name="plainText" value="No mails!!!"/>
                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-tiny)"/>
                 </widget>
+                <widget name="mailListView" type="HbListView">
+                    <widget name="listItemPrototype" role="HbAbstractView:prototype" type="HbListViewItem"/>
+                    <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
+                    <sizehint height="expr(3*9.75un)" type="PREFERRED" width="46un"/>
+                    <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                    <enums name="horizontalScrollBarPolicy" value="ScrollBarAlwaysOff"/>
+                    <enums name="verticalScrollBarPolicy" value="ScrollBarAlwaysOff"/>
+                    <bool name="longPressEnabled" value="FALSE"/>
+                    <enums name="clampingStyle" value="BounceBackClamping"/>
+                    <real name="rotation" value="0"/>
+                    <bool name="frictionEnabled" value="TRUE"/>
+                    <bool name="itemRecycling" value="TRUE"/>
+                </widget>
                 <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
                 <sizehint height="expr(3*9.75un )" type="PREFERRED" width="46un"/>
                 <sizehint height="0un" type="MINIMUM" width="0un"/>
                 <sizehint height="2504062.01158un" type="MAXIMUM" width="2504062.01158un"/>
                 <layout orientation="Vertical" spacing="0un" type="linear">
-                    <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                    <contentsmargins bottom="1un" left="0un" right="0un" top="0un"/>
                     <linearitem itemname="noMailsLabel"/>
+                    <linearitem itemname="mailListView"/>
                 </layout>
             </widget>
             <widget name="titleLayoutWidget" type="HbWidget">
@@ -44,7 +58,7 @@
                 <widget name="unreadCountLabel" type="HbLabel">
                     <enums name="alignment" value="AlignRight|AlignVCenter|AlignTrailing"/>
                     <real name="z" value="3"/>
-	            <sizepolicy horizontalPolicy="MinimumExpanding" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+                    <sizepolicy horizontalPolicy="MinimumExpanding" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
                     <sizehint height="expr(var(hb-param-text-height-secondary) )" type="MINIMUM" width="0un"/>
                     <sizehint height="expr(var(hb-param-text-height-secondary) )" type="MAXIMUM" width="9un"/>
                     <string locid="txt_mail_widget_list_l1" name="plainText" value="(999)"/>
@@ -112,5 +126,6 @@
     </widget>
     <metadata activeUIState="Common ui state" display="NHD-3.2-inch_portrait" unit="un">
         <uistate name="Common ui state" sections="#common"/>
+        <dummydata objectName="mailListView" section="#common" value="app_list_template5"/>
     </metadata>
 </hbdocument>

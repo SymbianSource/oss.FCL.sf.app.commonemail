@@ -253,16 +253,21 @@ EXPORT_C CFSMailMessagePart* CBasePlugin::MessagePartL(
 
 
 /**
- * The method will leave with KErrNotSupported if the msgstore is encrypted.
+ * The method will leave with KErrNotSupported if the msgstore is encrypted or if trying to open the file for writing.
  */
 EXPORT_C TInt CBasePlugin::GetMessagePartFileL(
     const TFSMailMsgId& aMailBoxId,
     const TFSMailMsgId& /*aParentFolderId*/,
     const TFSMailMsgId& aMessageId,
     const TFSMailMsgId& aMessagePartId,
-    RFile& aFileHandle )
+    RFile& aFileHandle,
+    TBool aForWriting)
 
     {
+    if (aForWriting)
+        {
+        return KErrNotSupported;
+        }
     CMailboxInfo& mailBox = GetMailboxInfoL( aMailBoxId.Id() );
     
     CMsgStoreMessage* msg = mailBox().FetchMessageL( aMessageId.Id(), KMsgStoreInvalidId );
