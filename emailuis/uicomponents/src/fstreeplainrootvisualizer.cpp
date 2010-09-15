@@ -22,12 +22,11 @@
 #include "fstreeplainonelineitemdata.h"
 #include "fstreeplainrootvisualizer.h"
 #include "fstextstylemanager.h"
-// <cmail> SF
+
 #include <alf/alfcontrol.h>
 #include <alf/alfanchorlayout.h>
 #include <alf/alftextvisual.h>
 #include <alf/alftexture.h>
-// </cmail>
 
 // ======== MEMBER FUNCTIONS ========
  
@@ -117,7 +116,8 @@ void CFsTreePlainRootVisualizer::ShowL( CAlfLayout& aParentLayout,
 void CFsTreePlainRootVisualizer::UpdateL( const MFsTreeItemData& aData,
                                           TBool /*aFocused*/,
                                           const TUint /*aLevel*/,
-                                          CAlfTexture*& /*aMarkIcon*/,
+                                          CAlfTexture*& /*aMarkOnIcon*/,
+                                          CAlfTexture*& /*aMarkOffIcon*/,
                                           CAlfTexture*& /*aMenuIcon*/,
                                           const TUint /*aTimeout*/,
                                           TBool aUpdateData)

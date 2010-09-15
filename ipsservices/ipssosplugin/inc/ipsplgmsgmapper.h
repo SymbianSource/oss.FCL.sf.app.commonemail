@@ -26,6 +26,7 @@ class CFSMailMessage;
 class CFSMailMessagePart;
 class CFSMailAddress;
 class CIpsPlgSosBasePlugin;
+class CIpsPlgMsgMapperHelper;
 
 /**
  *  
@@ -385,9 +386,91 @@ private:
     CMsvSession& iSession;
     
     CIpsPlgSosBasePlugin& iPlugin;
-    
+    // own
+    CIpsPlgMsgMapperHelper* iMsgMapperHelper;
     };
     
+
+/*
+ * ou1cimx1#508195
+ * CIpsPlgMsgMapperHelper class for asynchronous set the attachment flag
+ * It will process the async operation one by one.
+ * This class is mainly for resolve the crashes when sync mailbox. When there have
+ * more than 50 emails with attachments need to be synchronized, and the NewMailEvent
+ * will activate a update Mailbox process, it will set the attachment flag by using
+ * ChangeL, and use CActiveSchedulerWait to change the synchronous method to asynchronous
+ * this will block the current thread. And the ChangeL only accept less than 14
+ * requests at the same time, more than 14 requests will get the KErrServerBusy(-16)
+ * from the MTM server side. Therefore using the active object to set the attachment
+ * flag asynchronized.
+ */
+
+
+NONSHARABLE_CLASS ( CIpsPlgMsgMapperHelper ) : public CActive,
+                               public MIpsPlgSingleOpWatcher
+    {
+public: 
+    /*
+     * from MIpsPlgSingleOpWatcher
+     * OpCompleted is called when operation is completed
+     */
+    void OpCompleted(
+        CIpsPlgSingleOpWatcher& aOpWatcher,
+        TInt aCompletionCode );
+        
+public:
+    /*
+     * Symbian 2nd phase construcror
+     */
+    static CIpsPlgMsgMapperHelper* NewL( CMsvSession& aSession );
+    /*
+     * Class destructor
+     */
+    ~CIpsPlgMsgMapperHelper();
+    
+public:
+    /*
+     * start the async process 
+     */
+    void StartSetAttchmentFlag();
+    
+    /*
+     * append entry's id to array
+     * @param TMsvId aId
+     * @return ETrue append success, EFalse if exist in array
+     */
+    TBool AppendMsvIdToArrayL( TMsvId aId );
+        
+    
+protected:// From base class CActive
+
+    void RunL();
+    void DoCancel();
+    TInt RunError(TInt aError);
+    
+private:
+    /*
+     * Class constructor
+     */
+    CIpsPlgMsgMapperHelper( CMsvSession& aSession );
+    /*
+     * Symbian 2nd phase construct
+     */
+    void ConstructL();
+
+private:
+    // reference to Msv Session
+    CMsvSession&    iSession;
+    // Whether or not a set flag process is pending
+    TBool   iPending;
+    // own
+    CIpsPlgSingleOpWatcher* iCurrentOperationWatcher;
+    // own
+    RArray<TMsvId>  iNeedSetAttachFlagArray;
+    // own
+    RTimer  iTimer;
+    };
+
 #include "ipsplgmsgmapper.inl"    
 
 #endif /* IPSPLGMSGMAPPER_H */

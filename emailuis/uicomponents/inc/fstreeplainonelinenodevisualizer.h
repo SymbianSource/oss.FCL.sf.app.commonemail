@@ -20,10 +20,6 @@
 #define C_FSTREEPLAINONELINENODEVISUALIZER_H
 
 #include <e32base.h>
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
-
 #include "fstreenodevisualizerbase.h"
 
 class CAlfViewportLayout;
@@ -138,6 +134,8 @@ public: // from base class MFsTreeItemVisualizer
      */
     virtual void SetAlwaysExtended( TBool aAlwaysExtended );
     
+    virtual void SetMarkingMode( TBool aMarkingMode );
+    
     /**
      * From MFsTreeItemVisualizer.
      * This function returns wether an item is always in extended state.
@@ -167,7 +165,8 @@ public: // from base class MFsTreeItemVisualizer
     virtual void UpdateL( const MFsTreeItemData& aData,
                           TBool aFocused,
                           const TUint aLevel,
-                          CAlfTexture*& aMarkIcon,
+                          CAlfTexture*& aMarkOnIcon,
+                          CAlfTexture*& aMarkOffIcon,
                           CAlfTexture*& aMenuIcon,
                           const TUint aTimeout = 0,
                           TBool aUpdateData = ETrue);

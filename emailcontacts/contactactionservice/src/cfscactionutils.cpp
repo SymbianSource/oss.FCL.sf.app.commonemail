@@ -1246,11 +1246,18 @@ void CFscActionUtils::AppendFieldToContactL( TDes& aContact,
 
     if ( fieldFilter->FieldCount() == 1 )
         {
-        MVPbkStoreContactField* field = fieldFilter->FieldAtLC( 0 );
         if ( aAddSpace && aContact.Length() > 0 )
             {
-            aContact.Append( KSpace );
+            if ( aContact.Length() < KMaxLengthOfName )
+                {
+                aContact.Append( KSpace );
+                }
+            else
+                {
+                User::Leave( KErrOverflow );
+                }
             }
+        MVPbkStoreContactField* field = fieldFilter->FieldAtLC( 0 );
         TPtrC castFieldText = MVPbkContactFieldTextData::Cast( 
                 field->FieldData() ).Text();
 
@@ -1259,9 +1266,8 @@ void CFscActionUtils::AppendFieldToContactL( TDes& aContact,
             User::Leave( KErrOverflow );
             }
 
-        aContact.Append( MVPbkContactFieldTextData::Cast(
-                field->FieldData() ).Text() );
-        CleanupStack::PopAndDestroy(); // field
+        aContact.Append( castFieldText );
+        CleanupStack::PopAndDestroy( field );
         }
     CleanupStack::PopAndDestroy( 2 ); // fieldFilter, fieldTypeSelector    
     }

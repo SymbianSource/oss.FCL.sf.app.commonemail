@@ -30,11 +30,33 @@ class CNcsEmailAddressObject;
 class CAknsFrameBackgroundControlContext;
 class CFSEmailUiContactHandler;
 class CFSMailBox;
-class CNcsHeaderContainer;
 class CFSEmailUiLayoutHandler;
-class CFreestyleEmailUiAppUi; //<cmail>
+class CFreestyleEmailUiAppUi;
 
 // CLASS DECLARATION
+
+/**
+ * Observer interface to notify observer of item selection events and changes
+ * in popup's visibility.
+ */
+class MNcsPopupListBoxObserver
+    {
+public:
+
+    /**
+     * Visibility of component is changing.
+     * @param aVisible ETrue, if popup is coming visible.
+     * @return Observer should return ETrue, if visiblity change is allowed.
+     */
+    virtual TBool PopupVisibilityChangingL( TBool aVisible ) = 0;
+
+    /**
+     * Popup item is selected.
+     */
+    virtual void PopupItemSelectedL() = 0;
+
+    };
+
 
 /**
 *  CNcsPopupListBox
@@ -43,27 +65,31 @@ class CNcsPopupListBox : public CEikTextListBox,
                          public MEikListBoxObserver,
                          public MFSEmailUiContactHandlerObserver
     {
-public: // Constructors and destructor
-
-		/*
-		* @param aMailBox reference to current mailbox item
-		*/
-    static CNcsPopupListBox* NewL( const CCoeControl* aParent, CFSMailBox& aMailBox, 
-                                   CNcsHeaderContainer& aHeaderContainer,
-                                   TBool aRemoteLookupSupported );
+public:
 
     /*
-    * @param aMailBox reference to current mailbox item
-    */
+     * @param aMailBox reference to current mailbox item
+     */
+    static CNcsPopupListBox* NewL( const CCoeControl* aParent,
+        CFSMailBox& aMailBox, MNcsPopupListBoxObserver& aObserver,
+        TBool aRemoteLookupSupported );
+
+    /*
+     * @param aMailBox reference to current mailbox item
+     */
     void ConstructL( const CCoeControl* aParent );
 
     /*
-    * 
-    *
-    * @param aText
-    */
+     * Initialises popup and begins the search.
+     * @param aText Search text.
+     */
     void InitAndSearchL( const TDesC& aText, TInt aMode = -1 );
-		
+
+    /** 
+     * Hides the popup window.
+     */
+    void ClosePopupL();
+
     // Destructor
     virtual ~CNcsPopupListBox();
 
@@ -149,7 +175,7 @@ private: // to populate new list
  
     void SetScrollBarVisibilityL();
 
-    void SetRemoteLookupItemFirstToTheListL();
+    void SetRemoteLookupItemToTheListL( TInt aIndex );
 		
     enum TRemoteLookupItemMoveDirection
         {
@@ -163,13 +189,14 @@ private: // to populate new list
 
 private:
 
-    CNcsPopupListBox( CNcsHeaderContainer& aHeaderContainer,
-        TBool aRemoteLookupSupported, CFSMailBox& aMailbox );
+    CNcsPopupListBox( CFSMailBox& aMailbox,
+        MNcsPopupListBoxObserver& aObserver,
+        TBool aRemoteLookupSupported );
 
     virtual void CreateItemDrawerL();
 
     void UpdateListL();
-
+    void UpdateVisibilityL( TBool aVisible );
     void UpdateTextColors();
 
     // From CCoeControl.
@@ -177,25 +204,28 @@ private:
 
 private: // data
 
-    CNcsHeaderContainer&				iHeaderContainer;
-
+    // Background control context. Own.
     CAknsFrameBackgroundControlContext* iBackgroundContext;
+    // Items matching the current searh string. Own.
+    RPointerArray<CFSEmailUiClsItem>    iMatchingItems;
 
-    RPointerArray<CFSEmailUiClsItem>	iMatchingItems;
+    // Contact handler.
+    CFSEmailUiContactHandler*           iContactHandler;
+    CFSMailBox&                         iMailBox;
+    // Observer for popup visibility changes.
+    MNcsPopupListBoxObserver&           iObserver;
+    TRect                               iPopupMaxRect;
 
-    CFSEmailUiContactHandler*			iContactHandler; // Owned
-    CFSMailBox& 						iMailBox;
+    CDesCArray*                         iItemTextsArray;
+    // Current search text. Own.
+    HBufC*                              iCurrentSearchText;
+    TInt                                iRemoteLookupItemPos;
 
-    TRect								iPopupMaxRect;
-    
-    CDesCArray*							iItemTextsArray;
-    HBufC*								iCurrentSearchText;
-    TInt								iRemoteLookupItemPos;
-    
-    TBool 								iRemoteLookupSupported;
-    TBool 								iCachingInProgress;
-    
-    CFreestyleEmailUiAppUi*             iAppUi;  //<cmail>  not owned
+    TBool                               iRemoteLookupSupported;
+    TBool                               iCachingInProgress;
+
+    CFreestyleEmailUiAppUi*             iAppUi; // not owned
+
     };
 
 

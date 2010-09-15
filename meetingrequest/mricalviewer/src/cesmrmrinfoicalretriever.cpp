@@ -605,6 +605,22 @@ void CESMRInfoIcalRetrieverCmd::FillCommonFieldsL()
         {
         iConvertedEntry->SetPriorityL( iMRInfoObject->PriorityL() );
         }
+    
+    if ( IsFieldSupported( iSupportedFields, MMRInfoObject::EESMRInfoFieldPrivacy ) )
+        {
+        if( iMRInfoObject->PrivacyL() == MMRInfoObject::EMRSensitivityPrivate )
+            {
+            iConvertedEntry->SetReplicationStatusL( CCalEntry::EPrivate );
+            }
+        else if( iMRInfoObject->PrivacyL() == MMRInfoObject::EMRSensitivityConfidential )
+            {
+            iConvertedEntry->SetReplicationStatusL( CCalEntry::ERestricted );
+            }
+        else
+            {
+            iConvertedEntry->SetReplicationStatusL( CCalEntry::EOpen );
+            }
+        }
     }
 
 // ---------------------------------------------------------------------------

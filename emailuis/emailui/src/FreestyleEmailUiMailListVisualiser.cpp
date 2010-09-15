@@ -574,7 +574,8 @@ void CFSEmailUiMailListVisualiser::DoFirstStartL()
     iNewEmailText = StringLoader::LoadL( R_COMMAND_AREA_NEW_EMAIL );
 
     // Set menu, mark and background icons
-    iMailTreeListVisualizer->SetMarkIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMarkIcon ) );
+    iMailTreeListVisualizer->SetMarkOnIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMarkOnIcon ) );
+    iMailTreeListVisualizer->SetMarkOffIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMarkOffIcon ) );
     iMailTreeListVisualizer->SetMenuIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMenuIcon ) );
     iMailList->AddObserverL( *this );
     iMailList->AddObserverL( *iTouchManager );
@@ -1655,16 +1656,17 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
         }
 
     iShowReplyAll = EFalse;
-
-	if ( !iFirstStartCompleted )
-	    {
-	    DoFirstStartL();
-	    }
+    TBool bDoFirstStartCalled( EFalse );
+    if ( !iFirstStartCompleted )
+        {
+        DoFirstStartL();
+        bDoFirstStartCalled = ETrue;
+        }
     // set when editor was called so reset is needed i.e. here (Called by DoActivate)
-   	iMailOpened = EFalse; 
+    iMailOpened = EFalse; 
 
     // Make sure that pending popup is not displayd
-	if ( iAppUi.FolderList().IsPopupShown() )
+    if ( iAppUi.FolderList().IsPopupShown() )
         {
         iAppUi.FolderList().HidePopupL();
         }
@@ -1692,18 +1694,20 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     SetMailListLayoutAnchors();
     //if the view is already active don't update the icons so they won't "blink" 
     //when the view is activated.
-    if(!iThisViewActive && !iMarkingMode)
+    if( !iThisViewActive && !iMarkingMode )
         {     
-        ScaleControlBarL();
         
-        // Set icons on toolbar
-        iAppUi.FsTextureManager()->ClearTextureByIndex( EListControlBarMailboxDefaultIcon );
-        iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
-        iAppUi.FsTextureManager()->ClearTextureByIndex( EListTextureCreateNewMessageIcon );
-        iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
-        iAppUi.FsTextureManager()->ClearTextureByIndex( GetSortButtonTextureIndex() );
-        iSortButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ) );
-
+        ScaleControlBarL();
+        if ( !bDoFirstStartCalled ) // Don't set the icon if set by DoFirstStart()
+            { 
+            // Set icons on toolbar
+            iAppUi.FsTextureManager()->ClearTextureByIndex( EListControlBarMailboxDefaultIcon );
+            iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
+            iAppUi.FsTextureManager()->ClearTextureByIndex( EListTextureCreateNewMessageIcon );
+            iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
+            iAppUi.FsTextureManager()->ClearTextureByIndex( GetSortButtonTextureIndex() );
+            iSortButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ) );
+            }
         SetListAndCtrlBarFocusL();
         }
 
@@ -2540,6 +2544,7 @@ void CFSEmailUiMailListVisualiser::ExitMarkingModeL()
     iMarkingMode = EFalse;    
     // Hide marking mode text on the place of drop down menus
     UpdateFolderAndMarkingModeTextsL();
+    iMailList->SetMarkingModeL( EFalse );
     UnmarkAllItemsL();
     // Change softkeys back to normal
     SetViewSoftkeysL( R_FREESTYLE_EMAUIL_UI_SK_OPTIONS_BACK );
@@ -2547,8 +2552,6 @@ void CFSEmailUiMailListVisualiser::ExitMarkingModeL()
     CEikMenuBar* menu = iAppUi.CurrentActiveView()->MenuBar();
     menu->StopDisplayingMenuBar();
     menu->SetMenuTitleResourceId(R_FSEMAILUI_MAILLIST_MENUBAR);
-    // Change background back to normal
-    DisplayMarkingModeBgL( EFalse );   
     // Display drop down menu buttons
     iControlBarControl->SetRectL( iAppUi.LayoutHandler()->GetControlBarRect() );
     iNewEmailButton->SetDimmed( EFalse );
@@ -2570,6 +2573,7 @@ void CFSEmailUiMailListVisualiser::EnterMarkingModeL()
     {
     FUNC_LOG;	
     iMarkingMode = ETrue;
+    iMailList->SetMarkingModeL( ETrue );
 	iListMarkItemsState = ETrue; // shift-scrolling does marking after one item is marked
     HandleCommandL( EFsEmailUiCmdActionsExpandAll );
     // Change softkeys for marking mode
@@ -2589,8 +2593,6 @@ void CFSEmailUiMailListVisualiser::EnterMarkingModeL()
     iMailTreeListVisualizer->HideList();   
     SetMailListLayoutAnchors();
     iMailTreeListVisualizer->ShowListL();
-    // Change background to marking mode
-    DisplayMarkingModeBgL( ETrue );    
     }
 
 // ---------------------------------------------------------------------------
@@ -2676,26 +2678,6 @@ void CFSEmailUiMailListVisualiser::RemoveMarkingModeTextOnButtonsL()
         iMarkingModeTextContentLayout = NULL;
         iMarkingModeTextParentLayout->RemoveAndDestroyAllD();
         iMarkingModeTextParentLayout = NULL;
-        }
-    }
-
-// ---------------------------------------------------------------------------
-//
-//
-// ---------------------------------------------------------------------------
-//
-void CFSEmailUiMailListVisualiser::DisplayMarkingModeBgL( TBool aDisplay )
-    {
-    FUNC_LOG;
-    if (aDisplay)
-        {
-        CAlfBrush* brush = iAppUi.FsTextureManager()->NewMailListMarkingModeBgBrushLC();
-        iMailTreeListVisualizer->SetBackgroundBrushL( brush );
-        CleanupStack::Pop( brush );
-        }
-    else
-        {
-        iMailTreeListVisualizer->ClearBackground();
         }
     }
 
@@ -5929,10 +5911,14 @@ void CFSEmailUiMailListVisualiser::CreateControlBarLayoutL()
         EAlfAlignVCenter );
 
 	// Show the buttons
-  	iNewEmailButton->ShowButtonL();
-    iFolderListButton->ShowButtonL();
-    iSortButton->ShowButtonL();
-	}
+    if( iThisViewActive || iMarkingMode )
+        {
+        iNewEmailButton->ShowButtonL();
+        iFolderListButton->ShowButtonL();
+        iSortButton->ShowButtonL();
+        }
+    // else buttons shown later in ChildDoActivete() by ScaleControlBarL()
+    }
 
 // ---------------------------------------------------------------------------
 //
@@ -6014,59 +6000,52 @@ TFSEmailUiTextures CFSEmailUiMailListVisualiser::GetSortButtonTextureIndex()
     
     TFSEmailUiTextures textureIndex( ETextureFirst );
     switch ( iCurrentSortCriteria.iField )
-		{
-		case EFSMailSortBySubject:
-			{
-			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-						   ESortListSubjectDescTexture :
-						   ESortListSubjectAscTexture;
-			}
-			break;
-		case EFSMailSortByAttachment:
-			{
-			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-						   ESortListAttachmentDescTexture :
-						   ESortListAttachmentAscTexture;
-			}
-			break;
-		case EFSMailSortByFlagStatus:
-			{
-			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-						   ESortListFollowDescTexture :
-						   ESortListFollowAscTexture;
-			}
-			break;
-		case EFSMailSortByRecipient:
-		case EFSMailSortBySender:
-			{
-			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-						   ESortListSenderDescTexture :
-						   ESortListSenderAscTexture;
-			}
-			break;
-		case EFSMailSortByPriority:
-			{
-			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-						   ESortListPriorityDescTexture :
-						   ESortListPriorityAscTexture;
-			}
-			break;
-		case EFSMailSortByUnread:
-			{
-			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-						   ESortListUnreadDescTexture :
-						   ESortListUnreadAscTexture;
-			}
-			break;
-		case EFSMailSortByDate:
-		default:
-			{
-			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-						   ESortListDateDescTexture :
-						   ESortListDateAscTexture;
-			}
-			break;
-  		}
+        {
+        case EFSMailSortBySubject:
+            {
+            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+                ESortListSubjectAscTexture : ESortListSubjectDescTexture;
+            }
+            break;
+        case EFSMailSortByAttachment:
+            {
+            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+                ESortListAttachmentAscTexture : ESortListAttachmentDescTexture;
+            }
+            break;
+        case EFSMailSortByFlagStatus:
+            {
+            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+                ESortListFollowAscTexture : ESortListFollowDescTexture;
+            }
+            break;
+        case EFSMailSortByRecipient:
+        case EFSMailSortBySender:
+            {
+            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+                ESortListSenderAscTexture : ESortListSenderDescTexture;
+            }
+            break;
+        case EFSMailSortByPriority:
+            {
+            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+                ESortListPriorityAscTexture : ESortListPriorityDescTexture;
+            }
+            break;
+        case EFSMailSortByUnread:
+            {
+            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+                ESortListUnreadAscTexture : ESortListUnreadDescTexture;
+            }
+            break;
+        case EFSMailSortByDate:
+        default:
+            {
+            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+                ESortListDateAscTexture : ESortListDateDescTexture;
+            }
+            break;
+        }
     return textureIndex;
 	}
 

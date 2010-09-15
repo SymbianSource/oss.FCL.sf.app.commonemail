@@ -303,6 +303,11 @@ class CBaseMrInfoObject :
             TTime aRecId );
         
         IMPORT_C TTime MRRecurrenceId() const;
+        
+        IMPORT_C void SetPrivacyL(
+            TCalSensitivity aPrivacyL );
+            
+        IMPORT_C TCalSensitivity PrivacyL() const;
 
 
     protected:
@@ -314,7 +319,7 @@ class CBaseMrInfoObject :
         HBufC* iUid;
         HBufC* iLocation;
         HBufC* iSubject;
-        HBufC* iDescription;        
+        HBufC* iDescription;
         TTime iCreationTime;
         TTime iStartTime;
         TTime iEndTime;
@@ -322,6 +327,7 @@ class CBaseMrInfoObject :
         TTime iRecurrenceId;
         TInt iSequenceNumber;
         TUint iPriority;
+        TCalSensitivity iPrivacy;
         TMRMethod iMethod;
         TResponse iResponse;
     };

@@ -56,7 +56,8 @@ enum TFSEmailUiTextures
 	EBackgroundTextureBar,
 	EBackgroundTextureThumb,
 	EBackgroundTextureMailList,
-	EListControlMarkIcon,
+	EListControlMarkOnIcon,
+	EListControlMarkOffIcon,	
 	EListControlMenuIcon,
 	EMailListBarBgIcon,
 	ESearchLookingGlassIcon,
@@ -224,8 +225,6 @@ enum TFSEmailUiTextures
 	EAttachmentsSaveAll,
 	EAttachmentsCancelAll,
 	EAttachmentsViewAll,
-	
-    EMarkingModeBackgroundIcon,
     
 	// TEXTURE COUNT
 	ETextureCount,
@@ -287,9 +286,6 @@ public:
 	// Get new mail list separator brush	
 	// Ownership IS transferred to caller.
 	CAlfFrameBrush* NewMailListSeparatorBgBrushLC();
-	// Get marking mode background brush	
-	// Ownership IS transferred to caller.
-	CAlfImageBrush* NewMailListMarkingModeBgBrushLC();
 	// Get new mail list separator brush	
     // Ownership IS transferred to caller.
 	CAlfImageBrush* NewControlBarListBgBrushLC();

@@ -73,7 +73,7 @@ void COverlayControl::HandlePointerEventL( const TPointerEvent& aPointerEvent )
     if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
         {      
         // Give feedback to user (vibration)     
-        iTouchFeedBack->InstantFeedback( this, ETouchFeedbackBasicButton );
+        iTouchFeedBack->InstantFeedback( this, ETouchFeedbackBasic );
         SetPointerCapture( ETrue );        
         }
     CCoeControl::HandlePointerEventL( aPointerEvent );

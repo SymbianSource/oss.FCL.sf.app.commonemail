@@ -566,7 +566,7 @@ RESOURCE IPS_SET_ARRAY r_ips_set_array_user_authentication
             {
             itemtype = EIpsSetUiItemRadioButton;
             itemid = EIpsSetUiUserAuthenticationBtnOwnForOutgoing;
-            itemlabel = qtn_fse_settings_outgoing_setting;
+            itemlabel = qtn_fse_settings_outgoing_user_authentication;
             }
         };
     }

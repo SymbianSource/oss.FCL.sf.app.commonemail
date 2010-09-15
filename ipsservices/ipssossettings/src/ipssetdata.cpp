@@ -179,6 +179,22 @@ void CIpsSetData::LoadL( const TMsvId aMailboxId, CMsvSession& aSession )
     TMsvEntry mbox = IpsSetUtils::GetMailboxEntryL( aSession, aMailboxId );
     manager->LoadEmailSettingsL( mbox, *this );
     
+    // Update signature if needed
+    HBufC* body = NULL;
+    body = HBufC::NewL( iSignature->iRichText->DocumentLength() );
+    CleanupStack::PushL( body );
+    TPtr ptr = body->Des();
+    iSignature->iRichText->Extract( ptr );
+    TInt len = ptr.Length();
+    ptr.TrimLeft();
+    len-= ptr.Length();
+    if( len )
+        {
+        // Remove leading empty line from signature
+        iSignature->iRichText->DeleteL( 0, len );
+        }
+    CleanupStack::PopAndDestroy( body );
+    
     CleanupStack::PopAndDestroy( manager );
     manager = NULL;
     }
@@ -523,11 +539,11 @@ TImIAPChoice CIpsSetData::Iap( const TBool aIncoming ) const
     ret.iIAP = 0;
     if ( aIncoming )
         {
-		if (iIncomingIapPref->SNAPDefined())
-			{
-			ret.iIAP = iIncomingIapPref->SNAPPreference();
-			}
-			
+        if (iIncomingIapPref->SNAPDefined())
+            {
+            ret.iIAP = iIncomingIapPref->SNAPPreference();
+            }
+            
         if ( iIncomingIapPref->NumberOfIAPs() > 0 )
             {
             ret = iIncomingIapPref->IAPPreference(0);
@@ -826,7 +842,29 @@ void CIpsSetData::SetSignatureL( const TDesC& aSignature )
     {
     FUNC_LOG;
     iSignature->iRichText->Reset();
-    iSignature->iRichText->InsertL( 0, aSignature );
+    
+    if ( aSignature.Length() )
+        {
+        TChar firstChar = aSignature[0];
+        _LIT( KNewLines, "\r\n\x2028\x2029" );
+        _LIT( KIMSLineFeed, "\r\n");
+        if ( KNewLines().Locate( firstChar ) == KErrNotFound )
+            {
+            // First character is not a new line character. Insert one.
+            HBufC* body = NULL;
+            body = HBufC::NewL( aSignature.Length() + KIMSLineFeed().Length() );
+            CleanupStack::PushL( body );
+            TPtr ptr = body->Des();
+            ptr.Append( KIMSLineFeed );
+            ptr.Append( aSignature );
+            iSignature->iRichText->InsertL( 0, ptr );
+            CleanupStack::PopAndDestroy( body );
+            }
+        else
+            {
+            iSignature->iRichText->InsertL( 0, aSignature );
+            }
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -945,18 +983,18 @@ void CIpsSetData::SetIapL(
     CleanupStack::Pop( iOutgoingIapPref );
         
     if (aIncomingIap.SNAPDefined())
-    	{
-		iIncomingIapPref->SetSNAPL(aIncomingIap.SNAPPreference());
-    	}
+        {
+        iIncomingIapPref->SetSNAPL(aIncomingIap.SNAPPreference());
+        }
     else
-    	{
-    	iIncomingIapPref->AddIAPL( aIncomingIap.IAPPreference(0) );
-    	}
+        {
+        iIncomingIapPref->AddIAPL( aIncomingIap.IAPPreference(0) );
+        }
         
     if (aOutgoingIap.SNAPDefined())
-      	{
-    	iOutgoingIapPref->SetSNAPL(aOutgoingIap.SNAPPreference());
-       	}
+        {
+        iOutgoingIapPref->SetSNAPL(aOutgoingIap.SNAPPreference());
+        }
     else
     	{
     	iOutgoingIapPref->AddIAPL( aOutgoingIap.IAPPreference(0) );
@@ -1110,12 +1148,12 @@ void CIpsSetData::SetDownloadSizeL(
         }
    //<cmail>
     else if ( iProtocol == KSenduiMtmPop3Uid && aDownloadControl == CIpsSetData::EHeadersPlus )
-    	{
-    	// fix for POP that has only 2 radio (IMAP has 3) 
-    	// and the second should have value of EWholeBody instead of EHeadersPlus 
-    	size = KIpsSetDataFullBodyAndAttas; 
-    	}
-    //</cmail>	
+        {
+        // fix for POP that has only 2 radio (IMAP has 3) 
+        // and the second should have value of EWholeBody instead of EHeadersPlus 
+        size = KIpsSetDataFullBodyAndAttas; 
+        }
+    //</cmail>
     else
         {
         size = aDownloadSize;

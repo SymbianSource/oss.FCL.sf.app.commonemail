@@ -129,11 +129,11 @@ void CNcsEditor::OpenVirtualKeyBoardL()
 // CNcsEditor::GetLineRectL() const
 // -----------------------------------------------------------------------------
 //
-void CNcsEditor::GetLineRectL( TRect& aLineRect ) const
+void CNcsEditor::GetLineRect( TRect& aLineRect ) const
     {
     FUNC_LOG;
     TPoint position;
-    iLayout->DocPosToXyPosL( CursorPos(), position );
+    TRAP_IGNORE( iLayout->DocPosToXyPosL( CursorPos(), position ) );
     iLayout->GetLineRect( position.iY, aLineRect );
     }
 
@@ -670,7 +670,10 @@ TCoeInputCapabilities CNcsEditor::InputCapabilities() const
 void CNcsEditor::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
     {
     iPhysOngoing = aPhysOngoing;
-    this->SetCursorVisible( !aPhysOngoing );
+    if ( IsFocused() )
+        {
+        SetCursorVisible( !aPhysOngoing );
+        }
     }
 
 TBool CNcsEditor::IsPhysicsEmulationOngoing() const

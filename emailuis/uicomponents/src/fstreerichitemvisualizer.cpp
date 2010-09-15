@@ -19,11 +19,7 @@
 
 #include "emailtrace.h"
 #include <txtrich.h>
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
 
-// <cmail> SF
 #include <alf/alfcontrol.h>
 #include <alf/alflayout.h>
 #include <alf/alfflowlayout.h>
@@ -34,7 +30,6 @@
 #include <alf/alfimagevisual.h>
 #include <alf/alfbrusharray.h>
 #include <alf/alfenv.h>
-// </cmail>
 
 #include "fstreerichitemvisualizer.h"
 #include "fstreerichitemdata.h"
@@ -505,7 +500,8 @@ void CFsTreeRichItemVisualizer::UpdateL(
     const MFsTreeItemData& aData,
     TBool /*aFocused*/,
     const TUint aLevel,
-    CAlfTexture*& aMarkIcon,
+    CAlfTexture*& aMarkOnIcon,
+    CAlfTexture*& /*aMarkOffIcon*/,
     CAlfTexture*& aMenuIcon,
     const TUint /*aTimeout*/,
     TBool aUpdateData)
@@ -534,7 +530,7 @@ void CFsTreeRichItemVisualizer::UpdateL(
             if (iFlags & KFsTreeListItemMarked)
                 {
                 iIconMarked->SetScaleMode( CAlfImageVisual::EScaleFit );
-                iIconMarked->SetImage(TAlfImage(*aMarkIcon));
+                iIconMarked->SetImage(TAlfImage(*aMarkOnIcon));
                 }
 
             if (iFlags & KFsTreeListItemHasMenu)

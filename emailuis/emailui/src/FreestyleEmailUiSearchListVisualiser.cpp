@@ -213,7 +213,7 @@ void CFSEmailUiSearchListVisualiser::DoFirstStartL()
 
     // Set mark type and icon
     iSearchList->SetMarkTypeL( CFsTreeList::EFsTreeListMultiMarkable );
-    iSearchTreeListVisualizer->SetMarkIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMarkIcon ) );
+    iSearchTreeListVisualizer->SetMarkOnIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMarkOnIcon ) );
     iSearchTreeListVisualizer->SetMenuIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMenuIcon ) );
 	iSearchTreeListVisualizer->SetFlipState( iKeyboardFlipOpen );
 	iSearchTreeListVisualizer->SetFocusVisibility( iFocusVisible );

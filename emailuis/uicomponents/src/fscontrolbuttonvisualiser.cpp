@@ -221,7 +221,8 @@ void CFsControlButtonVisualiser::UpdateVisualThemeL()
     if( iUseDefaultBackground )
         {
         ClearBackgroundImage();
-        iDefaultBgBrush = CAlfFrameBrush::NewL( iParent->Env(), KAknsIIDQsnFrButtonTb );  
+        iDefaultBgBrush = CAlfFrameBrush::NewL( iParent->Env(), KAknsIIDQsnFrButtonTb );
+        iLastUpdatedButtonModelSize.SetSize(0,0); // prevent code skip in ClearBackgroundImage
         iBgBrush = iDefaultBgBrush;
         iButtonLayout->Brushes()->AppendL( iBgBrush, EAlfDoesNotHaveOwnership );
         UpdateBarLayout();
@@ -678,14 +679,16 @@ EXPORT_C void CFsControlButtonVisualiser::UpdateButtonSize()
             }
         }
 
+    TSize size =  iButtonModel->Size();
+    
     // New size for the button background.
-    iButtonLayout->SetSize( iButtonModel->Size() );
+    iButtonLayout->SetSize( size );
     // Same size for the content
-    iButtonContentLayout->SetSize( iButtonModel->Size() );
+    iButtonContentLayout->SetSize( size );
 
-    if( iDefaultBgBrush )
+    if ( iDefaultBgBrush && size != iLastUpdatedButtonModelSize )
         {
-        TSize size =  iButtonModel->Size();
+        iLastUpdatedButtonModelSize = size;
         TRect fullRect = TRect( size );
         TRect innerRect = fullRect;
         innerRect.Shrink( KButtonBorderSize,KButtonBorderSize );

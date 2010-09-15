@@ -162,8 +162,8 @@ private:
      */
 	TBool ReadCLSInfoFromMRUListIndexL( MDesCArray& aTextArray,
 										CFSEmailUiClsItem& aClsItem,
-										const TInt aCurrentMatchIndex,
-										const TInt aPreviousMatchIndex );
+										TInt aCurrentMatchIndex,
+										TInt aPreviousMatchIndex );
 
     /**
      * Searches given cls item from the given list. If duplicate is found, it is returned.

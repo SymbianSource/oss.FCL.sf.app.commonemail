@@ -15,11 +15,6 @@
 *
 */
 
-
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
-
 #include "emailtrace.h"
 #include "fstreeplainonelinenodevisualizer.h"
 #include "fstreeplainonelinenodedata.h"
@@ -29,7 +24,6 @@
 #include "fsmarqueeclet.h"
 #include <touchlogicalfeedback.h>
 
-// <cmail> SF
 #include <alf/alfanchorlayout.h>
 #include <alf/alfimagevisual.h>
 #include <alf/alfviewportlayout.h>
@@ -39,7 +33,6 @@
 
 #include <alf/alfevent.h>
 #include <alf/alfmappingfunctions.h>
-// </cmail>
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -193,6 +186,15 @@ void CFsTreePlainOneLineNodeVisualizer::SetAlwaysExtended( TBool /*aAlwaysExtend
     iFlags &= ~KFsTreeListItemAlwaysExtended;
     }
 
+// ---------------------------------------------------------------------------
+// From MFsTreeItemVisualizer.
+// 
+// ---------------------------------------------------------------------------
+//
+void CFsTreePlainOneLineNodeVisualizer::SetMarkingMode( TBool /*aMarkingMode*/ ) //TEJ_MMD
+    {
+    FUNC_LOG;
+    }
 
 // ---------------------------------------------------------------------------
 // From MFsTreeItemVisualizer.
@@ -587,7 +589,8 @@ void CFsTreePlainOneLineNodeVisualizer::ShowL( CAlfLayout& aParentLayout,
 void CFsTreePlainOneLineNodeVisualizer::UpdateL( const MFsTreeItemData& aData,
                                           TBool aFocused,
                                           const TUint aLevel,
-                                          CAlfTexture*& aMarkIcon,
+                                          CAlfTexture*& aMarkOnIcon,
+                                          CAlfTexture*& /*aMarkOffIcon*/,
                                           CAlfTexture*& aMenuIcon,
                                           const TUint /*aTimeout*/,
                                           TBool aUpdateData)
@@ -622,7 +625,7 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateL( const MFsTreeItemData& aData,
 
             //update the ancors for current item settings
             const TInt indent( iTextIndentation * ( aLevel - 1 ) );
-            UpdateLayout(data, indent, aMarkIcon, aMenuIcon);
+            UpdateLayout(data, indent, aMarkOnIcon, aMenuIcon);
 
             if (iTextVisual && aUpdateData)
                 {
@@ -695,9 +698,9 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateL( const MFsTreeItemData& aData,
                     }
                 }
 
-            if ( IsMarked() && iIconMarked && aMarkIcon )
+            if ( IsMarked() && iIconMarked && aMarkOnIcon )
                 {
-                iIconMarked->SetImage( *aMarkIcon );
+                iIconMarked->SetImage( *aMarkOnIcon );
                 }
 
             if ( (iFlags & KFsTreeListItemHasMenu) && iIconMenu && aMenuIcon )

@@ -22,13 +22,8 @@
 
 
 #include <e32base.h>
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
 #include <gdi.h>
-// <cmail> SF
 #include <alf/alfeventhandler.h>
-// </cmail>
 #include "fstreenodevisualizer.h"
 
 class CAlfLayout;
@@ -310,7 +305,6 @@ public: //from MFsTreeItemVisualizer
      */
     virtual void SetBackgroundTexture( const CAlfTexture& aTexture );
 
-    // <cmail>
     /**
      * From MFsTreeItemVisualizer.
      * Sets item background brush. Ownership not transfered.
@@ -328,7 +322,6 @@ public: //from MFsTreeItemVisualizer
      * @return ETrue if background brush is set, EFalse otherwise.
      */
     virtual TBool GetBackgroundBrush( CAlfBrush*& aBrush );
-    // </cmail>
 
     /**
      * From MFsTreeItemVisualizer.
@@ -364,6 +357,8 @@ public: //from MFsTreeItemVisualizer
      * @param ETrue if item should always be in extended state.
      */
     virtual void SetAlwaysExtended( TBool aAlwaysExtended );
+
+    virtual void SetMarkingMode( TBool aMarkingMode );
     
     /**
      * This function returns wether an item is always in extended state.
@@ -439,7 +434,8 @@ public: //from MFsTreeItemVisualizer
     virtual void UpdateL( const MFsTreeItemData& aData,
             TBool aFocused,
             const TUint aLevel,
-            CAlfTexture*& aMarkIcon,
+            CAlfTexture*& aMarkOnIcon,
+            CAlfTexture*& aMarkOffIcon,
             CAlfTexture*& aMenuIcon,
             const TUint aTimeout = 0,
             TBool aUpdateData = ETrue);
@@ -569,9 +565,7 @@ protected:
         EFsNodeBackgroundNone,
         EFsNodeBackgroundColor,
         EFsNodeBackgroundTexture,
-    // <cmail> this feature is waiting for title divider bg graphics
         EFsNodeBackgroundBrush       
-    // </cmail>
         };
     
 protected:

@@ -92,23 +92,22 @@ CNcsAddressInputField* CNcsAddressInputField::NewL(
 // -----------------------------------------------------------------------------
 //
 void CNcsAddressInputField::ConstructL( TInt aLabelTextId )
-	{
+    {
     FUNC_LOG;
-	// Create label
-	//Load the label string
-	HBufC* aTextBuf = StringLoader::LoadLC( aLabelTextId );
+    // Create label
+    //Load the label string
+    HBufC* aTextBuf = StringLoader::LoadLC( aLabelTextId );
 
-	TPtrC captionText = aTextBuf ? aTextBuf->Des() : TPtrC();
-	CreateControlsL( captionText );
-	
-	iTextEditor = new ( ELeave ) CNcsAifEditor( iSizeObserver,
-                                                captionText );
+    TPtrC captionText = aTextBuf ? aTextBuf->Des() : TPtrC();
+    CreateControlsL( captionText );
+
+    iTextEditor = new ( ELeave ) CNcsAifEditor( iSizeObserver, captionText );
     // iTextEditor is not completely constructed until in SetContainerWindowL()
 
-	iTextEditor->SetPopupList(iAddressPopupList);
+    iTextEditor->SetPopupList(iAddressPopupList);
 
-	CleanupStack::PopAndDestroy( aTextBuf );
-	}
+    CleanupStack::PopAndDestroy( aTextBuf );
+    }
 
 // ---------------------------------------------------------------------------
 // Destructor
@@ -120,15 +119,8 @@ CNcsAddressInputField::~CNcsAddressInputField()
     delete iTextEditor;
     delete iButton;
     delete iLabel;
-// <cmail> Platform layout change
-    /*if ( iFont )
-        {
-        ControlEnv()->ScreenDevice()->ReleaseFont( iFont );
-        iFont = NULL;
-        }</cmail>*/
     }
 
-//<cmail>
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::CreateControlsL()
 // -----------------------------------------------------------------------------
@@ -156,7 +148,6 @@ void CNcsAddressInputField::CreateControlsL( const TDesC& aControlText )
         iLabel->SetBrushStyle(CWindowGc::ENullBrush);
         }
     }
-//</cmail>
 
 // ---------------------------------------------------------------------------
 // SetContainerWindow
@@ -169,37 +160,34 @@ void CNcsAddressInputField::SetContainerWindowL( const CCoeControl& aContainer )
     FUNC_LOG;
     CCoeControl::SetContainerWindowL(aContainer);
 
-	InitComponentArrayL();
-	// Check if we need to construct the components
-	if (Components().Count() == 2) return;
+    InitComponentArrayL();
+    // Check if we need to construct the components
+    if (Components().Count() == 2) return;
 
-	// Load the controls into the compoent array
-	CCoeControlArray& controls = Components();
-	controls.SetControlsOwnedExternally(ETrue);
-	//<cmail>
-	if( iButton )
-	    {
-	    controls.AppendLC( iButton );
-	    CleanupStack::Pop( iButton );
-	    }
-	else
-	    {
-	    controls.AppendLC( iLabel );
-	    CleanupStack::Pop( iLabel );
-	    }
-	//</cmail>
-	controls.AppendLC(iTextEditor);
+    // Load the controls into the compoent array
+    CCoeControlArray& controls = Components();
+    controls.SetControlsOwnedExternally(ETrue);
+    //<cmail>
+    if( iButton )
+        {
+        controls.AppendLC( iButton );
+        CleanupStack::Pop( iButton );
+        }
+    else
+        {
+        controls.AppendLC( iLabel );
+        CleanupStack::Pop( iLabel );
+        }
+
+    controls.AppendLC(iTextEditor);
     CleanupStack::Pop(iTextEditor);
 
-// <cmail>
-
-	// Setup the text editor
-	iTextEditor->ConstructL( &aContainer, KMaxAddressFieldLines, 0 );
-// </cmail>
+    // Setup the text editor
+    iTextEditor->ConstructL( &aContainer, KMaxAddressFieldLines, 0 );
 
     iTextEditor->SetBorder( TGulBorder::ENone );
-	iTextEditor->SetAknEditorInputMode( EAknEditorTextInputMode );
-	iTextEditor->SetAknEditorFlags( EAknEditorFlagNoT9 | EAknEditorFlagUseSCTNumericCharmap );
+    iTextEditor->SetAknEditorInputMode( EAknEditorTextInputMode );
+    iTextEditor->SetAknEditorFlags( EAknEditorFlagNoT9 | EAknEditorFlagUseSCTNumericCharmap );
 
      CRepository* repository = NULL;
      TRAPD( err, repository = CRepository::NewL( KFreestyleEmailCenRep ) );
@@ -214,9 +202,9 @@ void CNcsAddressInputField::SetContainerWindowL( const CCoeControl& aContainer )
          }
     delete repository;
     repository = NULL;
-    
-	iTextEditor->SetAknEditorCurrentCase( EAknEditorLowerCase );
-	iTextEditor->CreateScrollBarFrameL()->SetScrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOff );
+
+    iTextEditor->SetAknEditorCurrentCase( EAknEditorLowerCase );
+    iTextEditor->CreateScrollBarFrameL()->SetScrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOff );
     iTextEditor->SetEdwinSizeObserver( this );
     iTextEditor->SetupEditorL();
 
@@ -266,27 +254,27 @@ TInt CNcsAddressInputField::GetMinLabelLength() const
 // -----------------------------------------------------------------------------
 //
 void CNcsAddressInputField::SizeChanged()
-	{
+    {
     FUNC_LOG;
 
-   	TRect rect = Rect();
- 
-   	if( AknLayoutUtils::PenEnabled() )
-   	    {
-   	    LayoutTouch();
-   	    }
-   	  else
-   	    {
-   	    LayoutNonTouch();
-   	    }
+    TRect rect = Rect();
+
+    if( AknLayoutUtils::PenEnabled() )
+        {
+        LayoutTouch();
+        }
+    else
+        {
+        LayoutNonTouch();
+        }
 
     // This needs to be bidi as in mirrored layout 
     // writing language left to right can be set. 
     // Need to set here as layout sets it also to left or right.
     iTextEditor->SetAlignment( EAknEditorAlignBidi );
-   	    
+
     UpdateFontSize();
-    
+
     if (iTextEditor->ScrollBarFrame())
         {
         TRect rc = iTextEditor->Rect();
@@ -300,38 +288,37 @@ void CNcsAddressInputField::SizeChanged()
             }
         iTextEditor->SetRect(rc);
         }
-    
+
     PositionChanged();
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::PositionChanged()
 // set size
 // -----------------------------------------------------------------------------
 void CNcsAddressInputField::PositionChanged()
-	{
+    {
     FUNC_LOG;
-    
+
     // keep the button in view as long as possible
     if( iButton && iParentControl->IsVisible() )
-    	{
-		const TRect rect( Rect() );
-		const TRect buttonRect( iButton->Rect() );
-		
-		TInt newButtonPos( iOriginalButtonPos.iY - iOriginalFieldPos.iY );
-		
-		if( rect.iTl.iY < 0 && newButtonPos + buttonRect.Height() < rect.iBr.iY )
-			{
-			iButton->SetPosition( TPoint(iOriginalButtonPos.iX, newButtonPos) );
-			}
-		else
-			{
-			iButton->SetPosition( TPoint(iOriginalButtonPos.iX, newButtonPos + rect.iTl.iY) );
-			}
-    	}
-	}
+        {
+        const TRect rect( Rect() );
+        const TRect buttonRect( iButton->Rect() );
 
-//<cmail>
+        TInt newButtonPos( iOriginalButtonPos.iY - iOriginalFieldPos.iY );
+
+        if( rect.iTl.iY < 0 && newButtonPos + buttonRect.Height() < rect.iBr.iY )
+            {
+            iButton->SetPosition( TPoint(iOriginalButtonPos.iX, newButtonPos) );
+            }
+        else
+            {
+            iButton->SetPosition( TPoint(iOriginalButtonPos.iX, newButtonPos + rect.iTl.iY) );
+            }
+        }
+    }
+
 // -----------------------------------------------------------------------------
 // CNcsAddressInputField::LayoutNonTouch()
 // 
@@ -361,7 +348,7 @@ void CNcsAddressInputField::LayoutTouch()
 
     iTextEditor->UpdateCustomDrawer();
     }
-    
+
 // -----------------------------------------------------------------------------
 // CNcsAddressInputField::HandlePointerEventL()
 // Handles pointer events
@@ -369,38 +356,33 @@ void CNcsAddressInputField::LayoutTouch()
 //
 void CNcsAddressInputField::HandlePointerEventL( const TPointerEvent& aPointerEvent )
     {
-	FUNC_LOG;
-    iTextEditor->HandlePointerEventL(aPointerEvent);
-    if( iButton )
+    FUNC_LOG;
+    CCoeControl::HandlePointerEventL( aPointerEvent );
+
+    switch ( aPointerEvent.iType )
         {
-        iButton->HandlePointerEventL( aPointerEvent );
-        }
-    iTextEditor->HandleTextChangedL();
-    
-    switch( aPointerEvent.iType )
-    	{
-    	case TPointerEvent::EButton1Down:
-    		{
+        case TPointerEvent::EButton1Down:
+            {
             // Save start position so that it can be used in
             // drag/scrolling calculations
             iStartPosition = aPointerEvent.iPosition;
             iIsDraggingStarted = EFalse;
             break;
-    		}
-    		
-    	case TPointerEvent::EDrag:
-    		{
+            }
+
+        case TPointerEvent::EDrag:
+            {
             if ( !iIsDraggingStarted && iPhysics )
                 {
                 TInt drag( iStartPosition.iY - aPointerEvent.iPosition.iY );
                 if ( Abs( drag ) > iPhysics->DragThreshold() )
                     {
-					iIsDraggingStarted = ETrue;
+                    iIsDraggingStarted = ETrue;
                     }
                 }
             break;
-    		}
-    	}
+            }
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -418,7 +400,6 @@ void CNcsAddressInputField::HandleControlEventL( CCoeControl* aControl, TCoeEven
             }
         }
     }
-//</cmail>
 
 // -----------------------------------------------------------------------------
 // CNcsAddressInputField::OfferKeyEventL()
@@ -427,22 +408,22 @@ void CNcsAddressInputField::HandleControlEventL( CCoeControl* aControl, TCoeEven
 //
 TKeyResponse 
 CNcsAddressInputField::OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType )
-	{
+    {
     FUNC_LOG;
-	TKeyResponse ret( EKeyWasNotConsumed );
+    TKeyResponse ret( EKeyWasNotConsumed );
 
-	if( aKeyEvent.iCode == EKeyOK )
-		{
-		iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse );
-		iTextEditor->UpdateAddressListAllL();
-		}
-	else
-		{
-		ret = iTextEditor->OfferKeyEventL( aKeyEvent, aType );
-		}
+    if( aKeyEvent.iCode == EKeyOK )
+        {
+        iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse );
+        iTextEditor->UpdateAddressListAllL();
+        }
+    else
+        {
+        ret = iTextEditor->OfferKeyEventL( aKeyEvent, aType );
+        }
 
-	return ret;
-	}
+    return ret;
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsAddressInputField::FocusChanged()
@@ -455,30 +436,6 @@ void CNcsAddressInputField::FocusChanged( TDrawNow aDrawNow )
 		{
 		iTextEditor->SetFocus( ETrue, aDrawNow );
         //TRAP_IGNORE( iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse ) );
-
-        // make sure that control is visible on screen
-		if ( Rect().iTl.iY < 0 )
-			{
-			TPoint pt = TPoint( 0, 0 );
-			Reposition( pt,Rect().Width() );
-            iSizeObserver->UpdateFieldPosition( this );
-			}
-		else
-		    {
-		    TPoint pos = PositionRelativeToScreen();
-		    pos.iY += Size().iHeight;
-    	    CWsScreenDevice* screenDev = ControlEnv()->ScreenDevice();
-    	    TPixelsAndRotation pix;
-    		screenDev->GetDefaultScreenSizeAndRotation( pix );
-    		const TInt h = pix.iPixelSize.iHeight;
-    		if ( pos.iY >= h - h / 3 )
-    		    {
-    			TPoint pt = TPoint( 0, h / 3 );
-    			Reposition( pt,Rect().Width() );
-                iSizeObserver->UpdateFieldPosition( this );
-    		    }
-		    }
-
         if ( iParentControl )
             {
             TRAP_IGNORE( iParentControl->SetMskL() );
@@ -771,10 +728,10 @@ CEikEdwin* CNcsAddressInputField::TextEditor() const
 // CNcsAddressInputField::GetLineRectL()
 // -----------------------------------------------------------------------------
 //
-void CNcsAddressInputField::GetLineRectL( TRect& aLineRect ) const
+void CNcsAddressInputField::GetLineRect( TRect& aLineRect ) const
 	{
     FUNC_LOG;
-    return iTextEditor->GetLineRectL( aLineRect );
+    return iTextEditor->GetLineRect( aLineRect );
 	}
 
 // -----------------------------------------------------------------------------

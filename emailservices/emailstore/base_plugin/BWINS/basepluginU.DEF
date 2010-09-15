@@ -195,4 +195,6 @@ EXPORTS
 	?CalendarFileName@CBasePlugin@@MBEABVTDesC16@@XZ @ 194 NONAME ; class TDesC16 const & CBasePlugin::CalendarFileName(void) const
 	?StartOp@CDelayedOp@@QAEXXZ @ 195 NONAME ; void CDelayedOp::StartOp(void)
 	?DeleteDelayedOpsManager@CBasePlugin@@QAEXXZ @ 196 NONAME ; void CBasePlugin::DeleteDelayedOpsManager(void)
+	?PrivacyL@CBaseMrInfoObject@@UBE?AW4TCalSensitivity@MMRInfoObject@@XZ @ 197 NONAME ; enum MMRInfoObject::TCalSensitivity CBaseMrInfoObject::PrivacyL(void) const
+	?SetPrivacyL@CBaseMrInfoObject@@UAEXW4TCalSensitivity@MMRInfoObject@@@Z @ 198 NONAME ; void CBaseMrInfoObject::SetPrivacyL(enum MMRInfoObject::TCalSensitivity)
 

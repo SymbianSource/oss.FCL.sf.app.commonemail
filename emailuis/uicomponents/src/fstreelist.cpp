@@ -20,15 +20,9 @@
 //////SYSTEM INCLUDES
 
 //////TOOLKIT INCLUDES
-// <cmail> SF
 #include "emailtrace.h"
 #include <alf/alfenv.h>
-// </cmail>
 
-//////PROJECT INCLUDES
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
 #include "fstreelist.h"
 #include "fstreecontrol.h"
 #include "fstree.h"
@@ -346,6 +340,16 @@ EXPORT_C TBool CFsTreeList::IsFocused() const
     FUNC_LOG;
     return iListFocused;
     }
+
+//---------------------------------------------------------------------------
+// 
+//---------------------------------------------------------------------------
+EXPORT_C void CFsTreeList::SetMarkingModeL( const TBool aMarkingMode )
+    {
+    FUNC_LOG;
+    iTreeVisualizer->SetMarkingModeL( aMarkingMode );
+    }
+
 
 // ---------------------------------------------------------------------------
 //  The function sets duration of the slide-in effect.
@@ -940,19 +944,16 @@ EXPORT_C CFsTreeList* CFsTreeList::ItemMenu(
 //  Retrieves events from tree visualizer
 // ---------------------------------------------------------------------------
 //
-// <cmail> Touch
 EXPORT_C void CFsTreeList::TreeVisualizerEventL(
         const TFsTreeVisualizerEvent aEvent,
         const TFsTreeItemId aId,
         const TPoint& aPoint ) const
-// </cmail>
     {
     FUNC_LOG;
     MFsTreeListObserver::TFsTreeListEvent listEvent;
 
     switch ( aEvent )
     {
-    // <cmail> "Base class modifications for using touch"
     case MFsTreeVisualizerObserver::EFsTreeItemTouchAction:
         {
         listEvent = MFsTreeListObserver::EFsTreeListItemTouchAction;
@@ -968,9 +969,6 @@ EXPORT_C void CFsTreeList::TreeVisualizerEventL(
         listEvent = MFsTreeListObserver::EFsTreeListItemTouchFocused;
         break;
         }
-
-    // </cmail>
-
     case MFsTreeVisualizerObserver::EFsTreeItemSelected:
         {
         listEvent = MFsTreeListObserver::EFsTreeItemSelected;
@@ -1006,8 +1004,6 @@ EXPORT_C void CFsTreeList::TreeVisualizerEventL(
         listEvent = MFsTreeListObserver::EFsTreeListItemWillGetFocused;
         break;
         }
-
-    // <cmail>
     // Pass on the collapse/expand events.
     case MFsTreeVisualizerObserver::EFsTreeListItemCollapsed:
         {
@@ -1029,7 +1025,6 @@ EXPORT_C void CFsTreeList::TreeVisualizerEventL(
         listEvent = MFsTreeListObserver::EFsTreeListExpandedAll;
         break;
         }
-    // </cmail>
     case MFsTreeVisualizerObserver::EFsChangeFocusVisibility:
         {
         listEvent = MFsTreeListObserver::EFsFocusVisibilityChange;

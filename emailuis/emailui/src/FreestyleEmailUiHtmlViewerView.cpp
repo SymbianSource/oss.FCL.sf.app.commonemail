@@ -471,10 +471,18 @@ void CFsEmailUiHtmlViewerView::ShowContainerL()
 // ---------------------------------------------------------------------------
 //  hide or show Container ( used for activation of the view )
 //
-void CFsEmailUiHtmlViewerView::FadeOut(TBool aDirectionOut )
+void CFsEmailUiHtmlViewerView::FadeOut( TBool aDirectionOut )
 	{
 	FUNC_LOG;
-	iContainer->MakeVisible(!aDirectionOut);
+	if ( !iContainer )
+		{
+        TFsEmailUiUtility::ShowErrorNoteL( 
+            R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
+		}
+	else
+		{
+	    iContainer->MakeVisible( !aDirectionOut );
+		}
 	}
 
 
@@ -863,7 +871,11 @@ void CFsEmailUiHtmlViewerView::NavigateBackL()
         {
         iMessage = NULL;
         CancelFetchings();
-        CFsEmailUiViewBase::NavigateBackL();
+        TUid current = iAppUi.CurrentActiveView()->Id();
+        if ( current == this->Id() )
+            {
+            CFsEmailUiViewBase::NavigateBackL();
+            }
 
         if ( iContainer )
             {

@@ -15,11 +15,6 @@
 *
 */
 
-
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
-
 #include "emailtrace.h"
 #include "fstreeplainonelineitemvisualizer.h"
 #include "fstreeplainonelineitemdata.h"
@@ -30,7 +25,6 @@
 #include "fsmarqueeclet.h"
 #include <touchlogicalfeedback.h>
 
-// <cmail> SF
 #include <alf/alfanchorlayout.h>
 #include <alf/alfimagevisual.h>
 #include <alf/alfviewportlayout.h>
@@ -41,7 +35,6 @@
 
 #include <alf/alfevent.h>
 #include <alf/alfmappingfunctions.h>
-// </cmail>
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -347,7 +340,7 @@ void CFsTreePlainOneLineItemVisualizer::UpdateLayout(
     if ( iFlags & KFsTreeListItemMarked )
         {
         TInt iconMarkedVisIndex =
-                            iLayout->FindVisual(iIconMarked);
+                            iLayout->FindVisual(iIconMark);
         if ( iconMarkedVisIndex != KErrNotFound )
             {
             iLayout->SetAnchor(EAlfAnchorTopLeft,
@@ -365,16 +358,16 @@ void CFsTreePlainOneLineItemVisualizer::UpdateLayout(
 
             TAlfTimedValue opacity;
             opacity.SetValueNow(1.0f);
-            iIconMarked->SetOpacity(opacity);
+            iIconMark->SetOpacity(opacity);
             }
         }
     else
         {
-        if (iIconMarked)
+        if (iIconMark)
             {
             TAlfTimedValue opacity;
             opacity.SetValueNow(0.0f);
-            iIconMarked->SetOpacity(opacity);
+            iIconMark->SetOpacity(opacity);
             }
         }
     iLayout->UpdateChildrenLayout();
@@ -407,7 +400,6 @@ void CFsTreePlainOneLineItemVisualizer::ShowL( CAlfLayout& aParentLayout,
             {
             iIconVisual =
                         CAlfImageVisual::AddNewL(iOwnerControl, iLayout);
-            // <cmail> aspect ratio preserved
             iIconVisual->SetScaleMode( CAlfImageVisual::EScaleFitInside);
             iIconVisual->SetFlag( EAlfVisualFlagIgnorePointer );
             }
@@ -426,11 +418,11 @@ void CFsTreePlainOneLineItemVisualizer::ShowL( CAlfLayout& aParentLayout,
             iTextVisual->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 
-        if (!iIconMarked)
+        if (!iIconMark)
             {
-            iIconMarked = CAlfImageVisual::AddNewL(iOwnerControl, iLayout);
-            iIconMarked->SetScaleMode( CAlfImageVisual::EScaleFitInside);
-            iIconMarked->SetFlag( EAlfVisualFlagIgnorePointer );
+            iIconMark = CAlfImageVisual::AddNewL(iOwnerControl, iLayout);
+            iIconMark->SetScaleMode( CAlfImageVisual::EScaleFitInside);
+            iIconMark->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 
         if (!iIconMenu)
@@ -461,7 +453,8 @@ void CFsTreePlainOneLineItemVisualizer::ShowL( CAlfLayout& aParentLayout,
 void CFsTreePlainOneLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                                           TBool aFocused,
                                           const TUint aLevel,
-                                          CAlfTexture*& aMarkIcon,
+                                          CAlfTexture*& aMarkOnIcon,
+                                          CAlfTexture*& /*aMarkOffIcon*/,
                                           CAlfTexture*& aMenuIcon,
                                           const TUint /*aTimeout*/,
                                           TBool aUpdateData)
@@ -499,9 +492,7 @@ void CFsTreePlainOneLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
 
             if (iIconVisual && data->IsIconSet())
                 {
-                // <cmail> aspect ratio preserved
                 iIconVisual->SetScaleMode( CAlfImageVisual::EScaleFitInside );
-                // </cmail>
                 iIconVisual->SetImage( TAlfImage( data->Icon() ) );
                 }
 
@@ -566,9 +557,9 @@ void CFsTreePlainOneLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
             if ( IsMarked() )
                 {
                 // <cmail> aspect ratio preserved
-                iIconMarked->SetScaleMode( CAlfImageVisual::EScaleFitInside);
+                iIconMark->SetScaleMode( CAlfImageVisual::EScaleFitInside);
                 // </cmail>
-                iIconMarked->SetImage( *aMarkIcon );
+                iIconMark->SetImage( *aMarkOnIcon );
                 }
 
             if ((iFlags & KFsTreeListItemHasMenu)
@@ -630,7 +621,7 @@ void CFsTreePlainOneLineItemVisualizer::Hide( const TInt aTimeout )
         iLayout = NULL;
         iTextVisual = NULL;
         iIconVisual = NULL;
-        iIconMarked = NULL;
+        iIconMark = NULL;
         iIconMenu = NULL;
         iParentLayout = NULL;
         iViewportLayout = NULL;

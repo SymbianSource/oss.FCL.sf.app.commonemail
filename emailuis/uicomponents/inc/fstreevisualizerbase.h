@@ -843,15 +843,27 @@ public:
     /**
      * Sets icon for a mark sign.
      *
-     * @param aMarkIcon Icon to mark items.
+     * @param aMarkOnIcon Icon to mark items.
      */
-    virtual void SetMarkIcon( CAlfTexture& aMarkIcon );
+    virtual void SetMarkOnIcon( CAlfTexture& aMarkOnIcon );
 
     /**
-     * Returns icon used to mark items.
+     * Sets icon for a mark sign.
+     *
+     * @param aMarkOffIcon Icon to unmark items.
      */
-    virtual CAlfTexture* MarkIcon( );
+    virtual void SetMarkOffIcon( CAlfTexture& aMarkOffIcon );
 
+    /**
+     * Returns icon used to identify marked items.
+     */
+    virtual CAlfTexture* MarkOnIcon( );
+
+    /**
+     * Returns icon used to identify unmarked items.
+     */
+    virtual CAlfTexture* MarkOffIcon( );    
+    
     /**
      * Checks if item is marked and return status
      * @param aItemId item id to be checked
@@ -922,6 +934,14 @@ public:
      * CFsTreeList::SetFocusedL() instead.
      */
     void SetFocusedL( const TBool aFocused );
+
+    /**
+     * Sets marking mode on\off
+     * 
+     * @param ETrue if marking mode is set on
+     */
+
+    void SetMarkingModeL( const TBool aMarkingMode );
 
     /**
      *
@@ -1009,9 +1029,7 @@ public:
      *
      * @panic EFsListPanicInvalidItemID Item with specified ID is not found.
      */
-    // <cmail>
     virtual void SetFocusedItemL( const TFsTreeItemId aItem, TBool aCheckFocus = ETrue );
-    // </cmail>
 
     /**
     * Gets item vertical position in the list
@@ -1042,9 +1060,7 @@ public:
      *
      * @param aItemId Id of an item that will be displayed as first.
      */
-    // <cmail>
     virtual void SetFirstVisibleItemL( const TFsTreeItemId aItemId );
-    // </cmail>
 
     /**
      * Get an id of the first visible item.
@@ -1300,6 +1316,11 @@ public:
      */
     virtual TBool IsItemsAlwaysExtended ( );
 
+    /*
+     * The function returns ETrue if marking mode is on
+     */
+    virtual TBool IsMarkingMode ( );    
+    
     /**
      * The function sets a text for empty list's view.
      * The function does not refresh the view automatically.
@@ -2171,8 +2192,13 @@ private: //Data members
     /**
      * Icon used to mark items.
      */
-    CAlfTexture* iMarkIcon;
+    CAlfTexture* iMarkOnIcon;
 
+    /**
+     * Icon used to unmark items.
+     */
+    CAlfTexture* iMarkOffIcon;    
+    
     /**
      * Icon indicating that item has menu.
      */
@@ -2370,7 +2396,12 @@ private: //Data members
          * This flag is checked when trying to focus item. Focus is ignored 
          * if list is being panned. 
          */        
-        EListPanning
+        EListPanning,
+		
+        /**
+         * Informs if marking mode is on
+         */
+        EMarkingMode
     };
 
     // Flags

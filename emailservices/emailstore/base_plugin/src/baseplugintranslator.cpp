@@ -496,13 +496,14 @@ EXPORT_C void CBasePlugin::TranslateMsgStoreMrL(
         TUint32 priority = aCalendar.PropertyValueUint32L( idx );
         mmrInfo->SetPriorityL( priority );
         }
-        
-    /**@ privacy/sensitivity missing ? */
-    /*idx = 0;
+
+    //privacy/sensitivity
+    idx = 0;
     if ( aCalendar.FindProperty( KMsgStorePropertyMrPrivate, idx ) )
         {
-        TBool private = aCalendar.PropertyValueBoolL( idx );
-        }*/
+        TUint32 privacy = aCalendar.PropertyValueUint32L( idx );
+        mmrInfo->SetPrivacyL( static_cast<MMRInfoObject::TCalSensitivity>( privacy ) );
+        }
 
     //method.
     idx = 0;
@@ -1025,12 +1026,9 @@ EXPORT_C void CBasePlugin::TranslateEmailFwMrL(
     calendar->AddOrUpdatePropertyL(
         KMsgStorePropertyMrPriority, static_cast<TUint32>( aSrc.PriorityL() ) );
 
-    /**@ privacy/sensitivity missing ? */
-    /*idx = 0;
-    if ( aCalendar.FindProperty( KMsgStorePropertyMrPrivate, idx ) )
-        {
-        TBool private = aCalendar.PropertyValueBoolL( idx );
-        }*/
+    //privacy/sensitivity
+    calendar->AddOrUpdatePropertyL(
+            KMsgStorePropertyMrPrivate, static_cast<TUint32>( aSrc.PrivacyL() ) );
 
     //recurrent count.
     calendar->AddOrUpdatePropertyL(

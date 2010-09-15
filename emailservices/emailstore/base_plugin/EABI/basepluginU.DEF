@@ -299,4 +299,8 @@ EXPORTS
 	_ZNK11CBasePlugin16CalendarFileNameEv @ 298 NONAME
 	_ZN10CDelayedOp7StartOpEv @ 299 NONAME
 	_ZN11CBasePlugin23DeleteDelayedOpsManagerEv @ 300 NONAME
+	_ZN17CBaseMrInfoObject11SetPrivacyLEN13MMRInfoObject15TCalSensitivityE @ 301 NONAME
+	_ZNK17CBaseMrInfoObject8PrivacyLEv @ 302 NONAME
+	_ZThn4_N17CBaseMrInfoObject11SetPrivacyLEN13MMRInfoObject15TCalSensitivityE @ 303 NONAME
+	_ZThn4_NK17CBaseMrInfoObject8PrivacyLEv @ 304 NONAME
 

@@ -435,7 +435,7 @@ void CIpsPlgSmtpOperation::ValidateAddressArrayL( const CDesCArray& aRecipients 
         // is display name with special characters
         TInt start( fullName.LocateReverse( KIpsSmtpOperationCharLessThan ) ); 
         TInt end( fullName.LocateReverse( KIpsSmtpOperationCharMoreThan ) );
-        if ( KErrNotFound != start && KErrNotFound != end )
+        if ( KErrNotFound != start && KErrNotFound != end && start < end )
             {
             start += 1;
             fullName.Set( aRecipients[i].Mid( start, ( end - start ) ) );

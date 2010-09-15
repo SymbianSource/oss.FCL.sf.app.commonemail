@@ -23,9 +23,11 @@
 #include <aknnotewrappers.h> //CAknInformationNote
 #include <FreestyleEmailUi.rsg>
 #include <aknphysics.h>
+#include <AknPriv.hrh>
 
 #include "cfsmailbox.h"
 #include <FreestyleEmailUi.rsg>
+#include <layoutmetadata.cdl.h>
 
 #include "FSEmailBuildFlags.h"
 #include "ncsheadercontainer.h"
@@ -81,7 +83,8 @@ CNcsHeaderContainer::CNcsHeaderContainer(
 	iFieldSizeObserver( static_cast< CNcsComposeViewContainer& >( aParent ) ),
 	iMailBox( aMailBox ),
 	iLongTapEventConsumed( EFalse ),
-    iPhysics( aPhysics )
+    iPhysics( aPhysics ),
+    iSplitScreenVKBEnabled( EFalse )
 	{
     FUNC_LOG;
 	}
@@ -159,16 +162,15 @@ void CNcsHeaderContainer::ConstructL( TInt aFlags )
         }
 
     // initially attachments field is hidden
-	iAttachmentField->MakeVisible( EFalse );
-	controls.Remove( iAttachmentField );
+    iAttachmentField->MakeVisible( EFalse );
+    controls.Remove( iAttachmentField );
 
-	// test whether mailbox supports remote lookup
-	TBool remoteLookupSupported = 
+    // test whether mailbox supports remote lookup
+    TBool remoteLookupSupported = 
         TFsEmailUiUtility::IsRemoteLookupSupported( iMailBox );
-	
-	iAacListBox = CNcsPopupListBox::NewL( 
-	        this, iMailBox, *this, remoteLookupSupported );
-	iAacListBox->MakeVisible( EFalse );
+
+    iAacListBox = CNcsPopupListBox::NewL( 
+        this, iMailBox, *this, remoteLookupSupported );
 
     iRALInProgress = EFalse;
 
@@ -194,61 +196,86 @@ CNcsHeaderContainer::~CNcsHeaderContainer()
 	}
 
 // ---------------------------------------------------------------------------
+// From MNcsPopupListBoxObserver.
+// ---------------------------------------------------------------------------
+//
+TBool CNcsHeaderContainer::PopupVisibilityChangingL( TBool aVisible )
+    {
+    CNcsComposeViewContainer& parent =
+        static_cast<CNcsComposeViewContainer&>( iParent );
+
+    if ( aVisible )
+        {
+        DoScrollFocusToTop();
+        iAacListBox->SetPopupMaxRect( CalculatePopupRect() );
+        }
+    else
+        {
+        // Scroll editor top, if it can be fully displayed.
+        if ( parent.ContentTotalHeight() < parent.VisibleAreaHeight() )
+            {
+            parent.Scroll( 0, ETrue );
+            }
+        }
+
+    parent.UpdateScrollBarVisibility( !aVisible );
+    ShowPopupMenuBarL( aVisible );
+    return ETrue;
+    }
+
+// ---------------------------------------------------------------------------
+// From MNcsPopupListBoxObserver.
+// ---------------------------------------------------------------------------
+//
+void CNcsHeaderContainer::PopupItemSelectedL()
+    {
+    DoPopupSelectL();
+    }
+
+// ---------------------------------------------------------------------------
 // CNcsHeaderContainer::FocusChanged
 // ---------------------------------------------------------------------------
 //
 void CNcsHeaderContainer::FocusChanged( TDrawNow aDrawNow )
-	{
+    {
     FUNC_LOG;
-    
+
     CCoeControl* focused = iFocused;
-    
+
     if ( !focused )
         {
         focused = FindFocused();
         iFocused = focused;
         }
-    
+
     if ( !IsFocused() )
         {
         if ( focused )
             {
             // We're loosing focus (probably going to message body)
             // Commit changes and make sure no controls are focused.
-            TRAP_IGNORE( CommitFieldL( focused ) );
+            if ( iParent.IsFocused() )
+                {
+                TRAP_IGNORE( CommitFieldL( focused ) );
+                }
             focused->SetFocus( EFalse, aDrawNow );
-            iFocused = NULL;
             }
 
         // Remove MSK label when header loses focus
         TRAP_IGNORE( SetMskL() );
-		}
-	else if ( IsFocused() && !focused )
-		{
-		// We're gaining focus from the message body
-		// Set the focus to the last control in the control array
-		// (either attachment line or subject field)
-		CCoeControlArray::TCursor cur = Components().End();
-		cur.Prev();
-		cur.Control<CCoeControl>()->SetFocus( ETrue, aDrawNow );
-        iFocused = cur.Control<CCoeControl>();
-		}
-	}
-
-// ---------------------------------------------------------------------------
-// CNcsHeaderContainer::ShowCursor
-// ---------------------------------------------------------------------------
-//
-void CNcsHeaderContainer::ShowCursor( TBool aShow, TDrawNow aDrawNow )
-    {
-    CCoeControl* focused = FindFocused();
-    if ( focused )
-        {
-        iFocused = focused;
         }
-    if ( iFocused ) 
+    else
         {
-        iFocused->SetFocus( aShow, aDrawNow );
+        if ( !focused )
+            {
+            // We're gaining focus from the message body
+            // Set the focus to the last control in the control array
+            // (either attachment line or subject field)
+            CCoeControlArray::TCursor cur = Components().End();
+            cur.Prev();
+            iFocused = cur.Control<CCoeControl>();
+            }
+        iFocused->SetFocus( ETrue, aDrawNow );
         }
     }
 
@@ -343,73 +370,91 @@ void CNcsHeaderContainer::SetMskL()
 void CNcsHeaderContainer::HandlePointerEventL( 
         const TPointerEvent& aPointerEvent )
     {
-	FUNC_LOG;
-    if ( aPointerEvent.iType == TPointerEvent::EButton1Up )
+    FUNC_LOG;
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
         {
-		CCoeControl* clicked = 0;
-		for ( TInt i=0; i < Components().Count(); ++i )
-			{
-			TRect rc = Components().At( i ).iControl->Rect();
-			if ( rc.Contains( aPointerEvent.iPosition ) )
-				{
-				clicked = Components().At( i ).iControl;
-				}
-			}
-
-	    if ( clicked )
-	        {
-			CCoeControl* pOldCtrl = FindFocused();
-			CCoeControl* pNewCtrl= clicked;
-			
-			if ( pOldCtrl != pNewCtrl )
-				{
-				// Unfocus the control
-				if ( pOldCtrl )
-					{
-					pOldCtrl->SetFocus( EFalse, ENoDrawNow );
-					}
-				pNewCtrl->SetFocus( ETrue, ENoDrawNow );
-				iFocused = pNewCtrl;
-				// Commit changes to previously focused field.
-				if ( pOldCtrl )
-					{
-					CommitFieldL( pOldCtrl );
-					}
-
-				// If the attachments label has changed focus
-				if ( pOldCtrl == iAttachmentField || 
-					 pNewCtrl == iAttachmentField )
-					{
-					DrawAttachmentFocusNow();
-					}
-				
-				CNcsComposeViewContainer* container = 
-					static_cast<CNcsComposeViewContainer*>( &iParent );
-				container->UpdateScrollBar();
-				}
-			
-			if( iLongTapEventConsumed )
-				{
-				iLongTapEventConsumed = EFalse;
-				return;
-				}        
-
-			TBool physicsActionOngoing( EFalse );
-			if ( iPhysics && iPhysics->OngoingPhysicsAction() != CAknPhysics::EAknPhysicsActionNone )
-			{
-                physicsActionOngoing = ETrue;
+        CCoeControl* component = 0;
+        for ( TInt i=0; i < Components().Count(); ++i )
+            {
+            TRect rc = Components().At( i ).iControl->Rect();
+            if ( rc.Contains( aPointerEvent.iPosition ) )
+                {
+                component = Components().At( i ).iControl;
+                }
             }
-			
-			if( pNewCtrl == iAttachmentField && !physicsActionOngoing )
-				{
-				CNcsComposeViewContainer& parent = 
-					static_cast<CNcsComposeViewContainer&>( iParent );
-				parent.HandleAttachmentsOpenCommandL();
-				}          
-	        }
+
+        if ( component )
+            {
+            CCoeControl* pOldCtrl = FindFocused();
+            CCoeControl* pNewCtrl= component;
+
+            if ( pOldCtrl != pNewCtrl )
+                {
+                // Unfocus the control
+                if ( pOldCtrl )
+                    {
+                    pOldCtrl->SetFocus( EFalse, ENoDrawNow );
+                    }
+                pNewCtrl->SetFocus( ETrue, ENoDrawNow );
+                iFocused = pNewCtrl;
+                // Commit changes to previously focused field.
+                if ( pOldCtrl )
+                    {
+                    CommitFieldL( pOldCtrl );
+                    }
+
+                // If the attachments label has changed focus
+                if ( pOldCtrl == iAttachmentField || 
+                        pNewCtrl == iAttachmentField )
+                    {
+                    DrawAttachmentFocusNow();
+                    }
+
+                CNcsComposeViewContainer* container = 
+                        static_cast<CNcsComposeViewContainer*>( &iParent );
+                container->UpdateScrollBar();
+                }
+
+            DrawDeferred();
+            }
         }
 
-	CCoeControl::HandlePointerEventL( aPointerEvent );
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Up )
+        {
+        if ( iLongTapEventConsumed )
+            {
+            iLongTapEventConsumed = EFalse;
+            return;
+            }
+
+        CCoeControl* component = 0;
+        for ( TInt i=0; i < Components().Count(); ++i )
+            {
+            TRect rc = Components().At( i ).iControl->Rect();
+            if ( rc.Contains( aPointerEvent.iPosition ) )
+                {
+                component = Components().At( i ).iControl;
+                }
+            }
+
+        if ( component && component == iFocused )
+            {
+            TBool physicsActionOngoing( EFalse );
+            if ( iPhysics && iPhysics->OngoingPhysicsAction() != CAknPhysics::EAknPhysicsActionNone )
+                {
+                physicsActionOngoing = ETrue;
+                }
+
+            if ( component == iAttachmentField && !physicsActionOngoing )
+                {
+                CNcsComposeViewContainer& parent = 
+                        static_cast<CNcsComposeViewContainer&>( iParent );
+                parent.HandleAttachmentsOpenCommandL();
+                }
+            }
+        }
+
+    CCoeControl::HandlePointerEventL( aPointerEvent );
     }
 
 // -----------------------------------------------------------------------------
@@ -466,27 +511,26 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL(
     TKeyResponse ret( EKeyWasNotConsumed );
     
     TBool doScroll( EFalse );
-    
-    if( aKeyEvent.iCode == EKeyUpArrow || aKeyEvent.iCode == EKeyDownArrow )
-    	{
+
+    if ( aKeyEvent.iCode == EKeyUpArrow || aKeyEvent.iCode == EKeyDownArrow )
+        {
         if ( iAacListBox && iAacListBox->IsVisible() && 
              !iAacListBox->IsPopupEmpty() )
-        	{
-           	return iAacListBox->OfferKeyEventL( aKeyEvent, aType );
-        	}
+            {
+            return iAacListBox->OfferKeyEventL( aKeyEvent, aType );
+            }
         else
-	        {
-		    ret = FindFocused()->OfferKeyEventL( aKeyEvent, aType );
-		    
-    		doScroll = ( ret == EKeyWasConsumed ); 
-	        }
+            {
+            ret = FindFocused()->OfferKeyEventL( aKeyEvent, aType );
+            doScroll = ( ret == EKeyWasConsumed ); 
+            }
 
         if ( ret == EKeyWasNotConsumed ) 
-        	{
+            {
             ret = ChangeFocusL( aKeyEvent );
-        	DrawDeferred();
-        	}
-    	}
+            DrawDeferred();
+            }
+        }
     else
     	{
         if ( FindFocused() == iAttachmentField )
@@ -529,6 +573,7 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL(
 		        {
 		        FindFocused()->OfferKeyEventL( aKeyEvent, aType );
 		        ret = EKeyWasConsumed;
+		        doScroll = ETrue;
 		        }
 		    }
     	}
@@ -539,7 +584,9 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL(
     		{
     		ret = focused->OfferKeyEventL( aKeyEvent, aType );
     		
-    		if(aType==EEventKeyDown)
+    		if( aType == EEventKeyDown &&
+    		    aKeyEvent.iScanCode != EStdKeyUpArrow &&
+    		    aKeyEvent.iScanCode != EStdKeyDownArrow )
     		    {
     		    doScroll = ETrue; 
     		    }
@@ -563,29 +610,29 @@ TKeyResponse CNcsHeaderContainer::OfferKeyEventL(
 // ---------------------------------------------------------------------------
 //
 CCoeControl* CNcsHeaderContainer::FindFocused() const
-	{
+    {
     FUNC_LOG;
-	CCoeControlArray::TCursor cur = Components().Begin();
-	do 
-		{
-		if ( cur.Control<CCoeControl>()->IsFocused() )
-			{
-			return cur.Control<CCoeControl>();
-			}
-		} 
-	while ( cur.Next() );
-	return NULL;
-	}
+    CCoeControlArray::TCursor cur = Components().Begin();
+    do 
+        {
+        if ( cur.Control<CCoeControl>()->IsFocused() )
+            {
+            return cur.Control<CCoeControl>();
+            }
+        } 
+    while ( cur.Next() );
+    return NULL;
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::ChangeFocusL()
 // Handles key events
 // -----------------------------------------------------------------------------
 TKeyResponse CNcsHeaderContainer::ChangeFocusL( const TKeyEvent& aKeyEvent )
-	{
+    {
     FUNC_LOG;
-	ASSERT( aKeyEvent.iCode == EKeyDownArrow || 
-	        aKeyEvent.iCode == EKeyUpArrow );
+    ASSERT( aKeyEvent.iCode == EKeyDownArrow || 
+            aKeyEvent.iCode == EKeyUpArrow );
     TKeyResponse ret( EKeyWasNotConsumed );
 
     CCoeControl* pOldCtrl = FindFocused();
@@ -596,28 +643,24 @@ TKeyResponse CNcsHeaderContainer::ChangeFocusL( const TKeyEvent& aKeyEvent )
     //If this is the first control in the list, don't change focus
     CCoeControlArray::TCursor cur = Components().Find(pOldCtrl);
     if ( aKeyEvent.iCode == EKeyUpArrow && cur == Components().Begin() )
-    	{
-    	return ret;
-    	}
-    
-    // Unfocus the control
-	pOldCtrl->SetFocus( EFalse, ENoDrawNow );
-    
-	CCoeControl* pNewCtrl= NULL;
-    if ( aKeyEvent.iCode == EKeyDownArrow && cur.Next() ) 
-    	{
-	    pNewCtrl = cur.Control<CCoeControl>();
-		pNewCtrl->SetFocus( ETrue, ENoDrawNow );
-        ret = EKeyWasConsumed;
-    	}
-    else if ( aKeyEvent.iCode == EKeyUpArrow && cur.Prev() )
-    	{
-	    pNewCtrl = cur.Control<CCoeControl>();
-		pNewCtrl->SetFocus( ETrue, ENoDrawNow );
-        ret = EKeyWasConsumed;
-    	}
+        {
+        return ret;
+        }
 
-        CNcsComposeViewContainer* container = 
+    // Unfocus the control
+    pOldCtrl->SetFocus( EFalse, ENoDrawNow );
+
+    CCoeControl* pNewCtrl= NULL;
+    if ( ( aKeyEvent.iCode == EKeyDownArrow && cur.Next() ) ||
+         ( aKeyEvent.iCode == EKeyUpArrow && cur.Prev() ) )
+        {
+        pNewCtrl = cur.Control<CCoeControl>();
+        iFocused = pNewCtrl;
+        pNewCtrl->SetFocus( ETrue, ENoDrawNow );
+        ret = EKeyWasConsumed;
+        }
+
+    CNcsComposeViewContainer* container = 
             static_cast<CNcsComposeViewContainer*>( &iParent );
     if ( pOldCtrl == iToField )
         {
@@ -635,13 +678,13 @@ TKeyResponse CNcsHeaderContainer::ChangeFocusL( const TKeyEvent& aKeyEvent )
         {
         container->CommitL( ESubjectField );
         }
-    
-	// If the attachments label has changed focus
-	if ( pOldCtrl == iAttachmentField || pNewCtrl == iAttachmentField )
-		{
-		DrawAttachmentFocusNow();
-		}
-	
+
+    // If the attachments label has changed focus
+    if ( pOldCtrl == iAttachmentField || pNewCtrl == iAttachmentField )
+        {
+        DrawAttachmentFocusNow();
+        }
+
     // if focus was changed, update scroll bar
     if ( ret == EKeyWasConsumed )
         {
@@ -649,9 +692,9 @@ TKeyResponse CNcsHeaderContainer::ChangeFocusL( const TKeyEvent& aKeyEvent )
         DoScroll();
         }
 
-	// NOTE: If we're leaving the header (down was pushed on last control)
-	//       then we return EKeyWasNotConsumed to make sure the
-	//		 parent moves the focus to the control below this container
+    // NOTE: If we're leaving the header (down was pushed on last control)
+    //       then we return EKeyWasNotConsumed to make sure the
+    //		 parent moves the focus to the control below this container
     return ret;
 	}
 
@@ -713,9 +756,8 @@ void CNcsHeaderContainer::UpdateFieldPosition( CCoeControl* aAnchor )
 // set size
 // -----------------------------------------------------------------------------
 void CNcsHeaderContainer::SizeChanged()
-	{
+    {
     FUNC_LOG;
-
     const TRect rect( Rect() );
 
     TInt currentLine( 0 );
@@ -733,11 +775,11 @@ void CNcsHeaderContainer::SizeChanged()
             currentLine += ToNcsControl( cur )->LayoutLineCount();
             }
         } while ( cur.Next() );
-        
-	if( iAacListBox->IsVisible() && !iAacListBox->IsPopupEmpty() )
-		{
-		iAacListBox->SetPopupMaxRect( CalculatePopupRect() );
-		}
+
+    if ( iAacListBox->IsVisible() && !iAacListBox->IsPopupEmpty() )
+        {
+        iAacListBox->SetPopupMaxRect( CalculatePopupRect() );
+        }
 	}
 
 // -----------------------------------------------------------------------------
@@ -799,22 +841,19 @@ TBool CNcsHeaderContainer::NeedsAifMenu() const
 // ---------------------------------------------------------------------------
 //
 TInt CNcsHeaderContainer::GetToLineHeight() const
-	{
-	FUNC_LOG;
-	TInt lineHeight = 0;
-	
-	if(iToField)
-		{
-	    TRect lineRect;
-	    TRAPD(err, iToField->GetLineRectL(lineRect) );
-	   	if(err == KErrNone)
-	        {
-	        lineHeight = lineRect.iBr.iY - lineRect.iTl.iY;
-	        }
-		}
-	return lineHeight;
-	}
-      
+    {
+    FUNC_LOG;
+    TInt lineHeight = 0;
+
+    if ( iToField )
+        {
+        TRect lineRect;
+        iToField->GetLineRect( lineRect );
+        lineHeight = lineRect.Height();
+        }
+    return lineHeight;
+    }
+
 // ---------------------------------------------------------------------------
 // CNcsHeaderContainer::GetTotalHeight
 // ---------------------------------------------------------------------------
@@ -882,6 +921,7 @@ void CNcsHeaderContainer::ShowAttachmentLabelL()
             pOldCtrl->SetFocus( EFalse, ENoDrawNow );
             }
 
+        iFocused = iAttachmentField;
         iAttachmentField->SetFocus( ETrue, ENoDrawNow );
         iFieldSizeObserver.UpdateFieldPosition( iAttachmentField );
         }
@@ -892,46 +932,46 @@ void CNcsHeaderContainer::ShowAttachmentLabelL()
 // -----------------------------------------------------------------------------
 //
 void CNcsHeaderContainer::HideAttachmentLabel()
-	{
+    {
     FUNC_LOG;
-	// check if we are focused and in that case
-	// unfocus attachment filed and focus previous control
+    // check if we are focused and in that case
+    // unfocus attachment filed and focus previous control
     CCoeControl* pOldCtrl = FindFocused();
     CCoeControl* pNewCtrl = NULL;
-    
+
     if ( pOldCtrl == iAttachmentField )
         {
         CCoeControlArray::TCursor cur = Components().Find( pOldCtrl );
-	    pOldCtrl->SetFocus( EFalse, ENoDrawNow );
+        pOldCtrl->SetFocus( EFalse, ENoDrawNow );
 
-	    if ( cur.Prev() )
-	        {
-	        pNewCtrl = cur.Control<CCoeControl>();
-		    pNewCtrl->SetFocus( ETrue, ENoDrawNow );
-	        }
+        if ( cur.Prev() )
+            {
+            pNewCtrl = cur.Control<CCoeControl>();
+            iFocused = pNewCtrl;
+            pNewCtrl->SetFocus( ETrue, ENoDrawNow );
+            }
         }
     else
         {
         pNewCtrl = pOldCtrl; // no need to move focus
         }
 
-	if ( pOldCtrl == iAttachmentField || pNewCtrl == iAttachmentField )
-		{
-		DrawAttachmentFocusNow();
-		}
+    if ( pOldCtrl == iAttachmentField || pNewCtrl == iAttachmentField )
+        {
+        DrawAttachmentFocusNow();
+        }
 
-	iAttachmentField->MakeVisible( EFalse );
-	Components().Remove( iAttachmentField );
-    
-	TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
+    iAttachmentField->MakeVisible( EFalse );
+    Components().Remove( iAttachmentField );
+    TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
 
     // Scroll to currently focused field
-	if ( pNewCtrl )
-	    {
-	    iFieldSizeObserver.UpdateFieldPosition( pNewCtrl );
-	    }
-	
-	}
+    if ( pNewCtrl )
+        {
+        iFieldSizeObserver.UpdateFieldPosition( pNewCtrl );
+        }
+
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::SetBccFieldVisibleL()
@@ -941,100 +981,101 @@ void CNcsHeaderContainer::SetBccFieldVisibleL(
         TBool aVisible, TDrawNow aDrawNow, TBool aFocus ) 
     {
     FUNC_LOG;
-	if ( iBccField->IsVisible() == aVisible )
-		{
-		return;
-		}
+    if ( iBccField->IsVisible() == aVisible )
+        {
+        return;
+        }
 
-	if ( aVisible )
-		{
-		CCoeControlArray::TCursor cur = Components().Find( iSubjectField );
-		Components().InsertLC( cur, iBccField );
-		CleanupStack::Pop( iBccField );
+    if ( aVisible )
+        {
+        CCoeControlArray::TCursor cur = Components().Find( iSubjectField );
+        Components().InsertLC( cur, iBccField );
+        CleanupStack::Pop( iBccField );
 
-		if ( aFocus )
-			{
-			CCoeControl* focused = FindFocused();
+        if ( aFocus )
+            {
+            CCoeControl* focused = FindFocused();
 
-			if ( focused )
-				{
-				focused->SetFocus( EFalse );
-				}
-			iBccField->SetFocus( ETrue );
+            if ( focused )
+                {
+                focused->SetFocus( EFalse, aDrawNow );
+                }
+            iBccField->SetFocus( ETrue, aDrawNow );
             iFocused = iBccField;
-			iBccField->SelectAllTextL();
-			}
-		}
-	else
-		{
-		if ( iBccField->IsFocused() )
-			{
-			CCoeControlArray::TCursor cur = Components().Find( iBccField );
-			ASSERT( cur.IsValid() );
-			
-			iBccField->SetFocus( EFalse );
+            iBccField->SelectAllTextL();
+            }
+        }
+    else
+        {
+        if ( iBccField->IsFocused() )
+            {
+            CCoeControlArray::TCursor cur = Components().Find( iBccField );
+            ASSERT( cur.IsValid() );
 
-			cur.Prev(); // Get the control before this field
-			cur.Control<CCoeControl>()->SetFocus( ETrue );
-			}
-		Components().Remove( iBccField );
-        iFocused = iSubjectField;
-		}
+            iBccField->SetFocus( EFalse );
+
+            cur.Prev(); // Get the control before this field
+            CCoeControl* focused = cur.Control<CCoeControl>();
+            focused->SetFocus( ETrue );
+            iFocused = focused;
+            }
+        Components().Remove( iBccField );
+        }
 
     TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
 
-	if ( aDrawNow == EDrawNow )
-		{
-	    DrawDeferred();
-		}
-	}
+    if ( aDrawNow == EDrawNow )
+        {
+        DrawDeferred();
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::SetCcFieldVisibleL()
 // -----------------------------------------------------------------------------
 void CNcsHeaderContainer::SetCcFieldVisibleL( 
         TBool aVisible, TDrawNow aDrawNow, TBool aFocus ) 
-	{
+    {
     FUNC_LOG;
-	if ( iCcField->IsVisible() == aVisible )
-		{
-		return;
-		}
+    if ( iCcField->IsVisible() == aVisible )
+        {
+        return;
+        }
 
-	if ( aVisible )
-		{
-		Components().InsertAfterLC( Components().Id( *iToField ), iCcField );
-		CleanupStack::Pop( iCcField );
+    if ( aVisible )
+        {
+        Components().InsertAfterLC( Components().Id( *iToField ), iCcField );
+        CleanupStack::Pop( iCcField );
 
-		if ( aFocus )
-			{
-			CCoeControl* focused = FindFocused();
-			if ( focused )
-				{
-				focused->SetFocus( EFalse );
-				}
-			iCcField->SetFocus( ETrue );
+        if ( aFocus )
+            {
+            CCoeControl* focused = FindFocused();
+            if ( focused )
+                {
+                focused->SetFocus( EFalse, aDrawNow );
+                }
+            iCcField->SetFocus( ETrue, aDrawNow );
             iFocused = iCcField;
-			iCcField->SelectAllTextL();
-			}
-		}
-	else
-		{
-		if( iCcField->IsFocused() )
-			{
-			iCcField->SetFocus( EFalse );
-			iToField->SetFocus( ETrue );
-			}
-		Components().Remove( iCcField );
-        iFocused = iToField;
-		}
-    
-	TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
+            iCcField->SelectAllTextL();
+            }
+        }
+    else
+        {
+        if( iCcField->IsFocused() )
+            {
+            iCcField->SetFocus( EFalse );
+            iToField->SetFocus( ETrue );
+            iFocused = iToField;
+            }
+        Components().Remove( iCcField );
+        }
+
+    TRAP_IGNORE( iFieldSizeObserver.UpdateFieldSizeL() );
 
     if ( aDrawNow == EDrawNow )
-		{
-	    DrawDeferred();
-		}
+        {
+        DrawDeferred();
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -1157,65 +1198,63 @@ TInt CNcsHeaderContainer::GetNumChars() const
 //
 void CNcsHeaderContainer::UpdatePopupContactListL( 
         const TDesC& aMatchString, TBool /*aListAll*/ )
-	{
+    {
     FUNC_LOG;
 
     // do update only for address fields
-	CCoeControl* focused = FindFocused();
-	
-	if ( !IsAddressInputField( focused ) )
-	    {
-	    return;
-	    }
-	    
-	if ( aMatchString.CompareC( KNullDesC ) == 0 || 
-	     aMatchString.Compare( KAddressDelimeterSemiColon ) == 0 )
-		{
-		ClosePopupContactListL();
-		return;
-		}
-	
-	if( !iAacListBox->IsVisible() )
-		{
+    CCoeControl* focused = FindFocused();
+
+    if ( !IsAddressInputField( focused ) )
+        {
+        return;
+        }
+
+    if ( aMatchString.CompareC( KNullDesC ) == 0 || 
+            aMatchString.Compare( KAddressDelimeterSemiColon ) == 0 )
+        {
+        ClosePopupContactListL();
+        return;
+        }
+
+    if( !iAacListBox->IsVisible() )
+        {
         iAacListBox->SetPopupMaxRect( CalculatePopupRect() );
         iAacListBox->InitAndSearchL( aMatchString, 1 );
         iAacListBox->ActivateL();
-		}
-	else
-		{
-		iAacListBox->SetSearchTextL( aMatchString );
-		}
-	}
+        }
+    else
+        {
+        iAacListBox->SetSearchTextL( aMatchString );
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsHeaderContainer::ClosePopupContactListL()
 // -----------------------------------------------------------------------------
 //
 void CNcsHeaderContainer::ClosePopupContactListL()
-	{
+    {
     FUNC_LOG;
-
     if ( iAacListBox->IsVisible() )
         {
-        iAacListBox->MakeVisible( EFalse );
-        ShowPopupMenuBarL( EFalse );
-        
-        // The focused address field should be redrawn after the popup is
-        // closed to fix the field border.
-        if ( iToField->IsFocused() )
-            {
-            iToField->DrawDeferred();
-            }
-        else if ( iCcField->IsFocused() )
-            {
-            iCcField->DrawDeferred();
-            }
-        else if ( iBccField->IsFocused() )
-            {
-            iBccField->DrawDeferred();
-            }
+        iAacListBox->ClosePopupL();
         }
-	}
+
+    // The focused address field should be redrawn after the popup is
+    // closed to fix the field border.
+    if ( iToField->IsFocused() )
+        {
+        iToField->DrawDeferred();
+        }
+    else if ( iCcField->IsFocused() )
+        {
+        iCcField->DrawDeferred();
+        }
+    else if ( iBccField->IsFocused() )
+        {
+        iBccField->DrawDeferred();
+        }
+    }
 
 // ---------------------------------------------------------------------------
 // CNcsHeaderContainer::ShowPopupMenuBarL
@@ -1303,9 +1342,10 @@ void CNcsHeaderContainer::SelectAllSubjectFieldTextL()
 	iSubjectField->SelectAllTextL();
 	}
 
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 // CNcsHeaderContainer::CalculatePopupRect
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+//
 TRect CNcsHeaderContainer::CalculatePopupRect()
     {
     FUNC_LOG;
@@ -1321,10 +1361,22 @@ TRect CNcsHeaderContainer::CalculatePopupRect()
         TPoint editorPos = aifEditor->Editor()->PositionRelativeToScreen();
         TRect editorRect = aifEditor->Editor()->Rect();
 
-        popupRect.iTl = TPoint( editorPos.iX, 
-            editorPos.iY + aifEditor->CursorPosition() + 1 );
+        // When layouts are available we'll use them. Until that these are now
+        // hardcoded!
+        TInt tlXPos = 3;
+        TInt tlYPos = editorPos.iY + aifEditor->CursorPosition() + 1;
+        
+        if ( Layout_Meta_Data::IsLandscapeOrientation() &&
+             iSplitScreenVKBEnabled )
+            {
+            tlXPos = iAvkonAppUi->ApplicationRect().Width() / 2;
+            tlYPos = 3;
+            }
+        
+        popupRect.iTl = TPoint( tlXPos, tlYPos );
 
-        popupRect.iBr = TPoint( editorPos.iX + editorRect.Width(),
+        
+        popupRect.iBr = TPoint( iAvkonAppUi->ApplicationRect().iBr.iX  - 3,
             iParent.PositionRelativeToScreen().iY + iParent.Rect().Height() );
         }
 
@@ -1340,7 +1392,7 @@ void CNcsHeaderContainer::DoPopupSelectL()
     __ASSERT_DEBUG( iAacListBox, Panic( ENcsBasicUi ) );
     __ASSERT_DEBUG( &iMailBox, Panic( ENcsBasicUi ) );
 
-	if( iAacListBox->IsRemoteLookupItemSelected() )
+	if ( iAacListBox->IsRemoteLookupItemSelected() )
 		{
 		CCoeControl* focused = FindFocused();
 		
@@ -1870,13 +1922,12 @@ TInt CNcsHeaderContainer::LayoutLineCount() const
     CCoeControlArray::TCursor cur = Components().Begin();
     do
         {
-        totalLineCount += ToNcsControl( cur )->LayoutLineCount();                       
+        totalLineCount += ToNcsControl( cur )->LayoutLineCount();
         } 
     while ( cur.Next() );
     
     return totalLineCount;
     }
-
 
 // ---------------------------------------------------------------------------
 // CNcsHeaderContainer::IsAddressInputField
@@ -1981,11 +2032,11 @@ void CNcsHeaderContainer::OpenPhonebookL()
     }
 
 void CNcsHeaderContainer::FixSemicolonInAddressFieldsL()
-	{
-		iToField->FixSemicolonAtTheEndL();
-		iCcField->FixSemicolonAtTheEndL();
-		iBccField->FixSemicolonAtTheEndL();
-	}
+    {
+    iToField->FixSemicolonAtTheEndL();
+    iCcField->FixSemicolonAtTheEndL();
+    iBccField->FixSemicolonAtTheEndL();
+    }
 
 TBool CNcsHeaderContainer::IsRemoteSearchInprogress() const
     {
@@ -2022,30 +2073,58 @@ void CNcsHeaderContainer::CommitFieldL( CCoeControl* aField )
         }
     }
 
-// -----------------------------------------------------------------------------
-// CNcsHeaderContainer::DoScroll
-// -----------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+// Scrolls editor to make cursor visible, if it is outside the visible area
+// ---------------------------------------------------------------------------
 // 
 void CNcsHeaderContainer::DoScroll()
     {
     // scroll the screen if the cursor goes beyond the screen
-    CNcsComposeViewContainer& parent = static_cast<CNcsComposeViewContainer&>( iParent );
-    
-    TInt screenPos( -Position().iY );
-    TInt cursorPos( CursorPosition() );
-    TInt lineHeight( Rect().Height() / LineCount() );
-    TInt screenHeight( parent.Rect().Height() );
+    CNcsComposeViewContainer& parent = 
+        static_cast<CNcsComposeViewContainer&>( iParent );
 
-    if ( cursorPos - lineHeight < screenPos )
+    // Scrolling based on cursor line number can only be done when
+    // header composer and one of its fields is focused.
+    if ( IsFocused() )
         {
-        screenPos = cursorPos - lineHeight;             
-        }
-    else if( cursorPos + lineHeight > screenPos + screenHeight )
-        {
-        screenPos = cursorPos + lineHeight - screenHeight;
-        }
+        const TRect rect = Rect();
+        const TInt screenPos =  iOrigin.iY - rect.iTl.iY;
+        const TInt screenHeight = parent.VisibleAreaHeight();
 
-    parent.Scroll( screenPos );
+        const TInt lineNumber = CursorLineNumber();
+        const TInt lineHeight = rect.Height() / LineCount();
+        const TInt linePos = lineNumber * lineHeight;
+
+        TInt targetPos = screenPos;
+        if ( linePos - lineHeight < screenPos )
+            {
+            targetPos = linePos - lineHeight;
+            }
+        else if ( linePos + lineHeight > screenPos + screenHeight )
+            {
+            targetPos = linePos + lineHeight - screenHeight;
+            }
+
+        parent.Scroll( targetPos );
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// Scrolls focused editor line to the top of visible area.
+// ---------------------------------------------------------------------------
+//
+void CNcsHeaderContainer::DoScrollFocusToTop()
+    {
+    CNcsComposeViewContainer& parent =
+        static_cast<CNcsComposeViewContainer&>( iParent );
+
+    // Calculate the position of the focused editor line.
+    const TRect rect = Rect();
+    const TInt lineNumber = CursorLineNumber();
+    const TInt lineHeight = rect.Height() / LineCount();
+    const TInt targetPos = ( lineNumber - 1 ) * lineHeight;
+
+    parent.Scroll( targetPos );
     }
 
 // ---------------------------------------------------------------------------
@@ -2059,3 +2138,31 @@ void CNcsHeaderContainer::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
     iBccField->SetPhysicsEmulationOngoing( aPhysOngoing );
     iSubjectField->SetPhysicsEmulationOngoing( aPhysOngoing );
     }
+
+// ---------------------------------------------------------------------------
+// CNcsHeaderContainer::HandleResourceChange
+// ---------------------------------------------------------------------------
+//
+void CNcsHeaderContainer::HandleResourceChange( TInt aType )
+    {
+    FUNC_LOG;
+    CCoeControl::HandleResourceChange( aType );
+    if ( aType == KAknSplitInputEnabled || aType == KAknSplitInputDisabled )
+        {
+        iSplitScreenVKBEnabled = ( aType == KAknSplitInputEnabled );
+        if ( iAacListBox->IsVisible() )
+            {
+            iAacListBox->SetPopupMaxRect( CalculatePopupRect() );
+            }
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// Set origin for header's top position.
+// ---------------------------------------------------------------------------
+//
+void CNcsHeaderContainer::SetOrigin( TPoint& aOrigin )
+    {
+    iOrigin = aOrigin;
+    }
+

@@ -416,4 +416,5 @@ EXPORTS
 	_ZThn32_N14CFsTreeControl11OfferEventLERK9TAlfEvent @ 415 NONAME ; #<thunk>#
 	_ZThn4_N26CFsControlButtonVisualiser23TextureLoadingCompletedER11CAlfTextureii @ 416 NONAME ; #<thunk>#
 	_ZThn4_NK11CFsTreeList20TreeVisualizerEventLEN25MFsTreeVisualizerObserver22TFsTreeVisualizerEventEiRK6TPoint @ 417 NONAME ; #<thunk>#
+	_ZN11CFsTreeList15SetMarkingModeLEi @ 418 NONAME
 

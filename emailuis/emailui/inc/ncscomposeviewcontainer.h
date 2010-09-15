@@ -100,6 +100,12 @@ public: // new functions
     void UpdateScrollBar();
 
     /**
+    * Updates scroll visibility.
+    * @param aVisible Whether or not to set scroll bar visible.
+    */
+    void UpdateScrollBarVisibility( TBool aVisible );
+    
+    /**
     * GetToFieldAddressesL
     * Get addresses in TO-field.
     * @return Array of address objects.
@@ -491,8 +497,10 @@ public: // new functions
     void HandleLayoutChangeL();
     
     void HandleSkinChangeL();
-    
+
     TInt ContentTotalHeight();
+    TInt VisibleAreaHeight();
+
     /**
     * CommitL
     * Commits changes to message
@@ -523,7 +531,7 @@ public: // from MAsyncTextFormatterObserver
      * Called when text formatting was cancelled.
      */
     void FormatAllTextCancelled();
-    
+
     /**
      * Called when text formatting is complete. 
      */
@@ -634,13 +642,13 @@ private:
     * @return Indicates whether the key event was used by this control.
     */
     TKeyResponse ChangeFocusL( const TKeyEvent& aKeyEvent );
-        
+
     /**
-    * UpdateScreenPositionL
+    * UpdateScreenPosition
     * @param aKeyCode Needed to recognize presses of the enter key
     *                 in moving of display.
     */
-    void UpdateScreenPositionL( const TUint& aKeyCode = EKeyNull );
+    void UpdateScreenPosition( const TUint& aKeyCode = EKeyNull );
 
     /**
      * CalculateSeparatorLineSecondaryColor
@@ -772,17 +780,18 @@ private: // data
      * Currently processed field - needed by async text formatting.
      */
     CNcsEditor* iProcessedField;
-    
+
     /**
      * Async text formatter.
      * Own.
      */
     CFSAsyncTextFormatter* iAsyncTextFormatter;
-    
-    /**
-     * Pane rect calculated during ChangeSize.
-     */
+
+    // Cmail pane rect, calculated during SizeChanged.
     TRect iCmailPaneRect;
+    // Header origin, calculated during SizeChanged.
+    TPoint iHeaderPos;
+
     };
 
 

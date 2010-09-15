@@ -239,6 +239,7 @@ class CFSEmailUiLayoutHandler : public CBase
 		//To retrieve respecitve Icon Sizes
 		TInt ListTextureNodeExpandedSize() const;
 		TInt SearchLookingGlassIconSize() const;
+		TInt SearchMarkIconSize() const;
 		TSize statusPaneIconSize() const;
 		TInt ListControlBarMailboxDefaultIconSize() const;
 		TInt EMailListBarBgIconSize() const;

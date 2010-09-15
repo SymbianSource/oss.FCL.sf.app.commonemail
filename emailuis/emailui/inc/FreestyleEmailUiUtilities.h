@@ -287,6 +287,11 @@ public:
      */
     static TBool IsChineseWord( const TDesC& aWord );
     
+    /**
+     * Determines if the descriptor is a Korean word
+     */
+    static TBool IsKoreanWord( const TDesC& aWord );
+    
     // Get the icon file name including the drive letter and full path
     static void GetFullIconFileNameL( TDes& aFileName );
     

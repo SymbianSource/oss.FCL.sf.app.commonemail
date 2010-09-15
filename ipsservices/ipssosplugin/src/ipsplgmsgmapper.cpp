@@ -86,6 +86,11 @@ CIpsPlgMsgMapper* CIpsPlgMsgMapper::NewLC(
 CIpsPlgMsgMapper::~CIpsPlgMsgMapper()
     {
     FUNC_LOG;
+    if( iMsgMapperHelper )
+        {
+        delete iMsgMapperHelper;
+        iMsgMapperHelper = NULL;
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -107,6 +112,8 @@ CIpsPlgMsgMapper::CIpsPlgMsgMapper(
 void CIpsPlgMsgMapper::ConstructL()
     {
     FUNC_LOG;
+	
+    iMsgMapperHelper = CIpsPlgMsgMapperHelper::NewL( iSession );
     }
 
 // ---------------------------------------------------------------------------
@@ -852,12 +859,14 @@ void CIpsPlgMsgMapper::DoSetFetchStateL(
         if ( hasStore )
             {
             CMsvStore* store = cEntry->EditStoreL();
-    
             CleanupStack::PushL( store );
 
+            // For some reason, the attachment manager returns zero attachment
+            // count with pop3 protocol, when the email contains another email
+            // as an attachment. As a workaround, the attachment is set
+            // fetched with pop3 protocol.
             MMsvAttachmentManager& attMgr = store->AttachmentManagerL();
-        
-            if ( attMgr.AttachmentCount() )
+            if ( aEntry.iMtm == KSenduiMtmPop3Uid || attMgr.AttachmentCount() )
                 {
                 aMessage.SetMessagePartsStatus( EFSFull );
                 }
@@ -865,10 +874,9 @@ void CIpsPlgMsgMapper::DoSetFetchStateL(
                 {
                 aMessage.SetMessagePartsStatus( EFSNone );
                 }
-            
+
             CleanupStack::PopAndDestroy( store );
             }
-
         CleanupStack::PopAndDestroy( cEntry );
         }
     else if ( aEntry.Id() != aMsgMainId )
@@ -1506,7 +1514,11 @@ void CIpsPlgMsgMapper::AttaCheckForIncompleteMsgL(
         aMsg.SetFlag( EFSMsgFlag_Attachments );
         if ( !aEntry.Attachment() )
         	{
-        	SetAttachmentFlagL( aEntry, ETrue );
+            TBool success = iMsgMapperHelper->AppendMsvIdToArrayL( aEntry.Id() );
+            if( success )
+                {
+                iMsgMapperHelper->StartSetAttchmentFlag();
+                }
         	}
         }
 
@@ -1595,3 +1607,235 @@ void CIpsPlgMsgMapper::GetCharsetParameterL(
     CleanupStack::PopAndDestroy( cEntry );
     }
 // </cmail>
+
+
+// ---------------------------------------------------------------------------
+// CIpsPlgMsgMapperHelper::OpCompleted
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgMsgMapperHelper::OpCompleted(
+    CIpsPlgSingleOpWatcher& aOpWatcher,
+    TInt aCompletionCode )
+    {
+    FUNC_LOG;
+    
+    TInt opId = aOpWatcher.Operation().Id();
+    TMsvId completedMsvId = aOpWatcher.Operation().Service();
+    
+    if( iCurrentOperationWatcher )
+        {
+        CMsvOperation& oper = iCurrentOperationWatcher->Operation();
+        
+        //delete the iOngoingOperation when it has completed
+        if( oper.Id() == opId )
+            {
+            delete iCurrentOperationWatcher;
+            iCurrentOperationWatcher = NULL;
+            }
+        }
+    
+    //remove the completed MsvId from the iNeedSetAttachFlagArray
+    for( TInt j = 0; j < iNeedSetAttachFlagArray.Count(); ++j )
+        {
+        if( completedMsvId == iNeedSetAttachFlagArray[j] )
+            {
+            iNeedSetAttachFlagArray.Remove( j );
+            break;
+            }
+        }
+    //start next async process
+    iTimer.After( iStatus, 0 );
+    SetActive();
+    }
+
+
+// ---------------------------------------------------------------------------
+// CIpsPlgMsgMapperHelper::NewL
+// ---------------------------------------------------------------------------
+//
+CIpsPlgMsgMapperHelper* CIpsPlgMsgMapperHelper::NewL( CMsvSession& aSession )
+    {
+    FUNC_LOG;
+    
+    CIpsPlgMsgMapperHelper* self = new (ELeave) CIpsPlgMsgMapperHelper( aSession );
+    CleanupStack::PushL(self);
+    self->ConstructL();
+    CleanupStack::Pop();
+    return self;
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgMsgMapperHelper::~CIpsPlgMsgMapperHelper
+// ---------------------------------------------------------------------------
+//
+CIpsPlgMsgMapperHelper::~CIpsPlgMsgMapperHelper()
+    {
+    FUNC_LOG;
+    
+    Cancel();
+    //should delete the iOngoingOperation if it not completed 
+    if( iCurrentOperationWatcher )
+        {
+        delete iCurrentOperationWatcher;
+        iCurrentOperationWatcher = NULL;
+        }
+    iNeedSetAttachFlagArray.Reset();
+    iNeedSetAttachFlagArray.Close();
+    
+    Deque();
+    iTimer.Close();
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgMsgMapperHelper::CIpsPlgMsgMapperHelper
+// ---------------------------------------------------------------------------
+//
+CIpsPlgMsgMapperHelper::CIpsPlgMsgMapperHelper( CMsvSession& aSession )
+:CActive( EPriorityStandard ), iSession( aSession ), iPending( EFalse ),
+iCurrentOperationWatcher( NULL )
+    {
+    FUNC_LOG;
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgMsgMapperHelper::ConstructL
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgMsgMapperHelper::ConstructL()
+    {
+    FUNC_LOG;
+    
+    User::LeaveIfError( iTimer.CreateLocal() );
+    CActiveScheduler::Add(this);
+    }
+
+// inherited from CActive
+// ---------------------------------------------------------------------------
+// CIpsPlgMsgMapperHelper::RunL
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgMsgMapperHelper::RunL()
+    {
+    FUNC_LOG;
+
+    User::LeaveIfError( iStatus.Int() );
+    // always start the async process from the index 0 of iNeedSetAttachFlagArray
+    TInt currentIndex = 0;
+    
+    if( iNeedSetAttachFlagArray.Count() > 0 )
+        {
+        TMsvId entry = iNeedSetAttachFlagArray[currentIndex];
+        TMsvId serviceId;
+        TMsvEmailEntry entryToBeChanged;
+        //get enty by msvid
+        TBool result = iSession.GetEntry( entry, serviceId, entryToBeChanged);
+        
+        if( entryToBeChanged.Attachment() )
+            {
+            // ignore this operation and delete when it has set the attach flag
+            iNeedSetAttachFlagArray.Remove( currentIndex );
+            iTimer.After( iStatus, 0 );
+            SetActive();
+            return;
+            }
+        
+        CIpsPlgSingleOpWatcher* opW = CIpsPlgSingleOpWatcher::NewLC( *this );
+        
+        CMsvEntry* cEntry = iSession.GetEntryL( entry );
+        CleanupStack::PushL( cEntry );
+        
+        entryToBeChanged.SetAttachment( ETrue );
+        CMsvOperation* ops = cEntry->ChangeL( entryToBeChanged, opW->iStatus );
+        CleanupStack::PopAndDestroy( cEntry );
+        
+        if( ops )
+            {
+            opW->SetOperation( ops );
+            if( iCurrentOperationWatcher )
+                {
+                delete iCurrentOperationWatcher;
+                iCurrentOperationWatcher = NULL;
+                }
+            iCurrentOperationWatcher = opW;
+            CleanupStack::Pop( opW );
+            }
+        else
+            {
+            CleanupStack::PopAndDestroy( opW ); 
+            }
+        }
+    else
+        {
+        //all these operation have processed
+        iPending = EFalse;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgMsgMapperHelper::RunError
+// ---------------------------------------------------------------------------
+//
+TInt CIpsPlgMsgMapperHelper::RunError( TInt aError )
+    {
+    FUNC_LOG;
+
+    if ( KErrNone != aError )
+        {
+        Cancel();
+        }
+    return KErrNone;
+    }
+
+void CIpsPlgMsgMapperHelper::DoCancel()
+    {
+    FUNC_LOG;
+    if( iCurrentOperationWatcher )
+        {
+        iCurrentOperationWatcher->Cancel();
+        delete iCurrentOperationWatcher;
+        iCurrentOperationWatcher = NULL;
+        }
+    iTimer.Cancel();
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgMsgMapperHelper::StartSetAttchmentFlag
+// ---------------------------------------------------------------------------
+//
+void CIpsPlgMsgMapperHelper::StartSetAttchmentFlag()
+    {    
+    FUNC_LOG;
+    //should start the ao when not in pending status
+    if( !IsActive() && !iPending )
+        {
+        iTimer.After( iStatus, 0 );
+        SetActive();
+        iPending = ETrue;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// CIpsPlgMsgMapperHelper::AppendToArrayL
+// ---------------------------------------------------------------------------
+//
+TBool CIpsPlgMsgMapperHelper::AppendMsvIdToArrayL( TMsvId aId )
+    {
+    FUNC_LOG;
+
+    TInt count = iNeedSetAttachFlagArray.Count();
+    //check the MsvId if already exist in iNeedSetAttachFlagArray
+    for( TInt i = 0; i < count; ++i )
+        {
+        TMsvId id = iNeedSetAttachFlagArray[i];
+        if( id == aId )
+            {
+            return EFalse;
+            }
+        }
+    
+    iNeedSetAttachFlagArray.AppendL( aId );
+    return ETrue;
+    }
+
+
+

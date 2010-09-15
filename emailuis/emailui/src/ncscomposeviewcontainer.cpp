@@ -148,7 +148,7 @@ void CNcsComposeViewContainer::ConstructL( const TRect& aRect, TInt aFlags )
     // Listen edwin events and size events from smart quote field
     iReadOnlyQuoteField->AddEdwinObserverL( this );
     iReadOnlyQuoteField->SetEdwinSizeObserver( this );
-   iReadOnlyQuoteField->EnableKineticScrollingL( iPhysics );
+    iReadOnlyQuoteField->EnableKineticScrollingL( iPhysics );
 
     // Create the scroll bar
     iScrollBar = new( ELeave ) CAknDoubleSpanScrollBar( this );
@@ -199,16 +199,16 @@ CNcsComposeViewContainer::~CNcsComposeViewContainer()
         iAsyncTextFormatter->Cancel();
         delete iAsyncTextFormatter;
         }
-    
+
     if ( iContactHandler )
         {
         iContactHandler->ClearObservers();
         }
-	delete iHeader;
+    delete iHeader;
     delete iScrollBar;
     delete iMessageField;
     delete iBgContext;
-	delete iLongTapDetector;
+    delete iLongTapDetector;
     delete iReadOnlyQuoteField;
     delete iReadOnlyQuote;
 
@@ -226,33 +226,20 @@ void CNcsComposeViewContainer::FocusChanged( TDrawNow aDrawNow )
     {
     FUNC_LOG;
 
-	if ( iFocused != iHeader &&
-	     iFocused != iMessageField &&
-	     iFocused != iReadOnlyQuoteField )
+    if ( iFocused != iHeader &&
+         iFocused != iMessageField &&
+         iFocused != iReadOnlyQuoteField )
         {
-		iFocused = iHeader;
-        }
-    if ( iFocused == iHeader )
-        {
-        iHeader->ShowCursor( IsFocused() );
-        iFocused->SetFocus( ETrue, aDrawNow );
-        }
-    else if ( iFocused == iMessageField )
-        {
-        iFocused->SetFocus( IsFocused(), aDrawNow );
-        }
-    else 
-        {
-        iFocused->SetFocus( ETrue, aDrawNow );
+        iFocused = iHeader;
         }
 
+    iFocused->SetFocus( IsFocused(), aDrawNow );
     iView.HandleContainerChangeRequiringToolbarRefresh();
 
-	if ( aDrawNow )
-	    {
-		DrawNow();
-	    }
-
+    if ( aDrawNow )
+        {
+        DrawNow();
+        }
     }
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::SetMskL()
@@ -274,21 +261,20 @@ void CNcsComposeViewContainer::HandlePointerEventL(
         const TPointerEvent& aPointerEvent )
     {
     FUNC_LOG;
-	TBool clearSelection(EFalse);
+    TBool clearSelection(EFalse);
     if ( aPointerEvent.iType != TPointerEvent::EButton1Down &&
-         iHeader->NeedsLongTapL( aPointerEvent.iPosition ) )
+            iHeader->NeedsLongTapL( aPointerEvent.iPosition ) )
         {
-    	iLongTapDetector->PointerEventL( aPointerEvent );
+        iLongTapDetector->PointerEventL( aPointerEvent );
         }
-	   
+
     switch( aPointerEvent.iType )
-    	{
-    	case TPointerEvent::EButton1Down:
-    		{
+        {
+        case TPointerEvent::EButton1Down:
+            {
             // Save current and original position so that those can be used in
             // drag/scrolling calculations
-            iPreviousPosition = iOriginalPosition = 
-                aPointerEvent.iPosition;
+            iPreviousPosition = iOriginalPosition = aPointerEvent.iPosition;
             iIsDragging = EFalse;
             iIsFlicking = EFalse;
 
@@ -298,19 +284,19 @@ void CNcsComposeViewContainer::HandlePointerEventL(
                 iPhysics->ResetFriction();
                 iStartTime.HomeTime();
                 UpdatePhysicsL();
-                }            
+                }
 
             if ( iHeader->Rect().Contains( aPointerEvent.iPosition ) )
                 {
                 if ( iFocused == iMessageField )
                     {
-					if( iMessageField->SelectionLength() )
-						{
-						iMessageField->ClearSelectionL();
-						}
+                    if( iMessageField->SelectionLength() )
+                        {
+                        iMessageField->ClearSelectionL();
+                        }
                     iMessageField->SetFocus( EFalse, ENoDrawNow );
                     iFocused = iHeader;
-                    iHeader->SetFocus( ETrue,ENoDrawNow );
+                    iHeader->SetFocus( ETrue, ENoDrawNow );
                     }
                 else if ( iFocused == iReadOnlyQuoteField )
                     {
@@ -395,45 +381,43 @@ void CNcsComposeViewContainer::HandlePointerEventL(
             TPoint position = aPointerEvent.iPosition;
 
 
-           if( iPhysics )
-               {
-			   if ( iIsDragging )
-				   {
+            if ( iPhysics )
+                {
+                if ( iIsDragging )
+                    {
                     TPoint delta( 0, iPreviousPosition.iY - position.iY );
                     if ( !( iMessageField->SelectionLength() || iReadOnlyQuoteField->SelectionLength() ) )
-                    		iPhysics->RegisterPanningPosition( delta );
-				   }
+                        iPhysics->RegisterPanningPosition( delta );
+                    }
                 }
             else
                 {
-    			TInt topPosition( -iHeader->Position().iY );
-    						
-    			TInt totalHeight( ContentTotalHeight() );
+                TInt topPosition( iHeaderPos.iY - iHeader->Position().iY );
+                TInt totalHeight( ContentTotalHeight() );
+                TInt areaHeight( VisibleAreaHeight() );
+                TInt scrollOffset( 0 );
 
-    			TInt areaHeight( Rect().Size().iHeight );
-    			TInt scrollOffset( 0 );
-    			
-				if( totalHeight > areaHeight )
-					{
-					// Calculate new scroll offset based on current and
-					// previous Y-positions
-					scrollOffset = topPosition + 
-                        ( iPreviousPosition.iY - position.iY );
-					// Ensure that thumb position is in correct range
-					scrollOffset = Max( scrollOffset, 0 );
-					scrollOffset = Min( scrollOffset, 
-                                        totalHeight - areaHeight );
-					}
+                if ( totalHeight > areaHeight )
+                    {
+                    // Calculate new scroll offset based on current and
+                    // previous Y-positions
+                    scrollOffset = topPosition + 
+                            ( iPreviousPosition.iY - position.iY );
+                    // Ensure that thumb position is in correct range
+                    scrollOffset = Max( scrollOffset, 0 );
+                    scrollOffset = Min( scrollOffset, 
+                            totalHeight - areaHeight );
+                    }
 
-				Scroll( scrollOffset );
-				}
-           
-			// Save current position as previous pos for future calculations
-			iPreviousPosition = position;  
-			
-			break;
-    		}
-    		
+                Scroll( scrollOffset );
+                }
+
+            // Save current position as previous pos for future calculations
+            iPreviousPosition = position;  
+
+            break;
+            }
+
     	default:
     		{
     		// unknown event, ignored
@@ -546,18 +530,18 @@ TKeyResponse CNcsComposeViewContainer::OfferKeyEventL(
     }
 
 // -----------------------------------------------------------------------------
-// CNcsComposeViewContainer::UpdateScreenPositionL()
+// CNcsComposeViewContainer::UpdateScreenPosition()
 // If the user scrolled down in the message field
 // we want to scroll up the header and grow the message field.
 // -----------------------------------------------------------------------------
 //
-void CNcsComposeViewContainer::UpdateScreenPositionL( 
+void CNcsComposeViewContainer::UpdateScreenPosition( 
         const TUint& /*aKeyCode*/ )
     {
     FUNC_LOG;
 
     // get screen rectangle
-    const TRect screenRect( Rect() );
+    const TRect screenRect = iCmailPaneRect;
 
     TPoint msgPos( iMessageField->Position() );
     TPoint quotePos( iReadOnlyQuoteField->Position() );
@@ -566,12 +550,12 @@ void CNcsComposeViewContainer::UpdateScreenPositionL(
     TRect lineRect;
     if ( iFocused == iMessageField )
         {
-        iMessageField->GetLineRectL( lineRect );
+        iMessageField->GetLineRect( lineRect );
         lineRect.Move( msgPos );
         }
     else if ( iFocused == iReadOnlyQuoteField )
         {
-        iReadOnlyQuoteField->GetLineRectL( lineRect );
+        iReadOnlyQuoteField->GetLineRect( lineRect );
         lineRect.Move( quotePos );
         }
     else
@@ -582,8 +566,8 @@ void CNcsComposeViewContainer::UpdateScreenPositionL(
         }
     TPoint linePos = lineRect.iTl;
 
-    TInt minTargetY = lineRect.Height();
-    TInt maxTargetY = screenRect.Height() - lineRect.Height() * 2;
+    TInt minTargetY = screenRect.iTl.iY + lineRect.Height();
+    TInt maxTargetY = screenRect.iBr.iY - lineRect.Height() * 2;
 
     TInt moveY = 0;
     // if cursor goes out of screen then move the controls
@@ -598,17 +582,17 @@ void CNcsComposeViewContainer::UpdateScreenPositionL(
 
     // Check we don't scroll too low
     if ( quotePos.iY + moveY + iReadOnlyQuoteField->Size().iHeight < 
-         screenRect.Height() )
+         screenRect.iBr.iY )
         {
-        moveY = screenRect.Height() - quotePos.iY - 
+        moveY = screenRect.iBr.iY - quotePos.iY - 
             iReadOnlyQuoteField->Size().iHeight;
         }
 
     // Check we don't scroll too high
     TPoint headerPos = iHeader->Position();
-    if ( headerPos.iY + moveY > 0 )
+    if ( headerPos.iY + moveY > iHeaderPos.iY )
         {
-        moveY = -headerPos.iY;
+        moveY = iHeaderPos.iY - headerPos.iY;
         }
 
     if ( moveY )
@@ -616,13 +600,24 @@ void CNcsComposeViewContainer::UpdateScreenPositionL(
         headerPos.iY += moveY;
         iHeader->SetPosition( headerPos );
 
+        iSeparatorLineYPos += moveY;
+
         msgPos.iY += moveY;
         iMessageField->SetPosition( msgPos );
 
         quotePos.iY += moveY;
         iReadOnlyQuoteField->SetPosition( quotePos );
 
-        iSeparatorLineYPos += moveY;
+        const TInt bottom = Rect().iBr.iY;
+        if ( iMessageField->IsFocused() )
+            {
+            iMessageField->SetCursorVisible( msgPos.iY <= bottom );
+            }
+        else if ( iReadOnlyQuoteField->IsFocused() )
+            {
+            iReadOnlyQuoteField->SetCursorVisible( quotePos.iY <= bottom );
+            }
+
         UpdateScrollBar();
         }
     }
@@ -657,6 +652,18 @@ void CNcsComposeViewContainer::UpdateFieldPosition( CCoeControl* aAnchor )
         quotePos.iY = iMessageField->Rect().iBr.iY;
         iReadOnlyQuoteField->SetPosition( quotePos );
 
+        const TInt bottom = Rect().iBr.iY;
+        if ( iMessageField->IsFocused() )
+            {
+            iMessageField->SetCursorVisible( bodyPos.iY <= bottom );
+            }
+        else if ( iReadOnlyQuoteField->IsFocused() )
+            {
+            iReadOnlyQuoteField->SetCursorVisible( quotePos.iY <= bottom );
+            }
+
+        TInt scrollSpan = Max( ContentTotalHeight(), VisibleAreaHeight() + 1 );
+        iScrollBarModel.SetScrollSpan( scrollSpan );
         UpdateScrollBar();
         DrawDeferred();
         }
@@ -668,7 +675,6 @@ void CNcsComposeViewContainer::UpdateFieldPosition( CCoeControl* aAnchor )
 // Handles key events
 // -----------------------------------------------------------------------------
 //
-
 TKeyResponse CNcsComposeViewContainer::ChangeFocusL( 
         const TKeyEvent& aKeyEvent )
     {
@@ -691,7 +697,6 @@ TKeyResponse CNcsComposeViewContainer::ChangeFocusL(
             iHeader->SetFocus( ETrue, ENoDrawNow );
             iMessageField->SetFocus( EFalse, ENoDrawNow );
             iHeader->MakeVisible( ETrue );
-            iHeader->ShowCursor( ETrue );
             CommitL( EBodyField );
             ret = EKeyWasConsumed;
             }
@@ -717,9 +722,10 @@ TKeyResponse CNcsComposeViewContainer::ChangeFocusL(
 
     if ( ret == EKeyWasConsumed )
         {
-        UpdateScreenPositionL( aKeyEvent.iCode );
+        UpdateScreenPosition( aKeyEvent.iCode );
         }
 
+    DrawDeferred();
     return ret;
     }
 
@@ -747,7 +753,7 @@ TBool CNcsComposeViewContainer::UpdateFieldSizeL( TBool aDoScroll )
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::SizeChanged()
-// set size
+// Handles container size change.
 // -----------------------------------------------------------------------------
 //
 void CNcsComposeViewContainer::SizeChanged()
@@ -759,9 +765,13 @@ void CNcsComposeViewContainer::SizeChanged()
     TRect cmailPaneRect( NcsUtility::ListCmailPaneRect( rect ) );
 
     const TInt headerLineCount( iHeader->LayoutLineCount() );
-    const TPoint headerPos( 
-            NcsUtility::HeaderControlPosition( cmailPaneRect, 0 ) );
-    cmailPaneRect.Move( 0, iHeader->Position().iY - headerPos.iY );
+    iHeaderPos = NcsUtility::HeaderControlPosition( cmailPaneRect, 0 );
+    iHeader->SetOrigin( iHeaderPos );
+    const TPoint currentHeaderPos = iHeader->Position();
+    if ( currentHeaderPos.iY > iHeaderPos.iY )
+        {
+        cmailPaneRect.Move( 0, currentHeaderPos.iY - iHeaderPos.iY );
+        }
     iCmailPaneRect = cmailPaneRect;
 
     NcsUtility::LayoutHeaderControl( 
@@ -801,10 +811,17 @@ void CNcsComposeViewContainer::SizeChanged()
         iReadOnlyQuoteField->UpdateFontSize();
         readOnlyQuoteFieldHeight = iReadOnlyQuoteField->Rect().Height();
         }
+    else
+        {
+        // Set quote field immediatelly bellow message field with zero height.
+        TRect quoteRect = iMessageField->Rect();
+        quoteRect.iTl = quoteRect.iBr;
+        iReadOnlyQuoteField->SetRect( quoteRect );
+        }
 
-    iBgContext->SetRect( Rect() );
-    iMessageField->SetRealRect( Rect() );
-    iReadOnlyQuoteField->SetRealRect( Rect() );
+    iBgContext->SetRect( rect );
+    iMessageField->SetRealRect( rect );
+    iReadOnlyQuoteField->SetRealRect( rect );
 
     TInt messageLineHeigth = 
         NcsUtility::HeaderCaptionPaneRect( cmailPaneRect ).Height();
@@ -831,20 +848,32 @@ void CNcsComposeViewContainer::SizeChanged()
         iMessageEditorMinHeigth = messageLineHeigth;
         }
 
-	// update some layout variables
+    // update some layout variables
     iHeaderHeight = iHeader->Rect().Height();
     TRect bodyRect = iMessageField->Rect();
+    iReadOnlyQuoteField->SetPosition( 
+        TPoint( bodyRect.iTl.iX, bodyRect.iBr.iY ) );
     TRect quoteRect = iReadOnlyQuoteField->Rect();
 
-    iTotalComposerHeight = iHeaderHeight + iSeparatorHeight * 2 + 
-							   bodyRect.Height() + quoteRect.Height();
-    
-    iVisibleAreaHeight = Rect().Height();
-        
-    UpdateScrollBar();
+    iTotalComposerHeight = iHeaderHeight + iSeparatorHeight + 
+        bodyRect.Height() + quoteRect.Height();
 
-    iScrollBarModel.SetScrollSpan( iTotalComposerHeight );
+    iVisibleAreaHeight = iCmailPaneRect.Height();
+
+    // Scroll span is set always to be larger than the window size to
+    // keep the scroll bar visible.
+    TInt scrollSpan = Max( iTotalComposerHeight, iVisibleAreaHeight + 1 );
+    iScrollBarModel.SetScrollSpan( scrollSpan );
     iScrollBarModel.SetWindowSize( iVisibleAreaHeight );
+    if ( iHeader->IsFocused() )
+        {
+        iHeader->DoScroll();
+        }
+    else
+        {
+        UpdateScreenPosition();
+        }
+    UpdateScrollBar();
     DrawDeferred();
     }
 
@@ -959,13 +988,13 @@ void CNcsComposeViewContainer::FormatAllTextComplete()
         iProcessedField = iReadOnlyQuoteField;
         if ( iReadOnlyQuote )
             {
-			TInt dummySeparatorPos;
-			NcsUtility::LayoutBodyEdwin( iReadOnlyQuoteField, iCmailPaneRect, 
-					iHeader->LayoutLineCount() + iMessageField->LineCount(),
-					iReadOnlyQuoteField->LineCount(), dummySeparatorPos );
+            TInt dummySeparatorPos;
+            NcsUtility::LayoutBodyEdwin( iReadOnlyQuoteField, iCmailPaneRect, 
+                    iHeader->LayoutLineCount() + iMessageField->LineCount(),
+                    iReadOnlyQuoteField->LineCount(), dummySeparatorPos );
             iReadOnlyQuoteField->SetAlignment( EAknEditorAlignBidi );
-            
-			RMemReadStream inputStream;
+
+            RMemReadStream inputStream;
             inputStream.Open( iReadOnlyQuote->Ptr(), iReadOnlyQuote->Size() );
             TRAP_IGNORE( iReadOnlyQuoteField->RichText()->ImportTextL( 0, inputStream,
                     CPlainText::EOrganiseByParagraph ) );
@@ -1140,7 +1169,7 @@ void CNcsComposeViewContainer::HandleEdwinEventL( CEikEdwin* aEdwin,
 
             // Update screen position and scroll bar when text changed
             // or cursor moved
-            UpdateScreenPositionL();
+            UpdateScreenPosition();
             UpdateScrollBar();
             DrawDeferred();
             }
@@ -1156,9 +1185,6 @@ TBool CNcsComposeViewContainer::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
     {
     FUNC_LOG;
     TBool ret = ETrue;
-    
-    const TRect rect( Rect() );
-    TRect cmailPaneRect( NcsUtility::ListCmailPaneRect( rect ) );
 
     if ( aDesirableEdwinSize.iHeight < iPrevDesiredHeigth )
         {
@@ -1176,7 +1202,7 @@ TBool CNcsComposeViewContainer::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
                 {
                 aEdwin->SetSize( aDesirableEdwinSize );
                 }
-            }        
+            }
         }
     else
         {
@@ -1185,14 +1211,20 @@ TBool CNcsComposeViewContainer::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
             aEdwin->SetSize( aDesirableEdwinSize );
             }
         }
+
     if ( aEdwin == iMessageField )
         {
         // move the quote field below the body field
         TPoint quotePos = iMessageField->Position();
         quotePos.iY += iMessageField->Size().iHeight;
         iReadOnlyQuoteField->SetPosition( quotePos );
-		UpdateScreenPositionL(); 
+        UpdateScreenPosition(); 
         }
+
+    // Update scroll span and position.
+    TInt scrollSpan = Max( ContentTotalHeight(), VisibleAreaHeight() + 1 );
+    iScrollBarModel.SetScrollSpan( scrollSpan );
+    UpdateScrollBar();
 
     iPrevDesiredHeigth = aDesirableEdwinSize.iHeight;
 
@@ -1223,12 +1255,22 @@ void CNcsComposeViewContainer::UpdateScrollBar()
     FUNC_LOG;
 
     TRect headerRect = iHeader->Rect();
-    TInt visiblePosition = -headerRect.iTl.iY;
+    TInt visiblePosition = iHeaderPos.iY - headerRect.iTl.iY;
 
     iScrollBarModel.SetFocusPosition( visiblePosition );
 
     iScrollBar->SetModel( &iScrollBarModel );
-    iScrollBar->MakeVisible( IsVisible() );
+    iScrollBar->MakeVisible( !iHeader->IsPopupActive() );
+    }
+
+// -----------------------------------------------------------------------------
+// CNcsComposeViewContainer::UpdateScrollBarVisibility()
+// -----------------------------------------------------------------------------
+//
+void CNcsComposeViewContainer::UpdateScrollBarVisibility( TBool aVisible )
+    {
+    FUNC_LOG;
+    iScrollBar->MakeVisible( aVisible );
     }
 
 // -----------------------------------------------------------------------------
@@ -1245,7 +1287,7 @@ void CNcsComposeViewContainer::SetFocusToMessageFieldL()
         iMessageField->SetCursorPosL( 0, EFalse );
         iMessageField->SetFocus( ETrue, ENoDrawNow );
         iFocused = iMessageField;
-        UpdateScreenPositionL();
+        UpdateScreenPosition();
         DrawDeferred();
         }
     }
@@ -1760,9 +1802,7 @@ TInt CNcsComposeViewContainer::FocusedAttachmentLabelIndex()
 void CNcsComposeViewContainer::HideAttachmentLabel()
     {
     FUNC_LOG;
-
-	iHeader->HideAttachmentLabel();
-
+    iHeader->HideAttachmentLabel();
     }
 
 // -----------------------------------------------------------------------------
@@ -1966,21 +2006,28 @@ void CNcsComposeViewContainer::HandleSkinChangeL()
 TInt CNcsComposeViewContainer::ContentTotalHeight()
     {
     FUNC_LOG;	
-	TInt totalHeight( iHeader->Size().iHeight + 
-	                  iSeparatorHeight * 2 + 
-					  iMessageField->Size().iHeight );
+    TInt totalHeight( iHeader->Size().iHeight + 
+        iSeparatorHeight + iMessageField->Size().iHeight );
 
-	if( iReadOnlyQuoteField->IsVisible() )
-		{
-		totalHeight += iReadOnlyQuoteField->Size().iHeight;
-		}	
-	
-	return totalHeight;
+    if ( iReadOnlyQuoteField->IsVisible() )
+        {
+        totalHeight += iReadOnlyQuoteField->Size().iHeight;
+        }
+
+    return totalHeight;
+    }
+
+// -----------------------------------------------------------------------------
+// Returns the height of visible composer area.
+// -----------------------------------------------------------------------------
+//
+TInt CNcsComposeViewContainer::VisibleAreaHeight()
+    {
+    return iVisibleAreaHeight;
     }
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::CommitL()
-//
 // -----------------------------------------------------------------------------
 //
 void CNcsComposeViewContainer::CommitL( TFieldToCommit aFieldToCommit )
@@ -2029,7 +2076,7 @@ void CNcsComposeViewContainer::UpdatePhysicsL()
     FUNC_LOG;
     if ( iPhysics )
         {
-        const TSize viewSize( Rect().Size() );
+        const TSize viewSize( iCmailPaneRect.Size() );
         // We must ensure that world size is at least the size of the view
         const TSize worldSize( viewSize.iWidth, 
                 Max( ContentTotalHeight(), viewSize.iHeight ) );
@@ -2044,22 +2091,23 @@ void CNcsComposeViewContainer::UpdatePhysicsL()
 void CNcsComposeViewContainer::Scroll( TInt aTargetPos, TBool aDrawNow )
     {
     FUNC_LOG;
-	TPoint headerPos( iHeader->Position() );
-	TInt moveY = -headerPos.iY - aTargetPos;
-	
-    if ( aDrawNow )
-    	{
-		moveY = iTotalMoveY + moveY;
-		iTotalMoveY = 0;
-		if ( moveY )
-			{
-			headerPos.iY += moveY;
-			iHeader->SetPosition( headerPos );
+    TPoint headerPos = iHeader->Position();
+    const TInt currentPos = iHeaderPos.iY - headerPos.iY;
+    TInt moveY = currentPos - aTargetPos;
 
-			// set header invisible if it is not in visible area
-			// this is done to prevent drawing of header when it is not necessary
+    if ( aDrawNow )
+        {
+        moveY = iTotalMoveY + moveY;
+        iTotalMoveY = 0;
+        if ( moveY )
+            {
+            headerPos.iY += moveY;
+            iHeader->SetPosition( headerPos );
+
+            // set header invisible if it is not in visible area
+            // this is done to prevent drawing of header when it is not necessary
             if ( headerPos.iY + iHeaderHeight <= KHeaderVisibilityThreshold && iHeader->IsVisible() )
-                {            
+                {
                 iHeader->MakeVisible( EFalse );
                 }
             // set header visible if it is in visible area
@@ -2067,28 +2115,35 @@ void CNcsComposeViewContainer::Scroll( TInt aTargetPos, TBool aDrawNow )
                 {
                 iHeader->MakeVisible( ETrue );
                 }
-    
-			TPoint msgPos( iMessageField->Position() );
-			msgPos.iY += moveY;
-			iMessageField->SetPosition( msgPos );
-	
-			if( iReadOnlyQuoteField->IsVisible() )
-				{
-				TPoint readOnlyPos( iReadOnlyQuoteField->Position() );
-				readOnlyPos.iY += moveY;
-				iReadOnlyQuoteField->SetPosition( readOnlyPos );
-				}
-	
-			iSeparatorLineYPos += moveY;
 
-			UpdateScrollBar();
-			DrawDeferred();
-			}
-    	}
+            TPoint msgPos( iMessageField->Position() );
+            msgPos.iY += moveY;
+            iMessageField->SetPosition( msgPos );
+
+            TPoint quotePos( iReadOnlyQuoteField->Position() );
+            quotePos.iY += moveY;
+            iReadOnlyQuoteField->SetPosition( quotePos );
+
+            const TInt bottom = Rect().iBr.iY;
+            if ( iMessageField->IsFocused() )
+                {
+                iMessageField->SetCursorVisible( msgPos.iY <= bottom );
+                }
+            else if ( iReadOnlyQuoteField->IsFocused() )
+                {
+                iReadOnlyQuoteField->SetCursorVisible( quotePos.iY <= bottom );
+                }
+
+            iSeparatorLineYPos += moveY;
+
+            UpdateScrollBar();
+            DrawDeferred();
+            }
+        }
     else
-    	{
-		iTotalMoveY += moveY;
-    	}    	
+        {
+        iTotalMoveY += moveY;
+        }
     }
 
 // -----------------------------------------------------------------------------
@@ -2133,9 +2188,9 @@ void CNcsComposeViewContainer::PhysicEmulationEnded()
 TPoint CNcsComposeViewContainer::ViewPosition() const
     {
     FUNC_LOG;
-    return TPoint(0, -iHeader->Position().iY  + iVisibleAreaHeight / 2 );
+    TInt y = iHeaderPos.iY - iHeader->Position().iY + iVisibleAreaHeight / 2;
+    return TPoint( 0, y );
     }
-
 
 // -----------------------------------------------------------------------------
 // CNcsComposeViewContainer::IsRemoteSearchInprogress

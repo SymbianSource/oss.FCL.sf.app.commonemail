@@ -246,7 +246,7 @@ void CIpsPlgMruList::SetMruListL( const TFSMailMsgId& aMailBoxId,
             TInt start( emailAddress.LocateReverse( KIpsSmtpOperationCharLessThan ) ); 
             TInt end( emailAddress.LocateReverse( KIpsSmtpOperationCharMoreThan ) );
             
-            if ( KErrNotFound != start && KErrNotFound != end )
+            if ( KErrNotFound != start && KErrNotFound != end && start < end )
                 {
                 start += 1;
                 emailAddress.Set( aNewMruList->MdcaPoint(i + 1).Mid( start, ( end - start ) ) );

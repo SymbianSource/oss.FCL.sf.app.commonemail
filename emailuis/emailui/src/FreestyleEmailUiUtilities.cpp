@@ -799,19 +799,29 @@ void TFsEmailUiUtility::OpenAttachmentL( const TPartData& aAttachmentPart )
     {
     FUNC_LOG;
     CFreestyleEmailUiAppUi* appUi = (CFreestyleEmailUiAppUi*)CCoeEnv::Static()->AppUi();
-    CFSMailMessage* mailMessage = appUi->GetMailClient()->GetMessageByUidL(
+    CFSMailMessage* message = appUi->GetMailClient()->GetMessageByUidL(
         aAttachmentPart.iMailBoxId, aAttachmentPart.iFolderId,
         aAttachmentPart.iMessageId, EFSMsgDataStructure );
 
-    CleanupStack::PushL( mailMessage );
-    CFSMailMessagePart* messagePart = mailMessage->ChildPartL(
-        aAttachmentPart.iMessagePartId );
+    CleanupStack::PushL( message );
+    CFSMailMessagePart* messagePart = NULL;
+    if ( message )
+        {
+        messagePart = message->ChildPartL( aAttachmentPart.iMessagePartId );
+        }
     CleanupStack::PushL( messagePart );
 
-    OpenAttachmentL( *messagePart );
+    if ( messagePart )
+        {
+        OpenAttachmentL( *messagePart );
+        }
+    else
+        {
+        User::Leave( KErrNotFound );
+        }
 
     CleanupStack::PopAndDestroy( messagePart );
-    CleanupStack::PopAndDestroy( mailMessage );
+    CleanupStack::PopAndDestroy( message );
     }
 
 // -----------------------------------------------------------------------------
@@ -822,8 +832,8 @@ void TFsEmailUiUtility::OpenAttachmentL( CFSMailMessagePart& aAttachmentPart,
     {
     FUNC_LOG;
     const TDesC& attName = aAttachmentPart.AttachmentNameL();
-    const TDesC* mimeType16 = &aAttachmentPart.GetContentType();
-    TFileType fileType = GetFileType( attName, *mimeType16 );
+    const TDesC& mimeType16 = aAttachmentPart.GetContentType();
+    TFileType fileType = GetFileType( attName, mimeType16 );
 
     // Check if attachment is actually an embedded message object. In that case we try to
     // open it using mail viewer.
@@ -3113,6 +3123,63 @@ TBool TFsEmailUiUtility::IsChineseWord( const TDesC& aWord )
             }
         }
     return isChineseSearchStr;
+    }
+
+// ---------------------------------------------------------
+// Find if text is including Korean word  
+// ---------------------------------------------------------
+//
+TBool TFsEmailUiUtility::IsKoreanWord( const TDesC& aWord )
+    {
+    TBool isKoreanSearchStr = EFalse;
+    const TInt len = aWord.Length();
+    
+    const TUint KKoreanUnicodeHangulJamoBegin = 0x1100;
+    const TUint KKoreanUnicodeHangulJamoEnd = 0x11FF;
+    
+    for ( TInt ii = 0; ii < len; ii++ )
+        {
+        if ( (TInt) aWord[ii] >= KKoreanUnicodeHangulJamoBegin 
+             && (TInt) aWord[ii] <= KKoreanUnicodeHangulJamoEnd )
+            {
+            isKoreanSearchStr = ETrue;
+            break;
+            }
+        }
+    
+    const TUint KKoreanUnicodeHangulCompatibilityJamoBegin = 0x3130;
+    const TUint KKoreanUnicodeHangulCompatibilityJamoEnd = 0x322F;
+    
+    if ( !isKoreanSearchStr )
+        {
+        for ( TInt ii = 0; ii < len; ii++ )
+            {
+            if ( (TInt) aWord[ii] >= KKoreanUnicodeHangulCompatibilityJamoBegin 
+                 && (TInt) aWord[ii] <= KKoreanUnicodeHangulCompatibilityJamoEnd )
+                {
+                isKoreanSearchStr = ETrue;
+                break;
+                }
+            }
+        }
+    
+    const TUint KKoreanUnicodeSpanBegin = 0xAC00;
+    const TUint KKoreanUnicodeSpanEnd = 0xD7A3;
+
+    if ( !isKoreanSearchStr )
+        {
+        for ( TInt ii = 0; ii < len; ii++ )
+            {
+            if ( (TInt) aWord[ii] >= KKoreanUnicodeSpanBegin 
+                 && (TInt) aWord[ii] <= KKoreanUnicodeSpanEnd )
+                {
+                isKoreanSearchStr = ETrue;
+                break;
+                }
+            }
+        }
+    
+    return isKoreanSearchStr;
     }
 
 

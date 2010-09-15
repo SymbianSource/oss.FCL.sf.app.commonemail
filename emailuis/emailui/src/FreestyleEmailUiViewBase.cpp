@@ -153,6 +153,22 @@ void CFsEmailUiViewBase::DoActivateL( const TVwsViewId& aPrevViewId,
         DeactivateControlGroup();
         NavigateBackL();
         }
+    
+    if( MailEditorId != Id() )// not for editor (when sending contact via mail)
+        {
+        //Reopen Contact details view if it was closed before
+        CFSEmailUiContactHandler* contactHandler = NULL; // not owned
+        CFsDelayedLoader* delLoader = CFsDelayedLoader::InstanceL(); // not owned
+        if( delLoader )
+            {
+            contactHandler = delLoader->GetContactHandlerL();
+            
+            if( contactHandler && contactHandler->WasDetailsClosed())
+                {
+                contactHandler->ReopenContactDetailsL(iEikonEnv->WsSession());
+                }
+            }
+       }
     }
 
 // ---------------------------------------------------------------------------
@@ -630,10 +646,23 @@ void CFsEmailUiViewBase::NavigateBackL()
 
         if ( iPreviousAppUid != KFSEmailUiUid && iPreviousAppUid != KNullUid )
             {
+            //don't send to background when back from Contact Details (CCAApp)
+            CFSEmailUiContactHandler* contactHandler(NULL); // not owned
+            CFsDelayedLoader* delLoader = CFsDelayedLoader::InstanceL(); // not owned
+            if( delLoader )
+                {
+                contactHandler = delLoader->GetContactHandlerL();
+                }
+            // for Contact Details, after contact was sent via mail, app shouldn't be sent to background
+            if( contactHandler && iPreviousAppUid == contactHandler->GetDetailsAppUid() )
+                {
+                iSendToBackgroundOnDeactivation = EFalse;
+                iAppUi.SetSwitchingToBackground( EFalse );
+                }
             // Email app should be hidden once the view gets deactivated. Note that hiding
             // should not happen before control group switching is over because that
             // may cause views of other Alfred apps to get distorted.
-            if( !iAppUi.EmbeddedAppIsPreviousApp() ) // if previous app is embedded app,
+            else if( !iAppUi.EmbeddedAppIsPreviousApp() ) // if previous app is embedded app,
                 //do not need hide FSEmail app when previous app view gets deactivated.
                 {
                 iSendToBackgroundOnDeactivation = ETrue;

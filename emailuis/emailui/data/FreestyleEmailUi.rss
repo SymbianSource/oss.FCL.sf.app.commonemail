@@ -1210,7 +1210,7 @@ RESOURCE TBUF r_freestyle_email_ui_griditem_teams			{ buf=qtn_fsemail_griditem_t
 RESOURCE TBUF r_freestyle_email_ui_griditem_weather			{ buf=qtn_fsemail_griditem_weather; }
 RESOURCE TBUF r_freestyle_email_ui_griditem_settings { buf=qtn_fse_launcher_settings; }
 RESOURCE TBUF r_freestyle_email_ui_griditem_add_new_mailbox { buf=qtn_fse_launcher_add_new_mailbox; }
-RESOURCE TBUF r_freestyle_email_ui_griditem_help { buf=qtn_fse_launcher_help; }
+RESOURCE TBUF r_freestyle_email_ui_griditem_help { buf=qtn_options_help; }
 
 // ITEM IN MAIL VIEWER
 RESOURCE TBUF r_freestyle_email_ui_viewer_from					{ buf=qtn_fse_viewer_header_from; }

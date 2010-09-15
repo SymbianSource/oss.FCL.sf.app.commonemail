@@ -2,7 +2,7 @@
  *  Name        :  popimapprofiletester.cpp
  *  Part of     :  ipsservices / ipsprofiletester 
  *  Description :: STIF test cases
- *  Version     : %version: 1 % << Don't touch! Updated by Synergy at check-out.
+ *  Version     : %version: 2 % << Don't touch! Updated by Synergy at check-out.
  *
  *  Copyright © 2010-2010 Nokia and/or its subsidiary(-ies).  All rights reserved.
  *  This material, including documentation and any related computer
@@ -49,7 +49,7 @@ _LIT(KOutboxType,"outbox");
 _LIT(KDraftsType,"drafts");
 _LIT(KSentType,"sent");
 // Logging path
-_LIT( KpopimapprofiletesterLogPath, "\\logs\\testframework\\popimapprofiletester\\" );
+_LIT( KpopimapprofiletesterLogPath, "\\logs\\testframework\\" );
 // Log file
 _LIT( KpopimapprofiletesterLogFile, "popimapprofiletester.txt" );
 _LIT( KpopimapprofiletesterLogFileWithTitle, "popimapprofiletester_[%S].txt" );

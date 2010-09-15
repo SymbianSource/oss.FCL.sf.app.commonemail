@@ -54,7 +54,7 @@ public: // new functions
     
     void OpenVirtualKeyBoardL();
     
-    void GetLineRectL( TRect& aLineRect ) const;
+    void GetLineRect( TRect& aLineRect ) const;
         
     virtual TInt ScrollableLines() const;
     

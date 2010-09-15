@@ -19,7 +19,6 @@
 //////SYSTEM INCLUDES
 
 //////TOOLKIT INCLUDES
-// <cmail> SF
 #include "emailtrace.h"
 #include <alf/alfenv.h>
 #include <alf/alflayout.h>
@@ -29,8 +28,6 @@
 #include <alf/alftexture.h>
 #include <alf/alfcontrol.h>
 #include <alf/alfimage.h>
-// </cmail>
-
 
 //////PROJECT INCLUDES
 #include "fsmultilineitemvisualizer.h"
@@ -339,7 +336,8 @@ void CFsMultiLineItemVisualizer::ShowL( CAlfLayout& aParentLayout, const TUint a
 void CFsMultiLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                                         TBool aFocused,
                                         const TUint aLevel,
-                                        CAlfTexture*& aMarkIcon,
+                                        CAlfTexture*& aMarkOnIcon,
+                                        CAlfTexture*& /*aMarkOffIcon*/,
                                         CAlfTexture*& aMenuIcon,
                                         const TUint /*aTimeout*/,
                                         TBool aUpdateData)
@@ -439,10 +437,10 @@ void CFsMultiLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
             iFirstLineIconVis->SetImage( TAlfImage( *data->LineIcon( 0 ) ) );                
             }
         //mark icon
-        if ( iMarkIconVis && IsMarked() && aMarkIcon )
+        if ( iMarkIconVis && IsMarked() && aMarkOnIcon )
             {
             iMarkIconVis->SetScaleMode( CAlfImageVisual::EScaleFit );
-            iMarkIconVis->SetImage( *aMarkIcon );
+            iMarkIconVis->SetImage( *aMarkOnIcon );
             }
         //menu icon
         if ( iMenuIconVis && (iFlags & KFsTreeListItemHasMenu) && aMenuIcon )

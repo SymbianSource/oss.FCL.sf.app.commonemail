@@ -22,11 +22,6 @@
 
 
 #include <e32base.h>
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
-
-
 #include "fstreeitemvisualizerbase.h"
 
 class CAlfControl;
@@ -121,7 +116,8 @@ public:
     virtual void UpdateL( const MFsTreeItemData& aData,
                         TBool aFocused,
                         const TUint aLevel,
-                        CAlfTexture*& aMarkIcon,
+                        CAlfTexture*& aMarkOnIcon,
+                        CAlfTexture*& aMarkOffIcon,
                         CAlfTexture*& aMenuIcon,
                         const TUint aTimeout = 0,
                         TBool aUpdateData = ETrue);

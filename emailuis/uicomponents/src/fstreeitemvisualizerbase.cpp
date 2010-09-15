@@ -26,7 +26,6 @@
 #include "fslayoutmanager.h"
 #include "fsalftextstylemanager.h"
 
-// <cmail> SF
 #include <alf/alfgradientbrush.h>
 #include <alf/alfimagebrush.h>
 #include <alf/alfanchorlayout.h>
@@ -37,7 +36,6 @@
 #include <alf/alftextstyle.h>
 #include <alf/alftextvisual.h>
 #include <alf/alfmappingfunctions.h>
-// </cmail>
 
 // ---------------------------------------------------------------------------
 // C++ destructor.
@@ -538,7 +536,6 @@ TBool CFsTreeItemVisualizerBase::GetBackgroundTexture( const CAlfTexture*& aText
     return retVal;
     }
 
-// <cmail>
 // ---------------------------------------------------------------------------
 // From MFsTreeItemVisualizer.
 // Sets item background brush.
@@ -568,7 +565,6 @@ TBool CFsTreeItemVisualizerBase::GetBackgroundBrush( CAlfBrush*& aBrush )
 
     return retVal;
     }
-// </cmail>
   
 // ---------------------------------------------------------------------------
 // From MFsTreeItemVisualizer.
@@ -637,6 +633,24 @@ void CFsTreeItemVisualizerBase::SetAlwaysExtended( TBool aAlwaysExtended )
     }
 
 // ---------------------------------------------------------------------------
+// From class MFsTreeItemVisualizer.
+// Sets marking mode on/off.
+// ---------------------------------------------------------------------------
+//
+void CFsTreeItemVisualizerBase::SetMarkingMode( TBool aMarkingMode )
+    {
+    FUNC_LOG;
+    if ( aMarkingMode )
+        {
+        iFlags |= KFsTreeListMarkingMode;
+        }
+    else
+        {
+        iFlags &= ~KFsTreeListMarkingMode;
+        }
+    }
+
+// ---------------------------------------------------------------------------
 //  This function returns wether an item is always in extended state.
 // ---------------------------------------------------------------------------
 //
@@ -667,7 +681,8 @@ void CFsTreeItemVisualizerBase::ShowL( CAlfLayout& /*aParentLayout*/,
 void CFsTreeItemVisualizerBase::UpdateL( const MFsTreeItemData& /*aData*/,
                                           TBool /*aFocused*/,
                                           const TUint /*aLevel*/,
-                                          CAlfTexture*& /*aMarkIcon*/,
+                                          CAlfTexture*& /*aMarkOnIcon*/,
+                                          CAlfTexture*& /*aMarkOffIcon*/,
                                           CAlfTexture*& /*aMenuIcon*/,
                                           const TUint /*aTimeout*/,
                                           TBool /*aUpdateData*/)

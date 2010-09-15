@@ -137,6 +137,7 @@ private: // new functions
         RPointerArray<CNcsAifEntry>& aEntries,
         TBool aDisplayList = ETrue ) const;
 
+    TInt RepositionEntries( const CNcsAifEntry* aEntry );
     void RepositionEntriesL( const CNcsAifEntry* aEntry );
 
     void CheckAndRemoveInvalidEntriesL();
@@ -168,13 +169,25 @@ private: // new functions
      * @return  ETrue   if terminated recipient entry was found and added to array. 
      */
     TBool HandleTextUpdateL( const TCursorSelection& aSelection );
+    // Moves inputted non-entry text to separate rows apart from entries.
+    void MoveNonEntryTextToDedicatedRowsL( TUint aPosition );
+    // Prepares for text input to given cursor position.
+    void PrepareForTextInputL( TUint aPosition );
     void HandleNavigationEventL();
+
+    // Gets non-entry text at given document position.
     TCursorSelection NonEntryTextAtPos( TUint aPosition ) const;
+    // Gets non-entry text including surrounding whitespace at given position.
+    TCursorSelection NonEntryTextAndSpaceAtPos( TUint aPosition ) const;
+    // Gets non-enty text right before given document position.
     TCursorSelection NonEntryTextBeforePos( TUint aPosition ) const;
+
     TBool IsSentinel( TChar aCharacter ) const;
+    TBool IsDelimiter( TChar aCharacter ) const;
     TBool IsWhitespace( TChar aCharacter ) const;
     TBool IsNavigationKey( const TKeyEvent& aKeyEvent ) const;
     TBool IsCharacterKey( const TKeyEvent& aKeyEvent ) const;
+
     void GetMatchingEntryCountsL( 
             const CNcsAifEntry* aEntry,
             TInt& aNrOfMatchesInText,

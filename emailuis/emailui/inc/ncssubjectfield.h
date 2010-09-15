@@ -29,6 +29,7 @@
 
 
 class CEikImage;
+class CAknButton;
 class MNcsFieldSizeObserver;
 class CNcsHeaderContainer;
 class CAknPhysics;
@@ -79,11 +80,9 @@ public: // new functions
 
     const TDesC& GetLabelText() const;
     
-    // <cmail> Platform layout change       
     TInt LayoutLineCount() const;
-    // </cmail> Platform layout change    
     
-    void GetLineRectL( TRect& aLineRect ) const;
+    void GetLineRect( TRect& aLineRect ) const;
 
     void SetMaxLabelLength( TInt aMaxLength );
 
@@ -144,23 +143,25 @@ private:
     
     void UpdateFontSize();
     
-    //<cmail>
     void HandlePointerEventL( const TPointerEvent& aPointerEvent );
-    //</cmail>
         
 private: // data
     
     CNcsHeaderContainer* iParentControl; // not owned
     
     /*
-    * text field
+    * label
     * Own
     */
     CNcsLabel* iLabel;
-        
-// <cmail> Platform layout changes
+    
+    /**
+     * button
+     * Own
+     */
+    CAknButton* iButton;
+
     const CFont* iFont; // not owned, needs to be released in the end
-// </cmail> Platform layout changes
     
     /*
     * text field
@@ -171,16 +172,10 @@ private: // data
     TInt iEditorMinimumHeight;
             
     TInt iMaximumLabelLength;         
-      	
-    TRgb iBorderColor;
-    
-    TRgb iBgColor;
     
     TBool iDrawAfterFocusChange;
    
-// <cmail> Platform layout changes
     TInt iEditorLineCount;
-// </cmail> Platform layout changes
     };
 
 #endif // CNCSSUBJECTFIELD_H

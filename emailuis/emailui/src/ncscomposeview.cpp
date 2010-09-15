@@ -347,7 +347,19 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
     // once from BaseView.
     if ( iLaunchParams.iActivatedExternally )
         {
-        iAppUi.ViewActivatedExternallyL( Id() );
+        //notify Contact details view to close on external activation
+        CFSEmailUiContactHandler* contactHandler = NULL; // not owned
+        CFsDelayedLoader* delLoader = CFsDelayedLoader::InstanceL(); // not owned
+        if( delLoader )
+            {
+            contactHandler = delLoader->GetContactHandlerL();
+            
+            if( contactHandler && aPrevViewId.iViewUid == contactHandler->GetDetailsViewUid() )
+                {
+                contactHandler->CloseContactDetailsL();
+                }
+            iAppUi.ViewActivatedExternallyL( Id() );
+            }
         }
 
     // Try to get the mailbox by other means if using launch parameters failed
@@ -1719,8 +1731,7 @@ void CNcsComposeView::HandleActivationCommandL( TUid aCustomMessageId )
         TFsEmailUiUtility::CreatePlainTextPartL( 
                 *iNewMessage, iNewMessageTextPart );
         InitFieldsL();
-        TBool spaceInBegin = ETrue;
-        IncludeMessageTextL(spaceInBegin);
+        IncludeMessageTextL();
         AttachmentsListControl()->Model()->Clear();
         GetAttachmentsFromMailL();
         SetAttachmentLabelContentL();
@@ -2520,7 +2531,13 @@ void CNcsComposeView::DoOpenAttachmentListL()
             CFSMailMessagePart* msgPart = 
                 iNewMessage->ChildPartL( item->MailMsgPartId() );
             CleanupStack::PushL( msgPart );
+            
+            //We are forbidding to change MSK label during OpenAttachmentL
+            //because dialog/popup can be open
+            iContainer->SwitchChangeMskOff( ETrue );
             TFsEmailUiUtility::OpenAttachmentL( *msgPart );
+            iContainer->SwitchChangeMskOff( EFalse );
+            
             CleanupStack::PopAndDestroy( msgPart );
             }
         }

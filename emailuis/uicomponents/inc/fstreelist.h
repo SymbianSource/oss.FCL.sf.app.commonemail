@@ -23,15 +23,9 @@
 /////SYSTEM INCLUDES
 
 //////TOOLKIT INCLUDES
-// <cmail> SF
 #include <alf/alfcontrol.h>
-// </cmail>
 
 //////PROJECT INCLUDES
-//<cmail> removed __FS_ALFRED_SUPPORT flag
-//#include <fsconfig.h>
-//</cmail> removed __FS_ALFRED_SUPPORT flag
-
 #include "fstreelistconstants.h"
 #include "fstreevisualizerbase.h"
 #include "fstreevisualizerobserver.h"
@@ -586,6 +580,14 @@ public: // Tree management
     * Returns item visualizer for given item id.
     */
     IMPORT_C CFsTreeList* ItemMenu( TFsTreeItemId aItemId );
+
+    /**
+     * Sets marking mode on\off
+     * 
+     * @param ETrue if marking mode is set on
+     */
+
+    IMPORT_C void SetMarkingModeL( const TBool aMarkingMode );
 
 public: // Visualization management
 
