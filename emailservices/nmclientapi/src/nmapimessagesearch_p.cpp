@@ -117,6 +117,10 @@ void NmApiMessageSearchPrivate::MatchFoundL(CFSMailMessage *aMatchMessage)
         NmMessage *nmmessage = aMatchMessage->GetNmMessage();
         EmailClientApi::NmApiMessage message = NmToApiConverter::NmMessage2NmApiMessage(*nmmessage);
         emit messageFound(message);
+        
+        delete nmmessage;
+        nmmessage = NULL;
+        
         delete aMatchMessage;
         aMatchMessage = NULL;
      }
@@ -218,15 +222,12 @@ void NmApiMessageSearchPrivate::initialiseMailbox()
     RPointerArray<CFSMailPlugin> mailPlugins;
     if (mEngine) {
         mEngine->listMailPlugins(mailPlugins);
-    }
-    CFSMailPlugin *plugin = NULL;
-    for (int i = 0; i < mailPlugins.Count() && !mMailBox; i++){
-        plugin = mailPlugins[i];
-        if (plugin) {
-            QT_TRY {
-                mMailBox = plugin->GetMailBoxByUidL(mMailBoxId);
+
+        for (int i = 0; i < mailPlugins.Count() && !mMailBox; i++){
+            if (mailPlugins[i]->Id() == mMailBoxId.PluginId()) {
+                TRAPD(err, mMailBox = mailPlugins[i]->GetMailBoxByUidL(mMailBoxId));
+                Q_UNUSED(err);
             }
-            QT_CATCH(...){}            
         }
     }
 }

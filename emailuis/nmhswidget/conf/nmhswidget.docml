@@ -12,6 +12,7 @@
                     <string name="textColor" value="#000000"/>
                     <string locid="txt_mail_widget_info_no_messages" name="plainText" value="No mails!!!"/>
                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-tiny)"/>
+                    <enums name="textWrapping" value="TextNoWrap"/>
                 </widget>
                 <widget name="mailListView" type="HbListView">
                     <widget name="listItemPrototype" role="HbAbstractView:prototype" type="HbListViewItem"/>
@@ -45,6 +46,7 @@
                     <sizehint height="expr(var(hb-param-text-height-secondary) )" type="MAXIMUM"/>
                     <string name="plainText" value="Mailbox gmail"/>
                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                    <enums name="textWrapping" value="TextNoWrap"/>
                 </widget>
                 <widget name="mailboxIcon" type="HbLabel">
                     <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
@@ -63,6 +65,7 @@
                     <sizehint height="expr(var(hb-param-text-height-secondary) )" type="MAXIMUM" width="9un"/>
                     <string locid="txt_mail_widget_list_l1" name="plainText" value="(999)"/>
                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                    <enums name="textWrapping" value="TextNoWrap"/>
                 </widget>
                 <widget name="collapseExpandIcon" type="HbPushButton">
                     <icon iconName="note_warning" name="icon"/>

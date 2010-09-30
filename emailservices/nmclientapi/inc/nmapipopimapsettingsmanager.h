@@ -11,27 +11,28 @@
 *
 * Contributors:
 *
-* Description:
+* Description: Handles the populating of default settings for pop and imap mailboxes
 *
 */
 
 #ifndef NMAPIPOPIMAPSETTINGSMANAGER_H
 #define NMAPIPOPIMAPSETTINGSMANAGER_H
 
-#include <nmapimailboxsettingsdata.h>
 
 namespace EmailClientApi {
-
+class NmApiMailboxSettingsData;
 class NmApiPopImapSettingsManager 
 {
-public:       
+public:
     NmApiPopImapSettingsManager();
-    virtual ~NmApiPopImapSettingsManager();
+    ~NmApiPopImapSettingsManager();
     bool populateDefaults(const QString &mailboxType, NmApiMailboxSettingsData &data);
 
 private:
-    void populateImapDefs(NmApiMailboxSettingsData &data);
-    void populatePopDefs(NmApiMailboxSettingsData &data);
+    void populateImapDefaultsL(NmApiMailboxSettingsData &data);
+    void populatePopDefaultsL(NmApiMailboxSettingsData &data);
+    void populateSmtpDefaultsL(NmApiMailboxSettingsData &data);
+    void populateCenrepDefaults(NmApiMailboxSettingsData &data);
     
 };
 }//namespace

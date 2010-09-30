@@ -462,6 +462,9 @@ class BASEPLUGIN_EXPORT CBasePlugin :
          virtual void SetMailboxName(
             const TFSMailMsgId& /*aMailboxId*/,
             const TDesC& /*aMailboxName*/ );
+        // <qmail>
+        virtual TUid Id( ) const;
+        // </qmail>
 
     // MMsgStoreObserver //
     public:
@@ -496,9 +499,9 @@ class BASEPLUGIN_EXPORT CBasePlugin :
         void GetMailboxDisplayNameL(
             TMsgStoreId aId,
             RBuf& aDisplayName );
-
-         virtual TUint GetPluginId();
-
+         // <qmail>
+         virtual TUint GetPluginId() const;
+         // </qmail>
         /**
          * Get signature string from protocol specific subclass.
          * Caller is responsible for memory of returned string.

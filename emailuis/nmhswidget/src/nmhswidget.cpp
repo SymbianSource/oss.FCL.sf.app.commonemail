@@ -156,9 +156,9 @@ bool NmHsWidget::loadDocML(HbDocumentLoader &loader)
         mContentContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetContentContainer));
         mEmptySpaceContainer = static_cast<HbWidget*> (loader.findWidget(KNmHsWidgetEmptySpaceContainer));
         mNoMailsLabel = static_cast<HbLabel*> (loader.findWidget(KNmHsWidgetNoMailsLabel));
-        mListView = static_cast<HbListView*> (loader.findWidget("mailListView"));
+        mListView = static_cast<HbListView*> (loader.findWidget(KNmHsWidgetMailListView));
         if (!mMainContainer || !mWidgetContainer || !mContentContainer 
-                || !mEmptySpaceContainer || !mNoMailsLabel ) {
+                || !mEmptySpaceContainer || !mNoMailsLabel || !mListView) {
             //something failed in documentloader, no point to continue
             NM_ERROR(1,"NmHsWidget::loadDocML fail @ containers or label");
             ok = false;
@@ -318,8 +318,10 @@ void NmHsWidget::onInitialize()
                 ,mTitleRow, SLOT( updateAccountName(const QString&) ) );
 
 	    //Get signals about user actions
+        //Qt::QueuedConnection used to improve ui responsiveness 
 	    connect(mTitleRow, SIGNAL( mailboxLaunchTriggered() )
-	            ,mEngine, SLOT( launchMailAppInboxView() ) );
+	            ,mEngine, SLOT( launchMailAppInboxView() ), Qt::QueuedConnection);
+	    
 	    connect(mTitleRow, SIGNAL( expandCollapseButtonPressed() )
 	            ,this, SLOT( handleExpandCollapseEvent() ) );
 	    

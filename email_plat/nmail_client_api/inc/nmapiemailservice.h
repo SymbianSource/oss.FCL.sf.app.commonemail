@@ -31,6 +31,7 @@ class NmApiEngine;
 namespace EmailClientApi
 {
 
+class NmApiFolder;
 class NmApiMessageEnvelope;
 class NmApiMailbox;
 class NmApiMessage;
@@ -68,6 +69,13 @@ public:
                      const quint64 folderId, 
                      const quint64 envelopeId, 
                      EmailClientApi::NmApiMessageEnvelope &envelope);
+
+    /*!
+        gets mailbox folder by id (see also NmApiEventNotifier)
+     */
+    bool getFolder(const quint64 mailboxId,
+                    const quint64 folderId,
+                    EmailClientApi::NmApiFolder &mailboxFolder);
 
     /*!
         gets mailbox info by id (see also NmApiEventNotifier)

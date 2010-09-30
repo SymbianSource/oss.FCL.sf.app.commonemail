@@ -744,14 +744,12 @@ TFSMailMsgId CIpsPlgSearch::SendToObserverL()
     {
     FUNC_LOG;
     CFSMailMessage* obsMail = iMapper->GetMailMessageL( *iActiveEntry );
-    CleanupStack::PushL( obsMail );    
-    
+    TFSMailMsgId id = obsMail->GetMessageId(); 
+    // obsMail ownership is transferred
     iObserver->MatchFoundL( obsMail );    
-    
-    CleanupStack::Pop( obsMail );
-    return obsMail->GetMessageId();        
+    return id;       
     }
-
+    
 // ---------------------------------------------------------------------------
 // From class MIpsPlgSearch.
 // CIpsPlgSearch::SearchFinished()

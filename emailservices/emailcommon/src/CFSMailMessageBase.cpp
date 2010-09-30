@@ -288,6 +288,8 @@ EXPORT_C void CFSMailMessageBase::AppendToRecipient(CFSMailAddress* aRecipient)
     if (aRecipient) 
         {
         iNmPrivateMessageEnvelope->mToRecipients.append(aRecipient->GetNmAddress());
+        delete aRecipient;//ownership transferred to us so we can delete.
+        aRecipient = NULL;
         }
 // </qmail>
 }
@@ -304,6 +306,8 @@ EXPORT_C void CFSMailMessageBase::AppendCCRecipient(CFSMailAddress* aRecipient )
         {
         iNmPrivateMessageEnvelope->mCcRecipients.append(
             aRecipient->GetNmAddress());
+        delete aRecipient;//ownership transferred to us so we can delete.
+        aRecipient = NULL;
         }
 // </qmail>
 }
@@ -320,6 +324,8 @@ EXPORT_C void CFSMailMessageBase::AppendBCCRecipient( CFSMailAddress* aRecipient
         {
         iNmPrivateMessageEnvelope->mBccRecipients.append(
             aRecipient->GetNmAddress());
+        delete aRecipient;//ownership transferred to us so we can delete.
+        aRecipient = NULL;
         }
 // </qmail>      
 }

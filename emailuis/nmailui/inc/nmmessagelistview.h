@@ -32,6 +32,7 @@ class NmUiStartParam;
 class NmMessageListModel;
 class NmMailboxListModel;
 class HbAbstractViewItem;
+class NmAction;
 class NmActionResponse;
 class NmMessageListModelItem;
 class HbIconItem;
@@ -81,6 +82,7 @@ private:
     void createToolBar();
     void setFolderName();
     void updateSyncIcon();
+    bool eventFilter(QObject *obj, QEvent *event);
 
 private:
     NmApplication &mApplication;
@@ -102,6 +104,7 @@ private:
     NmId mSelectedMailboxId;
     int mPreviousModelCount;
     bool mIsFirstSyncInMessageList;
+    QList<NmAction*> mOptionsMenulist;
 };
 
 #endif /* NMMESSAGELISTVIEW_H_ */

@@ -243,7 +243,7 @@ void NmMailAgent::initMailboxStatus()
             mPluginFactory->interfaceInstance(pluginObject);
         if (plugin) {
             plugin->listMailboxes(mailboxes);
-            
+
             // Add the indicators
             // Must be made in reverse order to show them properly in
             // HbIndicator menu
@@ -259,20 +259,20 @@ void NmMailAgent::initMailboxStatus()
                             arg(mailboxInfo->mName).
                             arg(mailboxInfo->mNewUnreadMailIdList.count()).
                             arg(mailboxInfo->mMailIdList.count()));
-    
+
                         bool wasActive = isMailboxActive(mailbox->id());
                         if (!wasActive) {
                             // do not activate the mailbox if it was left as hidden last time
                             activate = false;
                             mailboxInfo->mNewUnreadMailIdList.clear();
                         }
-    
+
                         mailboxInfo->mOutboxMails = getOutboxCount(mailbox->id(),
                             mailboxInfo->mOutboxFolderId);
                         if (mailboxInfo->mOutboxMails > 0 && wasActive) {
                             activate = true;
                         }
-    
+
                         // Create indicator for visible mailboxes
                         updateMailboxState(mailbox->id(), activate, false);
                     }
@@ -565,6 +565,7 @@ bool NmMailAgent::launchMailbox(quint64 mailboxId)
         QList<QVariant> list;
         list.append(QVariant(mailboxId));
         request->setArguments(list);
+        request->setSynchronous(EFalse);
         ok = request->send();
         NM_COMMENT(QString("Launch ok=%1 error=%2").arg(ok).arg(request->lastError()));
         delete request;
@@ -640,7 +641,7 @@ void NmMailAgent::handleMessageCreatedEvent(const NmId &folderId, const QList<Nm
             NM_COMMENT("NmMailAgent: first mail in outbox");
         }
         mailboxInfo->mOutboxMails += messageIds.count();
-        
+
         updateMailboxState(mailboxId,true,true);
         updateSendIndicator();
     }
@@ -683,7 +684,7 @@ void NmMailAgent::handleMessageChangedEvent(const NmId &folderId,
                     }
                 }
             }
-            
+
             if (updateMailbox) {
                 updateMailboxState(mailboxId);
                 updateUnreadIndicator();
@@ -703,7 +704,7 @@ void NmMailAgent::handleMessageDeletedEvent(const NmId &folderId, const QList<Nm
     const NmId &mailboxId)
 {
     NM_FUNCTION;
-    
+
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
 
     if (mailboxInfo) {
@@ -785,11 +786,9 @@ void NmMailAgent::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &ma
                 NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId); // create a new mailbox if needed
                 if (!mailboxInfo) {
                     // Unable to initialise the mailbox. Try again later.
-                    NM_COMMENT("Cannot initialise mailbox");
-
-                    qRegisterMetaType<NmId>("NmId");
-                    QMetaObject::invokeMethod(this, "delayedMailboxCreated",
-                        Qt::QueuedConnection, Q_ARG(NmId,mailboxId));
+                    NM_COMMENT("Cannot initialise mailbox - retry in 200 ms");
+                    mNewMailboxId=mailboxId;
+                    QTimer::singleShot(200, this, SLOT(delayedMailboxCreated()));
                 }
 
                 // make sure the mailbox activity data is reseted
@@ -817,6 +816,7 @@ void NmMailAgent::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &ma
                     }
                 }
                 delete mailbox;
+                mailbox = NULL;
             }
             break;
         case NmMailboxDeleted:
@@ -840,12 +840,12 @@ void NmMailAgent::handleMailboxEvent(NmMailboxEvent event, const QList<NmId> &ma
 
     \param mailboxId id of the mailbox
 */
-void NmMailAgent::delayedMailboxCreated(const NmId mailboxId)
+void NmMailAgent::delayedMailboxCreated()
 {
     NM_FUNCTION;
 
     // create and subscribe to the mailbox, if not done earlier
-    getMailboxInfo(mailboxId);
+    getMailboxInfo(mNewMailboxId);
 }
 
 
@@ -870,7 +870,7 @@ void NmMailAgent::handleViewStateChangedEvent(
         if (info) {
             // The message list view was shown. If the indicator of the mailbox
             // in question is active, deactivate it.
-            updateMailboxState(info->mId, false, false);  
+            updateMailboxState(info->mId, false, false);
             resetMailboxState(info);
         }
     }
@@ -910,7 +910,7 @@ NmMailboxInfo *NmMailAgent::getMailboxByType(const QString &type)
 void NmMailAgent::resetMailboxState(NmMailboxInfo *info)
 {
     NM_FUNCTION;
-    
+
     info->mActive = false; // indicator is no longer active
     info->mNewUnreadMailIdList.clear(); // no mails are no longer 'new'
     storeMailboxActive(info->mId, false);
@@ -1074,10 +1074,12 @@ NmMailboxInfo *NmMailAgent::createMailboxInfo(const NmId &id)
     NmMailboxInfo *info = NULL;
     NmDataPluginInterface *plugin = mPluginFactory->interfaceInstance(id);
     if (plugin) {
-        plugin->getMailboxById(id, mailbox);
-        if (mailbox) {
-            info = createMailboxInfo(*mailbox,plugin);
+        int err = plugin->getMailboxById(id, mailbox);
+        if (err == NmNoError && mailbox) {
+            info = createMailboxInfo(*mailbox,plugin);            
         }
+        delete mailbox;
+        mailbox = NULL;
     }
 
     return info;
@@ -1187,7 +1189,7 @@ bool NmMailAgent::playAlertTone()
     if (mAlertToneAllowed) {
         // Play tone only when phone is not in silence mode.
         if (!mSilenceMode) {
-            // Must instantiate it again to make sure correct tone is played  
+            // Must instantiate it again to make sure correct tone is played
             XQSystemToneService systemTone;
             systemTone.playTone(XQSystemToneService::EmailAlertTone);
         }

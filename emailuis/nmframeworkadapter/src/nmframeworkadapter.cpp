@@ -338,10 +338,14 @@ void NmFrameworkAdapter::getMessagesFromFolderL(
     RArray<TFSMailSortCriteria> sorting;
     CleanupClosePushL(sorting);
     sorting.Append(criteria);
+    
+    NM_TIMESTAMP("ListMessagesL in getMessagesFromFolderL start");   
 
     // Get the message list from the backend.
     MFSMailIterator* iterator(NULL);
     iterator = folder->ListMessagesL(details, sorting);
+    
+    NM_TIMESTAMP("ListMessagesL in getMessagesFromFolderL end");
 
     if (iterator) {
         CleanupStack::PushL(iterator);
@@ -356,8 +360,10 @@ void NmFrameworkAdapter::getMessagesFromFolderL(
         for (int i = blockSize;
              i < maxItemCount && moreMessagesToFollow;
              i += blockSize) {
+            NM_TIMESTAMP("  NextL in getMessagesFromFolderL begins");            
             moreMessagesToFollow =
                 iterator->NextL(messages[i-1]->GetMessageId(), blockSize, messages);
+            NM_TIMESTAMP("  NextL in getMessagesFromFolderL end");              
         }
 
         // Add all the found emails into the result list.
@@ -1314,7 +1320,10 @@ void NmFrameworkAdapter::EventL(
         // param2: TFSMailMsgId* aNewParentFolder
         // param3: TFSMailMsgId* aOldParentFolder
         case TFSEventMailMoved:
-            handleMailMoved(param1, param2, param3, mailbox);
+            if(param2 && param3)
+                {
+                handleMailMoved(param1, param2, param3, mailbox);
+                }            
             break;
 
         // Mails copied

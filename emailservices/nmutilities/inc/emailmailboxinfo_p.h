@@ -35,16 +35,16 @@ private:
     EmailMailboxInfoPrivate();
     ~EmailMailboxInfoPrivate();
     
-    QString name(const QVariant &identifier);
-    QString icon(const QVariant &identifier);
+    QString name(const QString &identifier);
+    QString icon(const QString &identifier);
     
     void processCenRepRecords(const QString &brandingId);
-    quint8 getCurrentCountryL() const;
+    int getCurrentCountryL() const;
     bool verifyTimeZone() const;
     void verifyMailAccountName(QString &brandingName) const;
 
     static EmailMailboxInfoPrivate *mSelf;
-    static qint32 mReferenceCount;
+    static int mReferenceCount;
 
     XQSettingsManager *mSettingsManager;
     
@@ -52,11 +52,6 @@ private:
          holds domain name for WLB
      */
     QString mWlbDomainName;
-    
-    /*!
-         temporary store for domain name to avoid additional cenrep scan
-     */
-    QString mTempDomain;
     
     /*!
          temporary store for icon and name branding variables to avoid additional cenrep scan
@@ -68,9 +63,8 @@ private:
          Map of already imported branding keys
      */
     QMap<unsigned long int, QString> mBrandingDataMap;
-   
+
     friend class EmailMailboxInfo;
-    friend class TestEmailMailboxInfoPrivate;
 };
 
 #endif /* MAILBOXINFO_P_H_ */

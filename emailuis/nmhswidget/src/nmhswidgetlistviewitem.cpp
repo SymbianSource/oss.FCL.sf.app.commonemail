@@ -15,6 +15,7 @@
 *
 */
 
+#include <qregexp.h>
 #include <hbtextitem.h>
 #include <hbiconitem.h>
 #include <hbframeitem.h>
@@ -23,6 +24,7 @@
 #include <hbcolorscheme.h>
 #include <nmmessageenvelope.h>
 #include <nmicons.h>
+#include <hbstringutil.h>
 #include "nmhswidgetlistviewitem.h"
 
 /*!
@@ -148,7 +150,7 @@ void NmHsWidgetListViewItem::setContentsToMessageItem(const NmMessageEnvelope &e
     // Sender.
     QString senderDisplayName = envelope.sender().displayName();
     if (!senderDisplayName.isNull() && !senderDisplayName.isEmpty()) {
-        mSender->setText(senderDisplayName);
+        mSender->setText(cleanupDisplayName(senderDisplayName));
     }
     else {
         mSender->setText(envelope.sender().address());
@@ -162,10 +164,10 @@ void NmHsWidgetListViewItem::setContentsToMessageItem(const NmMessageEnvelope &e
     if (sentLocalDate == currentdate) {
         QString shortTimeSpec = r_qtn_time_usual;
         QTime time = localTime.time();
-        mTime->setText(locale.format(time, shortTimeSpec));
+        mTime->setText(HbStringUtil::convertDigits(locale.format(time, shortTimeSpec)));
     } else {
         QString shortDateSpec = r_qtn_date_without_year;
-        mTime->setText(locale.format(sentLocalDate, shortDateSpec));
+        mTime->setText(HbStringUtil::convertDigits(locale.format(sentLocalDate, shortDateSpec)));
     }
     // Subject.
     QString subjectText = envelope.subject();
@@ -309,4 +311,23 @@ void  NmHsWidgetListViewItem::setFonts(const QColor &colorRole,
         mTime->setFontSpec(fontSpec);        
         mTime->setTextColor(colorRole);
     }
+}
+
+/*!
+  Cleans up display name by stripping extra characters from the beginning and end of the string.
+*/
+QString NmHsWidgetListViewItem::cleanupDisplayName( const QString &displayName )
+{
+    NM_FUNCTION;
+
+    // find the first and last position that is NOT one of the characters below
+    QRegExp rx("[^\\s\"<>]");
+    int firstPos = std::max(rx.indexIn(displayName), 0);
+    int lastPos = rx.lastIndexIn(displayName);
+
+    if (lastPos < 0) {
+        lastPos = displayName.length() - 1;
+    }
+
+    return displayName.mid(firstPos, lastPos - firstPos + 1);
 }

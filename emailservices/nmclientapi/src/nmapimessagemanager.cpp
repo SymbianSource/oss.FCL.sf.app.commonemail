@@ -35,42 +35,43 @@ NmApiMessageManager::NmApiMessageManager(QObject *parent, quint64 mailboxId)
 
 NmApiMessageManager::~NmApiMessageManager()
 {
-	delete d;
 }
    
-
-    // creates a new email message
-    // signaled with draftMessageCreated(NmApiMessage *message,int result) 
-    //    * ownership transferred
-bool NmApiMessageManager::createDraftMessage(const QVariant *initData)
+/*!
+ \fn createDraftMessage 
+ \param initData Initializing data. Can contain NULL value.
+ \return Create draft message operation.
+ 
+ Creates a new email message. Returns create draft message operation. 
+ */
+QPointer<NmApiOperation> NmApiMessageManager::createDraftMessage(const QVariant *initData)
 {
     NM_FUNCTION;
-    Q_UNUSED(initData);
-	return false;
+    return d->createDraftMessage(initData);
 }
     
     // creates fw message
     // signaled with forwardMessageCreated(NmApiMessage *message,int result) 
     //    * ownership transferred
- bool NmApiMessageManager::createForwardMessage(NmApiMessage *orig,const QVariant *initData)
+QPointer<NmApiOperation> NmApiMessageManager::createForwardMessage(NmApiMessage *orig,const QVariant *initData)
  {
     NM_FUNCTION;
     Q_UNUSED(initData);
     Q_UNUSED(orig);
-	return false;
+	return 0;
  }
     
     // creates reply message
     // signaled with replyMessageCreated(NmApiMessage *message,int result) 
     //    * ownership transferred
-bool NmApiMessageManager::createReplyMessage(const NmApiMessage *orig,
+QPointer<NmApiOperation> NmApiMessageManager::createReplyMessage(const NmApiMessage *orig,
         const QVariant *initData,bool replyAll)
 {
     NM_FUNCTION;
     Q_UNUSED(orig);
     Q_UNUSED(initData);
     Q_UNUSED(replyAll);
-	return false;
+	return 0;
 }
  
 /*!
@@ -83,7 +84,7 @@ bool NmApiMessageManager::createReplyMessage(const NmApiMessage *orig,
  Starts async move operation for given messages.  
  Completion signalled with messagesMoved(int result).
  */
-bool NmApiMessageManager::moveMessages(const QList<quint64> messageIds,
+QPointer<NmApiOperation> NmApiMessageManager::moveMessages(const QList<quint64> messageIds,
 									quint64 sourceFolderId,
 									quint64 targetFolderId)
 {    
@@ -91,68 +92,82 @@ bool NmApiMessageManager::moveMessages(const QList<quint64> messageIds,
     Q_UNUSED(messageIds);
     Q_UNUSED(sourceFolderId);
     Q_UNUSED(targetFolderId);
-    return false;
+    return 0;
 	//return d->moveMessages(messageIds,sourceFolderId,targetFolderId);
 }
     
-// signaled with messageSaved(quint64 messageId, int result)
-bool NmApiMessageManager::saveMessage(const NmApiMessage &message)
+/*!
+ \fn saveMessage 
+ \param message Message to be saved (note that message must exists to complete successfully).
+ \return Save message operation.
+ 
+ Saves email message. Message must be created before this operation with createDraftMessage/createForwardMessage/
+ createReplyMessage operation. Operation will run unsuccessfully, if message haven't created before. 
+ Returns save message operation. 
+ */
+QPointer<NmApiOperation> NmApiMessageManager::saveMessage(const NmApiMessage &message)
 {
-    Q_UNUSED(message);
-	return false;
+    return d->saveMessage(message);
 }
     
 // deletes message
 // signaled with messagesDeleted(int result)
-bool NmApiMessageManager::deleteMessages(const QList<quint64> messageIds)
+QPointer<NmApiOperation> NmApiMessageManager::deleteMessages(const QList<quint64> messageIds)
 {
     Q_UNUSED(messageIds);
-	return false;
+	return 0;
 }
     
     // starts fetching rest of message body from server
     // signaled with messageFetched(quint64 messageId, int result)
-bool NmApiMessageManager::fetchMessage(quint64 messageId)
+QPointer<NmApiOperation> NmApiMessageManager::fetchMessage(quint64 messageId)
 {
     Q_UNUSED(messageId);
-	return false;
+	return 0;
 }
     
-    // moves message to outbox. Actual sending time may be immediate or scheduled
-    // signaled with messageSent(quint64 messageId, int result)
-bool NmApiMessageManager::sendMessage(const NmApiMessage &message)
+/*!
+ \fn sendMessage 
+ \param message Message to be sent (note that message must exists to complete successfully).
+ \return Send message operation.
+ 
+ Sends email message. Message must be created before this operation with createDraftMessage/createForwardMessage/
+ createReplyMessage operation. Operation will run unsuccessfully, if message haven't created before. 
+ Returns send message operation. 
+ */
+QPointer<NmApiOperation> NmApiMessageManager::sendMessage(const NmApiMessage &message)
 {
-    Q_UNUSED(message);
-	return false;
+    NM_FUNCTION;
+    return d->sendMessage(message);
 }
 
 // creates new attachment for a message. Currently attachment can be specified as file name (attachmentSpec is QString)
 // signaled with attachmentCreated(quint64 attachemntId)
 //  * 
-bool NmApiMessageManager::createAttachment(NmApiMessage &message,
+QPointer<NmApiOperation> NmApiMessageManager::createAttachment(NmApiMessage &message,
 										const QVariant &attachmenSpec)
 {
     Q_UNUSED(message);
     Q_UNUSED(attachmenSpec);
-    return false;
+    return 0;
 }
                                                       
 // removes attachment from a message
 // signaled with attachmentRemoved(int result)
-bool NmApiMessageManager::removeAttachment(NmApiMessage &message,
+QPointer<NmApiOperation> NmApiMessageManager::removeAttachment(NmApiMessage &message,
 quint64 attachmentId)
 {    
     Q_UNUSED(message);
     Q_UNUSED(attachmentId);
-    return false;
+    return 0;
 }
 
-bool NmApiMessageManager::fetchAttachment(const NmApiMessage &relatedMessage,
+QPointer<NmApiOperation> NmApiMessageManager::fetchAttachment(const NmApiMessage &relatedMessage,
         quint64 attachmentId)
 {
     Q_UNUSED(relatedMessage);
     Q_UNUSED(attachmentId);
-    return false;
+    return 0;
 }
  
 } // namespace EmailClientApi

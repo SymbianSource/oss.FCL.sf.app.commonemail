@@ -61,7 +61,7 @@ public:
 
     EmailMRU();
 
-    ~EmailMRU();
+    virtual ~EmailMRU();
 
     bool updateMRU(QString displayName, QString emailAddress);
 

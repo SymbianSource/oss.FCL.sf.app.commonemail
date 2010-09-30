@@ -33,6 +33,7 @@
 #include <QDateTime>
 #include <QExplicitlySharedDataPointer>
 #include <QSharedData>
+#include <QPointer>
 
 #include <imapset.h>
 #include <pop3set.h>
@@ -41,9 +42,12 @@
 
 #include <e32base.h>
 
-#include <SMTPSET.H>
+#include <smtpset.h>
 
 #include <xqconversions.h>
+#include <xqsettingsmanager.h>
+#include <xqcentralrepositorysearchcriteria.h>
+#include <xqcentralrepositoryutils.h>
 
 #include <nmdataplugininterface.h>
 
@@ -66,6 +70,7 @@
 // nmail_settings_api
 #include <nmapimailboxsettings.h>
 #include <nmapimailboxsettingsdata.h>
+#include <nmapisettingsmanager.h>
 
 // nmail_client_api
 #include <nmapicommon.h>
@@ -84,6 +89,7 @@
 #include <nmapimessage.h>
 #include <nmapimessagemanager.h>
 #include <nmapimessagesearch.h>
+#include <nmapioperation.h>
 #include <nmapimessagecontent.h>
 #include <nmapitextcontent.h>
 #include <nmapiattachment.h>
@@ -108,9 +114,12 @@
 #include "nmapitypesconverter.h"
 #include "nmapimessagesearch_p.h"
 #include "nmapimessage_p.h"
+#include "nmapisettingsmanager_p.h"
 #include "nmapimessagecontent_p.h"
 #include "nmapitextcontent_p.h"
 #include "nmapiattachment_p.h"
-
+#include "nmapioperationcreatedraftmessage.h"
+#include "ipssettingkeys.h"
+#include "nmapioperationsendmessage.h"
 
 #endif // NMAPIHEADERS_H

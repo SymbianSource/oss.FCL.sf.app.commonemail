@@ -22,6 +22,7 @@
 static const char *NMUI_EDITOR_CONTAINER = "scrollAreaContents";
 static const char *NMUI_EDITOR_SUBJECT_FIELD = "editorSubjectField";
 static const char *NMUI_EDITOR_SUBJECT_EDIT = "editorSubjectEdit";
+static const char *NMUI_EDITOR_SUBJECT_LABEL = "editorSubjectLabel";
 static const char *NMUI_EDITOR_TO_FIELD = "editorToField";
 static const char *NMUI_EDITOR_CC_FIELD = "editorCcField";
 static const char *NMUI_EDITOR_BCC_FIELD = "editorBccField";
@@ -87,6 +88,9 @@ void NmEditorHeader::loadWidgets()
         mToField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_TO);
         mCcField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_CC);
         mBccField = new NmRecipientField(this, *mDocumentLoader, NMUI_EDITOR_PREFIX_BCC);
+        // Connection for adjusting recipient field labels. Connection done earlier than other connections
+        // so that we don't miss signal.
+        connect(mToField->editor(), SIGNAL(layoutChanged ()), this, SLOT(toFieldLayoutReady()));
     
         // Sets up editor properties like no prediction, lower case preferred etc.
         HbEditorInterface toEditorInterface(mToField->editor());
@@ -111,6 +115,8 @@ void NmEditorHeader::loadWidgets()
         mSubjectWidget =
             qobject_cast<HbWidget *>(mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_FIELD));
         mSubjectLayout = static_cast<QGraphicsLinearLayout *>(mSubjectWidget->layout());
+        mSubjectLabel =
+            qobject_cast<HbLabel *>(mDocumentLoader->findWidget(NMUI_EDITOR_SUBJECT_LABEL));
           
         // Add Subject: field
         mSubjectEdit = qobject_cast<NmHtmlLineEdit *>
@@ -505,3 +511,77 @@ void NmEditorHeader::repositHeader(const QTransform &transform)
     mAttachmentListWidget->setTransform(transform);
 }
 
+/*!
+   This slot will set the geometry, margin and font for the To,Cc,Bcc and Subject
+   labels located inside the edit fields. These adjustments are done to fix label text
+   position so that it is in same lavel than first line of the edit widget.
+   Slot is called once when 'To' field layout is ready after editor startup.
+   Because all fields are similar it is enough to use only 'To' field information
+   to adjust all header fields.
+*/
+void NmEditorHeader::toFieldLayoutReady()
+{
+    NM_FUNCTION;
+    
+    // Set same font for label and edit.
+    QFont editorFont = mToField->editor()->font();
+    mToField->label()->setFont(editorFont);
+    mCcField->label()->setFont(editorFont);
+    mBccField->label()->setFont(editorFont);
+    mSubjectLabel->setFont(editorFont);
+
+    // Set same height for label and edit.
+    qreal editorWidgetHeight = mToField->editor()->geometry().height();
+    mToField->label()->setPreferredHeight(editorWidgetHeight);
+    mCcField->label()->setPreferredHeight(editorWidgetHeight);
+    mBccField->label()->setPreferredHeight(editorWidgetHeight);
+    mSubjectLabel->setPreferredHeight(editorWidgetHeight);
+    
+    // Set left margin for labels.
+    qreal leftMargin;
+    mToField->editor()->layout()->getContentsMargins(&leftMargin, 0, 0, 0);
+    mToField->label()->setContentsMargins(leftMargin, 0, 0, 0);
+    mCcField->label()->setContentsMargins(leftMargin, 0, 0, 0);
+    mBccField->label()->setContentsMargins(leftMargin, 0, 0, 0);
+    mSubjectLabel->setContentsMargins(leftMargin, 0, 0, 0);
+    
+    adjustIndentForEditFields();
+}
+
+/*!
+   Set the length of the label and the indention of the edit fields (To,Cc,Bcc,Subject) so
+   that there is enough space for the label field.
+*/
+void NmEditorHeader::adjustIndentForEditFields()
+{
+    NM_FUNCTION;
+
+    // Get spacing between label and edit.
+    qreal spacingBetweenLabelAndEdit = 0;
+    HbStyle().parameter("hb-param-margin-gene-middle-horizontal", spacingBetweenLabelAndEdit);
+    // Add more space for label right margin. Without this, last letter ':' of the label is not
+    // fit into field.
+    spacingBetweenLabelAndEdit *= 2;
+    
+    // Get font metrics (We assume that every label has same font).
+    QFontMetrics fm(mToField->label()->font());
+    
+    // Set length of the label widgets based on the string width.
+    // Also set indent for the first line of the edit widget.
+    qreal textWidth = 0;
+    textWidth = fm.width(mToField->label()->plainText()) + spacingBetweenLabelAndEdit;
+    mToField->label()->setPreferredWidth(textWidth);    
+    mToField->editor()->setIndentForLabel(textWidth);    
+    
+    textWidth = fm.width(mCcField->label()->plainText()) + spacingBetweenLabelAndEdit;
+    mCcField->label()->setPreferredWidth(textWidth);
+    mCcField->editor()->setIndentForLabel(textWidth);
+
+    textWidth = fm.width(mBccField->label()->plainText()) + spacingBetweenLabelAndEdit;
+    mBccField->label()->setPreferredWidth(textWidth);
+    mBccField->editor()->setIndentForLabel(textWidth);
+    
+    textWidth = fm.width(mSubjectLabel->plainText()) + spacingBetweenLabelAndEdit;
+    mSubjectLabel->setPreferredWidth(textWidth);
+    mSubjectEdit->setIndentForLabel(textWidth);
+}

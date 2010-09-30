@@ -63,22 +63,17 @@ public:
     void setServerInfoGroupItem(HbDataFormModelItem *item);
     void createOrUpdateReceivingScheduleGroupDynamicItem(IpsServices::SettingItem item);
     void createServerInfoGroupDynamicItems(bool hiddenItem);
-
-    int getCorrectIncomingPortRadioButtonIndex();
-    int getCorrectIncomingSecureRadioButtonIndex();
-    int getCorrectOutgoingSecureRadioButtonIndex();
-    int getCorrectFolderPathRadioButtonIndex();
-    int getCorrectOutgoingPortRadioButtonIndex();
-    int getCorrectOutgoingAuthenticationRadioButtonIndex();
+   
+    int getCorrectIncomingPortComboBoxIndex();
+    int getCorrectIncomingSecureComboBoxIndex();
+    int getCorrectOutgoingSecureComboBoxIndex();
+    int getCorrectFolderPathComboBoxIndex();
+    int getCorrectOutgoingPortComboBoxIndex();
+    int getCorrectOutgoingAuthenticationComboBoxIndex();
+    
     void handleReceivingScheduleSettingChange(IpsServices::SettingItem settingItem,
         const QVariant &settingValue);
     QString destinationNameFromIdentifier(uint identifier);
-    void incomingSecureConnectionItemChange(int index);
-    void incomingPortChange(int index);
-    void outgoingSecureConnectionItemChange(int index);
-    void outgoingPortChange(int index);
-    void outgoingAuthenticationChange(int index);
-    void folderPathChange(int index);
 
 signals:
 
@@ -109,6 +104,12 @@ public slots:
     void incomingMailServerTextChange(const QString &text);
     void saveOutgoingMailServer();
     void outgoingMailServerTextChange(const QString &text);
+    void incomingSecureConnectionItemChange(int index);
+	void incomingPortChange(int index);
+	void outgoingSecureConnectionItemChange(int index);
+	void outgoingPortChange(int index);
+	void outgoingAuthenticationChange(int index);
+	void folderPathChange(int index);
     void connectionButtonPress();
 
 private slots:
@@ -116,14 +117,13 @@ private slots:
     void receivingWeekdaysModified();
     void startTimeModified(QTime time);
     void endTimeModified(QTime time);
-    void refreshPeriodModified(HbAction *action);
     void handleMailboxDelete(HbAction *action);
     void handleMailboxDeleteUpdate(HbAction *action);
     void handleUserDefinedIncomingPortInput(HbAction *action);
     void handleUserDefinedFolderPathInput(HbAction *action);
     void handleUserDefinedOutgoingPortInput(HbAction *action);
     void handleConnectionSelected(uint status);
-    void refreshIndexModified(int index);
+    void refreshPeriodModified(int index);
 
 private:
 
@@ -164,7 +164,7 @@ private: // data
     CmApplSettingsUi *mDestinationDialog; // Owned.
     bool mServerInfoDynamicItemsVisible;
     bool mAbortDynamicRSItemHandling;
-    int mCurrentRefreshIndex;
+    int mPrevInboxCount;
 };
 
 #endif // NMIPSSETTINGSHELPER_H

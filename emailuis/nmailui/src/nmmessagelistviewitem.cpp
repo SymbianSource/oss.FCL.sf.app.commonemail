@@ -246,7 +246,7 @@ void NmMessageListViewItem::setContentsToMessageItem(const NmMessageEnvelope &en
  */
 void  NmMessageListViewItem::setFontsUnread()
 {
-    static QColor colorRole = HbColorScheme::color("qtc_list_item_title_normal");
+    QColor colorRole = HbColorScheme::color("qtc_list_item_title_normal");
     HbFontSpec fontSpec(HbFontSpec::Primary);
     setFonts(colorRole, fontSpec);
 }
@@ -256,7 +256,7 @@ void  NmMessageListViewItem::setFontsUnread()
  */
 void  NmMessageListViewItem::setFontsRead()
 {
-    static QColor colorRole = HbColorScheme::color("qtc_list_item_content_normal");
+    QColor colorRole = HbColorScheme::color("qtc_list_item_content_normal");
     HbFontSpec fontSpec(HbFontSpec::Secondary);
     setFonts(colorRole, fontSpec);
 }

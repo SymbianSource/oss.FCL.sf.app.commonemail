@@ -33,7 +33,9 @@ NmRecipientField::NmRecipientField(
     mObjectPrefix(objPrefix),
     mLabel(NULL),
     mRecipientsEditor(NULL),
-    mLaunchContactsPickerButton(NULL)
+    mLaunchContactsPickerButton(NULL),
+    mAiwRequest(NULL)
+    
 {
     NM_FUNCTION;
 
@@ -73,11 +75,9 @@ void NmRecipientField::createConnections()
     connect(mRecipientsEditor, SIGNAL(editingFinished()),
         this, SIGNAL(editingFinished()));
     connect(mRecipientsEditor, SIGNAL(selectionChanged()),
-        this, SIGNAL(selectionChanged()));
+        this, SIGNAL(launchContactsPicker()));
     connect(mLaunchContactsPickerButton, SIGNAL(clicked()),
-        this, SIGNAL(launchContactsPickerButtonClicked()));
-    connect(mLaunchContactsPickerButton, SIGNAL(clicked()),
-        this, SLOT(launchContactsPicker()), Qt::QueuedConnection);
+        this, SLOT(launchContactsPicker()));
 }
 
 
@@ -87,6 +87,7 @@ void NmRecipientField::createConnections()
 NmRecipientField::~NmRecipientField()
 {
     NM_FUNCTION;
+    delete mAiwRequest;
 }
 
 /*!
@@ -109,6 +110,15 @@ NmRecipientLineEdit *NmRecipientField::editor() const
     return mRecipientsEditor;
 }
 
+/*!
+   Label widget
+*/
+HbLabel *NmRecipientField::label() const
+{
+    NM_FUNCTION;
+    
+    return mLabel;
+}
 
 /*!
    LineEdit contents
@@ -142,34 +152,46 @@ void NmRecipientField::launchContactsPicker()
 {
     NM_FUNCTION;
 
-    XQApplicationManager mAppmgr;
-    XQAiwRequest *launchContactsPickerRequest;
-
-    bool isEmbeded = true;
-    launchContactsPickerRequest = mAppmgr.create(NmContactsServiceName, NmContactsInterfaceName,
-                                                 NmContactsOperationName, isEmbeded);
-
-    if (launchContactsPickerRequest) {
-        connect(launchContactsPickerRequest, SIGNAL(requestOk(QVariant)),
-                mRecipientsEditor, SLOT(addSelectedContacts(QVariant)));
+    if (!mAiwRequest) {
+        XQApplicationManager mAppmgr;
+        
+    
+        bool isEmbeded = true;
+        mAiwRequest = mAppmgr.create(NmContactsServiceName, NmContactsInterfaceName,
+                                                     NmContactsOperationName, isEmbeded);
+        
+        if (mAiwRequest) {
+            connect(mAiwRequest, SIGNAL(requestOk(QVariant)),
+                    mRecipientsEditor, SLOT(addSelectedContacts(QVariant)));
+            connect(mAiwRequest, SIGNAL(requestOk(QVariant)),
+                           this, SLOT(requestCompleted()));
+            connect(mAiwRequest, SIGNAL(requestError(int, QString &)),
+                           this, SLOT(requestCompleted()));
+            mAiwRequest->setSynchronous(false);
+        }
+        else {
+            // Failed creating request
+            NM_ERROR(1,"XQApplicationManager: failed creating fecth contactspicker request");
+            return;
+        }
+    
+        QVariantList args;
+        args << hbTrId("txt_mail_select_contacts");
+        args << KCntActionEmail;
+        mAiwRequest->setArguments(args);
+        
+        // Send request
+        if (!mAiwRequest->send()) {
+           //Failed sending request
+           NM_ERROR(1,"XQApplicationManager: failed sending request");
+        }
     }
-    else {
-        // Failed creating request
-        NM_ERROR(1,"XQApplicationManager: failed creating fecth contactspicker request");
-	    return;
-    }
-
-    QVariantList args;
-    args << hbTrId("txt_mail_select_contacts");
-    args << KCntActionEmail;
-    launchContactsPickerRequest->setArguments(args);
-
-    // Send request
-    if (!launchContactsPickerRequest->send()) {
-       //Failed sending request
-       NM_ERROR(1,"XQApplicationManager: failed sending request");
-    }
-
-    delete launchContactsPickerRequest;
-    launchContactsPickerRequest = NULL;
+}
+/*!
+   XQAiwRequest calls this if request is ok or an error happens.
+*/
+void NmRecipientField::requestCompleted()
+{
+    delete mAiwRequest;
+    mAiwRequest = NULL;
 }

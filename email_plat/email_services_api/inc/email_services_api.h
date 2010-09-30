@@ -96,7 +96,7 @@ static const QString emailFullServiceNameMessage = emailServiceName + "." + XQI_
 
         bool syncronous;
 
-        XQServiceRequest request(emailFullServiceNameSend,
+        XQServiceRequest request(XQI_EMAIL_MESSAGE_SEND,
                                  XQOP_EMAIL_MESSAGE_SEND,
                                  syncronous);
 
@@ -130,7 +130,7 @@ static const QString emailFullServiceNameMessage = emailServiceName + "." + XQI_
     Usage example:
 
     XQServiceRequest request(
-        emailFullServiceNameMailbox,
+        XQI_EMAIL_INBOX_VIEW,
         XQOP_EMAIL_INBOX_VIEW,
         syncronous);
 
@@ -168,7 +168,7 @@ static const QString emailFullServiceNameMessage = emailServiceName + "." + XQI_
     Usage example:
 
     XQServiceRequest request(
-       emailFullServiceNameMessage,
+       XQI_EMAIL_MESSAGE_VIEW,
        XQOP_EMAIL_MESSAGE_VIEW,
        synchronous);
 

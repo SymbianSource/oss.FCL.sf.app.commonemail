@@ -293,6 +293,7 @@ void NmViewerHeader::createExpandableHeader()
             mRecipientsBox->setObjectName("toField");
             mRecipientsBox->setBackgroundItem(NULL);
             mRecipientsBox->setFontSpec(HbFontSpec(HbFontSpec::Secondary)); 
+            mRecipientsBox->setContextMenuFlags(0); 
             connect(mRecipientsBox, SIGNAL(anchorTapped(const QString &)),
                     this, SLOT(anchorTapped(const QString &)));                    
         }              

@@ -249,16 +249,16 @@ TInt CEmailMessage::GetRecipientsL( const MEmailAddress::TRole aRole,
 void CEmailMessage::SetRecipientsL( const MEmailAddress::TRole aRole,
         REmailAddressArray& aRecipients )
     {
+    User::LeaveIfNull( iPluginMessage );
+    
     TInt count( aRecipients.Count() );
 
     for( TInt i=0;i<count;i++ )
         {
         const MEmailAddress* address = aRecipients[i];
-        CFSMailAddress* fsAddress = CFSMailAddress::NewLC();
+        CFSMailAddress* fsAddress = CFSMailAddress::NewL();
         fsAddress->SetEmailAddress( address->Address() );
         fsAddress->SetDisplayName( address->DisplayName() );
-        
-        User::LeaveIfNull( iPluginMessage );
         
         if( aRole == MEmailAddress::ETo )
             {
@@ -274,9 +274,9 @@ void CEmailMessage::SetRecipientsL( const MEmailAddress::TRole aRole,
             }
         else
             {
+            delete fsAddress;
             User::Leave( KErrArgument );
-            }
-        CleanupStack::Pop( fsAddress );
+            }        
         }
     }
 

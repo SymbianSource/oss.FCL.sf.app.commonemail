@@ -5,13 +5,16 @@
             <widget name="scrollArea" type="NmBaseViewScrollArea">
                 <widget name="scrollAreaContents" role="HbScrollArea:contents" type="HbWidget">
                     <widget name="editorToField" type="HbWidget">
-                        <widget name="editorToLabel" type="HbLabel">
-                            <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                            <sizehint height="7.5un" type="FIXED" width="12.5un"/>
-                            <string locid="txt_mail_editor_to" name="plainText"/>
-                            <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                        <widget name="editorToEdit" type="NmRecipientLineEdit">
+                            <widget name="editorToLabel" type="HbLabel">
+                                <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+                                <sizehint height="7.5un" type="FIXED" width="12.5un"/>
+                                <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                                <enums name="elideMode" value="ElideNone"/>
+                                <string locid="txt_mail_editor_to" name="plainText"/>
+                                <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                            </widget>
                         </widget>
-                        <widget name="editorToEdit" type="NmRecipientLineEdit"/>
                         <widget name="editorToButton" type="HbPushButton">
                             <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
                             <sizehint height="7.5un" type="FIXED" width="9.5un"/>
@@ -20,19 +23,21 @@
                         <sizehint type="PREFERRED" width="expr(var(hb-param-screen-width) )"/>
                         <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
                             <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
-                            <linearitem itemname="editorToLabel"/>
                             <linearitem itemname="editorToEdit"/>
                             <linearitem itemname="editorToButton"/>
                         </layout>
                     </widget>
                     <widget name="editorCcField" type="HbWidget">
-                        <widget name="editorCcLabel" type="HbLabel">
-                            <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                            <sizehint height="7.5un" type="FIXED" width="12.5un"/>
-                            <string locid="txt_mail_editor_cc" name="plainText"/>
-                            <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                        <widget name="editorCcEdit" type="NmRecipientLineEdit">
+                            <widget name="editorCcLabel" type="HbLabel">
+                                <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+                                <sizehint height="7.5un" type="FIXED" width="12.5un"/>
+                                <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                                <enums name="elideMode" value="ElideNone"/>
+                                <string locid="txt_mail_editor_cc" name="plainText"/>
+                                <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                            </widget>
                         </widget>
-                        <widget name="editorCcEdit" type="NmRecipientLineEdit"/>
                         <widget name="editorCcButton" type="HbPushButton">
                             <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
                             <sizehint height="7.5un" type="FIXED" width="9.5un"/>
@@ -41,19 +46,21 @@
                         <sizehint type="PREFERRED" width="expr(var(hb-param-screen-width) )"/>
                         <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
                             <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
-                            <linearitem itemname="editorCcLabel"/>
                             <linearitem itemname="editorCcEdit"/>
                             <linearitem itemname="editorCcButton"/>
                         </layout>
                     </widget>
                     <widget name="editorBccField" type="HbWidget">
-                        <widget name="editorBccLabel" type="HbLabel">
-                            <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                            <sizehint height="7.5un" type="FIXED" width="12.5un"/>
-                            <string locid="txt_mail_editor_bcc" name="plainText"/>
-                            <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                        <widget name="editorBccEdit" type="NmRecipientLineEdit">
+                            <widget name="editorBccLabel" type="HbLabel">
+                                <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+                                <sizehint height="7.5un" type="FIXED" width="12.5un"/>
+                                <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                                <enums name="elideMode" value="ElideNone"/>
+                                <string locid="txt_mail_editor_bcc" name="plainText"/>
+                                <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                            </widget>
                         </widget>
-                        <widget name="editorBccEdit" type="NmRecipientLineEdit"/>
                         <widget name="editorBccButton" type="HbPushButton">
                             <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
                             <sizehint height="7.5un" type="FIXED" width="9.5un"/>
@@ -62,19 +69,21 @@
                         <sizehint type="PREFERRED" width="expr(var(hb-param-screen-width) )"/>
                         <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
                             <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
-                            <linearitem itemname="editorBccLabel"/>
                             <linearitem itemname="editorBccEdit"/>
                             <linearitem itemname="editorBccButton"/>
                         </layout>
                     </widget>
                     <widget name="editorSubjectField" type="HbWidget">
-                        <widget name="editorSubjectLabel" type="HbLabel">
-                            <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
-                            <sizehint height="7.5un" type="FIXED" width="12.5un"/>
-                            <string locid="txt_mail_editor_subject" name="plainText"/>
-                            <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                        <widget name="editorSubjectEdit" type="NmHtmlLineEdit">
+                            <widget name="editorSubjectLabel" type="HbLabel">
+                                <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
+                                <sizehint height="7.5un" type="FIXED" width="12.5un"/>
+                                <contentsmargins bottom="0un" left="0un" right="0un" top="0un"/>
+                                <enums name="elideMode" value="ElideNone"/>
+                                <string locid="txt_mail_editor_subject" name="plainText"/>
+                                <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
+                            </widget>
                         </widget>
-                        <widget name="editorSubjectEdit" type="NmHtmlLineEdit"/>
                         <widget name="editPriorityIcon" type="HbLabel">
                             <enums name="alignment" value="AlignVCenter|AlignHCenter"/>
                             <sizepolicy horizontalPolicy="Fixed" horizontalStretch="0" verticalPolicy="Fixed" verticalStretch="0"/>
@@ -89,7 +98,6 @@
                         <sizehint type="PREFERRED" width="expr(var(hb-param-screen-width) )"/>
                         <layout orientation="Horizontal" spacing="var(hb-param-margin-gene-middle-horizontal)" type="linear">
                             <contentsmargins bottom="0un" left="var(hb-param-margin-gene-left)" right="var(hb-param-margin-gene-right)" top="0un"/>
-                            <linearitem itemname="editorSubjectLabel"/>
                             <linearitem itemname="editorSubjectEdit"/>
                             <linearitem itemname="editPriorityIcon" spacing="0.5un"/>
                             <linearitem itemname="editFollowUpIcon"/>

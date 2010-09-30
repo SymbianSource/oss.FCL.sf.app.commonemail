@@ -39,7 +39,8 @@ public: // from HbListViewItem
 
 protected:
     void setFonts(const QColor &colorRole, HbFontSpec &fontSpec);
-    void getFontSizes();   
+    void getFontSizes();  
+    QString cleanupDisplayName( const QString &displayName );
     
 private:
     void createMessageItemLayout();

@@ -41,6 +41,8 @@ bool ContactIdsCalled;
 bool fillMruWithFalseValues;
 bool returnZeroEmails;
 
+bool returnFalseFromGetEntry;
+
 // -----------------------------------------------------------------------------
 // initTestCase
 // -----------------------------------------------------------------------------
@@ -72,6 +74,8 @@ void TestNmContactHistoryModelPrivate::init()
     fillMruWithFalseValues = false;
     returnZeroEmails = false;
 
+    returnFalseFromGetEntry = false;
+    
     mTestObject = 0;
     mSignalEmitted = false;
     mTestObject = new NmContactHistoryModelPrivate(EmailAddressModel);
@@ -158,6 +162,12 @@ void TestNmContactHistoryModelPrivate::test_queryMruDatabase() // Ready
     QVERIFY( rValue );
     rValue = mTestObject->mMruMatches.contains("camel.case");
     QVERIFY(mTestObject->mMruMatches.count() == 1);
+    
+    mTestObject->mType = PhoneNumberModel;
+    rValue = mTestObject->queryMruDatabase("");
+    
+    QVERIFY( rValue == false );
+    mTestObject->mType = EmailAddressModel;
 }
 
 void TestNmContactHistoryModelPrivate::test_queryContactDatabase() // Ready.
@@ -237,6 +247,16 @@ void TestNmContactHistoryModelPrivate::test_populateListWithMruItems() // Ready
 
     QVERIFY( markup2Start == 6 );
     QVERIFY( markup2Stop == 9 );
+
+    mTestObject->mMruMatches.clear();
+    mTestObject->mPrivateItemList.clear();
+    mTestObject->mMruMatches.insert("Name","name@test.com");   
+    mTestObject->mMruMatches.insert("Tset Eman","eman@tset.com");
+    
+    mTestObject->populateListWithMruItems("Name");
+
+    mTestObject->mPrivateItemList.clear();    
+    mTestObject->populateListWithMruItems("Name");    
 }
 
 void TestNmContactHistoryModelPrivate::test_populateListWithContactItems() // Ready
@@ -302,7 +322,7 @@ void TestNmContactHistoryModelPrivate::test_populateListWithContactItems() // Re
 void TestNmContactHistoryModelPrivate::test_queryDatabases() // Ready
 {
     mSignalEmitted = false;
-    QObject::connect(mTestObject, SIGNAL(queryCompleted(int)), this, SLOT(handleQueryCompleted(int)));
+    QObject::connect(mTestObject, SIGNAL(queryCompleted(int)), this, SLOT(test_handleQueryCompleted(int)));
 
     mTestObject->queryDatabases("Agent");
 
@@ -321,9 +341,11 @@ void TestNmContactHistoryModelPrivate::test_queryDatabases() // Ready
     QVERIFY( setMatchFlagsCalled );
     QVERIFY( setValueCalled );
     QVERIFY( ContactIdsCalled );
+    
+    mTestObject->queryDatabases("Agent Orange");    
 }
 
-void TestNmContactHistoryModelPrivate::refreshDataModel() // Ready
+void TestNmContactHistoryModelPrivate::test_refreshDataModel() // Ready
 {
     mTestObject->mPrivateItemList.clear();
 
@@ -362,7 +384,6 @@ void TestNmContactHistoryModelPrivate::refreshDataModel() // Ready
     QSharedPointer<NmContactHistoryModelItemData> testData1
     (mTestObject->mPrivateItemList[0]);
 
-//    NmContactHistoryModelItem testData1 = mTestObject->mPrivateItemList[0];
     NmContactHistoryModelItem testData2 = mTestObject->mModelItemList[0];
 
     QVERIFY(testData1->mContactId == testData2.contactId());
@@ -375,6 +396,34 @@ void TestNmContactHistoryModelPrivate::refreshDataModel() // Ready
     QVERIFY( testItem2.mItemText == itemSubItem2.mItemText );
 
     QVERIFY( testItem1.mMatchingRanges.count() == 2 );
+    
+    // Test NmContactHistoryModelItem untested functions here.
+    NmContactHistoryModelItem modelItem;
+    NmContactHistoryModelSubItem subItem1;
+    NmContactHistoryModelSubItem subItem2;
+    
+    subItem1.mItemText = "Test Object";
+    subItem2.mItemText = "test.object@cplusplus.com";    
+
+    modelItem.appendSubItem(subItem1);
+    modelItem.appendSubItem(subItem2);
+    
+    NmContactHistoryModelSubItem testItem3 = modelItem.subItemAt(0xBEEF);
+    QVERIFY( testItem3.mItemText.isEmpty() );
+    QVERIFY( testItem3.mMatchingRanges.count() == 0 );
+
+    testItem3 = modelItem.subItemAt(0);
+    QVERIFY( testItem3.mItemText == "Test Object" );
+
+    QList<NmContactHistoryModelSubItem> testItems;
+    testItems = modelItem.subEntries();
+    
+    QVERIFY( testItems.count() == 2 );    
+    testItems.clear();
+    
+    NmContactHistoryModelItem modelItem2;    
+    testItems = modelItem2.subEntries();
+    QVERIFY( testItems.count() == 0 );
 }
 
 void TestNmContactHistoryModelPrivate::test_rowCount() // Ready
@@ -385,17 +434,44 @@ void TestNmContactHistoryModelPrivate::test_rowCount() // Ready
     item.setContactId(0);
     mTestObject->mModelItemList.append(item);
 
-    QVERIFY(mTestObject->mModelItemList.count() == 1);
+    QModelIndex testIndex = QModelIndex();
+    int rowCount = mTestObject->modelRowCount(testIndex);
+    QVERIFY(rowCount == 1);
 
     mTestObject->mModelItemList.clear();
+    rowCount = mTestObject->modelRowCount(testIndex);
     QVERIFY(mTestObject->mModelItemList.count() == 0);
 
 }
 
-void TestNmContactHistoryModelPrivate::test_data() // Ready
+void TestNmContactHistoryModelPrivate::test_privateDataCount() // Ready
+{
+    mTestObject->mPrivateItemList.clear();
+    QVERIFY(mTestObject->mPrivateItemList.count() == 0);
+    int rowCount = mTestObject->privateDataCount();
+
+
+    QList<QContactLocalId> cnt_ids;
+    cnt_ids.append(12);
+
+    // Match in first name.
+    mTestObject->populateListWithContactItems(cnt_ids, "First");
+    QVERIFY( mTestObject->mPrivateItemList.count() == 1 );
+    rowCount = mTestObject->privateDataCount();
+    QVERIFY(rowCount == 1);  
+}
+
+
+void TestNmContactHistoryModelPrivate::test_dataFunc() // Ready
 {
     QModelIndex testIndex = QModelIndex();
+      
+    mTestObject->mModelReady = false;
     QVariant testVariant = mTestObject->data(testIndex, Qt::DisplayRole);
+    QCOMPARE(testVariant, QVariant());
+
+    mTestObject->mModelReady = true;
+    testVariant = mTestObject->data(testIndex, Qt::DisplayRole);
     QCOMPARE(testVariant, QVariant());
 
     for (int i = 0; i < 10; i++)
@@ -408,7 +484,7 @@ void TestNmContactHistoryModelPrivate::test_data() // Ready
     mTestObject->mModelItemList.clear();
 }
 
-void TestNmContactHistoryModelPrivate::fillMruMatchList() // Ready
+void TestNmContactHistoryModelPrivate::test_fillMruMatchList() // Ready
 {
     mTestObject->mMruList.clear();
     bool success = mTestObject->fillMruMatchList();
@@ -428,9 +504,16 @@ void TestNmContactHistoryModelPrivate::fillMruMatchList() // Ready
 
     containsValue = mTestObject->mMruList.contains("byvalue@plusplus.com");
     QVERIFY( containsValue );
+    
+    mTestObject->mMruList.clear();
+    returnFalseFromGetEntry = true;   
+    success = mTestObject->fillMruMatchList();
+    
+    QVERIFY( success );
+    QVERIFY(mTestObject->mMruList.count() == 0); 
 }
 
-void TestNmContactHistoryModelPrivate::obeyContactOrder() // Ready
+void TestNmContactHistoryModelPrivate::test_obeyContactOrder() // Ready
 {
     QString first = "Test";
     QString last = "Name";
@@ -461,12 +544,12 @@ void TestNmContactHistoryModelPrivate::obeyContactOrder() // Ready
 void TestNmContactHistoryModelPrivate::test_queryCompleted() // Ready
 {
     mSignalEmitted = false;
-    QObject::connect(mTestObject, SIGNAL(queryCompleted(int)), this, SLOT(handleQueryCompleted(int)));
+    QObject::connect(mTestObject, SIGNAL(queryCompleted(int)), this, SLOT(test_handleQueryCompleted(int)));
     mTestObject->queryDatabases(QString());
     QVERIFY( mSignalEmitted );
 }
 
-void TestNmContactHistoryModelPrivate::handleQueryCompleted(int err) // Internal
+void TestNmContactHistoryModelPrivate::test_handleQueryCompleted(int err) // Internal
 {
    Q_UNUSED(err);
    mSignalEmitted = true;

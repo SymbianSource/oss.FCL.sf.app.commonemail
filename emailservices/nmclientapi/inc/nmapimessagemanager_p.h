@@ -19,15 +19,14 @@
 #define NMAPIMESSAGEMANAGER_P_H_
 
 #include <QObject>
+#include <QPointer>
+
+#include <CFSMailCommon.h>
 #include <nmapimessagemanager.h>
-#include <nmapifolder.h>
-#include <nmapidatapluginfactory.h>
-#include <nmcommon.h>
-#include <nmapifolder.h>
-#include <nmapiprivateclasses.h>
 
-
-class NmApiEmailMessage;
+class NmApiEngine;
+class CFSMailBox;
+class CFSMailPlugin;
 
 namespace EmailClientApi
 {
@@ -39,42 +38,19 @@ public:
     NmApiMessageManagerPrivate(QObject *parent,quint64 mailboxId);
     virtual ~NmApiMessageManagerPrivate();
     
-private:
-    enum EState {
-        EIdle = 0,
-        ECopyPending,
-        EMovePending,
-        EDeletePending        
-    };
-    
 public slots: 
-    bool moveMessages(const QList<quint64> messageIds,
-                    quint64 sourceFolderId,
-                    quint64 targetFolderId);
+    QPointer<NmApiOperation> createDraftMessage(const QVariant *initData);
+    QPointer<NmApiOperation> sendMessage(const NmApiMessage &message);
+    QPointer<NmApiOperation> saveMessage(const NmApiMessage &message);
 
-    bool copyMessages(const QList<quint64> messageIds, 
-                   quint64 sourceFolder,
-                   quint64 targetFolder);
+private:
+    void initialise();
     
-	void messageEventHandler(NmMessageEvent event,
-								const NmId &folder,
-								const QList<NmId> &messages,
-								const NmId &mailBox);
-								
-signals:
-	void messagesCopied(int result);
-	void messagesCreated(int result);
-	void messagesMoved(int result);
-	void messagesDeleted(int result);
-
-
 private:    
-    NmApiMessageManagerPrivate::EState mState;
-    QList<quint64> mMessages;
-    NmId mTarget;
-    NmId mMailboxId; 
-    NmApiDataPluginFactory *mFactory;
-    QObject *mPlugin;
+    TFSMailMsgId mMailBoxId;
+    CFSMailBox *mMailBox;
+    CFSMailPlugin *mMailPlugin; //not owned
+    NmApiEngine *mEngine;
 };
 
 }

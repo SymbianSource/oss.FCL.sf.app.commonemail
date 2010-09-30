@@ -35,7 +35,6 @@ EmailMRU::EmailMRU()
     NM_FUNCTION;
 
     mRepositoryManager = new XQSettingsManager();
-    Q_CHECK_PTR(mRepositoryManager);
 
     mLatestIndex = readCenRep(currentIndexKey).toInt();
     mCount = readCenRep(countKey).toInt();
@@ -329,14 +328,13 @@ bool EmailMRU::writeEntry(qint32 entryIndex, QString displayName, QString emailA
 }
 
 /*!
-    Writes entry. Overwrites any existing data at give index
-    \return contacts setting for lastname / firstname order.
+    Gets first name / last name order from cenrep.
+    defined in cntuids.h.
+    \return name order.
  */
 int EmailMRU::nameOrder()
 {
     XQSettingsManager *repositoryManager = new XQSettingsManager();
-    Q_CHECK_PTR(repositoryManager);
-
     XQCentralRepositorySettingsKey readKey(contactsRepositoryKey,
                                            nameOrderKey);
 

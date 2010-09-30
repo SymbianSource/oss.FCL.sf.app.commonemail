@@ -30,11 +30,30 @@ NmApiMessageContent::NmApiMessageContent()
 }
 
 /*!
+    Class copy constructor.
+*/
+NmApiMessageContent::NmApiMessageContent(const NmApiMessageContent &messagecontent)
+{
+    NM_FUNCTION;
+    d = messagecontent.d;
+}
+
+/*!
    Destructor for NmApiMessageContent
  */
 NmApiMessageContent::~NmApiMessageContent()
 {
     NM_FUNCTION;
+}
+
+NmApiMessageContent& NmApiMessageContent::operator=(const NmApiMessageContent &messagecontent)
+{
+    if (this == &messagecontent)
+        return *this;
+    
+    d = messagecontent.d;
+
+    return *this;
 }
 
 /*!

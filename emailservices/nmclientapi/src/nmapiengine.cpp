@@ -313,7 +313,7 @@ void NmApiEngine::listEnvelopes(const quint64 mailboxId, const quint64 folderId,
    
    \param mailboxId Mailbox id from where envlope should come
    \param folderId Folder id from where envlope should come
-   \param folderId Id of envelope which should be returned
+   \param messageId Id of envelope which should be returned
    \param envelope Envelope to fill.
    
    \return Return true if it will find any envelope
@@ -356,6 +356,49 @@ bool NmApiEngine::getEnvelopeById(
 }
 
 /*!
+   Return folder given by mailbox and folder id.
+   
+   \param mailboxId Id of Mailbox which should be returned
+   \param folderId Folder id id of folder to be fetched
+   \param mailboxFolder reference to copy reference of NmApiFolder
+   
+   \return Return true if it will find folder
+ */
+bool NmApiEngine::getFolderById(
+    const quint64 mailboxId,
+    const quint64 folderId,
+    EmailClientApi::NmApiFolder &mailboxFolder)
+{
+    NM_FUNCTION;
+
+    bool found = false;
+
+    listMailPlugins();
+
+    CFSMailPlugin *plugin = NULL;
+    CFSMailFolder *fsFolder = NULL;
+    TFSMailMsgId fsMailBoxId = TFSMailMsgId(mailboxId);
+    TFSMailMsgId fsFolderId = TFSMailMsgId(folderId);
+
+    for (int i = 0; i < mMailPlugins.Count() && !fsFolder; i++){
+        plugin = mMailPlugins[i];
+        if (plugin && (plugin->Id() == fsMailBoxId.PluginId())) {
+            TRAPD(err, fsFolder = plugin->GetFolderByUidL(fsMailBoxId, fsFolderId));
+            Q_UNUSED(err);
+        }
+    }
+    if (fsFolder) {
+        NmFolder *nmFolder = fsFolder->GetNmFolder();
+        EmailClientApi::NmApiFolder apiFolder = NmToApiConverter::NmFolder2NmApiFolder(*nmFolder);
+        mailboxFolder = apiFolder;
+        found = true;
+        delete nmFolder;
+        delete fsFolder;
+    }
+    return found;
+}
+
+/*!
    Return message given by mailbox, folder and message id.
    
    \param mailboxId Mailbox id from where message should come
@@ -378,21 +421,19 @@ bool NmApiEngine::getMessageById(
     listMailPlugins();
 
     CFSMailPlugin *plugin = NULL;
-    CFSMailMessage* fsMessage = NULL;
+    CFSMailMessage *fsMessage = NULL;
     TFSMailMsgId fsMailBoxId = TFSMailMsgId(mailboxId);
     TFSMailMsgId fsFolderId = TFSMailMsgId(folderId);
     TFSMailMsgId fsMessageId = TFSMailMsgId(messageId);
     
     for (int i = 0; i < mMailPlugins.Count() && !fsMessage; i++){
         plugin = mMailPlugins[i];
-        if (plugin) {
-            QT_TRY {
-                fsMessage = plugin->GetMessageByUidL(fsMailBoxId,
+        if (plugin && (plugin->Id() == fsMailBoxId.PluginId())) {
+            TRAPD(err, fsMessage = plugin->GetMessageByUidL(fsMailBoxId,
                     fsFolderId,
                     fsMessageId,
-                    EFSMsgDataStructure);
-            }
-            QT_CATCH(...){}
+                    EFSMsgDataStructure));
+            Q_UNUSED(err);
         }
     }
     if (fsMessage) {
@@ -400,6 +441,7 @@ bool NmApiEngine::getMessageById(
         EmailClientApi::NmApiMessage apiMessage = NmToApiConverter::NmMessage2NmApiMessage(*nmMessage);
         message = apiMessage;
         found = true;
+        delete nmMessage;
         delete fsMessage;
     }
     return found;
@@ -424,13 +466,13 @@ bool NmApiEngine::getMailboxById(const quint64 mailboxId, EmailClientApi::NmApiM
 
     if (instance) {    
         NmMailbox *nmmailbox = NULL;
-        instance->getMailboxById(NmId(mailboxId), nmmailbox);
+        int err =instance->getMailboxById(NmId(mailboxId), nmmailbox);
     
-        if (nmmailbox) {
+        if (err == NmNoError && nmmailbox) {
             mailbox = NmToApiConverter::NmMailbox2NmApiMailbox(*nmmailbox);
-            found = true;
-            delete nmmailbox;
+            found = true;            
         }
+        delete nmmailbox;
     }
     
     return found;

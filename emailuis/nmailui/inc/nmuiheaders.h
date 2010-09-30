@@ -45,6 +45,8 @@
 #include <QTapGesture>
 #include <QPinchGesture>
 #include <QInputContext>
+#include <QFont>
+#include <QFontMetrics>
 
 // Orbit
 #include <hbmainwindow.h>
@@ -119,6 +121,7 @@
 
 // emailservices/nmutilities
 #include <nmuieventsnotifier.h>
+#include <nmuriparser.h>
 
 // nmailuiengine
 #include <nmuiengine.h>

@@ -14,46 +14,37 @@
  * Description:
  *
  */
+#include <nmapiheaders.h>
 
-#include <QVariant>
-#include <QList>
+// Helpers
+HBufC8* StringToS60HBufC8LC(const QString &string)
+{
+    HBufC8* tmp = XQConversions::qStringToS60Desc8(string);
+    User::LeaveIfNull(tmp);
+    CleanupStack::PushL(tmp);
+    return tmp;
+}
 
-#include <xqconversions.h>
-#include <xqsettingsmanager.h>
-#include <xqcentralrepositoryutils.h>
-#include <xqcentralrepositorysearchcriteria.h>
+const TPtrC StringToS60TPtrC(const QString &string)
+{
+    return TPtrC(reinterpret_cast<const TUint16*>(string.utf16()));
+}
 
-#include <pop3set.h>
-#include <imapset.h>
-#include <smtpset.h>
-#include <iapprefs.h>
-
-#include "ipssettingkeys.h"
-#include "nmapiheaders.h"
-#include <nmapisettingsmanager.h>
-#include "nmapisettingsmanager_p.h"
 
 namespace EmailClientApi
 {
+const int KUndefinedOffset = -1;
 
-NmApiSettingsManagerPrivate::NmApiSettingsManagerPrivate(const quint64 mailboxId)
-    : mAccount(0),
-    mPop3Settings(0),
-    mImap4Settings(0),
-    mSmtpSettings(0),
-    mMailboxOffset(-1),
+NmApiSettingsManagerPrivate::NmApiSettingsManagerPrivate()
+    : mAccount(NULL),
+    mPop3Settings(NULL),
+    mImap4Settings(NULL),
+    mSmtpSettings(NULL),
+    mQSettingsManager(NULL),
+    mMailboxOffset(KUndefinedOffset),
+    mActiveProfileOffset(KUndefinedOffset),
     mMailboxId(0)
 {
-    QT_TRAP_THROWING(mAccount = CEmailAccounts::NewL());
-    mMailboxId = (quint32)mailboxId;
-
-    mQSettingsManager = new XQSettingsManager();
-    Q_CHECK_PTR(mQSettingsManager);
-
-    checkAccountType();
-    QT_TRAP_THROWING(initAccountL());
-    calculateMailboxOffset();
-
 }
 
 NmApiSettingsManagerPrivate::~NmApiSettingsManagerPrivate()
@@ -66,36 +57,53 @@ NmApiSettingsManagerPrivate::~NmApiSettingsManagerPrivate()
 }
 
 /*!
- Loads QMail specific settings.
+ Loads email account settings.
  \param mailboxId which settings are returned
  \param data consists of keys and values of settings.
  \return bool <true> when the setting items were found otherwise <false>.
  */
 bool NmApiSettingsManagerPrivate::load(quint64 mailboxId, NmApiMailboxSettingsData &data)
 {
-	mMailboxId = mailboxId;
-    return (readSetting(data) && readCenRepSetting(data));
+    AccountDataCleanUpItem(mAccount, mPop3Settings,
+            mImap4Settings, mSmtpSettings, mQSettingsManager);
+    mMailboxId = mailboxId; // Last 32 bits are used as mailbox id
+    data.setMailboxId(mailboxId);
+    bool retVal = false;
+    TRAPD(err, initAccountL());
+    if (!err) {
+        readSettings(data);
+        retVal = readCenRepSettings(data);
+    }
+    return retVal;
 }
 
 /*!
- Saves QMail specific settings.
+ Saves mailbox settings.
+ \param mailboxId which settings are saved
  \param data consists of keys and values of settings.
  \return bool <true> when the setting items were successfully saved otherwise <false>.
  */
-bool NmApiSettingsManagerPrivate::save(const NmApiMailboxSettingsData &data)
+bool NmApiSettingsManagerPrivate::save(quint64 mailboxId, const NmApiMailboxSettingsData &data)
 {
-    TInt err(KErrNone);
-    TRAP(err, writeSettingL(data));
-    return (!err && writeSettingToCenRep(data));
+    AccountDataCleanUpItem(mAccount, mPop3Settings,
+           mImap4Settings, mSmtpSettings, mQSettingsManager);
+    mMailboxId = mailboxId; // Last 32 bits are used as mailbox id
+    bool retVal = false;
+    TRAPD(err, initAccountL());
+    if (!err) {
+        TRAP(err, writeSettingL(data));
+        if(!err) {
+            retVal = writeSettingToCenRep(data);
+        }
+    }
+    return (!err && retVal);
 }
 
 /*!
- Finds and returns the SMTP specific setting.
- \param settingItem SettingItem enum of the setting to return
- \param QVariant SettingValue of the found setting value.
- \return bool <true> when the setting item was found otherwise <false>.
+ Reads the mailbox account specific settings.
+ \param data consists of keys and values of settings.
  */
-bool NmApiSettingsManagerPrivate::readSetting(NmApiMailboxSettingsData &data)
+void NmApiSettingsManagerPrivate::readSettings(NmApiMailboxSettingsData &data)
 {
     if (mMailboxType == NmApiMailboxTypePop) {
         data.setValue(IncomingLoginName, XQConversions::s60Desc8ToQString(mPop3Settings->LoginName()));
@@ -106,6 +114,7 @@ bool NmApiSettingsManagerPrivate::readSetting(NmApiMailboxSettingsData &data)
         data.setValue(IncomingMailUsesAuthentication, mPop3Settings->POP3Auth());
 #endif
         data.setValue(IncomingPort, mPop3Settings->Port());
+        data.setValue(IncomingMailSecurityType, security(*mPop3Settings));
     }
     else if (mMailboxType  == NmApiMailboxTypeImap) {
         data.setValue(IncomingLoginName, XQConversions::s60Desc8ToQString(mImap4Settings->LoginName()));
@@ -119,9 +128,9 @@ bool NmApiSettingsManagerPrivate::readSetting(NmApiMailboxSettingsData &data)
 #endif
         data.setValue(IncomingPort, mImap4Settings->Port());
         data.setValue(FolderPath, XQConversions::s60Desc8ToQString(mImap4Settings->FolderPath()));
+        data.setValue(IncomingMailSecurityType, security(*mImap4Settings));
     }
 
-    data.setValue(IncomingMailSecurityType, security());
     data.setValue(MyName, XQConversions::s60DescToQString(mSmtpSettings->EmailAlias()));
     data.setValue(EmailAlias, XQConversions::s60DescToQString(mSmtpSettings->EmailAlias()));
     data.setValue(EmailAddress, XQConversions::s60DescToQString(mSmtpSettings->EmailAddress()));
@@ -134,396 +143,387 @@ bool NmApiSettingsManagerPrivate::readSetting(NmApiMailboxSettingsData &data)
     data.setValue(OutgoingMailUsesAuthentication, mSmtpSettings->SMTPAuth());
     data.setValue(OutgoingSecureSockets, mSmtpSettings->SecureSockets());
     data.setValue(OutgoingSSLWrapper, mSmtpSettings->SSLWrapper());
-    data.setValue(OutgoingMailSecurityType, XQConversions::s60Desc8ToQString(mSmtpSettings->TlsSslDomain()));
-    return true;
+    data.setValue(OutgoingMailSecurityType, security(*mSmtpSettings));
 }
 
-bool NmApiSettingsManagerPrivate::readCenRepSetting(NmApiMailboxSettingsData &data)
+/*!
+ Returns the Central Repository setting. Sets given boolen parameter to <false>
+ if error happens. If no error happens boolean status is not changed.
+ \param cenRepKey Central repository key
+ \param success  Boolean which is set to <false> if some other error than 
+                 XQSettingsManager::NotFoundError occurs.
+                 Note! Variable is never set to <true>.
+ \return QVariant The settings value for the given key.
+ */
+QVariant NmApiSettingsManagerPrivate::readFromCenRep(quint32 key,
+        bool &success) const
+    {
+    QVariant setting = readFromCenRep(key);
+
+    /*
+     XQSettingsManager::NotFoundError occurs if some setting is not found from the cenrep.
+     This is a valid case since all accounts doesn't neccessarily have all possible settings.
+     All other errors are "real" errors and those are indicated to the API user.
+     */
+    if (setting.isNull() 
+        && mQSettingsManager->error() != XQSettingsManager::NotFoundError) {
+        success = false;
+    }
+
+    return setting;
+    }
+
+bool NmApiSettingsManagerPrivate::readCenRepSettings(NmApiMailboxSettingsData &data)
 {
-    bool ret = true;
-    QVariant tmp;
-    data.setValue(DownloadPictures, readFromCenRep(IpsServices::EmailKeyPreferenceDownloadPictures));
-    data.setValue(MessageDivider, readFromCenRep(IpsServices::EmailKeyPreferenceMessageDivider));
+    bool retVal = true;
+    
+    data.setValue(DownloadPictures, 
+        readFromCenRep(IpsServices::EmailKeyPreferenceDownloadPictures, retVal));
+    data.setValue(MessageDivider, 
+        readFromCenRep(IpsServices::EmailKeyPreferenceMessageDivider, retVal));
 
-    tmp = readFromCenRep(IpsServices::EmailKeyReceptionActiveProfile);
-    switch(tmp.toInt()){
-        case 0:
-            data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetKUTD);
-            break;
-        case 1:
-            data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetSE);
-            break;
-        case 2:
-            data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetMF);
-            break;
-        case 3:
-            data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetUD);
-            break;
-        default:
-            data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetKUTD);
-            break;
-    };
+    QVariant activeProfileSetting = readFromCenRep(IpsServices::EmailKeyReceptionActiveProfile, retVal);
+    
+    if (!activeProfileSetting.isNull()) {
+        switch (activeProfileSetting.toInt()) {
+            case IpsServices::EmailSyncProfileKeepUpToDate:
+                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetKUTD);
+                break;
+            case IpsServices::EmailSyncProfileSaveEnergy:
+                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetSE);
+                break;
+            case IpsServices::EmailSyncProfileManualFetch:
+                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetMF);
+                break;
+            case IpsServices::EmailSyncProfileUserDefined:
+                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetUD);
+                break;
+            default:
+                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetKUTD);
+                break;
+        }
+    }
 
-    data.setValue(ReceptionUserDefinedProfile, readFromCenRep(IpsServices::EmailKeyReceptionUserDefinedProfile));
+    data.setValue(ReceptionUserDefinedProfile, readFromCenRep(
+            IpsServices::EmailKeyReceptionUserDefinedProfile, retVal));
     data.setValue(ReceptionInboxSyncWindow, readFromCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionInboxSyncWindow));
+                        + IpsServices::EmailKeyReceptionInboxSyncWindow, retVal));
     data.setValue(ReceptionGenericSyncWindowInMessages, readFromCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionGenericSyncWindowInMessages));
+                        + IpsServices::EmailKeyReceptionGenericSyncWindowInMessages, retVal));
     data.setValue(ReceptionWeekDays, readFromCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionWeekDays));
+                        + IpsServices::EmailKeyReceptionWeekDays, retVal));
     data.setValue(ReceptionDayStartTime, readFromCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionDayStartTime));
+                        + IpsServices::EmailKeyReceptionDayStartTime, retVal));
     data.setValue(ReceptionDayEndTime, readFromCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionDayEndTime));
+                        + IpsServices::EmailKeyReceptionDayEndTime, retVal));
     data.setValue(ReceptionRefreshPeriodDayTime, readFromCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionRefreshPeriodDayTime));
+                        + IpsServices::EmailKeyReceptionRefreshPeriodDayTime, retVal));
     data.setValue(ReceptionRefreshPeriodOther, readFromCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionRefreshPeriodOther));
-    data.setValue(UserNameHidden, readFromCenRep(IpsServices::EmailKeyUserNameHidden));
-    data.setValue(EmailNotificationState, readFromCenRep(IpsServices::EmailKeyEMNState));
-    data.setValue(FirstEmnReceived, readFromCenRep(IpsServices::EmailKeyFirstEmnReceived));
-    data.setValue(EmnReceivedNotSynced, readFromCenRep(IpsServices::EmailKeyEmnReceivedNotSynced));
+                        + IpsServices::EmailKeyReceptionRefreshPeriodOther, retVal));
+    data.setValue(UserNameHidden, readFromCenRep(IpsServices::EmailKeyUserNameHidden, retVal));
+    data.setValue(EmailNotificationState, readFromCenRep(IpsServices::EmailKeyEMNState, retVal));
+    data.setValue(FirstEmnReceived, readFromCenRep(IpsServices::EmailKeyFirstEmnReceived, retVal));
+    data.setValue(EmnReceivedNotSynced, readFromCenRep(
+        IpsServices::EmailKeyEmnReceivedNotSynced, retVal));
+    data.setValue(AlwaysOnlineState, alwaysOnlineState(retVal));
 
-    QString aolState = alwaysOnlineState();
-    if(aolState.length()>0)
-        data.setValue(AlwaysOnlineState, aolState);
+    data.setValue(AoLastSuccessfulUpdate, readFromCenRep(
+        IpsServices::EmailKeyAoLastSuccessfulUpdateL, retVal));
+    data.setValue(AoLastUpdateFailed, readFromCenRep(
+        IpsServices::EmailKeyAoLastUpdateFailed, retVal));
+    data.setValue(AoUpdateSuccessfulWithCurSettings, readFromCenRep(
+            IpsServices::EmailKeyAoUpdateSuccessfulWithCurSettings, retVal));
+    return retVal;
+}
 
-    data.setValue(AoLastSuccessfulUpdate, readFromCenRep(IpsServices::EmailKeyAoLastSuccessfulUpdateL));
-    data.setValue(AoLastUpdateFailed, readFromCenRep(IpsServices::EmailKeyAoLastUpdateFailed));
-    data.setValue(AoUpdateSuccessfulWithCurSettings, readFromCenRep(IpsServices::EmailKeyAoUpdateSuccessfulWithCurSettings));
-    return ret;
+void NmApiSettingsManagerPrivate::fillImapSettingDataL(const NmApiMailboxSettingsData &data)
+{
+    int key = -1;
+    QVariant settingValue;
+    QList<int> keylist = data.listSettings();
+    
+    for (int i = 0; i < keylist.size(); i++) {
+        key = keylist[i];
+        if (data.getValue(key, settingValue) && !settingValue.isNull()) {
+            switch (key) {
+                case IncomingLoginName:
+                    mImap4Settings->SetLoginNameL(*StringToS60HBufC8LC(settingValue.toString()));
+                    CleanupStack::PopAndDestroy();
+                    break;
+                case IncomingPassword:
+                    mImap4Settings->SetPasswordL(*StringToS60HBufC8LC(settingValue.toString()));
+                    CleanupStack::PopAndDestroy();
+                    break;
+                case MailboxName:
+                    mImap4Account.iImapAccountName.Copy(StringToS60TPtrC(settingValue.toString()));
+                    break;
+                case IncomingMailServer:
+                    mImap4Settings->SetServerAddressL(StringToS60TPtrC(settingValue.toString()));
+                    break;
+                case IncomingMailUsesAuthentication:
+#if (defined SYMBIAN_EMAIL_CAPABILITY_SUPPORT)
+                   mImap4Settings->SetIAMP4Auth(settingValue.toBool());             
+#endif
+                   break;
+                case FolderPath:
+                   mImap4Settings->SetFolderPathL(*StringToS60HBufC8LC(settingValue.toString()));
+                   CleanupStack::PopAndDestroy();
+                   break;
+                case IncomingMailSecurityType:
+                    setSecurity(*mImap4Settings, settingValue.toString());
+                    break;
+                case IncomingPort:
+                    mImap4Settings->SetPort(settingValue.toInt());
+                    break;
+                case IncomingSecureSockets:
+                    mImap4Settings->SetSecureSockets(settingValue.toBool());
+                    break;
+                case IncomingSSLWrapper:
+                    mImap4Settings->SetSSLWrapper(settingValue.toBool());
+                    break;
+                default:
+                    fillSmtpSettingDataL(data, settingValue, key);
+                    break;
+            }
+        }
+    }
+}
+
+void NmApiSettingsManagerPrivate::fillPopSettingDataL(const NmApiMailboxSettingsData &data)
+{
+    int key = -1;
+    QVariant settingValue;
+    QList<int> keylist = data.listSettings();
+    
+    for (int i = 0; i < keylist.size(); i++) {
+       key = keylist[i];
+       if (data.getValue(key, settingValue) && !settingValue.isNull()) {
+           switch (key) {
+               case IncomingLoginName:
+                   mPop3Settings->SetLoginNameL(*StringToS60HBufC8LC(settingValue.toString()));
+                   CleanupStack::PopAndDestroy();
+                   break;
+               case IncomingPassword:
+                   mPop3Settings->SetPasswordL(*StringToS60HBufC8LC(settingValue.toString()));
+                   CleanupStack::PopAndDestroy();
+                   break;
+               case MailboxName:
+                   mPop3Account.iPopAccountName.Copy(StringToS60TPtrC(settingValue.toString()));
+                   break;
+               case IncomingMailServer:
+                   mPop3Settings->SetServerAddressL(StringToS60TPtrC(settingValue.toString()));
+                   break;
+               case IncomingMailUsesAuthentication:
+#if (defined SYMBIAN_EMAIL_CAPABILITY_SUPPORT)
+                   mPop3Settings->SetPOP3Auth(settingValue.toBool());
+#endif
+                   break;
+               case IncomingMailSecurityType:
+                   setSecurity(*mPop3Settings, settingValue.toString());
+                   break;
+               case IncomingPort:
+                   mPop3Settings->SetPort(settingValue.toInt());
+                   break;
+               case IncomingSecureSockets:
+                   mPop3Settings->SetSecureSockets(settingValue.toBool());
+                   break;
+               case IncomingSSLWrapper:
+                   mPop3Settings->SetSSLWrapper(settingValue.toBool());
+                   break;
+               default:
+                   fillSmtpSettingDataL(data, settingValue, key);
+                   break;
+           }
+       }
+    }
+}
+
+void NmApiSettingsManagerPrivate::fillSmtpSettingDataL(const NmApiMailboxSettingsData &data, 
+        const QVariant settingValue, const int key)
+{    
+    switch (key) {
+       case EmailAddress:
+           mSmtpSettings->SetEmailAddressL(StringToS60TPtrC(settingValue.toString()));
+           break;
+       case ReplyAddress:  
+           mSmtpSettings->SetReplyToAddressL(StringToS60TPtrC(settingValue.toString()));
+           break;
+       case EmailAlias:
+           mSmtpSettings->SetEmailAliasL(StringToS60TPtrC(settingValue.toString()));
+           break;
+       case MyName:
+           // If EmailAlias is not set already
+           if(mSmtpSettings->EmailAlias().Length() == 0) {
+               mSmtpSettings->SetEmailAliasL(StringToS60TPtrC(settingValue.toString()));
+           }
+           break;
+       case OutgoingMailServer:
+           mSmtpSettings->SetServerAddressL(StringToS60TPtrC(settingValue.toString()));
+           break;
+       case OutgoingLoginName:
+           mSmtpSettings->SetLoginNameL(*StringToS60HBufC8LC(settingValue.toString()));
+           CleanupStack::PopAndDestroy();
+           break;
+       case OutgoingPassword:
+           mSmtpSettings->SetPasswordL(*StringToS60HBufC8LC(settingValue.toString()));
+           CleanupStack::PopAndDestroy();
+           break;
+       case UseOutgoingAuthentication:
+           // fall through
+       case OutgoingMailUsesAuthentication:
+           mSmtpSettings->SetSMTPAuth(settingValue.toBool());
+           break;
+       case OutgoingSecureSockets:
+           mSmtpSettings->SetSecureSockets(settingValue.toBool());
+           break;
+       case OutgoingSSLWrapper:
+           mSmtpSettings->SetSSLWrapper(settingValue.toBool());
+           break;
+       case OutgoingMailSecurityType:
+           setSecurity(*mSmtpSettings, settingValue.toString());
+           break;
+       case OutgoingPort:
+           mSmtpSettings->SetPort(settingValue.toInt());
+           break;
+       default:
+           break;
+   }
 }
 
 /*!
  Writes POP3/IMAP4 specific settings.
  \param data consists of keys and values of settings.
  */
-bool NmApiSettingsManagerPrivate::writeSettingL(const NmApiMailboxSettingsData &data)
-{
-    HBufC *tmp = 0;
-    HBufC8 *tmp8 = 0;
-    bool ret(false);
-    int key;
-    QVariant settingValue;
-    QList<int> keylist;
-    bool aliasSet = false;
-
-    keylist = data.listSettings();
-    for (int i = 0; i < keylist.size(); i++) {
-        key = keylist[i];
-        data.getValue(key, settingValue);
-        switch (key) {
-            case IncomingLoginName: {
-                tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
-                if (mMailboxType == NmApiMailboxTypePop) {
-                    mPop3Settings->SetLoginNameL(*tmp8);
-                }
-                else if (mMailboxType == NmApiMailboxTypeImap) {
-                    mImap4Settings->SetLoginNameL(*tmp8);
-                    }
-                delete tmp8;
-                break;
-            }
-            case IncomingPassword: {
-                tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
-                if (mMailboxType == NmApiMailboxTypePop) {
-                    mPop3Settings->SetPasswordL(*tmp8);
-                }
-                else if (mMailboxType == NmApiMailboxTypeImap) {
-                    mImap4Settings->SetPasswordL(*tmp8);
-                    }
-                delete tmp8;
-                break;
-            }
-            case MailboxName: {
-                tmp = XQConversions::qStringToS60Desc(settingValue.toString());
-                if (mMailboxType == NmApiMailboxTypePop) {
-                    mPop3Account.iPopAccountName.Copy(*tmp);
-                }
-                else if (mMailboxType == NmApiMailboxTypeImap) {
-                    mImap4Account.iImapAccountName.Copy(*tmp);
-                    }
-                delete tmp;
-                break;
-            }
-            case IncomingMailServer: {
-                tmp = XQConversions::qStringToS60Desc(settingValue.toString());
-
-                if (mMailboxType == NmApiMailboxTypePop) {
-                    mPop3Settings->SetServerAddressL(*tmp);
-                }
-                else if (mMailboxType == NmApiMailboxTypeImap) {
-                    mImap4Settings->SetServerAddressL(*tmp);
-                    }
-                delete tmp;
-                break;
-            }
-            case IncomingMailUsesAuthentication: {
-#if (defined SYMBIAN_EMAIL_CAPABILITY_SUPPORT)
-
-                if (mMailboxType == NmApiMailboxTypePop) {
-                    mPop3Settings->SetPOP3Auth(settingValue.toBool());
-                }
-                else if (mMailboxType == NmApiMailboxTypeImap) {
-                    mImap4Settings->SetIAMP4Auth(settingValue.toBool());
-                }
-#endif
-                break;
-            }
-            case IncomingMailSecurityType: {
-                setSecurity(settingValue.toString());
-                break;
-            }
-            case IncomingPort: {
-                if (mMailboxType == NmApiMailboxTypePop) {
-                mPop3Settings->SetPort(settingValue.toInt());
-                }
-                else if (mMailboxType == NmApiMailboxTypeImap) {
-                    mImap4Settings->SetPort(settingValue.toInt());
-                }
-                break;
-            }
-            case OutgoingPort: {
-                mSmtpSettings->SetPort(settingValue.toInt());
-                break;
-            }
-            case IncomingSecureSockets: {
-                if (mMailboxType == NmApiMailboxTypePop) {
-                    mPop3Settings->SetSecureSockets(settingValue.toBool());
-                 }
-                 else if (mMailboxType == NmApiMailboxTypeImap) {
-                    mImap4Settings->SetSecureSockets(settingValue.toBool());
-                     }
-                break;
-            }
-            case IncomingSSLWrapper: {
-                if (mMailboxType == NmApiMailboxTypePop) {
-                    mPop3Settings->SetSSLWrapper(settingValue.toBool());
-                }
-                else if (mMailboxType == NmApiMailboxTypeImap) {
-                    mImap4Settings->SetSSLWrapper(settingValue.toBool());
-                    }
-                break;
-            }
-            case EmailAddress: {
-                tmp = XQConversions::qStringToS60Desc(settingValue.toString());
-                mSmtpSettings->SetEmailAddressL(*tmp);
-                break;
-            }
-            case ReplyAddress: {
-                tmp = XQConversions::qStringToS60Desc(settingValue.toString());
-                mSmtpSettings->SetReplyToAddressL(*tmp);
-                break;
-            }
-            case EmailAlias: {
-                QVariant tmpName;
-                if(data.getValue(MyName,tmpName)) {
-                    if(tmpName.toString()
-                        ==XQConversions::s60DescToQString(mSmtpSettings->EmailAlias())) {
-                        aliasSet = true;
-                    }
-                }
-                tmp = XQConversions::qStringToS60Desc(settingValue.toString());
-                mSmtpSettings->SetEmailAliasL(*tmp);
-                break;
-            }
-            case MyName: {
-                if(!aliasSet) {
-                tmp = XQConversions::qStringToS60Desc(settingValue.toString());
-                mSmtpSettings->SetEmailAliasL(*tmp);
-                }
-                break;
-            }
-            case OutgoingMailServer: {
-                tmp = XQConversions::qStringToS60Desc(settingValue.toString());
-                mSmtpSettings->SetServerAddressL(*tmp);
-                break;
-            }
-            case OutgoingLoginName: {
-                tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
-                mSmtpSettings->SetLoginNameL(*tmp8);
-                break;
-            }
-            case OutgoingPassword: {
-                tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
-                mSmtpSettings->SetPasswordL(*tmp8);
-                break;
-            }
-            case UseOutgoingAuthentication:
-            case OutgoingMailUsesAuthentication: {
-                mSmtpSettings->SetSMTPAuth(settingValue.toBool());
-                break;
-            }
-            case OutgoingSecureSockets: {
-                mSmtpSettings->SetSecureSockets(settingValue.toBool());
-                break;
-            }
-            case OutgoingSSLWrapper: {
-                mSmtpSettings->SetSSLWrapper(settingValue.toBool());
-                break;
-            }
-            case OutgoingMailSecurityType: {
-                tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
-                mSmtpSettings->SetTlsSslDomainL(*tmp8);
-                break;
-            }
-            case FolderPath: {
-                tmp8 = XQConversions::qStringToS60Desc8(settingValue.toString());
-                mImap4Settings->SetFolderPathL(*tmp8);
-                break;
-            }
-            default: {
-				break;
-            }
-        };
+void NmApiSettingsManagerPrivate::writeSettingL(const NmApiMailboxSettingsData &data)
+{     
+    if (mMailboxType == NmApiMailboxTypePop) {
+        fillPopSettingDataL(data);
+        mAccount->SavePopSettingsL(mPop3Account, *mPop3Settings);
     }
-    ret = saveSettings();
-    return ret;
+    else if (mMailboxType == NmApiMailboxTypeImap) {
+        fillImapSettingDataL(data);
+        mAccount->SaveImapSettingsL(mImap4Account, *mImap4Settings);
+    }   
+    mAccount->SaveSmtpSettingsL(mSmtpAccount, *mSmtpSettings);
 }
 
 /*!
-Writes settings to central repository.
-\param data consists of keys and values of settings.
+ Writes settings to central repository.
+ \param data consists of keys and values of settings.
  */
 bool NmApiSettingsManagerPrivate::writeSettingToCenRep(
     const NmApiMailboxSettingsData &data)
 {
-    int key;
+    int key = -1;
     QVariant settingValue;
-    QList<int> keylist;
-
-    keylist = data.listSettings();
+    QList<int> keylist = data.listSettings();
     bool ret = false;
-    if(keylist.contains(ReceptionActiveProfile)) {
-        data.getValue(ReceptionActiveProfile,settingValue);
+    
+    if (data.getValue(ReceptionActiveProfile, settingValue) && !settingValue.isNull()) {
         QVariant profileOffset = 0;
         if(settingValue.toString() == EmailClientApi::EmailProfileOffsetKUTD) {
-            profileOffset=0;
+            profileOffset = 0;
         } else if(settingValue.toString() == EmailClientApi::EmailProfileOffsetSE){
             profileOffset = 1;
         } else if (settingValue.toString() == EmailClientApi::EmailProfileOffsetMF){
-                    profileOffset = 2;
+            profileOffset = 2;
         } else if (settingValue.toString() == EmailClientApi::EmailProfileOffsetUD) {
             profileOffset = 3;
         }
         ret = writeToCenRep(IpsServices::EmailKeyReceptionActiveProfile, profileOffset);
         if(ret) {
-            calculateActiveProfileOffset();
+            ret = calculateActiveProfileOffset();
         }
     }
     if (ret) {
+        bool cenRepSuccess = true;
         for (int i = 0; i < keylist.size(); i++) {
             key = keylist[i];
-            data.getValue(key, settingValue);
-            switch (key) {
-                case DownloadPictures: {
-                    ret = writeToCenRep(IpsServices::EmailKeyPreferenceDownloadPictures,
-                        settingValue);
-                    break;
+            if (data.getValue(key, settingValue) && !settingValue.isNull()) {
+                switch (key) {
+                    case DownloadPictures:
+                        cenRepSuccess = writeToCenRep(IpsServices::EmailKeyPreferenceDownloadPictures,
+                            settingValue);
+                        break;
+                    case MessageDivider:
+                        cenRepSuccess = writeToCenRep(IpsServices::EmailKeyPreferenceMessageDivider, 
+                            settingValue);
+                        break;
+                    case ReceptionUserDefinedProfile:
+                        cenRepSuccess = writeToCenRep(IpsServices::EmailKeyReceptionUserDefinedProfile,
+                            settingValue);
+                        break;
+                    case ReceptionInboxSyncWindow:
+                        cenRepSuccess = writeToCenRep(mActiveProfileOffset
+                            + IpsServices::EmailKeyReceptionInboxSyncWindow, settingValue);
+                        break;
+                    case ReceptionGenericSyncWindowInMessages:
+                        cenRepSuccess = writeToCenRep(mActiveProfileOffset
+                            + IpsServices::EmailKeyReceptionGenericSyncWindowInMessages, 
+                            settingValue);
+                        break;
+                    case ReceptionWeekDays:
+                        cenRepSuccess = writeToCenRep(mActiveProfileOffset 
+                            + IpsServices::EmailKeyReceptionWeekDays, settingValue);
+                        break;
+                    case ReceptionDayStartTime:
+                        cenRepSuccess = writeToCenRep(mActiveProfileOffset 
+                            + IpsServices::EmailKeyReceptionDayStartTime, settingValue);
+                        break;
+                    case ReceptionDayEndTime:
+                        cenRepSuccess = writeToCenRep(mActiveProfileOffset
+                            + IpsServices::EmailKeyReceptionDayEndTime, settingValue);
+                        break;
+                    case ReceptionRefreshPeriodDayTime:
+                        cenRepSuccess = writeToCenRep(mActiveProfileOffset
+                            + IpsServices::EmailKeyReceptionRefreshPeriodDayTime, settingValue);
+                        break;
+                    case ReceptionRefreshPeriodOther:
+                        cenRepSuccess = writeToCenRep(mActiveProfileOffset
+                            + IpsServices::EmailKeyReceptionRefreshPeriodOther, settingValue);
+                        break;
+                    case UserNameHidden:
+                        cenRepSuccess = writeToCenRep(IpsServices::EmailKeyUserNameHidden, 
+                            settingValue);
+                        break;
+                    case EmailNotificationState:
+                        cenRepSuccess = writeToCenRep(IpsServices::EmailKeyEMNState, 
+                            settingValue);
+                        break;
+                    case FirstEmnReceived:
+                        cenRepSuccess = writeToCenRep(IpsServices::EmailKeyFirstEmnReceived, 
+                            settingValue);
+                        break;
+                    case EmnReceivedNotSynced:
+                        cenRepSuccess = writeToCenRep(IpsServices::EmailKeyEmnReceivedNotSynced, 
+                            settingValue);
+                        break;
+                    case AlwaysOnlineState:
+                        cenRepSuccess = setAlwaysOnlineState(settingValue);
+                        break;
+                    case AoLastSuccessfulUpdate:
+                        cenRepSuccess = writeToCenRep(IpsServices::EmailKeyAoLastSuccessfulUpdateL, 
+                            settingValue);
+                        break;
+                    case AoLastUpdateFailed:
+                        cenRepSuccess = writeToCenRep(IpsServices::EmailKeyAoLastUpdateFailed, 
+                            settingValue);
+                        break;
+                    case AoUpdateSuccessfulWithCurSettings:
+                        cenRepSuccess = writeToCenRep(
+                            IpsServices::EmailKeyAoUpdateSuccessfulWithCurSettings,
+                            settingValue);
+                        break;
+                    case ReceptionActiveProfile:
+                        // fall through
+                    default:
+                        break;
                 }
-                case MessageDivider: {
-                    ret = writeToCenRep(IpsServices::EmailKeyPreferenceMessageDivider, settingValue);
-                    break;
+                
+                if (!cenRepSuccess) {
+                    ret = false; // ret is false if even one of the cenrep operations fails
                 }
-                case ReceptionUserDefinedProfile: {
-                    ret = writeToCenRep(IpsServices::EmailKeyReceptionUserDefinedProfile,
-                        settingValue);
-                    break;
-                }
-                case ReceptionInboxSyncWindow: {
-                    ret = writeToCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionInboxSyncWindow, settingValue);
-                    break;
-                }
-                case ReceptionGenericSyncWindowInMessages: {
-                    ret = writeToCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionGenericSyncWindowInMessages, settingValue);
-                    break;
-                }
-                case ReceptionWeekDays: {
-                    ret = writeToCenRep(mActiveProfileOffset + IpsServices::EmailKeyReceptionWeekDays,
-                        settingValue);
-                    break;
-                }
-                case ReceptionDayStartTime: {
-                    ret = writeToCenRep(mActiveProfileOffset + IpsServices::EmailKeyReceptionDayStartTime,
-                        settingValue);
-                    break;
-                }
-                case ReceptionDayEndTime: {
-                    ret = writeToCenRep(mActiveProfileOffset + IpsServices::EmailKeyReceptionDayEndTime,
-                        settingValue);
-                    break;
-                }
-                case ReceptionRefreshPeriodDayTime: {
-                    ret = writeToCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionRefreshPeriodDayTime, settingValue);
-                    break;
-                }
-                case ReceptionRefreshPeriodOther: {
-                    ret = writeToCenRep(mActiveProfileOffset
-                        + IpsServices::EmailKeyReceptionRefreshPeriodOther, settingValue);
-                    break;
-                }
-                case UserNameHidden: {
-                    ret = writeToCenRep(IpsServices::EmailKeyUserNameHidden, settingValue);
-                    break;
-                }
-                case EmailNotificationState: {
-                    ret = writeToCenRep(IpsServices::EmailKeyEMNState, settingValue);
-                    break;
-                }
-                case FirstEmnReceived: {
-                    ret = writeToCenRep(IpsServices::EmailKeyFirstEmnReceived, settingValue);
-                    break;
-                }
-                case EmnReceivedNotSynced: {
-                    ret = writeToCenRep(IpsServices::EmailKeyEmnReceivedNotSynced, settingValue);
-                    break;
-                }
-                case AlwaysOnlineState: {
-                    setAlwaysOnlineState(settingValue);
-                    break;
-                }
-                case AoLastSuccessfulUpdate: {
-                    ret = writeToCenRep(IpsServices::EmailKeyAoLastSuccessfulUpdateL, settingValue);
-                    break;
-                }
-                case AoLastUpdateFailed: {
-                    ret = writeToCenRep(IpsServices::EmailKeyAoLastUpdateFailed, settingValue);
-                    break;
-                }
-                case AoUpdateSuccessfulWithCurSettings: {
-                    ret = writeToCenRep(IpsServices::EmailKeyAoUpdateSuccessfulWithCurSettings,
-                        settingValue);
-                    break;
-                }
-                case ReceptionActiveProfile:
-                default: {
-                    break;
-                }
-            };
-        }
-    }
-    return ret;
-}
-/*!
- Stores the POP3/IMAP4 specific settings.
- \return bool <true> when the settings were succesfully written, otherwise <false>.
- */
-bool NmApiSettingsManagerPrivate::saveSettings()
-{
-    bool ret(false);
-    if (mMailboxType == NmApiMailboxTypePop) {
-        TRAPD(err, mAccount->SavePopSettingsL(mPop3Account, *mPop3Settings));
-        if (err == KErrNone) {
-            ret = true;
-        }
-    }
-    else if (mMailboxType == NmApiMailboxTypeImap) {
-        TRAPD(err, mAccount->SaveImapSettingsL(mImap4Account, *mImap4Settings));
-        if (err == KErrNone) {
-            ret = true;
+            }
         }
     }
     return ret;
@@ -532,7 +532,7 @@ bool NmApiSettingsManagerPrivate::saveSettings()
 /*!
  Reads a key value from the Central Repository.
  \param key Key identifier.
- \return the settings value for the given key.
+ \return QVariant The settings value for the given key.
  */
 QVariant NmApiSettingsManagerPrivate::readFromCenRep(quint32 key) const
 {
@@ -545,7 +545,7 @@ QVariant NmApiSettingsManagerPrivate::readFromCenRep(quint32 key) const
  Writes a key value to the Central Repository.
  \param key Key identifier.
  \param value The settings value for the given key.
- \return Returns <true> if the value was succesfully written, <false> if not.
+ \return bool Returns <true> if the value was succesfully written, <false> if not.
  */
 bool NmApiSettingsManagerPrivate::writeToCenRep(quint32 key, const QVariant &value) const
 {
@@ -554,102 +554,75 @@ bool NmApiSettingsManagerPrivate::writeToCenRep(quint32 key, const QVariant &val
     return mQSettingsManager->writeItemValue(settingKey, value);
 }
 
-void NmApiSettingsManagerPrivate::setSecurity(QString securityType)
+void NmApiSettingsManagerPrivate::setSecurity(CImBaseEmailSettings &settings, 
+    QString securityType)
 {
-    if (securityType == NmApiStartTls) {
-        if (mMailboxType == NmApiMailboxTypePop) {
-            mPop3Settings->SetSecureSockets(ETrue);
-            mPop3Settings->SetSSLWrapper(EFalse);
-        }
-        else {
-            mImap4Settings->SetSecureSockets(ETrue);
-            mImap4Settings->SetSSLWrapper(EFalse);
-        }
-    }
-    else if (securityType == NmApiSSLTls) {
-        if (mMailboxType == NmApiMailboxTypePop) {
-            mPop3Settings->SetSecureSockets(EFalse);
-            mPop3Settings->SetSSLWrapper(ETrue);
-        }
-        else {
-            mImap4Settings->SetSecureSockets(EFalse);
-            mImap4Settings->SetSSLWrapper(ETrue);
-        }
-    }
-    else {
-        if (mMailboxType == NmApiMailboxTypePop) {
-            mPop3Settings->SetSecureSockets(EFalse);
-            mPop3Settings->SetSSLWrapper(EFalse);
-        }
-        else {
-            mImap4Settings->SetSecureSockets(EFalse);
-            mImap4Settings->SetSSLWrapper(EFalse);
-        }
-    }
+    settings.SetSecureSockets(securityType == NmApiStartTls ? ETrue : EFalse );
+    settings.SetSSLWrapper(securityType == NmApiSSLTls ? ETrue : EFalse );
 }
 
-QString NmApiSettingsManagerPrivate::security() const
+QString NmApiSettingsManagerPrivate::security(CImBaseEmailSettings &settings) const
 {
-    bool ss(false);
-    bool sslw(false);
-    QString securityType("");
+    bool ss(settings.SecureSockets());
+    bool sslWrapper(settings.SSLWrapper());
+    QString securityType(NmApiSecurityOff);
 
-    if (mMailboxType == NmApiMailboxTypePop) {
-        ss = mPop3Settings->SecureSockets();
-        sslw = mPop3Settings->SSLWrapper();
-    }
-    else {
-        ss = mImap4Settings->SecureSockets();
-        sslw = mImap4Settings->SSLWrapper();
-    }
-
-    if (ss == true && sslw == false) {
+    if (ss == true && sslWrapper == false) {
         securityType = NmApiStartTls;
     }
-    else if (ss == false && sslw == true) {
+    else if (ss == false && sslWrapper == true) {
         securityType = NmApiSSLTls;
     }
-    else {
-        securityType = NmApiSecurityOff;
-    }
+
     return securityType;
 }
 
 /*!
-
+ Function for getting online state.
+ \param success Boolean variable for informing if operation fails. 
+ Note! If success is already <false> it is not set to <true>.
+ \return QString Online state.
  */
-QString NmApiSettingsManagerPrivate::alwaysOnlineState() const
+QString NmApiSettingsManagerPrivate::alwaysOnlineState(bool &success) const
 {
-    TInt profile = IpsServices::EmailSyncProfileManualFetch;
-    QString ret = NmApiOff;
+    QString ret = NmApiOff;  
+    int settingValue = -1;
+    bool cenRepSuccess = true;
+    QVariant state = readFromCenRep(IpsServices::EmailKeyReceptionActiveProfile,
+        cenRepSuccess);
 
-    QVariant state;
-    TInt settingValue = -1;
-    state = readFromCenRep(IpsServices::EmailKeyReceptionActiveProfile);
-    settingValue = state.toInt();
-
-    if (settingValue >= 0) {
-        profile = settingValue;
-        if (profile != IpsServices::EmailSyncProfileManualFetch) {
+    if (cenRepSuccess) {
+        settingValue = state.toInt();
+        if (settingValue != IpsServices::EmailSyncProfileManualFetch) {
             ret = NmApiAlways;
         }
     }
+    else { // If cenrep read fails it is informed via parameter
+        success = cenRepSuccess;
+    }
+    
     return ret;
 }
 
 /*!
-
+ Function for setting online state off. It is not allowed to change it on.
+ \return bool Return <true> if operation was successful otherwise <false>.
  */
-void NmApiSettingsManagerPrivate::setAlwaysOnlineState(const QVariant state)
+bool NmApiSettingsManagerPrivate::setAlwaysOnlineState(const QVariant &state)
 {
-    //only allowed to switch state off, not on.
+    bool retVal = true;
     if (state.toString() == NmApiOff) {
-        writeToCenRep(IpsServices::EmailKeyReceptionActiveProfile,
+        retVal = writeToCenRep(IpsServices::EmailKeyReceptionActiveProfile,
             IpsServices::EmailSyncProfileManualFetch);
     }
+    return retVal;
 }
 
-void NmApiSettingsManagerPrivate::calculateMailboxOffset()
+/*!
+ Function for calculating mailbox offset.
+ \return bool Returns <true> if operation was successfull otherwise returns <false>.
+ */
+bool NmApiSettingsManagerPrivate::calculateMailboxOffset()
 {
     // Find all the keys that match the criteria 0xZZZZZ000, where Z=don't care.
     // This will give us all the keys that hold the mailbox ids, e.g. 0x00001000, 0x00002000, etc.
@@ -658,80 +631,75 @@ void NmApiSettingsManagerPrivate::calculateMailboxOffset()
     XQCentralRepositorySearchCriteria criteria(IpsServices::EmailMailboxSettingRepository,
         partialKey, bitMask);
     // Set the mailbox id is value criteria for the search.
-    criteria.setValueCriteria((int) mMailboxId);
+    criteria.setValueCriteria((static_cast<int>(mMailboxId)));
 
     // Find the keys.
     XQCentralRepositoryUtils utils(*mQSettingsManager);
     QList<XQCentralRepositorySettingsKey> foundKeys = utils.findKeys(criteria);
 
+    bool retVal = true;
     // We should only get one key as a result.
     if (foundKeys.count() == 1) {
         mMailboxOffset = foundKeys[0].key();
-        calculateActiveProfileOffset();
+        retVal = calculateActiveProfileOffset();
     }
     else {
-        mActiveProfileOffset = -1;
-        mMailboxOffset = -1;
+        mActiveProfileOffset = KUndefinedOffset;
+        mMailboxOffset = KUndefinedOffset;
+        retVal = false;
     }
+    return retVal;
 }
 
 /*!
- Calculates the active reception schedule profile offset.
+ Calculates the Active profile offset.
+  \return bool Returns <true> if operation was successfull otherwise <false>.
  */
-void NmApiSettingsManagerPrivate::calculateActiveProfileOffset()
+bool NmApiSettingsManagerPrivate::calculateActiveProfileOffset()
 {
-    QVariant activeProfile = readFromCenRep(IpsServices::EmailKeyReceptionActiveProfile);
-    mActiveProfileOffset = convertToProfileOffset(activeProfile.toInt());
+    bool retVal = true;
+    QVariant activeProfile = readFromCenRep(
+        IpsServices::EmailKeyReceptionActiveProfile, retVal);
+    if (retVal) {
+        switch (activeProfile.toInt()) {
+            case 0:
+                mActiveProfileOffset = IpsServices::EmailProfileOffsetKUTD;
+                break;
+            case 1:
+                mActiveProfileOffset = IpsServices::EmailProfileOffsetSE;
+                break;
+            case 2:
+                mActiveProfileOffset = IpsServices::EmailProfileOffsetMF;
+                break;
+            case 3:
+                mActiveProfileOffset = IpsServices::EmailProfileOffsetUD;
+                break;
+            default:
+                mActiveProfileOffset = IpsServices::EmailProfileOffsetKUTD;
+                break;
+        }
+    }
+    return retVal;
 }
 
 /*!
-
+ Function for checking account type. 
+ \return bool Returns <true> If account type was identified. <false> if not.  
  */
-qint32 NmApiSettingsManagerPrivate::convertToProfileOffset(int profile) const
-{
-    quint32 profileOffset(0);
-    // Possible values are defined in ipssettingkeys.h
-    switch (profile) {
-        case 0: {
-            profileOffset = IpsServices::EmailProfileOffsetKUTD;
-            break;
-        }
-        case 1: {
-            profileOffset = IpsServices::EmailProfileOffsetSE;
-            break;
-        }
-        case 2: {
-            profileOffset = IpsServices::EmailProfileOffsetMF;
-            break;
-        }
-        case 3: {
-            profileOffset = IpsServices::EmailProfileOffsetUD;
-            break;
-        }
-        default: {
-            break;
-        }
-    };
-
-    return profileOffset;
-}
-
-bool NmApiSettingsManagerPrivate::checkAccountType()
+bool NmApiSettingsManagerPrivate::checkAccountTypeL()
 {
     bool identified = false;
-
     RArray<TImapAccount> imapAccounts;
     CleanupClosePushL(imapAccounts);
-    TRAPD(err, mAccount->GetImapAccountsL(imapAccounts));
-    if (err == KErrNone) {
-        for (int i=0; i < imapAccounts.Count(); ++i) {
-            TImapAccount account = imapAccounts[i];
-            if (account.iImapService == mMailboxId) {
-                mImap4Account = account;
-                mMailboxType = NmApiMailboxTypeImap;
-                identified = true;
-                break;
-            }
+    
+    mAccount->GetImapAccountsL(imapAccounts);
+    for (int i=0; i < imapAccounts.Count(); ++i) {
+        TImapAccount account = imapAccounts[i];
+        if (account.iImapService == mMailboxId) {
+            mImap4Account = account;
+            mMailboxType = NmApiMailboxTypeImap;
+            identified = true;
+            break;
         }
     }
     CleanupStack::PopAndDestroy(&imapAccounts);
@@ -739,44 +707,51 @@ bool NmApiSettingsManagerPrivate::checkAccountType()
     if (!identified) {
         RArray<TPopAccount> popAccounts;
         CleanupClosePushL(popAccounts);
-        TRAPD(err, mAccount->GetPopAccountsL(popAccounts));
-        if (err == KErrNone) {
-            for (int i = 0; i < popAccounts.Count(); ++i) {
-                TPopAccount account = popAccounts[i];
-                if (popAccounts[i].iPopService == mMailboxId) {
-                    mPop3Account = account;
-                    mMailboxType = NmApiMailboxTypePop;
-                    identified = true;
-                    break;
-                }
+        mAccount->GetPopAccountsL(popAccounts);
+        for (int i = 0; i < popAccounts.Count(); ++i) {
+            TPopAccount account = popAccounts[i];
+            if (popAccounts[i].iPopService == mMailboxId) {
+                mPop3Account = account;
+                mMailboxType = NmApiMailboxTypePop;
+                identified = true;
+                break;
             }
         }
         CleanupStack::PopAndDestroy(&popAccounts);
     }
-
     return identified;
 }
 
+/*!
+ Function for initializing account information.
+ */
 void NmApiSettingsManagerPrivate::initAccountL()
 {
-    if (mMailboxType == NmApiMailboxTypePop) {
+    mAccount = CEmailAccounts::NewL();
+   
+    if (!checkAccountTypeL()) {
+        User::Leave(KErrNotSupported); // Account type was not identified
+    }
+    
+    if (mMailboxType == NmApiMailboxTypePop) {      
         mPop3Settings = new(ELeave) CImPop3Settings();
         mAccount->LoadPopSettingsL(mPop3Account, *mPop3Settings);
+        mAccount->GetSmtpAccountL(mPop3Account.iSmtpService, mSmtpAccount);
     }
-    else if (mMailboxType == NmApiMailboxTypeImap) {
+    else if (mMailboxType == NmApiMailboxTypeImap) {   
         mImap4Settings = new(ELeave) CImImap4Settings();
         mAccount->LoadImapSettingsL(mImap4Account, *mImap4Settings);
+        mAccount->GetSmtpAccountL(mImap4Account.iSmtpService, mSmtpAccount);
+    }
+    else {
+        User::Leave(KErrNotSupported);
     }
 
     mSmtpSettings = new(ELeave) CImSmtpSettings();
-
-    if (mMailboxType == NmApiMailboxTypePop) {
-        mAccount->GetSmtpAccountL(mPop3Account.iSmtpService, mSmtpAccount);
-    }
-    else if (mMailboxType == NmApiMailboxTypeImap) {
-        mAccount->GetSmtpAccountL(mImap4Account.iSmtpService, mSmtpAccount);
-    }
     mAccount->LoadSmtpSettingsL(mSmtpAccount, *mSmtpSettings);
+    
+    QT_TRYCATCH_LEAVING(mQSettingsManager = new XQSettingsManager());
+    calculateMailboxOffset();
 }
 
 } // end namespace

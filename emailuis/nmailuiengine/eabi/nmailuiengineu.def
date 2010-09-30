@@ -324,4 +324,5 @@ EXPORTS
 	_ZN10NmUiEngine24handleFolderCreatedEventERK5QListI4NmIdERKS1_ @ 323 NONAME
 	_ZN10NmUiEngine24handleFolderDeletedEventERK5QListI4NmIdERKS1_ @ 324 NONAME
 	_ZN18NmMessageListModel24handleFolderDeletedEventERK4NmIdS2_ @ 325 NONAME
+	_ZN10NmUiEngine22createMessageListModelEPP18NmMessageListModelRK4NmIdS5_ @ 326 NONAME
 

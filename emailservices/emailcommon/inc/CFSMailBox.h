@@ -435,19 +435,14 @@ private:
   	 CFSMailBox();
 
     /**
-     * Function used internally to inform that Mru list related to this
-     * mailbox should now be updated using the given recipient info. In
-     * other words this function makes sure that the given recipients are
-     * found from the common email mru list.
+     * Function used internally to update Mru list using the given recipient
+     * info. In other words this function makes sure that the given recipients
+     * are found from the common email mru list.
      *
-     * @param aRecipients email recipients in TO-field
-     * @param aCCRecipients email recipients in CC-field
-     * @param aBCCRecipients email recipients in BCC-field
+     * @param aRecipients email recipients to be saved in cenrep.
      */
-    void UpdateMrusL(
-        const RPointerArray<CFSMailAddress>& aRecipients,
-        const RPointerArray<CFSMailAddress>& aCCRecipients,
-        const RPointerArray<CFSMailAddress>& aBCCRecipients ) const;
+    void UpdateMrus(
+        const RPointerArray<CFSMailAddress>& aRecipients ) const;
 
  private: // data
 

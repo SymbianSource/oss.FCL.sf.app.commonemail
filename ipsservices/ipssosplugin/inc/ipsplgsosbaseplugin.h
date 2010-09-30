@@ -493,7 +493,9 @@ public: // from CFSMailPlugin
        const TFSMailMsgId& aMailBoxId,
        const TDesC& aUsername,
        const TDesC& aPassword );
-
+// <qmail>       
+    virtual TUid Id( ) const;
+// </qmail>
 public:
 
     /**

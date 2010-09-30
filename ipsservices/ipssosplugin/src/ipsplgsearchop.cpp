@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -101,8 +101,8 @@ void CIpsPlgSearchOp::ConstructL()
     iState = EStarted;
 
     iSearcher = CIpsPlgTextSearcher::NewL( *this );
-    iSearcher->SetParametersL( 
-        iObserver.SearchStringsL(), 
+    iSearcher->SetParametersL(
+        iObserver.SearchStringsL(),
         EIpsPlgCriteriaOperationOR,
         EFalse,
         KIpsPlgSnippetLen );
@@ -110,7 +110,7 @@ void CIpsPlgSearchOp::ConstructL()
     ActivateAndComplete();
     }
 
-// ======== MEMBER FUNCTIONS ======== 
+// ======== MEMBER FUNCTIONS ========
 
 // ---------------------------------------------------------------------------
 // From class CIpsPlgBaseOperation.
@@ -140,7 +140,7 @@ void CIpsPlgSearchOp::RunL()
             iObserver.CollectMessagesL();
             iObserver.Sort();
             iState = ERunning;
-            iRequiredPriority = EPriorityStandard; // priority changes may be decreased
+            iRequiredPriority = EPriorityIdle; // priority changes may be decreased
             ActivateAndComplete();
             break;
             }
@@ -161,11 +161,18 @@ void CIpsPlgSearchOp::RunL()
                     return;
                     }
             iState = ERunning;
-// When client wants call to contact the priority must be decreased 
+// When client wants call to contact the priority must be decreased
 // to enable search for contact which uses idle priority
             TInt clientRequiredPriority(iRequiredPriority);
             iObserver.ClientRequiredSearchPriority( &clientRequiredPriority );
-            iRequiredPriority = ((clientRequiredPriority > EPriorityIdle) ? EPriorityStandard : EPriorityIdle-1);
+
+            if (clientRequiredPriority>EPriorityStandard) {
+			    clientRequiredPriority = EPriorityStandard;
+			}
+            else if(clientRequiredPriority<EPriorityIdle-1) {
+			    clientRequiredPriority = EPriorityIdle-1;
+			}
+            iRequiredPriority = clientRequiredPriority;
 
             ActivateAndComplete();
             break;
@@ -201,28 +208,28 @@ TBool CIpsPlgSearchOp::NextMailL()
         {
         // Delete object before creating new. Previous object is not needed.
         delete iMessage;
-        iMessage = NULL;        
+        iMessage = NULL;
         delete iHeader;
         iHeader = NULL;
-        iMessage = iObserver.NextMessageL();        
-        
-        // If message is not set, the search is finished. 
+        iMessage = iObserver.NextMessageL();
+
+        // If message is not set, the search is finished.
         // Run down the operation.
         if ( !iMessage )
             {
             iState = EFinished;
             return EFalse;
-            }        
-        
+            }
+
         // Retrieve the message header also.
-        iHeader = iObserver.MessageHeaderL();        
+        iHeader = iObserver.MessageHeaderL();
         }
     else
         {
         // Stop the loop, cancel should not continue.
         return EFalse;
         }
-    return ETrue;        
+    return ETrue;
     }
 
 // ---------------------------------------------------------------------------
@@ -254,25 +261,25 @@ void CIpsPlgSearchOp::SearchBodyL()
         CRichText* txt = CRichText::NewL( para, chars );
         CleanupStack::PushL( txt );
 
-        iMessage->GetBodyTextL( 
+        iMessage->GetBodyTextL(
             iObserver.CurrentMessage().Id(),
-            CImEmailMessage::EThisMessageOnly, 
-            *txt, 
-            *para, 
-            *chars );    
+            CImEmailMessage::EThisMessageOnly,
+            *txt,
+            *para,
+            *chars );
 
         RBuf temp;
-        temp.CreateL( txt->DocumentLength() ); 
+        temp.CreateL( txt->DocumentLength() );
         CleanupClosePushL( temp );
-        
+
         txt->Extract( temp );
         SearchFromStringL( temp );
-        
+
         CleanupStack::PopAndDestroy( &temp );
-        CleanupStack::PopAndDestroy( txt );    
+        CleanupStack::PopAndDestroy( txt );
         CleanupStack::PopAndDestroy( chars );
         CleanupStack::PopAndDestroy( para );
-        }    
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -315,18 +322,18 @@ void CIpsPlgSearchOp::SearchL()
     FUNC_LOG;
     if ( iState == ERunning )
         {
-        iSearcher->Cleanup();                       
-        
+        iSearcher->Cleanup();
+
         // Mail is fetched, search from entire mail.
         if ( iHeader )
-            {                           
-            SearchFromEntireMailL(); 
+            {
+            SearchFromEntireMailL();
             }
-        // Mail not fetched, search only from subject.            
+        // Mail not fetched, search only from subject.
         else
-            {                                        
-            SearchFromSubjectL();                                             
-            }                       
+            {
+            SearchFromSubjectL();
+            }
         iState = ( iState == EHit ) ? ERunning : iState;
         }
     }
@@ -335,10 +342,10 @@ void CIpsPlgSearchOp::SearchL()
 // CIpsPlgSearchOp::HitL()
 // ---------------------------------------------------------------------------
 //
-void CIpsPlgSearchOp::HitL( 
-    const TDesC& /* aSnippet */, 
-    TInt /* aSnippetCharPos */, 
-    TBool /* aStartIncomplete */, 
+void CIpsPlgSearchOp::HitL(
+    const TDesC& /* aSnippet */,
+    TInt /* aSnippetCharPos */,
+    TBool /* aStartIncomplete */,
     TBool /* aEndIncomplete */ )
     {
     FUNC_LOG;
@@ -355,7 +362,7 @@ void CIpsPlgSearchOp::FinalizeL()
     FUNC_LOG;
     // In case of cancel, the stop should not be indicated.
     if ( iState == EFinished )
-        {        
+        {
         iObserver.SearchFinishedL();
         iState = EStopped;
         }
@@ -368,17 +375,17 @@ void CIpsPlgSearchOp::FinalizeL()
 void CIpsPlgSearchOp::ActivateAndComplete( )
     {
     FUNC_LOG;
-    iStatus = KRequestPending; 
-// When client wants call to contact the priority must be decreased 
+    iStatus = KRequestPending;
+// When client wants call to contact the priority must be decreased
 // to enable search for contact made with idle priority
     if ( Priority() != iRequiredPriority ) // <cmail>
     	SetPriority(iRequiredPriority);
 
-    SetActive();    
+    SetActive();
     TRequestStatus* status = &iStatus;
-    User::RequestComplete( status, KErrNone );    
+    User::RequestComplete( status, KErrNone );
     }
-    
+
 // ---------------------------------------------------------------------------
 // CIpsPlgSearchOp::SearchFromEntireMailL( )
 // ---------------------------------------------------------------------------
@@ -386,7 +393,7 @@ void CIpsPlgSearchOp::ActivateAndComplete( )
 void CIpsPlgSearchOp::SearchFromEntireMailL( )
     {
     FUNC_LOG;
-    if ( SearchFromStringL( iHeader->Subject() ) ) 
+    if ( SearchFromStringL( iHeader->Subject() ) )
         {
         return;
         }
@@ -417,16 +424,16 @@ void CIpsPlgSearchOp::SearchFromSubjectL( )
     iObserver.GetSubjectL( subject );
     TBool found = SearchFromStringL( subject );
     CleanupStack::PopAndDestroy( &subject );
-    
+
     if ( !found )
         {
         RBuf sender;
         CleanupClosePushL( sender );
         iObserver.GetSenderL( sender );
         found = SearchFromStringL( sender );
-        CleanupStack::PopAndDestroy( &sender );  
+        CleanupStack::PopAndDestroy( &sender );
         }
     }
-    
+
 // End of File
 

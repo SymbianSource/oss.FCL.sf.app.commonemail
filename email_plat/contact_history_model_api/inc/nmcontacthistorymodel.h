@@ -17,6 +17,7 @@
 #ifndef NMCONTACTHISTORYMODEL_H
 #define NMCONTACTHISTORYMODEL_H
 
+#include <QMetaType>
 #include <QAbstractListModel>
 #include <QSharedDataPointer>
 
@@ -50,7 +51,7 @@ class NMCHMAPI_EXPORT NmContactHistoryModelItem
 public:
     NmContactHistoryModelItem();
     NmContactHistoryModelItem(const NmContactHistoryModelItem &other);
-    ~NmContactHistoryModelItem();
+    virtual ~NmContactHistoryModelItem();
 
 public:
     // contact id is 0xDEAD if not associated with a contact item
@@ -93,7 +94,7 @@ public: // The exported API
     /**
      * Destructor
      */
-    ~NmContactHistoryModel();
+    virtual ~NmContactHistoryModel();
 
 public: // From QAbstractItemModel
 
@@ -101,13 +102,13 @@ public: // From QAbstractItemModel
      * Get number of rows currently in the model.
      * @return number of rows
      */
-    virtual int rowCount(const QModelIndex &parent) const;
+    int rowCount(const QModelIndex &parent) const;
 
     /**
      * Get various data from the model. Fetched data type is defined
      * by role input parameter. Only Qt::DisplayRole is supported.
      */
-    virtual QVariant data(const QModelIndex &index, int role) const;
+    QVariant data(const QModelIndex &index, int role) const;
 
 signals:
 
@@ -137,6 +138,9 @@ private:
      */
     NmContactHistoryModelPrivate *d_ptr;
 
+private:
+
+    friend class TestNmContactHistoryModel;
 };
 
 #endif //NMCONTACTHISTORYMODEL_H

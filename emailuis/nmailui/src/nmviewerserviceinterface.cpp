@@ -50,23 +50,6 @@ NmViewerServiceInterface::~NmViewerServiceInterface()
 
 
 /*!
-    This has the soon to be DEPRICATED three argument interface!!!
-    Use viewMessage(QVariant idList, QVariant flags) instead!!!
-*/
-void NmViewerServiceInterface::viewMessage(QVariant mailboxId,
-                                           QVariant folderId,
-                                           QVariant messageId)
-{
-    QVariantList idList;
-    idList.append(mailboxId);
-    idList.append(folderId);
-    idList.append(messageId);
-    QVariant idListAsVariant = QVariant::fromValue(idList);
-    viewMessage(idListAsVariant, QVariant(EmailBackReturnsToMessageList));
-}
-
-
-/*!
     Opens the message view according to the given IDs.
 
     \param idList A list containing the required IDs for locating the wanted
@@ -150,6 +133,9 @@ void NmViewerServiceInterface::viewMessage(QVariant idList, QVariant flags)
         mApplication->enterNmUiView(startParam);
 
         completeRequest(mAsyncReqId, 0);
+        
+        delete message;
+        message = NULL;
     }
     else {
         // The message was not found!

@@ -19,10 +19,12 @@
 #define NMAPIMESSAGEMANAGER_H_
 
 #include <QObject>
+#include <QPointer>
 #include <QList>
 #include <QVariant>
 
 #include <nmapidef.h>
+#include <nmapioperation.h>
 #include <nmapimessage.h>
 
 namespace EmailClientApi {
@@ -37,29 +39,29 @@ public:
 
     virtual ~NmApiMessageManager();
 
-public slots:
-    bool createDraftMessage(const QVariant *initData);
+public slots: 
+    QPointer<NmApiOperation> createDraftMessage(const QVariant *initData);
     
-    bool createForwardMessage(NmApiMessage *orig,const QVariant *initData);
+    QPointer<NmApiOperation> createForwardMessage(NmApiMessage *orig,const QVariant *initData);
     
-    bool createReplyMessage(const NmApiMessage *orig,const QVariant *initData,bool replyAll);
+    QPointer<NmApiOperation> createReplyMessage(const NmApiMessage *orig,const QVariant *initData,bool replyAll);
     
-    bool moveMessages(const QList<quint64> messageIds,quint64 sourceFolderId,quint64 targetFolderId);
+    QPointer<NmApiOperation> moveMessages(const QList<quint64> messageIds,quint64 sourceFolderId,quint64 targetFolderId);
     
-    bool saveMessage(const NmApiMessage &message);
+    QPointer<NmApiOperation> saveMessage(const NmApiMessage &message);
     
-    bool deleteMessages(const QList<quint64> messageIds);
+    QPointer<NmApiOperation> deleteMessages(const QList<quint64> messageIds);
     
-    bool fetchMessage(quint64 messageId);
+    QPointer<NmApiOperation> fetchMessage(quint64 messageId);
     
-    bool sendMessage(const NmApiMessage &message);
+    QPointer<NmApiOperation> sendMessage(const NmApiMessage &message);
     
-    bool createAttachment(NmApiMessage &message,const QVariant &attachmenSpec);
+    QPointer<NmApiOperation> createAttachment(NmApiMessage &message,const QVariant &attachmenSpec);
+    
+    QPointer<NmApiOperation> removeAttachment(NmApiMessage &message,quint64 attachmentId);
+    
+    QPointer<NmApiOperation> fetchAttachment(const NmApiMessage &relatedMessage,quint64 attachmentId);
 
-    bool removeAttachment(NmApiMessage &message,quint64 attachmentId);
-    
-	bool fetchAttachment(const NmApiMessage &relatedMessage,quint64 attachmentId);
-	
 private:
     NmApiMessageManagerPrivate* d;
 };

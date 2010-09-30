@@ -90,7 +90,7 @@ public slots:
 
     void valueChanged(const XQSettingsKey &key, const QVariant &value);
 
-    void delayedMailboxCreated(const NmId mailboxId);
+    void delayedMailboxCreated();
     
     void handleViewStateChangedEvent(const NmUiEventsNotifier::NmUiEventType eventType,
                                      const NmUiViewId viewId,
@@ -171,6 +171,7 @@ private: // data
     int mLastOutboxCount;
     bool mUnreadIndicatorActive;
     int mSilenceMode;
+    NmId mNewMailboxId;
 };
 
 

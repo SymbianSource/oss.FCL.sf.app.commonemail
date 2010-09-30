@@ -15,10 +15,7 @@
  *
  */
 
-#include "emailtrace.h"
-
-#include "emailmailboxinfo.h"
-#include "emailmailboxinfo_p.h"
+#include "nmutilitiescommonheaders.h"
 
 /*!
     private constructor of EmailMailboxInfo
@@ -42,10 +39,10 @@ EmailMailboxInfo::~EmailMailboxInfo()
 
 /*!
     Returns mailbox icon name 
-    \param identifier can be domain name or mailbox id (NmId from nmailbase)
+    \param identifier should be a domain name
     \return mailbox icon name that can be used to construct HbIcon
  */
-QString EmailMailboxInfo::mailboxIcon(const QVariant &identifier) const
+QString EmailMailboxInfo::mailboxIcon(const QString &identifier) const
 {
     NM_FUNCTION;
     
@@ -54,10 +51,10 @@ QString EmailMailboxInfo::mailboxIcon(const QVariant &identifier) const
 
 /*!
     Returns branded mailbox name
-    \param identifier can be domain name or mailbox id (NmId from nmailbase)
+    \param identifier should be a domain name
     \return mailbox name
  */
-QString EmailMailboxInfo::mailboxName(const QVariant &identifier) const
+QString EmailMailboxInfo::mailboxName(const QString &identifier) const
 {
     NM_FUNCTION;
     

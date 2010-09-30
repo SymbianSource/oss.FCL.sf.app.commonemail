@@ -30,6 +30,16 @@ NmApiAttachmentPrivate::NmApiAttachmentPrivate()
 }
 
 /*!
+    Class copy constructor.
+*/
+NmApiAttachmentPrivate::NmApiAttachmentPrivate(const NmApiAttachmentPrivate &attachmentprivate)
+ : QSharedData(attachmentprivate),
+   mFilename(attachmentprivate.mFilename)
+{
+    NM_FUNCTION;
+}
+
+/*!
     Class destructor.
 */
 NmApiAttachmentPrivate::~NmApiAttachmentPrivate()

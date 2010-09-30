@@ -77,6 +77,8 @@ NmEditorContent::NmEditorContent(QObject *parent,
     // pointer of the QTextDocument which the smiley engine has is NULL and
     // inserting a smiley will lead to an error.
     mEditorWidget->setPlainText("");
+    
+    QCoreApplication::instance()->installEventFilter(this); // see eventFilter()
 }
 
 /*!
@@ -85,6 +87,8 @@ NmEditorContent::NmEditorContent(QObject *parent,
 NmEditorContent::~NmEditorContent()
 {
     NM_FUNCTION;
+
+    QCoreApplication::instance()->removeEventFilter(this); // see eventFilter()
 }
 
 /*!
@@ -110,8 +114,8 @@ void NmEditorContent::setBodyContent(NmUiEditorStartMode editorStartMode,
     
     // Create the "reply" header (also for forward message)
 	// sets the font color of the reply header and the original body text to black
-    if ((editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll || 
-        editorStartMode==NmUiEditorForward) && originalMessage) {
+    if ((editorStartMode == NmUiEditorReply || editorStartMode == NmUiEditorReplyAll || 
+        editorStartMode == NmUiEditorForward) && originalMessage) {
 		bodyContent.append(QString("<style type=\"text/css\">* { color: black; }</style>"));
         bodyContent.append(NmUtilities::createReplyHeader(originalMessage->envelope()));
     }
@@ -126,17 +130,15 @@ void NmEditorContent::setBodyContent(NmUiEditorStartMode editorStartMode,
  
     if (htmlPart) {
         QString bodyText(htmlPart->textContent());
-        if (editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll || 
-                editorStartMode==NmUiEditorForward) {
+        if (editorStartMode == NmUiEditorReply || editorStartMode == NmUiEditorReplyAll || 
+                editorStartMode == NmUiEditorForward) {
             convertBodyStylesToDivision(bodyText);
         }
         
-        if(editorStartMode==NmUiEditorReply || editorStartMode==NmUiEditorReplyAll ) {
+        if(editorStartMode == NmUiEditorReply || editorStartMode == NmUiEditorReplyAll ) {
             removeEmbeddedImages(bodyText);
         }
-        
         bodyContent.append(bodyText);
-        cursor.insertHtml(bodyContent);
     }
     else if (plainPart) {
         // Plain text part was present, set it to HbTextEdit as HTML
@@ -151,6 +153,8 @@ void NmEditorContent::setBodyContent(NmUiEditorStartMode editorStartMode,
 	cursor.clearSelection();
 	cursor.setPosition(0);
 	cursor.insertHtml(QString("<html><body></body></html>"));
+	mEditorWidget->moveCursor(QTextCursor::Start, QTextCursor::MoveAnchor);
+	QMetaObject::invokeMethod(this, "ensureCursorVisibility", Qt::QueuedConnection);
 }  
 
 /*!
@@ -175,18 +179,6 @@ void NmEditorContent::createConnections()
     // we are interested in the document's height changes
     connect(mEditorWidget->document()->documentLayout(), SIGNAL(documentSizeChanged(QSizeF)), this,
         SLOT(setEditorContentHeight()), Qt::QueuedConnection);
-
-    // We need to update the scroll position according the editor's cursor position
-    connect(mHeader->toEdit(), SIGNAL(cursorPositionChanged(int, int)), this, 
-        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
-    connect(mHeader->ccEdit(), SIGNAL(cursorPositionChanged(int, int)), this, 
-        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
-    connect(mHeader->bccEdit(), SIGNAL(cursorPositionChanged(int, int)), this, 
-        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
-    connect(mHeader->subjectEdit(), SIGNAL(cursorPositionChanged(int, int)), this, 
-        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
-    connect(mEditorWidget, SIGNAL(cursorPositionChanged(int, int)), this, 
-        SLOT(ensureCursorVisibility()), Qt::QueuedConnection);
 
     // listen to the parent's (NmEditorView) size changes which happen eg. when VKB is opened/closed
     connect(parent(), SIGNAL(sizeChanged()), this, SLOT(ensureCursorVisibility()),
@@ -276,7 +268,8 @@ void NmEditorContent::setEditorContentWidth()
 
 /*!
     This slot is called when the cursor visibility has to be ensured ie. the scroll position is 
-    adjusted so that the cursor can be seen.
+    adjusted so that the cursor can be seen. For defining exatcly what area is ensured the 
+    same algorithm that HbAbstractEditPrivate::ensurePositionVisible() uses is used here. 
 */
 void NmEditorContent::ensureCursorVisibility()
 {
@@ -309,17 +302,8 @@ void NmEditorContent::ensureCursorVisibility()
 
     // ensure that the cursor position is visible
     if (focused && !localRect.isEmpty()) {
-        QPointF topLeftPos = focused->mapToItem(mScrollAreaContents, localRect.topLeft());
-        QPointF bottomRightPos =
-            focused->mapToItem(mScrollAreaContents, localRect.bottomRight());
-        qreal marginRight = 0;
-        if (mScrollArea->style()) {
-            mScrollArea->style()->parameter("hb-param-margin-gene-right", marginRight);
-        }
-        bottomRightPos.rx() += marginRight;
-
-        mScrollArea->ensureVisible(topLeftPos);
-        mScrollArea->ensureVisible(bottomRightPos);
+        QRectF rect = focused->mapRectToItem(mScrollAreaContents, localRect);
+        mScrollArea->ensureVisible(rect.center(), rect.width(), rect.height() / 2 );
     }
 }
 /*!
@@ -352,7 +336,14 @@ void NmEditorContent::repositHeader(const QPointF &scrollPosition)
     // Create translation object for header position adjustment.
     QRectF editorBodyRect = mEditorWidget->geometry();
     QTransform tr;
-    qreal leftMovementThreshold(editorBodyRect.width() - headerWidth);
+
+    qreal bodyWidth = editorBodyRect.width();
+    if ( bodyWidth < mApplication.screenSize().width() ) {
+    	    bodyWidth = mApplication.screenSize().width();
+    }
+
+    qreal leftMovementThreshold( bodyWidth - headerWidth);
+
     if (scrollPosition.x() < 0) {
         // Left side positioning. Allow left side baunch effect.
         tr.translate(editorBodyRect.topLeft().x() - margin ,0);
@@ -434,12 +425,12 @@ void NmEditorContent::createDivisionFromHead(QString &bodyContent)
     
     QString bodyStartReplacement("<body>\n<div");
     
-    if(bodyContent.contains(bodyStyleDefinedRegExp)) {
+    if (bodyContent.contains(bodyStyleDefinedRegExp)) {
         QString headPartString = bodyStyleDefinedRegExp.cap(0);
         QString headBodyStyleString("body(\\s)*");
         QRegExp bodyStyleReplacementRegExp(headBodyStyleString, Qt::CaseInsensitive);
         
-        if(headPartString.contains(bodyStyleReplacementRegExp)) {
+        if (headPartString.contains(bodyStyleReplacementRegExp)) {
             headPartString.replace(bodyStyleReplacementRegExp, "div.reply ");
             bodyContent.replace(bodyStyleDefinedRegExp, headPartString);
             
@@ -465,9 +456,6 @@ void NmEditorContent::createDivisionFromHead(QString &bodyContent)
  *  This is the body text.
  *  </div>
  *  </body>
- *  
- *  TODO: T‰m‰ tapahtuu toistaiseksi riippumatta siit‰ onko bodyssa style-m‰‰rittely‰.
- *  TODO: Ent‰ jos dokumentissa on m‰‰ritelty useampi <body>? 
  */
 void NmEditorContent::convertBodyToDiv(QString &bodyContent, const QString &replacementString)
 {
@@ -497,10 +485,18 @@ void NmEditorContent::convertBGColorToStyle(QString &bodyContent)
 {
     NM_FUNCTION;
     
-    QString bgColorInBodyFetchString("<body[^<]+(bgcolor(\\s|)=(\\s|)(\"|)(#|))*>");
+    QString bgColorInBodyFetchString("<body"
+        "[^<]+"             // 1...* any character except '<'
+        "(bgcolor"
+        "(\\s|)"            // White space or nothing
+        "="
+        "(\\s|)"            // White space or nothing
+        "(\"|)"             // '"' or nothing
+        "(#|))"             // '#' or nothing
+        "*>");              // 0...* Any character + >
     QRegExp bgColorInBodyRegExp(bgColorInBodyFetchString, Qt::CaseInsensitive);
     
-    if(bodyContent.contains(bgColorInBodyRegExp)) {
+    if (bodyContent.contains(bgColorInBodyRegExp)) {
         // There can be only one meaningful bgcolor, the first one.
         QString bgColorString = bgColorInBodyRegExp.cap(0);
         
@@ -516,6 +512,7 @@ void NmEditorContent::convertBGColorToStyle(QString &bodyContent)
             "(\"|)"         // '"' or nothing
             "(#|)",         // '#' or nothing
             Qt::CaseInsensitive);
+        
         colorCode.remove(removeBeginningRegExp);
         
         QRegExp removeEndRegExp(""
@@ -523,9 +520,16 @@ void NmEditorContent::convertBGColorToStyle(QString &bodyContent)
             "([^<]*)"       // 0...* any characters except '<'
             ">)"            // '>'           
             "|>");          // ... or nothing before this, just '>'
+        
         colorCode.remove(removeEndRegExp);
         
-        QString plainBgColorFetchString("bgcolor(\\s|)*=(\\s|)*[^\\s]+(\\s|(?=>))");
+        QString plainBgColorFetchString("bgcolor"
+            "(\\s|)*"       // 0...* White space or nothing
+            "="             
+            "(\\s|)*"       // 0...* White space or nothing
+            "[^\\s]+"       // 1...* any character except white space
+            "(\\s|(?=>))"); // White space or follower by '>'
+        
         QString bgColorReplacement("style=\"background: #"+colorCode+"\" ");
         QRegExp plainBgColorFetchRegExp(plainBgColorFetchString, Qt::CaseInsensitive);
         
@@ -536,3 +540,22 @@ void NmEditorContent::convertBGColorToStyle(QString &bodyContent)
         bodyContent.replace(bgColorInBodyRegExp, bgColorString);
     }    
 }
+
+/*!
+ *  Listen to the input method events (eg. cursor position changes, preedit text changes etc.) and 
+ *  invoke ensureCursorVisibility. Qt FW does not automatically ensure the visiblity of a text in a
+ *  edit widget in our custom scroll area. Filtering events is the only way to get events of the
+ *  preedit text changes.
+ */
+bool NmEditorContent::eventFilter(QObject *obj, QEvent *event)
+{
+    // let the FW handle the event first
+    bool ret = QObject::eventFilter(obj, event);
+    
+    if (event && event->type() == QEvent::InputMethod) {
+        QMetaObject::invokeMethod(this, "ensureCursorVisibility", Qt::QueuedConnection);
+    }
+    
+    return ret;
+}
+

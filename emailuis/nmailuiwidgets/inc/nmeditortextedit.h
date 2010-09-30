@@ -36,6 +36,8 @@ public:
     bool hasInputFocus() const;
 
     QRectF rectForCursorPosition() const;
+    
+    void moveCursor(QTextCursor::MoveOperation op, QTextCursor::MoveMode mode);
 
 public slots:
     void updateCustomTextColor();

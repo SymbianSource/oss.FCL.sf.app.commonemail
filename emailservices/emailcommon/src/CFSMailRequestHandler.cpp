@@ -153,9 +153,11 @@ void CFSMailRequestHandler::ConstructL(
         newRequest.iRequestStatus = TFSPendingRequest::EFSRequestPending;
         CFSMailRequestObserver* observer =
             CFSMailRequestObserver::NewL(*this, aOperationObserver);
+        CleanupStack::PushL(observer);
         newRequest.iObserver = observer;
         iPendingRequests.AppendL(newRequest);
-
+        CleanupStack::Pop(observer);
+        
         return newRequest;
     }
 

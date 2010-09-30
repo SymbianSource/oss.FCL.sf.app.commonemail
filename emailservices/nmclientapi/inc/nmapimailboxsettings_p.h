@@ -38,6 +38,7 @@ public:
     ~NmApiMailboxSettingsPrivate();
 
     bool listMailboxIds(QList<quint64> &idList);
+    QString getMailboxType(quint64 mailboxId);
     bool loadSettings(quint64 mailboxId, NmApiMailboxSettingsData &data);
     bool saveSettings(const NmApiMailboxSettingsData &data);
     bool createMailbox(const QString &mailboxType, NmApiMailboxSettingsData &data);
@@ -49,6 +50,7 @@ signals:
     
 private:
     void createPopImapMailbox(const QString &type, NmApiMailboxSettingsData &data);
+    QString resolveMailboxTypeL(quint64 mailboxId);
 
     
 private:

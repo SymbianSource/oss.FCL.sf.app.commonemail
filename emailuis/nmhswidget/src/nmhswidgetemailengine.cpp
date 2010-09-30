@@ -130,9 +130,9 @@ bool NmHsWidgetEmailEngine::constructNmPlugin()
         SLOT( handleMessageEvent(NmMessageEvent, const NmId&,
                 const QList<NmId>&, const NmId&) ));
 
-    connect( pluginInstance, SIGNAL( void folderEvent(
-             NmFolderEvent, const QList<NmId>, const NmId&) ), this,
-             SLOT( void handleFolderEvent( NmFolderEvent, const QList<NmId>, const NmId&)));
+    connect( pluginInstance, SIGNAL( folderEvent(
+             NmFolderEvent, const QList<NmId>&, const NmId&) ), this,
+             SLOT( handleFolderEvent( NmFolderEvent, const QList<NmId>&, const NmId&)));
 
     connect(pluginInstance, SIGNAL( mailboxEvent(NmMailboxEvent, const QList<NmId>& ) ), this,
         SLOT( handleMailboxEvent(NmMailboxEvent, const QList<NmId>&) ));

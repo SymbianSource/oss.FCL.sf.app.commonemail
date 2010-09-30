@@ -100,9 +100,11 @@ NmIpsSettingsHelper::NmIpsSettingsHelper(NmIpsSettingsManagerBase &settingsManag
   mOutgoingPortInputValidator(NULL),
   mDestinationDialog(NULL),
   mServerInfoDynamicItemsVisible(false),
-  mAbortDynamicRSItemHandling(false),
-  mCurrentRefreshIndex(-1)
+  mAbortDynamicRSItemHandling(false)
 {
+    QVariant inboxValue;
+    mSettingsManager.readSetting(IpsServices::ReceptionInboxSyncWindow, inboxValue);
+    mPrevInboxCount = inboxValue.toInt();
 }
 
 /*!
@@ -302,7 +304,7 @@ void NmIpsSettingsHelper::createOrUpdateReceivingScheduleGroupDynamicItem(
                 // If not exist, create one
                 if (!formItemData) {
                     formItemData = new CpSettingFormItemData(
-                        HbDataFormModelItem::RadioButtonListItem,
+                        HbDataFormModelItem::ComboBoxItem,
                             hbTrId("txt_mailips_setlabel_refresh_mail"));
 
                     mReceivingScheduleGroupItem->appendChild(formItemData);
@@ -316,13 +318,9 @@ void NmIpsSettingsHelper::createOrUpdateReceivingScheduleGroupDynamicItem(
                                      << HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_1_hour"))
                                      << HbStringUtil::convertDigits(hbTrId("txt_mailips_setlabel_val_every_4_hours"));
                     formItemData->setContentWidgetData("items", refreshMailItems);
-                    formItemData->setContentWidgetData("displayMode","popup");
-
-                    mDataForm.addConnection(formItemData, SIGNAL(finished(HbAction *)),
-                           this, SLOT(refreshPeriodModified(HbAction *)));
-
-                    mDataForm.addConnection(formItemData, SIGNAL(itemSelected(int)),
-                           this, SLOT(refreshIndexModified(int)));
+                    
+                    mDataForm.addConnection(formItemData, SIGNAL(currentIndexChanged(int)),
+                           this, SLOT(refreshPeriodModified(int)));
                 }
 
                 // Update data
@@ -333,8 +331,7 @@ void NmIpsSettingsHelper::createOrUpdateReceivingScheduleGroupDynamicItem(
                 refreshPeriod[15] = 1;
                 refreshPeriod[60] = 2;
                 refreshPeriod[240] = 3;
-                formItemData->setContentWidgetData("selected",
-                    refreshPeriod.value(interval.toInt()));
+                formItemData->setContentWidgetData("currentIndex",refreshPeriod.value(interval.toInt()));
                 break;
             }
             default:
@@ -497,7 +494,7 @@ void NmIpsSettingsHelper::saveIncomingUserName()
         mSettingsManager.writeSetting(IpsServices::IncomingLoginName, username);
         // Outgoing username needs to be updated if it is set as Same as Incoming.
         item = mContentItems.value(IpsServices::SMTPAuthentication);
-        QVariant selected = item->contentWidgetData("selected");
+        QVariant selected = item->contentWidgetData("currentIndex");
         if (selected.toInt() == IpsServices::EMailAuthSameAsIncoming) {
             mSettingsManager.writeSetting(IpsServices::OutgoingLoginName, username);
         }
@@ -555,7 +552,7 @@ void NmIpsSettingsHelper::saveIncomingPassword()
     mSettingsManager.writeSetting(IpsServices::IncomingPassword, password);
     // Outgoing password needs to be updated if it is set as Same as Incoming.
     item = mContentItems.value(IpsServices::SMTPAuthentication);
-    QVariant selected = item->contentWidgetData("selected");
+    QVariant selected = item->contentWidgetData("currentIndex");
     if (selected.toInt() == IpsServices::EMailAuthSameAsIncoming) {
         mSettingsManager.writeSetting(IpsServices::OutgoingPassword, password);
     }
@@ -722,8 +719,16 @@ void NmIpsSettingsHelper::updateShowMailInMailbox()
     syncWindows[0] = 3;
 
     HbDataFormModelItem *item = mContentItems.value(IpsServices::ReceptionInboxSyncWindow);
-    if (item) {
-        item->setContentWidgetData("selected", syncWindows.value(value.toInt()));
+    if (item){
+        int tmpValue = value.toInt();
+        if(mPrevInboxCount != tmpValue){
+            // store selected setting
+            emit goOffline(mSettingsManager.mailboxId());
+            mEmitOnline = true;
+            mSettingsManager.writeSetting(IpsServices::ReceptionInboxSyncWindow, tmpValue);
+            mPrevInboxCount = tmpValue;
+        }
+        item->setContentWidgetData("currentIndex", syncWindows.value(tmpValue));
     }
 }
 
@@ -824,7 +829,7 @@ void NmIpsSettingsHelper::outgoingMailServerTextChange(const QString &text)
 */
 void NmIpsSettingsHelper::incomingPortChange(int index)
 {
-    int previousindex = getCorrectIncomingPortRadioButtonIndex();
+    int previousindex = getCorrectIncomingPortComboBoxIndex();
 
     if (index == IpsServices::NmIpsSettingsDefault) {
         if (index != previousindex) {
@@ -868,7 +873,7 @@ void NmIpsSettingsHelper::showIncomingPortInputDialog()
 */
 void NmIpsSettingsHelper::handleUserDefinedIncomingPortInput(HbAction *action)
 {
-    int previousindex = getCorrectIncomingPortRadioButtonIndex();
+    int previousindex = getCorrectIncomingPortComboBoxIndex();
 
     if (action == mIncomingPortInputDialog->actions().at(0)) {
         QVariant newPort = mIncomingPortInputDialog->value();
@@ -878,15 +883,15 @@ void NmIpsSettingsHelper::handleUserDefinedIncomingPortInput(HbAction *action)
     } else {
         //set selected value back if user canceled.
         HbDataFormModelItem *item = mContentItems.value(IpsServices::IncomingPort);
-        item->setContentWidgetData("selected", previousindex);
+        item->setContentWidgetData("currentIndex", previousindex);
     }
 }
 
 /*!
-    Used for getting the index to display in the port radio button list
+    Used for getting the index to display in the port combo box list
     \return index Used to set the selected value
 */
-int NmIpsSettingsHelper::getCorrectIncomingPortRadioButtonIndex()
+int NmIpsSettingsHelper::getCorrectIncomingPortComboBoxIndex()
 {
     QVariant incomingPort;
     mSettingsManager.readSetting(IpsServices::IncomingPort, incomingPort);
@@ -905,7 +910,7 @@ int NmIpsSettingsHelper::getCorrectIncomingPortRadioButtonIndex()
 */
 void NmIpsSettingsHelper::incomingSecureConnectionItemChange(int index)
 {
-    int previousindex = getCorrectIncomingSecureRadioButtonIndex();
+    int previousindex = getCorrectIncomingSecureComboBoxIndex();
 
     if (previousindex != index) {
         emit goOffline(mSettingsManager.mailboxId());
@@ -931,7 +936,7 @@ void NmIpsSettingsHelper::incomingSecureConnectionItemChange(int index)
         }
         // Update incoming port value only if default incoming port used
         HbDataFormModelItem *item = mContentItems.value(IpsServices::IncomingPort);
-        QVariant data = item->contentWidgetData("selected");
+        QVariant data = item->contentWidgetData("currentIndex");
         // Default incoming port selected
         if (data.toInt() == IpsServices::NmIpsSettingsDefault) {
             int port = mSettingsManager.determineDefaultIncomingPort();
@@ -941,10 +946,10 @@ void NmIpsSettingsHelper::incomingSecureConnectionItemChange(int index)
 }
 
 /*!
-    Used for getting the index to display in the secure connection radio button list.
+    Used for getting the index to display in the secure connection combo box list.
     \return index Used to set the selected value
 */
-int NmIpsSettingsHelper::getCorrectIncomingSecureRadioButtonIndex()
+int NmIpsSettingsHelper::getCorrectIncomingSecureComboBoxIndex()
 {
     QVariant secureSockets;
     QVariant secureSSLWrapper;
@@ -968,10 +973,10 @@ int NmIpsSettingsHelper::getCorrectIncomingSecureRadioButtonIndex()
 }
 
 /*!
-    Used for getting the index to display in the secure connection radio button list.
+    Used for getting the index to display in the secure connection combo box list.
     \return index Used to set the selected value
 */
-int NmIpsSettingsHelper::getCorrectOutgoingSecureRadioButtonIndex()
+int NmIpsSettingsHelper::getCorrectOutgoingSecureComboBoxIndex()
 {
     QVariant secureSockets;
     QVariant secureSSLWrapper;
@@ -999,7 +1004,7 @@ int NmIpsSettingsHelper::getCorrectOutgoingSecureRadioButtonIndex()
 */
 void NmIpsSettingsHelper::folderPathChange(int index)
 {
-    int previousindex = getCorrectFolderPathRadioButtonIndex();
+    int previousindex = getCorrectFolderPathComboBoxIndex();
 
     if (index == IpsServices::NmIpsSettingsDefault) {
         if (index != previousindex ) {
@@ -1036,7 +1041,7 @@ void NmIpsSettingsHelper::showFolderPathInputDialog()
 */
 void NmIpsSettingsHelper::handleUserDefinedFolderPathInput(HbAction *action)
 {
-    int previousindex = getCorrectFolderPathRadioButtonIndex();
+    int previousindex = getCorrectFolderPathComboBoxIndex();
 
     HbDataFormModelItem *item = mContentItems.value(IpsServices::FolderPath);
 
@@ -1045,11 +1050,11 @@ void NmIpsSettingsHelper::handleUserDefinedFolderPathInput(HbAction *action)
         mSettingsManager.writeSetting(IpsServices::FolderPath, newFolderPath);
         //set selected index to default if user inputed empty string.
         if (newFolderPath.toString().isEmpty()) {
-            item->setContentWidgetData("selected", IpsServices::NmIpsSettingsDefault);
+            item->setContentWidgetData("currentIndex", IpsServices::NmIpsSettingsDefault);
         }
     } else {
         //set selected value back if user canceled.
-        item->setContentWidgetData("selected", previousindex);
+        item->setContentWidgetData("currentIndex", previousindex);
     }
 }
 
@@ -1114,10 +1119,10 @@ void NmIpsSettingsHelper::endTimeModified(QTime time)
 }
 
 /*!
-    Used for getting the index to display in the inbox path radio button list
+    Used for getting the index to display in the inbox path combo box list
     \return index Used to set the selected value
 */
-int NmIpsSettingsHelper::getCorrectFolderPathRadioButtonIndex()
+int NmIpsSettingsHelper::getCorrectFolderPathComboBoxIndex()
 {
     QVariant folderPath;
     mSettingsManager.readSetting(IpsServices::FolderPath, folderPath);
@@ -1268,7 +1273,7 @@ void NmIpsSettingsHelper::noReceptionWeekdaysSelected()
 */
 void NmIpsSettingsHelper::outgoingPortChange(int index)
 {
-    int previousindex = getCorrectOutgoingPortRadioButtonIndex();
+    int previousindex = getCorrectOutgoingPortComboBoxIndex();
 
     if (index == IpsServices::NmIpsSettingsDefault) {
         if (index != previousindex) {
@@ -1313,7 +1318,7 @@ void NmIpsSettingsHelper::showOutgoingPortInputDialog()
 */
 void NmIpsSettingsHelper::handleUserDefinedOutgoingPortInput(HbAction *action)
 {
-    int previousindex = getCorrectOutgoingPortRadioButtonIndex();
+    int previousindex = getCorrectOutgoingPortComboBoxIndex();
 
     if (action == mOutgoingPortInputDialog->actions().at(0)) {
         QVariant newPort = mOutgoingPortInputDialog->value();
@@ -1323,7 +1328,7 @@ void NmIpsSettingsHelper::handleUserDefinedOutgoingPortInput(HbAction *action)
     } else {
         //set selected value back if user canceled.
         HbDataFormModelItem *item = mContentItems.value(IpsServices::OutgoingPort);
-        item->setContentWidgetData("selected", previousindex);
+        item->setContentWidgetData("currentIndex", previousindex);
     }
 }
 
@@ -1345,10 +1350,10 @@ void NmIpsSettingsHelper::handleConnectionSelected(uint status)
 }
 
 /*!
-    Used for getting the index to display in the outgoing port radio button list.
+    Used for getting the index to display in the outgoing port combo box list.
     \return index Used to set the selected value.
 */
-int NmIpsSettingsHelper::getCorrectOutgoingPortRadioButtonIndex()
+int NmIpsSettingsHelper::getCorrectOutgoingPortComboBoxIndex()
 {
     QVariant outgoingPort;
     mSettingsManager.readSetting(IpsServices::OutgoingPort, outgoingPort);
@@ -1364,10 +1369,10 @@ int NmIpsSettingsHelper::getCorrectOutgoingPortRadioButtonIndex()
 }
 
 /*!
-    Used for getting the index to display in the outgoing authentication radio button list.
+    Used for getting the index to display in the outgoing authentication combo box list.
     \return index Used to set the selected value.
 */
-int NmIpsSettingsHelper::getCorrectOutgoingAuthenticationRadioButtonIndex()
+int NmIpsSettingsHelper::getCorrectOutgoingAuthenticationComboBoxIndex()
 {
     int index(IpsServices::EMailAuthNone);
     QVariant temp;
@@ -1403,11 +1408,11 @@ int NmIpsSettingsHelper::getCorrectOutgoingAuthenticationRadioButtonIndex()
 
 /*!
     Saves the outgoing secure connection value into database if user has changed the value.
-    \param index Selected radio button index.
+    \param index Selected combo box index.
 */
 void NmIpsSettingsHelper::outgoingSecureConnectionItemChange(int index)
 {
-    int previousindex = getCorrectOutgoingSecureRadioButtonIndex();
+    int previousindex = getCorrectOutgoingSecureComboBoxIndex();
 
     if (previousindex != index) {
         emit goOffline(mSettingsManager.mailboxId());
@@ -1433,7 +1438,7 @@ void NmIpsSettingsHelper::outgoingSecureConnectionItemChange(int index)
         }
         // Update outgoing port value only if default outgoing port used
         HbDataFormModelItem *item = mContentItems.value(IpsServices::OutgoingPort);
-        QVariant data = item->contentWidgetData("selected");
+        QVariant data = item->contentWidgetData("currentIndex");
         // Default outgoing port selected
         if (data.toInt() == IpsServices::NmIpsSettingsDefault) {
 			int port = mSettingsManager.determineDefaultOutgoingPort();
@@ -1445,11 +1450,11 @@ void NmIpsSettingsHelper::outgoingSecureConnectionItemChange(int index)
 /*!
     Saves the outgoing authetication value into database if user has changed the value and
     updates dynamic group items.
-    \param index Selected radio button index.
+    \param index Selected combo box index.
 */
 void NmIpsSettingsHelper::outgoingAuthenticationChange(int index)
 {
-    int previousindex = getCorrectOutgoingAuthenticationRadioButtonIndex();
+    int previousindex = getCorrectOutgoingAuthenticationComboBoxIndex();
 
     if (previousindex != index) {
         QVariant loginName;
@@ -1524,28 +1529,15 @@ Index   Value
 
 \param index The index value of the selection.
 */
-void NmIpsSettingsHelper::refreshIndexModified(int index)
+void NmIpsSettingsHelper::refreshPeriodModified(int index)
 {
-    mCurrentRefreshIndex = index;
-}
-
-/*!
-    Handles refresh period modifications.
-    \param action Action that determines whether user clicked OK or cancel.
-*/
-void NmIpsSettingsHelper::refreshPeriodModified(HbAction *action)
-{
-    if ((action->text() == hbTrId("txt_common_button_ok")
-            && (mCurrentRefreshIndex >=0 && mCurrentRefreshIndex <=3))) {
-        int conversionTable[] = { 5, 15, 60, 240 };
-        int selectedValue(conversionTable[mCurrentRefreshIndex]);
-        QVariant previouslySelectedValue;
-        mSettingsManager.readSetting(IpsServices::ReceptionRefreshPeriodDayTime,
-            previouslySelectedValue);
-        if (selectedValue != previouslySelectedValue.toInt()) {
-            handleReceivingScheduleSettingChange(IpsServices::ReceptionRefreshPeriodDayTime,
-                selectedValue);
-        }
-    }
-    mCurrentRefreshIndex = -1;
+	int conversionTable[] = { 5, 15, 60, 240 };
+	int selectedValue(conversionTable[index]);
+	QVariant previouslySelectedValue;
+	mSettingsManager.readSetting(IpsServices::ReceptionRefreshPeriodDayTime,
+		previouslySelectedValue);
+	if (selectedValue != previouslySelectedValue.toInt()) {
+		handleReceivingScheduleSettingChange(IpsServices::ReceptionRefreshPeriodDayTime,
+			selectedValue);
+	}
 }

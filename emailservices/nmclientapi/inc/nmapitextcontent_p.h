@@ -25,8 +25,8 @@ class NmApiTextContentPrivate : public QSharedData
 {
 
 public:
-    
     NmApiTextContentPrivate();
+    NmApiTextContentPrivate(const NmApiTextContentPrivate &textcontentprivate);
     virtual ~NmApiTextContentPrivate();
 
     QString content() const;

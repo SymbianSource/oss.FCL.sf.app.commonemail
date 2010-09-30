@@ -26,6 +26,7 @@
 #include <hbframeitem.h>
 #include <hbtapgesture.h>
 #include <hbinstantfeedback.h>
+#include <hbstringutil.h>
 #include "nmicons.h"
 #include "nmhswidgettitlerow.h"
 #include "nmhswidgetconsts.h"
@@ -234,7 +235,7 @@ void NmHsWidgetTitleRow::updateData()
     //If unread count is -1, hide the unread count label completely.
     //This indicates that there are no mails at all (or the initial sync is not done)
     if (mUnreadCount >= 0) {
-        QString unreadCount(hbTrId("txt_mail_widget_list_l1").arg(mUnreadCount));
+        QString unreadCount(HbStringUtil::convertDigits(hbTrId("txt_mail_widget_list_l1").arg(mUnreadCount)));
         mUnreadCountLabel->setPlainText(unreadCount);
         QFontMetrics fm(mUnreadCountLabel->font());
         qreal textWidth = fm.width(unreadCount);

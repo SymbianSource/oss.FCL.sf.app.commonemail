@@ -1063,7 +1063,7 @@ public: // Methods
     /**
      * Returns plugin implementation uid
      */
-    inline TUid Id( ) const;
+    virtual TUid Id( ) const = 0;
 
 protected:
 
@@ -1085,7 +1085,6 @@ private: // data
      * instance identifier key for destructor
      */
     TUid        iDtor_ID_Key;
-
     };
 
 //<cmail>

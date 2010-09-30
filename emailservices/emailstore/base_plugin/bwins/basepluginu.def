@@ -107,7 +107,7 @@ EXPORTS
 	?SetEndTimeInUtcL@CBaseMrInfoObject@@UAEXVTTime@@@Z @ 106 NONAME ; void CBaseMrInfoObject::SetEndTimeInUtcL(class TTime)
 	?SetRecurrenceTypeL@CBaseMrRecurrenceRule@@UAEXW4TMRRecurrenceType@MRRecurrenceRule@@@Z @ 107 NONAME ; void CBaseMrRecurrenceRule::SetRecurrenceTypeL(enum MRRecurrenceRule::TMRRecurrenceType)
 	?TranslateEmailFwMessageL@CBasePlugin@@MAEXAAVCFSMailMessagePart@@AAVCMsgStoreMessagePart@@H@Z @ 108 NONAME ; void CBasePlugin::TranslateEmailFwMessageL(class CFSMailMessagePart &, class CMsgStoreMessagePart &, int)
-	?GetPluginId@CBasePlugin@@MAEIXZ @ 109 NONAME ; unsigned int CBasePlugin::GetPluginId(void)
+  ?GetPluginId@CBasePlugin@@MBEIXZ @ 109 NONAME ; unsigned int CBasePlugin::GetPluginId(void) const
 	?CreateForwardReplyMessageL@CBasePlugin@@IAEPAVCFSMailMessage@@ABVTFSMailMsgId@@0HABVTDesC16@@HH@Z @ 110 NONAME ; class CFSMailMessage * CBasePlugin::CreateForwardReplyMessageL(class TFSMailMsgId const &, class TFSMailMsgId const &, int, class TDesC16 const &, int, int)
 	?SetCommonNameL@CBaseMrAttendee@@UAEXABVTDesC16@@@Z @ 111 NONAME ; void CBaseMrAttendee::SetCommonNameL(class TDesC16 const &)
 	?CreateMessageToSendL@CBasePlugin@@UAEPAVCFSMailMessage@@ABVTFSMailMsgId@@@Z @ 112 NONAME ; class CFSMailMessage * CBasePlugin::CreateMessageToSendL(class TFSMailMsgId const &)
@@ -222,4 +222,5 @@ EXPORTS
 	?ExtensionL@CBaseMrInfoObject@@UAEPAXVTUid@@@Z @ 221 NONAME ; void * CBaseMrInfoObject::ExtensionL(class TUid)
 	?TranslateMsgStorePropsL@CBasePlugin@@MAEXABVTFSMailMsgId@@AAVCMsgStorePropertyContainer@@AAVCFSMailMessagePart@@W4TFSMailDetails@@@Z @ 222 NONAME ; void CBasePlugin::TranslateMsgStorePropsL(class TFSMailMsgId const &, class CMsgStorePropertyContainer &, class CFSMailMessagePart &, enum TFSMailDetails)
 	?GetMailboxDisplayNameL@CBasePlugin@@IAEXIAAVRBuf16@@@Z @ 223 NONAME ; void CBasePlugin::GetMailboxDisplayNameL(unsigned int, class RBuf16 &)
+        ?Id@CBasePlugin@@UBE?AVTUid@@XZ @ 224 NONAME ; class TUid CBasePlugin::Id(void) const
 

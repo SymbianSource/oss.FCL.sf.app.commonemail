@@ -107,14 +107,37 @@ namespace EmailClientApi
         MailAscending    
         };
 
+
+    /*!
+        List of message related operations status
+     */
+    enum NmApiOperationStatus 
+    {
+        NotStarted,
+        Pending,
+        Succeeded,
+        Failed,
+        Canceled
+    };
     
     /*!
-       Enum to describe error types
+        List of message related operations
      */
-    enum NmApiError
+    enum NmApiOperationType
     {
-        GeneralError = -1, NotSupportedError
-    };
+        CreateDraftMessage,
+        CreateForwardMessage,
+        CreateReplyMessage,
+        MoveMessages,
+        SaveMessage,
+        DeleteMessages,
+        FetchMessage,
+        SendMessage,
+        CreateAttachment,
+        RemoveAttachment,
+        FetchAttachment
+    };    
+    
     
     /*!
         Sort criteria definion Class for searching email messages
@@ -151,6 +174,5 @@ namespace EmailClientApi
 Q_DECLARE_METATYPE (EmailClientApi::NmApiMailboxEvent)
 Q_DECLARE_METATYPE(EmailClientApi::NmApiMessageEvent)
 Q_DECLARE_METATYPE (EmailClientApi::NmApiEmailFolderType)
-Q_DECLARE_METATYPE (EmailClientApi::NmApiError)
 
 #endif /* NMAPICOMMON_H_ */

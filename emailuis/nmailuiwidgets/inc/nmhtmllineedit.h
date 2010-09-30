@@ -41,10 +41,14 @@ public:
     bool hasInputFocus() const;
 
     QRectF rectForCursorPosition() const;
-
+    void setIndentForLabel(const qreal indent);
+    
 public slots:
     void setPlainText(const QString &text);
     void setHtml(const QString &text);
+
+private:
+    qreal mIndent;
 };
 
 #endif /* NMHTMLLINEEDIT_H_ */

@@ -214,7 +214,8 @@ void NmUiEngine::refreshMailboxListModel()
             QObject *plugin = (*dataPlugins)[i];
             if (plugin) {
                 connect(plugin, SIGNAL(mailboxEvent(NmMailboxEvent, const QList<NmId> &)),
-                    mMailboxListModel, SLOT(handleMailboxEvent(NmMailboxEvent, const QList<NmId> &)));
+                    mMailboxListModel, SLOT(handleMailboxEvent(NmMailboxEvent, const QList<NmId> &)), 
+                    Qt::UniqueConnection);
             }
         }
     } else {
@@ -238,6 +239,8 @@ void NmUiEngine::refreshMailboxListModel()
 NmMessageListModel &NmUiEngine::messageListModel(const NmId &mailboxId,
                                                  const NmId &folderId)
 {
+    NM_TIMESTAMP("NmUiEngine::messageListModel begins ***");
+    
     QObject *plugin = mPluginFactory->pluginInstance(mailboxId);
     bool isInbox(false);
     if (standardFolderId(mailboxId,NmFolderInbox)==folderId){
@@ -283,7 +286,10 @@ NmMessageListModel &NmUiEngine::messageListModel(const NmId &mailboxId,
     else {
         ret = mMessageListModel;
     }
-    return *ret;
+    
+    NM_TIMESTAMP("NmUiEngine::messageListModel ends ***");
+    
+    return *ret;    
 }
 
 
@@ -1128,6 +1134,18 @@ void NmUiEngine::handleMailboxEvent(NmMailboxEvent event,
             }
            break;
         }
+        case NmMailboxCreated:
+            {
+            if( mailboxIds.count() ){
+                NmDataPluginInterface *pluginInterface =
+                        mPluginFactory->interfaceInstance(mailboxIds.at(0));
+            
+                if (pluginInterface) {
+                    pluginInterface->subscribeMailboxEvents(mailboxIds.at(0));
+                    }
+                }
+            }
+            break;
         default:
         break;
     }

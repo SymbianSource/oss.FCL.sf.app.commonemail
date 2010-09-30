@@ -48,15 +48,23 @@ NmFwaMessagePartFetchingOperation::~NmFwaMessagePartFetchingOperation()
     doCancelOperation();
 }
 
-/*!
 
- */
-void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent, TInt aRequestId)
+/*!
+    Handles fetching events.
+
+    \param aEvent
+    \param aRequestId
+*/
+void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent,
+                                                         TInt aRequestId)
 {
     NM_FUNCTION;
     
     if (aRequestId == mRequestId) {
-        if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete ) {
+        if (aEvent.iError == KErrDiskFull) {
+            completeOperation(NmDiskFullError);
+        }
+        else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestComplete) {
             completeOperation(aEvent.iError);
         }
         else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_RequestCancelled) {
@@ -64,12 +72,14 @@ void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent, TIn
         }
         else if (aEvent.iProgressStatus == TFSProgress::EFSStatus_Status) {
             int progress = 0;
+            
             if (aEvent.iMaxCount > 0) {
                 // calculate progress per cents
                 qreal counterValue = aEvent.iCounter;
                 qreal maxCount = aEvent.iMaxCount;
                 progress = (counterValue / maxCount)*100;
             }
+            
             if (progress > mLastProgressValue) {
                 // send only increasing values to prevent downward changing percentage
                 mLastProgressValue = progress;
@@ -78,6 +88,7 @@ void NmFwaMessagePartFetchingOperation::RequestResponseL(TFSProgress aEvent, TIn
         }
     }
 }
+
 
 /*!
 

@@ -402,7 +402,8 @@ EXPORT_C void RDebugLog::WriteFormat( const TDesC8& aFuncName8,
                                       TRefByValue< const TDesC16 > aFmt, 
                                       ... ) const
     {
-	VA_LIST list; // coverity[UNINIT]
+    // coverity[UNINIT]
+	VA_LIST list; 
 	VA_START(list,aFmt);
 
 	RDebugLog* self = const_cast<RDebugLog*>(this);
@@ -445,7 +446,8 @@ EXPORT_C void RDebugLog::WriteFormat( const TDesC8& aFuncName8,
                                       TRefByValue< const TDesC8 > aFmt, 
                                       ... ) const
     {
-	VA_LIST list; // coverity[UNINIT]
+    // coverity[UNINIT]
+	VA_LIST list; 
 	VA_START(list,aFmt);
 
 	RDebugLog* self = const_cast<RDebugLog*>(this);

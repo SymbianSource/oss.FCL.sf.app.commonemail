@@ -44,11 +44,6 @@ public:
 
 public slots:
 
-    /*!
-        Depricated!
-    */
-    void viewMessage(QVariant mailboxId, QVariant folderId, QVariant messageId);
-
     void viewMessage(QVariant idList, QVariant flags);
 
 

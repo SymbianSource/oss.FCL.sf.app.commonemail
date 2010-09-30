@@ -25,6 +25,8 @@
 #include <QGraphicsItem>
 #include <QGraphicsSceneMouseEvent>
 #include <QGraphicsGridLayout>
+#include <QTextBlock>
+#include <QGraphicsLinearLayout>
 
 // Symbian & qt extensions
 #ifdef Q_OS_SYMBIAN
@@ -41,6 +43,7 @@
 #include <HbInstantFeedback>
 #include <HbFrameItem>
 #include <HbEffect>
+#include <HbFrameBackground>
 #include <hbmessagebox.h>
 #include <hbscrollarea.h>
 #include <hbstyleloader.h>
@@ -49,19 +52,31 @@
 #include <hbdocumentloader.h>
 #include <hbinstance.h>
 #include <hbcolorscheme.h>
+#include <hbpangesture.h>
 #include <hbtapgesture.h>
 #include <hbevent.h>
+#include <hbinputvkbhost.h>
 #include <hbinputmethod.h>
+#include <hbstyle.h>
+#include <hbevent.h>
+#include <hblabel.h>
+#include <hbrichtextitem.h>
 
 // nmail
 #include <nmaddress.h>
 #include <nmcommon.h>
+
+// nmutilities
+#include <nmcontacthistorymodel.h>
+#include <nmcontacthistorymodelcommon.h>
 
 // nmailuiwidgets
 #include "nmrecipientlineedit.h"
 #include "nmhtmllineedit.h"
 #include "nmeditortextedit.h"
 #include "nmbaseviewscrollarea.h"
+#include "nmautofilllistview.h"
+#include "nmautofilllistviewitem.h"
 #include "nmattachmentlistitem.h"
 #include "nmattachmentlistwidget.h"
 

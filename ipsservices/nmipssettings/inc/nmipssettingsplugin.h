@@ -59,15 +59,8 @@ public slots:
 private slots:
 
     void createUserDefinedMode();
-    void showMailInInboxModified(HbAction*);
-    void incomingSecureConnectionModified(HbAction*);
-    void incomingPortModified(HbAction*);
-    void outgoingSecureConnectionModified(HbAction*);
-    void outgoingPortModified(HbAction*);
-    void outgoingAuthenticationModified(HbAction*);
-    void folderPathModified(HbAction*);
-    void popupRadioButtonIndexModified(int index);
-
+    void showMailInInboxModified(int index);
+    
 private:
 
     void initGroupItems();
@@ -86,7 +79,6 @@ private: // data.
     HbDataFormModel *mModel; // Not owned.
     HbDataForm *mForm; // Not owned.
     bool mHiddenItem;
-    int mSelectedPopupRadioButtonIndex;
 };
 
 #endif // NMIPSSETTINGS_H

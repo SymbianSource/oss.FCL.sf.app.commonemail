@@ -23,8 +23,10 @@
 class NmMessage;
 class NmMessageEnvelope;
 class NmAddress;
+class NmMessagePart;
 class XQSharableFile;
 class HbMessageBox;
+class QStringList;
 
 /*!
 	UI utilities class
@@ -45,7 +47,11 @@ public:
     static QString addressToDisplayName( const NmAddress &address );
     static bool parseEmailAddress( const QString &emailAddress, NmAddress &address );
     static QString cleanupDisplayName( const QString &displayName );     
-    static int openFile(XQSharableFile &file); 
+    static int openFile(XQSharableFile &file, QObject* listener = 0); 
+    static int openAttachment(NmMessagePart *part,
+                              QList<QString> &tmpFiles,
+                              QObject* listener = 0);
+    static void deleteTempFiles(QList<QString> &tmpFiles);
     static QString truncate( const QString &string, int length );
     static QString attachmentSizeString(const int sizeInBytes);
     static void displayErrorNote(QString noteText); 
@@ -58,6 +64,7 @@ public:
                                             const char *member = 0);
     static QString createReplyHeader(const NmMessageEnvelope &env);
     static NmAddress *qstringToNmAddress(QString str);
+    static QList<NmAddress*> *qstringListToNmAddressList(const QStringList &strlist);
 };
 
 #endif /* NMUTILITIES_H_ */

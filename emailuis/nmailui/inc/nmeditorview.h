@@ -135,7 +135,6 @@ private: // Data
     NmEditorHeader *mHeaderWidget;      // Not owned
     NmMessage *mMessage;                // Owned
     NmEditorContent *mContent;          // Not owned
-    HbMenu *mPrioritySubMenu;           // Owned
     HbMenu *mAttachmentListContextMenu; // Owned
     NmId mSelectedAttachment;
     HbVkbHost *mVkbHost;                // Not owned
@@ -149,6 +148,7 @@ private: // Data
     QPointer<HbProgressDialog> mServiceSendingDialog; // Owned.
     HbListWidget *mTBExtnContentWidget;		// Owned
     QString mHiddenPriorityName;
+    QList<QString> mTempFiles;
 };
 
 

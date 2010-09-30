@@ -317,4 +317,5 @@ EXPORTS
 	?handleFolderCreatedEvent@NmUiEngine@@AAEXABV?$QList@VNmId@@@@ABVNmId@@@Z @ 316 NONAME ; void NmUiEngine::handleFolderCreatedEvent(class QList<class NmId> const &, class NmId const &)
 	?handleFolderDeletedEvent@NmMessageListModel@@QAEXABVNmId@@0@Z @ 317 NONAME ; void NmMessageListModel::handleFolderDeletedEvent(class NmId const &, class NmId const &)
 	?handleFolderDeletedEvent@NmUiEngine@@AAEXABV?$QList@VNmId@@@@ABVNmId@@@Z @ 318 NONAME ; void NmUiEngine::handleFolderDeletedEvent(class QList<class NmId> const &, class NmId const &)
+	?createMessageListModel@NmUiEngine@@AAEXPAPAVNmMessageListModel@@ABVNmId@@1@Z @ 319 NONAME ; void NmUiEngine::createMessageListModel(class NmMessageListModel * *, class NmId const &, class NmId const &)
 

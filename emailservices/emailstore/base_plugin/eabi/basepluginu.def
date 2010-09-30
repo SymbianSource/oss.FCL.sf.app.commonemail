@@ -13,7 +13,7 @@ EXPORTS
 	_ZN11CBasePlugin10ResetCacheEv @ 12 NONAME
 	_ZN11CBasePlugin11CancelSyncLERK12TFSMailMsgId @ 13 NONAME
 	_ZN11CBasePlugin11ChildPartsLERK12TFSMailMsgIdS2_S2_S2_R13RPointerArrayI18CFSMailMessagePartE @ 14 NONAME
-	_ZN11CBasePlugin11GetPluginIdEv @ 15 NONAME
+	_ZNK11CBasePlugin11GetPluginIdEv @ 15 NONAME
 	_ZN11CBasePlugin11RefreshNowLERK12TFSMailMsgIdR22MFSMailRequestObserverii @ 16 NONAME
 	_ZN11CBasePlugin11SetContentLERK7TDesC16RK12TFSMailMsgIdS5_S5_S5_ @ 17 NONAME
 	_ZN11CBasePlugin12AddObserverLER20MFSMailEventObserver @ 18 NONAME
@@ -309,4 +309,5 @@ EXPORTS
 	_ZThn4_NK21CBaseMrRecurrenceRule19RecurrenceStartTimeEv @ 308 NONAME
 	_ZThn4_NK21CBaseMrRecurrenceRule20RecurrentDaysofMonthEv @ 309 NONAME
 	_ZThn4_NK21CBaseMrRecurrenceRule4TypeEv @ 310 NONAME
+        _ZNK11CBasePlugin2IdEv @ 311 NONAME
 

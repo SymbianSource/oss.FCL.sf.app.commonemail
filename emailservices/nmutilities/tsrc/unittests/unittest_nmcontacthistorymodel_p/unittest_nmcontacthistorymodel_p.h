@@ -61,16 +61,17 @@ private slots:
     void test_populateListWithMruItems();
 
     void test_rowCount();
-    void test_data();
+    void test_privateDataCount();
+    void test_dataFunc();
 
-    void refreshDataModel();
-    void fillMruMatchList();
-    void obeyContactOrder();
+    void test_refreshDataModel();
+    void test_fillMruMatchList();
+    void test_obeyContactOrder();
 
     void test_queryDatabases();
 
     void test_queryCompleted();
-    void handleQueryCompleted(int err);
+    void test_handleQueryCompleted(int err);
 
 private:
 

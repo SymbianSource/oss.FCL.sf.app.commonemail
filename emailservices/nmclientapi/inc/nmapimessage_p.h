@@ -26,6 +26,7 @@ class NmApiMessagePrivate : public QSharedData
 
 public:
     NmApiMessagePrivate();
+    NmApiMessagePrivate(const NmApiMessagePrivate &other);
     virtual ~NmApiMessagePrivate();
 
     NmApiTextContent plainTextContent();

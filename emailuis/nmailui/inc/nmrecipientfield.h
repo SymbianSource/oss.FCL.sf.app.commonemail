@@ -26,6 +26,7 @@ class NmRecipientLineEdit;
 class HbPushButton;
 class HbIconItem;
 class HbDocumentLoader;
+class XQAiwRequest;
 
 class NmRecipientField : public QObject
 {
@@ -45,11 +46,13 @@ signals:
 
 public:
     NmRecipientLineEdit *editor() const;
+    HbLabel *label() const;
     const QString text() const;
 
 public slots:
     void setText(const QString &text);
     void launchContactsPicker();
+    void requestCompleted();
 
 private:
     HbDocumentLoader &mDocumentLoader;
@@ -58,6 +61,7 @@ private:
     HbLabel *mLabel; // Not owned
     NmRecipientLineEdit *mRecipientsEditor; // Not owned
     HbPushButton *mLaunchContactsPickerButton; // Not owned
+    XQAiwRequest *mAiwRequest;
 };
 
 #endif   // NMRECIPIENTFIELD_H_

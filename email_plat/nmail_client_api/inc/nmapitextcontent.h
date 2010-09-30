@@ -19,7 +19,7 @@
 #define NMAPITEXTCONTENT_H_
 
 #include <QString>
-
+#include <QSharedDataPointer>
 #include <nmapimessagecontent.h>
 #include <nmapidef.h>
 
@@ -31,14 +31,17 @@ class NMAPI_EXPORT NmApiTextContent : public NmApiMessageContent
 {
 public:
     NmApiTextContent();
+    NmApiTextContent(const NmApiTextContent &textcontent);    
     virtual ~NmApiTextContent();
+
+    NmApiTextContent& operator=(const NmApiTextContent &textcontent);    
 
     QString content() const;
     void setContent(const QString &content);
 
 private:
     
-    NmApiTextContentPrivate *d;
+    QSharedDataPointer<NmApiTextContentPrivate> d;
 };
 }
 

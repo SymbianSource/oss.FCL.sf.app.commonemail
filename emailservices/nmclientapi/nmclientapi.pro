@@ -23,14 +23,13 @@ QT += core
 # BUILD_DLL
 DEFINES += BUILD_EMAIL_API_DLL
 
-
 INCLUDEPATH +=  inc \
-                ../../email_plat/nmail_client_api \
-                ../../email_plat/nmail_settings_api \
+                ../../email_plat/nmail_client_api/inc \
+                ../../email_plat/nmail_settings_api/inc \
                 ../../inc
-                
-DEPENDPATH +=  ../../email_plat/nmail_client_api \
-                ../../email_plat/nmail_settings_api \
+
+DEPENDPATH +=   ../../email_plat/nmail_client_api/inc \
+                ../../email_plat/nmail_settings_api/inc \
                 $$APP_LAYER_SYSTEMINCLUDE 
 
 MOC_DIR = tmp
@@ -52,6 +51,7 @@ HEADERS += nmapicommon.h \
            nmapimessagemanager.h \
            nmapisettingsmanager.h \
            nmapimailboxsettings.h \
+           nmapioperation.h \
            nmapimessagesearch.h \
            nmapimessage.h \
            nmapimessagecontent.h \
@@ -73,7 +73,7 @@ HEADERS += inc/nmapidatapluginfactory.h \
            inc/nmapimessagebody_p.h \
            inc/nmapimessageenvelope_p.h \
            inc/nmapimessagemanager_p.h \
-	       inc/nmapisettingsmanager_p.h \
+           inc/nmapisettingsmanager_p.h \
            inc/nmapipopimapsettingsmanager.h \
            inc/nmapiprivateclasses.h \
            inc/nmapitypesconverter.h \
@@ -82,7 +82,10 @@ HEADERS += inc/nmapidatapluginfactory.h \
            inc/nmapimessage_p.h \
            inc/nmapimessagecontent_p.h \
            inc/nmapitextcontent_p.h \
-           inc/nmapiattachment_p.h
+           inc/nmapiattachment_p.h \
+           inc/nmapioperationcreatedraftmessage.h \
+           inc/nmapioperationsendmessage.h
+	   
 SOURCES += src/nmapidatapluginfactory.cpp \
            src/nmapiemailaddress.cpp \
            src/nmapiemailservice.cpp \
@@ -110,6 +113,7 @@ SOURCES += src/nmapidatapluginfactory.cpp \
            src/nmapisettingsmanager_p.cpp \
            src/nmapisettingsmanager.cpp \
            src/nmapitypesconverter.cpp \
+           src/nmapioperation.cpp \
            src/nmapimessagesearch.cpp \
            src/nmapimessagesearch_p.cpp \
            src/nmapimessage.cpp \
@@ -119,7 +123,9 @@ SOURCES += src/nmapidatapluginfactory.cpp \
            src/nmapitextcontent.cpp \
            src/nmapitextcontent_p.cpp \
            src/nmapiattachment.cpp \
-           src/nmapiattachment_p.cpp
+           src/nmapiattachment_p.cpp \
+           src/nmapioperationcreatedraftmessage.cpp \
+           src/nmapioperationsendmessage.cpp
 
 
 
@@ -132,7 +138,7 @@ symbian*: {
 
     TARGET.UID2 = 0x1000008D
     TARGET.UID3 = 0x2002C366
-    
+
     INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
 
     MMP_RULES += "SYSTEMINCLUDE /epoc32/include/ecom" 
@@ -156,10 +162,9 @@ symbian*: {
 
     MMP_RULES += defBlock
     MMP_RULES += SMPSAFE
-    
+
      BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
-    "rom/nmailclientapi.iby CORE_APP_LAYER_IBY_EXPORT_PATH(nmailclientapi.iby)"    
-    
+    "rom/nmailclientapi.iby CORE_APP_LAYER_IBY_EXPORT_PATH(nmailclientapi.iby)"
 
 }
 

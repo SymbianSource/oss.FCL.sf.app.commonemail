@@ -556,7 +556,8 @@ void CIpsPlgSosBasePlugin::CopyMessagesL(
 // ---------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::GoOnlineL( const TFSMailMsgId& aMailBoxId )
     {
-    if ( !ConnOpRunning( aMailBoxId) )
+    if ( iSyncStateHandler->GetCurrentSyncState(
+            aMailBoxId) == Idle)
         {
         // append mailbox id go online mailbox array
         RefreshNowL( aMailBoxId, *this, 0 );
@@ -2497,5 +2498,12 @@ void CIpsPlgSosBasePlugin::HandleActiveFolderChangeL(
                 }
             }
         }
+    }
+// <qmail>
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+TUid CIpsPlgSosBasePlugin::Id( ) const
+    {
+    return TUid::Uid( PluginId() );
     }
 // </qmail>

@@ -175,7 +175,8 @@ symbian*: {
     -lflogger \
     -lfeatmgr \
     -lmessagestoreclient \
-    -lxqsettingsmanager
+    -lxqsettingsmanager \
+    -lAlwaysOnlineManagerClient
 
     BLD_INF_RULES.prj_exports += \
       "inc/ipsplgsmtpoperation.h |../inc/ipsplgsmtpoperation.h" \

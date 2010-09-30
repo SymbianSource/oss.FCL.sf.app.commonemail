@@ -17,7 +17,9 @@ DEFINES += BUILD_NMAILUIWIDGETS_DLL
 INCLUDEPATH += ./inc \
   ../../inc
 
-HEADERS += inc/nmailuiwidgetsheaders.h \
+HEADERS += inc/nmautofilllistview.h \
+           inc/nmautofilllistviewitem.h \
+           inc/nmailuiwidgetsheaders.h \
            inc/nmailuiwidgetsdef.h \
            inc/nmbaseviewscrollarea.h \
            inc/nmrecipientlineedit.h \
@@ -26,7 +28,9 @@ HEADERS += inc/nmailuiwidgetsheaders.h \
            inc/nmattachmentlistwidget.h \
            inc/nmattachmentlistitem.h
 
-SOURCES += src/nmbaseviewscrollarea.cpp \
+SOURCES += src/nmautofilllistview.cpp \
+           src/nmautofilllistviewitem.cpp \
+           src/nmbaseviewscrollarea.cpp \
            src/nmrecipientlineedit.cpp \
            src/nmhtmllineedit.cpp \
            src/nmeditortextedit.cpp \
@@ -43,7 +47,8 @@ symbian*: {
     LIBS += -lnmailbase \
             -lxqservice \
             -lxqserviceutil \
-            -lqtcontacts
+            -lqtcontacts \
+            -lnmutilities
 
     defBlock = \      
       "$${LITERAL_HASH}if defined(MARM)" \

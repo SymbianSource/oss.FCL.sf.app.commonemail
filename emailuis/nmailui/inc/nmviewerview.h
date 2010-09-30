@@ -19,6 +19,7 @@
 #define NMVIEWERVIEW_H_
 
 #include <QPointer>
+#include <XQSharableFile.h>
 
 #include "nmbaseview.h"
 #include "nmactionobserver.h"
@@ -77,6 +78,9 @@ public slots:
     void fetchMessage();
     void openAttachment(int index);
 	void createOptionsMenu();
+	void fileOpenCompleted(const QVariant&);
+	void fileOpenError(int, const QString&);
+	
 
 private slots:
     void setMessageData();
@@ -139,6 +143,9 @@ private:
     bool mViewReady;
     bool mWaitNoteCancelled;
     HbMessageBox *mErrorNote;                       // Owned
+    QList<QString> mTempFiles;
+    bool mAttachmentOpen;
+    XQSharableFile mOpenedAttachment;
 };
 
 #endif /* NMVIEWERVIEW_H_ */

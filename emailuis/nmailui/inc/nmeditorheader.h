@@ -61,6 +61,7 @@ public:
 private:
     void loadWidgets();
     void createConnections();
+    void adjustIndentForEditFields();
 
 signals:
     void headerHeightChanged(int);
@@ -74,6 +75,7 @@ public slots:
     void editorContentChanged();
     void attachmentActivated(int arrayIndex);
     void attachmentLongPressed(int arrayIndex, QPointF point);
+    void toFieldLayoutReady();
 
 private:
     NmApplication &mApplication;
@@ -98,6 +100,7 @@ private:
     HbWidget *mBccWidget;          // Not owned
     HbWidget *mSubjectWidget;      // Not owned
     QGraphicsLinearLayout *mSubjectLayout; // Not owned
+    HbLabel *mSubjectLabel;        // Not owned
     bool mCcBccFieldVisible;
 };
 

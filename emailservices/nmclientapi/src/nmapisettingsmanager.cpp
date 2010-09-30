@@ -14,22 +14,22 @@
  * Description:
  *
  */
-#include <nmapisettingsmanager.h>
-#include "nmapisettingsmanager_p.h"
-#include "nmapiheaders.h"
+#include <nmapiheaders.h>
 
 namespace EmailClientApi
 {
 
 NmApiSettingsManager::NmApiSettingsManager(const quint64 mailboxId)
 {    
-    d = new NmApiSettingsManagerPrivate(mailboxId);
+    Q_UNUSED(mailboxId);
+    d = new NmApiSettingsManagerPrivate();
 }
 
 NmApiSettingsManager::~NmApiSettingsManager()
 {    
     delete d;
 }
+
 /*!     
  Loads email settings.
  \param mailboxId which settings are returned
@@ -48,7 +48,7 @@ bool NmApiSettingsManager::load(quint64 mailboxId, NmApiMailboxSettingsData &dat
  */
 bool NmApiSettingsManager::save(const NmApiMailboxSettingsData &data)
 {
-    return d->save(data);
+    return d->save(data.mailboxId(), data);
 }
 
 } // end namespace

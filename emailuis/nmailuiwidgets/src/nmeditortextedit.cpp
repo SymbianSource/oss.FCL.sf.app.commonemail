@@ -175,12 +175,38 @@ bool NmEditorTextEdit::hasInputFocus() const
 }
 
 /*!
- *  Returns the rectangle for the cursor.
+ *  Returns the rectangle for the cursor including the predictive text area.
+ *  HbAbstractEditPrivate::ensurePositionVisible() uses the same algorithm.
  */
 QRectF NmEditorTextEdit::rectForCursorPosition() const
 {
     NM_FUNCTION;
     
-    return HbTextEdit::rectForPosition(cursorPosition());
+    int cursorPos = cursorPosition();
+    QRectF rect = rectForPosition(cursorPos);
+    QTextDocument *doc = document();
+    if (doc) {
+        rect.adjust(0, -doc->documentMargin(), 0, doc->documentMargin());
+        const QTextBlock block = doc->findBlock(cursorPos);
+        QTextLayout *blockLayout = block.layout();
+        if (block.isValid() && blockLayout) {
+            if (blockLayout->preeditAreaText().length()) {
+                // Adjust cursor rect so that predictive text will be also visible
+                rect.adjust(0, 0, boundingRect().width() / 2, 0);
+            }
+        }
+    }
+
+    return rect;
+}
+
+/*!
+ *  Sets the visible cursor position
+ */
+
+void NmEditorTextEdit::moveCursor(QTextCursor::MoveOperation op, QTextCursor::MoveMode mode)
+{
+    NM_FUNCTION;
+    HbAbstractEdit::moveCursor(op, mode);
 }
 

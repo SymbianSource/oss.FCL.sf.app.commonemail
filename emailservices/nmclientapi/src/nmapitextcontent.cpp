@@ -30,11 +30,30 @@ NmApiTextContent::NmApiTextContent()
 }
 
 /*!
+    Class copy constructor.
+*/
+NmApiTextContent::NmApiTextContent(const NmApiTextContent &textcontent)
+{
+    NM_FUNCTION;
+    d = textcontent.d;
+}
+
+/*!
     Class destructor.
 */
 NmApiTextContent::~NmApiTextContent()
 {
     NM_FUNCTION;
+}
+
+NmApiTextContent& NmApiTextContent::operator=(const NmApiTextContent &textcontent)
+{
+    if (this == &textcontent)
+        return *this;
+    
+    d = textcontent.d;
+
+    return *this;
 }
 
 /*!

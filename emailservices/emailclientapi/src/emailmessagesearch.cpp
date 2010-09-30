@@ -91,7 +91,7 @@ void CEmailMessageSearchAsync::Release()
     {
     if (KErrNone != iGate.Wait(1))
         {
-        this->Cancel();
+        this->CancelSearch();
         }
     delete this;
     }
@@ -256,21 +256,12 @@ void CEmailMessageSearchAsync::StartSearchL( MEmailSearchObserver& aObserver )
 void CEmailMessageSearchAsync::Cancel()
     {
     if (KErrNone != iGate.Wait(1))
-        {
-        
-        /**
-         * Cancels current search. Does nothing if there is not any search.
-         * The search client will not be called back after this function is called.
-         *
-         */
-        const TFSMailMsgId fsMailboxId( iPluginData.Uid(), iMailboxId.iId );
-        iPlugin->CancelSearch( fsMailboxId );
+        {        
+        CancelSearch();
         }
-    else
-        {
-        // Release gate
-        iGate.Signal();
-        }
+    
+    // Release gate
+    iGate.Signal();    
     }
 
 // -----------------------------------------------------------------------------
@@ -295,7 +286,9 @@ TInt CEmailMessageSearchAsync::Status() const
         // Release gate
         iGate.Signal();       
         }
-
+    //if we really locked iGate here, we release it in else 
+    //brach. If it was already locked, we must not release it here!
+    // coverity[missing_unlock]
     return ret; 
     }
 
@@ -306,7 +299,7 @@ void CEmailMessageSearchAsync::Reset()
     {
     if ( KErrNone != iGate.Wait( 1 ) )
         {
-        this->Cancel();
+        this->CancelSearch();
         }
     
     iCriteria = TFSMailSortCriteria();
@@ -360,4 +353,17 @@ void CEmailMessageSearchAsync::IsSearchGoingOnL() const
         }
     }
 
+// -----------------------------------------------------------------------------
+// Cancels search
+// -----------------------------------------------------------------------------
+void CEmailMessageSearchAsync::CancelSearch()
+    {
+    /**
+     * Cancels current search. Does nothing if there is not any search.
+     * The search client will not be called back after this function is called.
+     *
+     */
+    const TFSMailMsgId fsMailboxId( iPluginData.Uid(), iMailboxId.iId );
+    iPlugin->CancelSearch( fsMailboxId );
+    }
 // End of file

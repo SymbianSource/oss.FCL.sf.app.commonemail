@@ -21,145 +21,109 @@
 namespace EmailClientApi
 {
 
+/*!
+    Class constructor.
+*/
 NmApiMessageManagerPrivate::NmApiMessageManagerPrivate(QObject *parent,quint64 mailboxId)
 : QObject(parent),
-  mState(NmApiMessageManagerPrivate::EIdle), mMailboxId(mailboxId)
+  mMailBoxId(0),
+  mMailBox(NULL),
+  mMailPlugin(NULL),
+  mEngine(NULL)
 {
-    NM_FUNCTION;	
-	
-    mFactory = NmApiDataPluginFactory::instance();
-    mPlugin = mFactory->plugin();    
-    if(mPlugin) {
-        connect(mPlugin,
-                SIGNAL(messageEvent(NmMessageEvent,
-                                    const NmId&,
-                                    const QList<NmId>&,
-                                    const NmId&)),
-                this,
-                SLOT(messageEventHandler(NmMessageEvent,
-                                    const NmId&,
-                                    const QList<NmId>&,
-                                    const NmId&)));
-    }				
-    NmDataPluginInterface *interface = mFactory->interfaceInstance();
-    interface->subscribeMailboxEvents(mailboxId);
-	
+    NM_FUNCTION;
+    NmId mailBoxId(mailboxId);
+    mMailBoxId = TFSMailMsgId(mailBoxId);
+    mEngine = NmApiEngine::instance();
+    initialise();
 }
 
+/*!
+    Class destructor.
+*/
 NmApiMessageManagerPrivate::~NmApiMessageManagerPrivate()
 {
     NM_FUNCTION;
-    NmDataPluginInterface *interface = mFactory->interfaceInstance();
-    interface->unsubscribeMailboxEvents(mMailboxId);
-    NmApiDataPluginFactory::releaseInstance(mFactory);
-}
     
-/*!
- \fn moveMessages 
- \param messageIds Id list of source messages.
- \param sourceFolderId Id of the source folder.
- \param targetFolderId Id of the target folder.
- \return true if operation was successfully started.
- 
- Starts async move operation for given messages.  
- Completion signalled with messagesMoved(int result).
- */
-bool NmApiMessageManagerPrivate::moveMessages(const QList<quint64> messageIds,
-											quint64 sourceFolder,
-											quint64 targetFolder)
-{
-    NM_FUNCTION;
-    Q_UNUSED(messageIds);
-    Q_UNUSED(sourceFolder);
-    Q_UNUSED(targetFolder);
-    return false;
-}
-    
-/*!
- \fn copyMessages 
- \param messageIds Id list of source messages.
- \param sourceFolder Id of the source folder.
- \param targetFolder Id of the target folder.
- \return true if operation was successfully started.
- 
- Starts async copy operation for given messages.  
- Completion signalled with messagesCopied(int result).
- */
-bool NmApiMessageManagerPrivate::copyMessages(const QList<quint64> messageIds,
-                                            const quint64 sourceFolder,
-											const quint64 targetFolder)
-{
-    NM_FUNCTION;
-    bool ret = false;
-    NmId targetFolderNmId(targetFolder);
-	NmId sourceFolderNmId(sourceFolder);
-	mTarget = targetFolderNmId;
-	mMessages = messageIds;
-	
-	NmDataPluginInterface *interface = mFactory->interfaceInstance();
-	
-    if (interface) {
-        mState = NmApiMessageManagerPrivate::ECopyPending;
-        if (interface->copyMessages(mMailboxId,
-                                  messageIds,
-                                  sourceFolderNmId,
-                                  targetFolderNmId)==0) {			
-            ret = true;
-        }        
+    if (mMailBox){
+        delete mMailBox;
+        mMailBox = NULL;
     }
-	mState = NmApiMessageManagerPrivate::EIdle;
-	return ret;
+    
+    NmApiEngine::releaseInstance(mEngine);
 }
-  
+
 /*!
- \fn messageEventHandler 
- \param event Event type.
- \param folder Folder id.
- \param messages Id list of messages involved.
- \param mailBox Id of mailbox.
-  
- Handler for plugin originated messageEvent.
+ \fn createDraftMessage 
+ \param initData Initializing data. Can contain NULL value.
+ \return Create draft message operation.
+ 
+ Returns create draft message operation.
  */
-void NmApiMessageManagerPrivate::messageEventHandler(NmMessageEvent event,
-												const NmId &folder,
-												const QList<NmId> &messages,
-												const NmId &mailBox)
-{	
-	if(mMailboxId == mailBox &&
-	   mTarget == folder) {	
-        switch(event)
-        {
-            case NmMessageCreated: {
-                if (mState==NmApiMessageManagerPrivate::ECopyPending) {
-                    if(messages.count()==mMessages.count()) {
-                        emit messagesCopied(0);
-                    }
-                    else {
-                        emit messagesCopied(-1);
-                    }
-                }
-                break;			
-            }
-            
-            case NmMessageChanged: {
-                break;		
-            }
-            
-            case NmMessageDeleted: {            
-                break;
-            }
-                
-            case NmMessageFound: {
-                break;
-            }
-            
-            default: {
-                break;
+QPointer<NmApiOperation> NmApiMessageManagerPrivate::createDraftMessage(const QVariant *initData)
+{
+    NM_FUNCTION;
+    if (mMailBox){
+        QPointer<NmApiOperation> operation = new NmApiOperationCreateDraftMessage(initData, *mMailBox, this);
+        return operation;
+    }
+    return NULL;
+}
+
+/*!
+ \fn sendMessage 
+ \param message message to be sent.
+ \return Send message operation.
+ 
+ Returns Send message operation.
+ */
+QPointer<NmApiOperation> NmApiMessageManagerPrivate::sendMessage(const NmApiMessage &message)
+{
+    NM_FUNCTION;
+    if (mMailBox){
+        QPointer<NmApiOperation> operation = new NmApiOperationSendMessage(message, *mMailBox, this);
+        return operation;
+    }
+    return NULL;
+}
+
+/*!
+ \fn saveMessage 
+ \param message Message to be saved.
+ \return Save message operation.
+ 
+ Saves email message. Returns save message operation. 
+ */
+QPointer<NmApiOperation> NmApiMessageManagerPrivate::saveMessage(const NmApiMessage &message)
+{
+    return NULL;
+}
+
+/*!
+ \fn initialise
+ 
+ Initializes mailbox and mailplugin.
+ */
+void NmApiMessageManagerPrivate::initialise()
+{
+    NM_FUNCTION;
+    RPointerArray<CFSMailPlugin> mailPlugins;
+    if (mEngine) {
+        mEngine->listMailPlugins(mailPlugins);
+    
+        for (int i = 0; i < mailPlugins.Count() && !mMailPlugin; i++){
+            if (mailPlugins[i]->Id() == mMailBoxId.PluginId()) {
+                mMailPlugin = mailPlugins[i];
             }
         }
-        mState = NmApiMessageManagerPrivate::EIdle;
-	}
+        
+        if (mMailPlugin) {
+            TRAPD(err, mMailBox = mMailPlugin->GetMailBoxByUidL(mMailBoxId));
+            Q_UNUSED(err);
+        }
+    }
 }
+
 } //namespace
 
 

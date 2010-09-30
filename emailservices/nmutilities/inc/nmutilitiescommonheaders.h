@@ -11,18 +11,28 @@
  *
  * Contributors:
  *
- * Description:  common header for emailmailboxinfo_p 
+ * Description:  common header for nmutilities 
  *
  */
 
-#ifndef NMBRANDINGAPICOMMONHEADERS_H_
-#define NMBRANDINGAPICOMMONHEADERS_H_
+#ifndef NMUTILITIESCOMMONHEADERS_H_
+#define NMUTILITIESCOMMONHEADERS_H_
 
 #include <QResource>
-#include <XQSettingsManager>
-#include <tzlocalizer.h>
-#include <qsysteminfo.h>
-#include <xqcentralrepositoryutils.h>
-#include <xqcentralrepositorysearchcriteria.h>
+#include <QRegExp>
+#include <QStringList>
+#include <QSystemInfo>
 
-#endif /* NMBRANDINGAPICOMMONHEADERS_H_ */
+#include <XQSettingsManager>
+#include <XQCentralRepositoryUtils>
+#include <XQCentralRepositorySearchCriteria>
+
+#include <tzlocalizer.h>
+
+#include <emailtrace.h>
+#include <nmcommon.h>
+
+#include "emailmailboxinfo.h"
+#include "emailmailboxinfo_p.h"
+
+#endif /* NMUTILITIESCOMMONHEADERS_H_ */

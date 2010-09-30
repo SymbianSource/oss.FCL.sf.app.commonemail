@@ -43,6 +43,7 @@
 static const QString NmIpsSettingsComboItems("comboItems");
 static const QString NmIpsSettingsLabelTexts("labelTexts");
 static const QString NmIpsSettingsItems("items");
+static const QString NmIpsSettingsCurrentIndex("currentIndex");
 static const int NmIpsSettingsReceptionUserDefinedProfileEnabled(1);
 
 /*!
@@ -60,8 +61,7 @@ static const int NmIpsSettingsReceptionUserDefinedProfileEnabled(1);
 NmIpsSettingsPlugin::NmIpsSettingsPlugin()
 : mSettingsHelper(NULL),
   mSettingsManager(NULL),
-  mHiddenItem(false),
-  mSelectedPopupRadioButtonIndex(-1)
+  mHiddenItem(false)
 {
     QString lang = QLocale::system().name();
     QString path = "Z:/resource/qt/translations/";
@@ -310,16 +310,12 @@ void NmIpsSettingsPlugin::initReceivingScheduleItems(HbDataFormModelItem &item)
 
     QVariant profileIndex;
     mSettingsManager->readSetting(IpsServices::ReceptionActiveProfile, profileIndex);
-    infoItem->setContentWidgetData(QString("currentIndex"), profileIndex);
+    infoItem->setContentWidgetData(NmIpsSettingsCurrentIndex, profileIndex);
 
     // 2. Show mail in inbox
-    QVariant mailInInbox;
-    mSettingsManager->readSetting(IpsServices::ReceptionInboxSyncWindow, mailInInbox);
-
     CpSettingFormItemData *showMailInInboxItem =
-        new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
+        new CpSettingFormItemData(HbDataFormModelItem::ComboBoxItem, hbTrId(
             "txt_mailips_setlabel_show_mail_in_inbox"));
-
     mSettingsHelper->insertContentItem(IpsServices::ReceptionInboxSyncWindow, showMailInInboxItem);
 
     // If changes are made to showMailItems, conversion table in
@@ -329,19 +325,16 @@ void NmIpsSettingsPlugin::initReceivingScheduleItems(HbDataFormModelItem &item)
                   << HbStringUtil::convertDigits("100")
                   << HbStringUtil::convertDigits("500")
                   << hbTrId("txt_mailips_setlabel_val_all");
-
     showMailInInboxItem->setContentWidgetData(NmIpsSettingsItems, showMailItems);
-    showMailInInboxItem->setContentWidgetData("displayMode","popup");
+    
     showMailInInboxItem->setEnabled(true);
     item.appendChild(showMailInInboxItem);
 
     // Active sync profile connection
     mForm->addConnection(infoItem, SIGNAL(currentIndexChanged(int)),
 						 mSettingsHelper, SLOT(receivingScheduleChange(int)));
-    mForm->addConnection(showMailInInboxItem, SIGNAL(finished(HbAction *)),
-						 this, SLOT(showMailInInboxModified(HbAction *)));
-    mForm->addConnection(showMailInInboxItem, SIGNAL(itemSelected(int)),
-						 this, SLOT(popupRadioButtonIndexModified(int)));
+    mForm->addConnection(showMailInInboxItem, SIGNAL(currentIndexChanged(int)),
+						 this, SLOT(showMailInInboxModified(int)));
 
     // Must be called manually here, because the signal->slot connection set above using
     // HbDataForm::addConnection() is actually established AFTER the properties have first been
@@ -440,28 +433,23 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item)
 
     // 2. Incoming Secure connection
     CpSettingFormItemData *incomingSecureConnectionItem =
-        new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
+        new CpSettingFormItemData(HbDataFormModelItem::ComboBoxItem, hbTrId(
             "txt_mailips_setlabel_incoming_security"));
-
     mSettingsHelper->insertContentItem(IpsServices::IncomingSecureSockets, incomingSecureConnectionItem);
 
     QStringList showSCItems;
     showSCItems << hbTrId("txt_mailips_setlabel_security_val_on_starttls")
                 << hbTrId("txt_mailips_setlabel_security_val_on_ssltls")
                 << hbTrId("txt_mailips_setlabel_security_val_off");
-
-    incomingSecureConnectionItem->setContentWidgetData(QString("items"), showSCItems);
-    incomingSecureConnectionItem->setContentWidgetData("displayMode","popup");
+    incomingSecureConnectionItem->setContentWidgetData(NmIpsSettingsItems, showSCItems);
 
     int incomingSecureConnectionItemIndex =
-        mSettingsHelper->getCorrectIncomingSecureRadioButtonIndex();
-    incomingSecureConnectionItem->setContentWidgetData(QString("selected"),
+        mSettingsHelper->getCorrectIncomingSecureComboBoxIndex();
+    incomingSecureConnectionItem->setContentWidgetData(NmIpsSettingsCurrentIndex,
                                                        incomingSecureConnectionItemIndex);
 
-    mForm->addConnection(incomingSecureConnectionItem, SIGNAL(finished(HbAction *)),
-						 this, SLOT(incomingSecureConnectionModified(HbAction *)));
-    mForm->addConnection(incomingSecureConnectionItem, SIGNAL(itemSelected(int)),
-						 this, SLOT(popupRadioButtonIndexModified(int)));
+    mForm->addConnection(incomingSecureConnectionItem, SIGNAL(currentIndexChanged(int)),
+						 mSettingsHelper, SLOT(incomingSecureConnectionItemChange(int)));
 
     if (mHiddenItem) {
         incomingSecureConnectionItem->setEnabled(false);
@@ -470,23 +458,20 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item)
 
     // 3. Incoming mail server port
     CpSettingFormItemData *incomingPortItem =
-        new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
+        new CpSettingFormItemData(HbDataFormModelItem::ComboBoxItem, hbTrId(
             "txt_mailips_setlabel_incoming_port"));
     mSettingsHelper->insertContentItem(IpsServices::IncomingPort, incomingPortItem);
+    
     QStringList incomingPortItems;
     incomingPortItems << hbTrId("txt_mailips_setlabel_incoming_port_default")
                       << hbTrId("txt_mailips_setlabel_incoming_port_user_defined");
+    incomingPortItem->setContentWidgetData(NmIpsSettingsItems, incomingPortItems);
 
-    incomingPortItem->setContentWidgetData(QString("items"), incomingPortItems);
-    incomingPortItem->setContentWidgetData("displayMode","popup");
+    int incomingPortItemIndex = mSettingsHelper->getCorrectIncomingPortComboBoxIndex();
+    incomingPortItem->setContentWidgetData(NmIpsSettingsCurrentIndex, incomingPortItemIndex);
 
-    int incomingPortItemIndex = mSettingsHelper->getCorrectIncomingPortRadioButtonIndex();
-    incomingPortItem->setContentWidgetData(QString("selected"), incomingPortItemIndex);
-
-    mForm->addConnection(incomingPortItem, SIGNAL(finished(HbAction *)),
-   						 this, SLOT(incomingPortModified(HbAction *)));
-    mForm->addConnection(incomingPortItem, SIGNAL(itemSelected(int)),
-					 this, SLOT(popupRadioButtonIndexModified(int)));
+    mForm->addConnection(incomingPortItem, SIGNAL(currentIndexChanged(int)),
+						 mSettingsHelper, SLOT(incomingPortChange(int)));
 
     if (mHiddenItem) {
         incomingPortItem->setEnabled(false);
@@ -516,26 +501,23 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item)
 
     // 5. Outgoing secure connection
     CpSettingFormItemData *outgoingSecureConnectionItem =
-        new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
+        new CpSettingFormItemData(HbDataFormModelItem::ComboBoxItem, hbTrId(
             "txt_mailips_setlabel_outgoing_security"));
     mSettingsHelper->insertContentItem(IpsServices::OutgoingSecureSockets, outgoingSecureConnectionItem);
+    
     QStringList outgoingShowSCItems;
     outgoingShowSCItems << hbTrId("txt_mailips_setlabel_security_val_on_starttls")
                         << hbTrId("txt_mailips_setlabel_security_val_on_ssltls")
                         << hbTrId("txt_mailips_setlabel_security_val_off");
-
-    outgoingSecureConnectionItem->setContentWidgetData(QString("items"), outgoingShowSCItems);
-    outgoingSecureConnectionItem->setContentWidgetData("displayMode","popup");
+    outgoingSecureConnectionItem->setContentWidgetData(NmIpsSettingsItems, outgoingShowSCItems);
 
     int outgoingSecureConnectionItemIndex =
-        mSettingsHelper->getCorrectOutgoingSecureRadioButtonIndex();
-    outgoingSecureConnectionItem->setContentWidgetData(QString("selected"),
+        mSettingsHelper->getCorrectOutgoingSecureComboBoxIndex();
+    outgoingSecureConnectionItem->setContentWidgetData(NmIpsSettingsCurrentIndex,
                                                        outgoingSecureConnectionItemIndex);
-
-    mForm->addConnection(outgoingSecureConnectionItem, SIGNAL(finished(HbAction *)),
-      				     this, SLOT(outgoingSecureConnectionModified(HbAction *)));
-    mForm->addConnection(outgoingSecureConnectionItem, SIGNAL(itemSelected(int)),
-				         this, SLOT(popupRadioButtonIndexModified(int)));
+    
+    mForm->addConnection(outgoingSecureConnectionItem, SIGNAL(currentIndexChanged(int)),
+				         mSettingsHelper, SLOT(outgoingSecureConnectionItemChange(int)));
 
     if (mHiddenItem) {
         outgoingSecureConnectionItem->setEnabled(false);
@@ -544,23 +526,20 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item)
 
     // 6. Outgoing mail server port
     CpSettingFormItemData *outgoingPortItem =
-        new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
+        new CpSettingFormItemData(HbDataFormModelItem::ComboBoxItem, hbTrId(
             "txt_mailips_setlabel_outgoing_port"));
     mSettingsHelper->insertContentItem(IpsServices::OutgoingPort, outgoingPortItem);
+    
     QStringList outgoingPortItems;
     outgoingPortItems << hbTrId("txt_mailips_setlabel_incoming_port_default")
                       << hbTrId("txt_mailips_setlabel_incoming_port_user_defined");
+    outgoingPortItem->setContentWidgetData(NmIpsSettingsItems, outgoingPortItems);
 
-    outgoingPortItem->setContentWidgetData(QString("items"), outgoingPortItems);
-    outgoingPortItem->setContentWidgetData("displayMode","popup");
+    int outgoingPortItemIndex = mSettingsHelper->getCorrectOutgoingPortComboBoxIndex();
+    outgoingPortItem->setContentWidgetData(NmIpsSettingsCurrentIndex, outgoingPortItemIndex);
 
-    int outgoingPortItemIndex = mSettingsHelper->getCorrectOutgoingPortRadioButtonIndex();
-    outgoingPortItem->setContentWidgetData(QString("selected"), outgoingPortItemIndex);
-
-    mForm->addConnection(outgoingPortItem, SIGNAL(finished(HbAction *)),
-					     this, SLOT(outgoingPortModified(HbAction *)));
-	mForm->addConnection(outgoingPortItem, SIGNAL(itemSelected(int)),
-						 this, SLOT(popupRadioButtonIndexModified(int)));
+	mForm->addConnection(outgoingPortItem, SIGNAL(currentIndexChanged(int)),
+						 mSettingsHelper, SLOT(outgoingPortChange(int)));
 
     if (mHiddenItem) {
         outgoingPortItem->setEnabled(false);
@@ -569,25 +548,22 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item)
 
     // 7. Outgoing authentication.
     CpSettingFormItemData *outgoingAuthenticationItem =
-        new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
+        new CpSettingFormItemData(HbDataFormModelItem::ComboBoxItem, hbTrId(
             "txt_mailips_setlabel_outgoing_mail_authentication"));
     mSettingsHelper->insertContentItem(IpsServices::SMTPAuthentication, outgoingAuthenticationItem);
+    
     QStringList outgoingAuthenticationItems;
     outgoingAuthenticationItems << hbTrId("txt_mailips_setlabel_outgoing_authentication_none")
                                 << hbTrId("txt_mailips_setlabel_outgoing_authentication_same")
                                 << hbTrId("txt_mailips_setlabel_outgoing_authentication_user");
-
-    outgoingAuthenticationItem->setContentWidgetData(QString("items"), outgoingAuthenticationItems);
-    outgoingAuthenticationItem->setContentWidgetData("displayMode","popup");
+    outgoingAuthenticationItem->setContentWidgetData(NmIpsSettingsItems, outgoingAuthenticationItems);
 
     int outgoingAuthenticationIndex =
-        mSettingsHelper->getCorrectOutgoingAuthenticationRadioButtonIndex();
-    outgoingAuthenticationItem->setContentWidgetData(QString("selected"), outgoingAuthenticationIndex);
+        mSettingsHelper->getCorrectOutgoingAuthenticationComboBoxIndex();
+    outgoingAuthenticationItem->setContentWidgetData(NmIpsSettingsCurrentIndex, outgoingAuthenticationIndex);
 
-    mForm->addConnection(outgoingAuthenticationItem, SIGNAL(finished(HbAction *)),
-    					 this, SLOT(outgoingAuthenticationModified(HbAction *)));
-	mForm->addConnection(outgoingAuthenticationItem, SIGNAL(itemSelected(int)),
-						 this, SLOT(popupRadioButtonIndexModified(int)));
+	mForm->addConnection(outgoingAuthenticationItem, SIGNAL(currentIndexChanged(int)),
+						 mSettingsHelper, SLOT(outgoingAuthenticationChange(int)));
 
     item.appendChild(outgoingAuthenticationItem);
     if (mHiddenItem) {
@@ -601,23 +577,20 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item)
     // This item is only shown for IMAP4 account.
     if (mSettingsManager->accountType() == IpsServices::EMailImap) {
         CpSettingFormItemData *folderPathItem =
-            new CpSettingFormItemData(HbDataFormModelItem::RadioButtonListItem, hbTrId(
+            new CpSettingFormItemData(HbDataFormModelItem::ComboBoxItem, hbTrId(
                 "txt_mailips_setlabel_folder_path"));
         mSettingsHelper->insertContentItem(IpsServices::FolderPath, folderPathItem);
+        
         QStringList folderPathItems;
         folderPathItems << hbTrId("txt_mailips_setlabel_folder_path_val_default")
                         << hbTrId("txt_mailips_setlabel_folder_path_user_defined");
+        folderPathItem->setContentWidgetData(NmIpsSettingsItems, folderPathItems);
 
-        folderPathItem->setContentWidgetData(QString("items"), folderPathItems);
-        folderPathItem->setContentWidgetData("displayMode","popup");
+        int folderPathItemIndex = mSettingsHelper->getCorrectFolderPathComboBoxIndex();
+        folderPathItem->setContentWidgetData(NmIpsSettingsCurrentIndex, folderPathItemIndex);
 
-        int folderPathItemIndex = mSettingsHelper->getCorrectFolderPathRadioButtonIndex();
-        folderPathItem->setContentWidgetData(QString("selected"), folderPathItemIndex);
-
-        mForm->addConnection(folderPathItem, SIGNAL(finished(HbAction *)),
-            			     this, SLOT(folderPathModified(HbAction *)));
 		mForm->addConnection(folderPathItem, SIGNAL(itemSelected(int)),
-							 this, SLOT(popupRadioButtonIndexModified(int)));
+							 mSettingsHelper, SLOT(folderPathChange(int)));
 
         item.appendChild(folderPathItem);
     }
@@ -695,117 +668,17 @@ Index   Value
 
 \param action Action that determines whether user clicked OK or cancel.
 */
-void NmIpsSettingsPlugin::showMailInInboxModified(HbAction *action)
+void NmIpsSettingsPlugin::showMailInInboxModified(int index)
 {
-    if ((action->text() == hbTrId("txt_common_button_ok"))
-            && (mSelectedPopupRadioButtonIndex >=0 && mSelectedPopupRadioButtonIndex <=3)) {
-        int conversionTable[] = { 50, 100, 500, 0 };
-        int selectedValue(conversionTable[mSelectedPopupRadioButtonIndex]);
+	int conversionTable[] = { 50, 100, 500, 0 };
+	int selectedValue(conversionTable[index]);
 
-        QVariant previouslySelectedValue;
-        mSettingsManager->readSetting(IpsServices::ReceptionInboxSyncWindow, previouslySelectedValue);
-        if (previouslySelectedValue.toInt() != selectedValue) {
-            mSettingsHelper->handleReceivingScheduleSettingChange(
-                IpsServices::ReceptionInboxSyncWindow, selectedValue);
-        }
-    }
-    mSelectedPopupRadioButtonIndex = -1;
-}
-
-/*!
-Handles incoming secure connection modifications.
-
-\param action Action that determines whether user clicked OK or cancel.
-*/
-void NmIpsSettingsPlugin::incomingSecureConnectionModified(HbAction *action)
-{
-    if(action->text() == hbTrId("txt_common_button_ok") &&
-       mSelectedPopupRadioButtonIndex >=0) {
-       mSettingsHelper->incomingSecureConnectionItemChange(mSelectedPopupRadioButtonIndex);
-    }
-    mSelectedPopupRadioButtonIndex = -1;
-}
-
-/*!
-Handles incoming port modifications.
-
-\param action Action that determines whether user clicked OK or cancel.
-*/
-void NmIpsSettingsPlugin::incomingPortModified(HbAction *action)
-{
-	if ((action->text() == hbTrId("txt_common_button_ok")) &&
-		(mSelectedPopupRadioButtonIndex == IpsServices::NmIpsSettingsDefault ||
-		 mSelectedPopupRadioButtonIndex == IpsServices::NmIpsSettingsUserDefined)) {
-	       mSettingsHelper->incomingPortChange(mSelectedPopupRadioButtonIndex);
-	    }
-	mSelectedPopupRadioButtonIndex = -1;
-}
-
-/*!
-Handles outgoing secure connection modifications.
-
-\param action Action that determines whether user clicked OK or cancel.
-*/
-void NmIpsSettingsPlugin::outgoingSecureConnectionModified(HbAction *action)
-{
-	if (action->text() == hbTrId("txt_common_button_ok") &&
-		mSelectedPopupRadioButtonIndex >= 0) {
-		       mSettingsHelper->outgoingSecureConnectionItemChange(mSelectedPopupRadioButtonIndex);
-		}
-	mSelectedPopupRadioButtonIndex = -1;
-}
-
-/*!
-Handles outgoing port modifications.
-
-\param action Action that determines whether user clicked OK or cancel.
-*/
-void NmIpsSettingsPlugin::outgoingPortModified(HbAction *action)
-{
-	if ((action->text() == hbTrId("txt_common_button_ok")) &&
-		(mSelectedPopupRadioButtonIndex == IpsServices::NmIpsSettingsDefault ||
-		 mSelectedPopupRadioButtonIndex == IpsServices::NmIpsSettingsUserDefined)) {
-	       mSettingsHelper->outgoingPortChange(mSelectedPopupRadioButtonIndex);
-	    }
-	mSelectedPopupRadioButtonIndex = -1;
-}
-
-/*!
-Handles outgoing authentication modifications.
-
-\param action Action that determines whether user clicked OK or cancel.
-*/
-void NmIpsSettingsPlugin::outgoingAuthenticationModified(HbAction *action)
-{
-	if (action->text() == hbTrId("txt_common_button_ok") &&
-		mSelectedPopupRadioButtonIndex >= 0) {
-	       mSettingsHelper->outgoingAuthenticationChange(mSelectedPopupRadioButtonIndex);
-	    }
-	mSelectedPopupRadioButtonIndex = -1;
-}
-
-/*!
-Handles folder path modifications.
-
-\param action Action that determines whether user clicked OK or cancel.
-*/
-void NmIpsSettingsPlugin::folderPathModified(HbAction *action)
-{
-	if ((action->text() == hbTrId("txt_common_button_ok")) &&
-		(mSelectedPopupRadioButtonIndex == IpsServices::NmIpsSettingsDefault ||
-		 mSelectedPopupRadioButtonIndex == IpsServices::NmIpsSettingsUserDefined)) {
-	       mSettingsHelper->folderPathChange(mSelectedPopupRadioButtonIndex);
-	    }
-	mSelectedPopupRadioButtonIndex = -1;
-}
-
-/*!
-
-\param index The index value of the selection.
-*/
-void NmIpsSettingsPlugin::popupRadioButtonIndexModified(int index)
-{
-    mSelectedPopupRadioButtonIndex = index;
+	QVariant previouslySelectedValue;
+	mSettingsManager->readSetting(IpsServices::ReceptionInboxSyncWindow, previouslySelectedValue);
+	if (previouslySelectedValue.toInt() != selectedValue) {
+		mSettingsHelper->handleReceivingScheduleSettingChange(
+			IpsServices::ReceptionInboxSyncWindow, selectedValue);
+	}
 }
 
 Q_EXPORT_PLUGIN2(nmipssettings, NmIpsSettingsPlugin);

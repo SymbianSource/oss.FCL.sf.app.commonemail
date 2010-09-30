@@ -19,6 +19,7 @@
 #define NMAPIMESSAGECONTENT_H_
 
 #include <nmapidef.h>
+#include <QSharedDataPointer>
 
 namespace EmailClientApi
 {
@@ -28,7 +29,10 @@ class NMAPI_EXPORT NmApiMessageContent
 {
 public:
     NmApiMessageContent();
+    NmApiMessageContent(const NmApiMessageContent &messagecontent);
     virtual ~NmApiMessageContent();
+
+    NmApiMessageContent& operator=(const NmApiMessageContent &messagecontent);    
 
     QString contentType() const;
     bool isComplete();
@@ -42,7 +46,7 @@ public:
 
 private:
     
-    NmApiMessageContentPrivate *d;
+    QSharedDataPointer<NmApiMessageContentPrivate> d;
 };
 }
 #endif /*NMAPIMESSAGECONTENT_H_ */

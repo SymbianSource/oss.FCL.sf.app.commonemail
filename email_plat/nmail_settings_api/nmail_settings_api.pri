@@ -10,7 +10,7 @@
 # Description:
 symbian*::# Build.inf rules
 BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
-    "nmail_settings_api/nmapimailboxsettingsdata.h APP_LAYER_PLATFORM_EXPORT_PATH(nmapimailboxsettingsdata.h)" \
-    "nmail_settings_api/nmapimailboxsettings.h APP_LAYER_PLATFORM_EXPORT_PATH(nmapimailboxsettings.h)" \
-    "nmail_settings_api/nmapisettingsmanager.h APP_LAYER_PLATFORM_EXPORT_PATH(nmapisettingsmanager.h)"
+    "nmail_settings_api/inc/nmapimailboxsettingsdata.h APP_LAYER_PLATFORM_EXPORT_PATH(nmapimailboxsettingsdata.h)" \
+    "nmail_settings_api/inc/nmapimailboxsettings.h APP_LAYER_PLATFORM_EXPORT_PATH(nmapimailboxsettings.h)" \
+    "nmail_settings_api/inc/nmapisettingsmanager.h APP_LAYER_PLATFORM_EXPORT_PATH(nmapisettingsmanager.h)"
 

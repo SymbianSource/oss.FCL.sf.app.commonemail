@@ -20,148 +20,6 @@
 #include "nmuiheaders.h"
 
 /*!
-    \class NmStartParamDataHelper
-    \brief A helper class for processing the data given to the actual service.
-*/
-class NmStartParamDataHelper
-{
-public:
-
-    /*!
-        Class constructor.
-    */
-    inline NmStartParamDataHelper()
-    : mSubject(NULL),
-      mToAddresses(NULL),
-      mCcAddresses(NULL),
-      mBccAddresses(NULL),
-      mBodyText(NULL)
-    {
-        NM_FUNCTION;
-    }
-
-    /*!
-        Class destructor.
-    */
-    inline ~NmStartParamDataHelper()
-    {
-        NM_FUNCTION;
-    }
-
-    /*!
-        Extracts the data from the given QString into the class members.
-        \param data QString containing the data.
-        \return True if success, false otherwise.
-    */
-    inline bool extractData(const QString &data)
-    {
-        NM_FUNCTION;
-        
-        bool success(false);
-        
-        QUrl uri(data);
-        
-        if (uri.isValid()) {
-            
-            mSubject = new QString(uri.queryItemValue(emailSendSubjectKey));
-            QString to = uri.path();
-            QString cc = uri.queryItemValue(emailSendCcKey);
-            QString bcc = uri.queryItemValue(emailSendBccKey);
-			QString bodyText = uri.queryItemValue(emailSendBodyTextKey);
-			if (bodyText.length()) {
-			    mBodyText = new QString(bodyText);
-			}
-            
-            addAddressesToList(to, &mToAddresses);
-            addAddressesToList(cc, &mCcAddresses);
-            addAddressesToList(bcc, &mBccAddresses);
-            
-            success = true;
-        }
-        
-        return success;
-    }
-
-    /*!
-        Appends the given addresses into the given list.
-        \param address The addresses to append.
-        \param list The list where the addresses are appended to.
-    */
-    inline void addAddressesToList(QString &addresses,
-                                   QList<NmAddress*> **list)
-    {
-        NM_FUNCTION;
-        
-        if (!addresses.isEmpty()) {
-
-            QList<NmAddress*> foundAddresses;
-                    
-            // Process multiple addresses.
-            if (addresses.contains(",")) {
-                QString str;               
-                while (addresses.contains(",")) {
-                    str = addresses.section(",", 0, 0); // Get the occurance.
-                    addresses.remove(0, (addresses.indexOf(",")+1)); // Remove the occurance.
-                    if (!str.isEmpty()) { // In case str would be empty on some error data. 
-                        NmAddress *address = new NmAddress(str);
-                        foundAddresses.append(address);    
-                    }
-                }
-            }
-            if (!addresses.isEmpty()) { // In case addresses would be empty on some error data. 
-                // Last one or single address.
-                NmAddress *address = new NmAddress(addresses);
-                foundAddresses.append(address);
-            }
-            // Append the found addresses into the given list.
-            *list = new QList<NmAddress*>();
-            (*list)->append(foundAddresses);
-        }
-    }
-        
-    /*!
-        Deletes the class members. Must be used if NmUiStartParam does not
-        take ownership of the members.
-    */
-    inline void deleteData()
-    {
-        NM_FUNCTION;
-        
-        delete mSubject;
-        mSubject = NULL;
-
-        if (mToAddresses) {
-            qDeleteAll(*mToAddresses);
-            delete mToAddresses;
-            mToAddresses = NULL;
-        }
-
-        if (mCcAddresses) {
-            qDeleteAll(*mCcAddresses);
-            delete mCcAddresses;
-            mCcAddresses = NULL;
-        }
-
-        if (mBccAddresses) {
-            qDeleteAll(*mBccAddresses);
-            delete mBccAddresses;
-            mBccAddresses = NULL;
-        }
-        
-        delete mBodyText;
-        mBodyText = NULL;
-    }
-
-public: // Data
-
-    QString *mSubject; // Not owned.
-    QList<NmAddress*> *mToAddresses; // Not owned.
-    QList<NmAddress*> *mCcAddresses; // Not owned.
-    QList<NmAddress*> *mBccAddresses; // Not owned.
-    QString *mBodyText;
-};
-
-/*!
     \class NmUriServiceInterface
     \brief NMail application service interface which provides an email sending
            interface for other application using the Qt Highway.
@@ -241,8 +99,9 @@ bool NmUriServiceInterface::view(const QString& uri)
     }
     
     // Check the given data.
-    NmStartParamDataHelper dataHelper;
-    bool validData = dataHelper.extractData(uri);
+    NmUriParser uriParser;
+    bool validData = uriParser.extractData(uri);
+    
      
     NmMailboxListModel &mailboxListModel = mUiEngine.mailboxListModel();
     const int count = mailboxListModel.rowCount();
@@ -264,24 +123,32 @@ bool NmUriServiceInterface::view(const QString& uri)
     }
     else { // count > 0
         if (mainWindow) {
-            mainWindow->show();        
+            mainWindow->show();
         }
-
+        
+        // The ownership of these is passed to NmApplication in launchEditorView()
+        QList<NmAddress*> *toAddresses = NmUtilities::qstringListToNmAddressList(uriParser.toAddresses());
+        QList<NmAddress*> *ccAddresses = NmUtilities::qstringListToNmAddressList(uriParser.ccAddresses());
+        QList<NmAddress*> *bccAddresses = NmUtilities::qstringListToNmAddressList(uriParser.bccAddresses());
+        
+        QString* subject = new QString(uriParser.subject());
+        QString* bodyText = new QString(uriParser.bodyText());
+       
     	mStartParam = new NmUiStartParam(
         	NmUiViewMessageEditor,
 	        0, // account id
 	        0, // folder id
     	    0, // message id
     	    NmUiEditorMailto, // editor start mode
-	        dataHelper.mToAddresses, // address list
+    	    toAddresses,
     	    NULL, // attachment list
         	true, // start as service
-	        dataHelper.mSubject, // message subject
-	        dataHelper.mCcAddresses, // list containing cc recipient addresses
-    	    dataHelper.mBccAddresses, // list containing bcc recipient addresses
-    	    dataHelper.mBodyText // body text
+        	subject, // message subject
+            ccAddresses, // list containing cc recipient addresses
+            bccAddresses, // list containing bcc recipient addresses
+            bodyText // body text
 	    );
-
+	    
         if (count == 1) {
             // A single mailbox exists.
             QModelIndex modelIndex = mailboxListModel.index(0, 0);
@@ -307,7 +174,6 @@ bool NmUriServiceInterface::view(const QString& uri)
             // launch the editor when the dialog is closed
         }
     }
-    
     return true;
 }
 

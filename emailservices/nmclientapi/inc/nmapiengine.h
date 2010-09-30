@@ -19,6 +19,7 @@
 #define NMAPIENGINE_H
 
 #include <CFSMailPlugin.h>
+#include <CFSMailFolder.h>
 
 #include "nmcommon.h"
 #include "nmapiprivateclasses.h"
@@ -27,8 +28,9 @@ class NmApiDataPluginFactory;
 
 namespace EmailClientApi
 {
-class NmApiMailbox;
+
 class NmApiFolder;
+class NmApiMailbox;
 class NmApiMessageEnvelope;
 class NmApiMessage;
 }
@@ -51,6 +53,11 @@ public:
         const quint64 folderId,
         const quint64 envelopeId,
         EmailClientApi::NmApiMessageEnvelope &envelope);
+
+    bool getFolderById(
+        const quint64 mailboxId,
+        const quint64 folderId,
+        EmailClientApi::NmApiFolder &mailboxFolder);
 		
     bool getMailboxById(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailbox);
 

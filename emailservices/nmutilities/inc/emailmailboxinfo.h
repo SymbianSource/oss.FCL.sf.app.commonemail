@@ -41,17 +41,17 @@ public:
 
     /*!
         Returns mailbox icon name 
-        \param identifier can be domain name or mailbox id (NmId from nmailbase)
+        \param identifier should be a domain name
         \return mailbox icon name that can be used to construct HbIcon
      */
-    QString mailboxIcon(const QVariant &identifier) const;
+    QString mailboxIcon(const QString &identifier) const;
 
     /*!
         Returns branded mailbox name
-        \param identifier can be domain name or mailbox id (NmId from nmailbase)
+        \param identifier should be a domain name
         \return mailbox name
      */
-    QString mailboxName(const QVariant &identifier) const;
+    QString mailboxName(const QString &identifier) const;
 
 private:
     EmailMailboxInfoPrivate *d;

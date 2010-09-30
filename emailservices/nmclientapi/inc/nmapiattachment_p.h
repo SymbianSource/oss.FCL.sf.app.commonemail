@@ -25,8 +25,8 @@ class NmApiAttachmentPrivate : public QSharedData
 {
 
 public:
-    
     NmApiAttachmentPrivate();
+    NmApiAttachmentPrivate(const NmApiAttachmentPrivate &attachmentprivate);
     virtual ~NmApiAttachmentPrivate();
 
     QString fileName();

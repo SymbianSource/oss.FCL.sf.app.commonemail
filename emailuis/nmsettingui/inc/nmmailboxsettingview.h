@@ -58,7 +58,13 @@ private slots:
     void queuedScroll(const QModelIndex &index);
 
 
+signals:
+
+    void emitEditingFinished();
+
 private:
+
+    bool eventFilter(QObject *watched, QEvent *event);
 
     Q_DISABLE_COPY(NmMailboxSettingView)
 

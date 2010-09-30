@@ -18,53 +18,95 @@
 #ifndef NMAPISETTINGSMANAGER_P_H_
 #define NMAPISETTINGSMANAGER_P_H_
 
-#include <QVariant>
-
-#include <nmapimailboxsettingsdata.h>
-#include <cemailaccounts.h>
-
-class CImImap4Settings;
-class CImSmtpSettings;
-class XQSettingsManager;
-class XQCentralRepositoryUtils;
 
 namespace EmailClientApi
 {
 
 class NmApiSettingsManagerPrivate
 {
+private:
+    class AccountDataCleanUpItem
+    {
+    public:
+        /* CleanupItem class for making sure that all allocated members 
+           will be deleted and set to null when load or save function execution
+           stops.
+         */
+        AccountDataCleanUpItem(CEmailAccounts *&account,
+            CImPop3Settings *&pop3Settings,
+            CImImap4Settings *&imap4Settings,
+            CImSmtpSettings *&smtpSettings,
+            XQSettingsManager *&qSettingsManager
+        )
+            : 
+            mAccount(account),
+            mPop3Settings(pop3Settings),
+            mImap4Settings(imap4Settings),
+            mSmtpSettings(smtpSettings),
+            mQSettingsManager(qSettingsManager)
+        {
+        }
+        
+        ~AccountDataCleanUpItem()
+        {
+            delete mAccount;
+            mAccount = NULL;
+            delete mPop3Settings;
+            mPop3Settings = NULL;
+            delete mImap4Settings;
+            mImap4Settings = NULL;
+            delete mSmtpSettings;
+            mSmtpSettings = NULL;
+            delete mQSettingsManager;
+            mQSettingsManager = NULL;
+        }        
+
+    public:
+        CEmailAccounts *&mAccount;
+        CImPop3Settings *&mPop3Settings;
+        CImImap4Settings *&mImap4Settings;
+        CImSmtpSettings *&mSmtpSettings;
+        XQSettingsManager *&mQSettingsManager;
+    };
+    
 public:
-    NmApiSettingsManagerPrivate(const quint64 mailboxId);
+    NmApiSettingsManagerPrivate();
     ~NmApiSettingsManagerPrivate();
 
     bool load(quint64 mailboxId, NmApiMailboxSettingsData &data);
-    bool save(const NmApiMailboxSettingsData &data);
+    bool save(quint64 mailboxId, const NmApiMailboxSettingsData &data);
 
 private:
-    bool writeSettingL(const NmApiMailboxSettingsData &data);
-    bool saveSettings();
-    bool readSetting(NmApiMailboxSettingsData &data);
-    bool readCenRepSetting(NmApiMailboxSettingsData &data);
+
+    void fillImapSettingDataL(const NmApiMailboxSettingsData &data);
+    void fillPopSettingDataL(const NmApiMailboxSettingsData &data);
+    void fillSmtpSettingDataL(const NmApiMailboxSettingsData &data, 
+            const QVariant settingValue, const int key);
+   
+    void writeSettingL(const NmApiMailboxSettingsData &data);
+    void readSettings(NmApiMailboxSettingsData &data);
+    bool readCenRepSettings(NmApiMailboxSettingsData &data);
     QVariant readFromCenRep(quint32 key) const;
+    QVariant readFromCenRep(quint32 key, bool &success) const;
     bool writeSettingToCenRep(const NmApiMailboxSettingsData &data);
     bool writeToCenRep(quint32 key, const QVariant &value) const;
-    void setSecurity(QString securityType);
-    QString security() const;
-    QString alwaysOnlineState() const;
-    void setAlwaysOnlineState(const QVariant state);
-    void calculateMailboxOffset();
-    void calculateActiveProfileOffset();
-    qint32 convertToProfileOffset(int profile) const;
-    bool checkAccountType();
+    void setSecurity(CImBaseEmailSettings &settings, QString securityType);
+    
+    QString security(CImBaseEmailSettings &settings) const;
+    QString alwaysOnlineState(bool &success) const;
+    bool setAlwaysOnlineState(const QVariant &state);
+    bool calculateMailboxOffset();
+    bool calculateActiveProfileOffset();
+    bool checkAccountTypeL();
     void initAccountL();
 
 private:
-    NmApiMailboxSettingsData *mSettingsData;
 
     CEmailAccounts *mAccount;
     CImPop3Settings *mPop3Settings;
     CImImap4Settings *mImap4Settings;
     CImSmtpSettings *mSmtpSettings;
+    XQSettingsManager *mQSettingsManager;
 
     TSmtpAccount mSmtpAccount;
     TImapAccount mImap4Account;
@@ -73,7 +115,7 @@ private:
     QString mMailboxType;
     qint32 mMailboxOffset;
     qint32 mActiveProfileOffset;
-    XQSettingsManager *mQSettingsManager;
+    
 
     quint32 mMailboxId;
 };

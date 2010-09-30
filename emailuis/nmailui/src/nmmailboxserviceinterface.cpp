@@ -67,7 +67,10 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
     mAsyncReqId = setCurrentRequestAsync();
 
     // Make sure that app stays background if user presses back in message list view
-    bool visible = mApplication->updateVisibilityState();
+    bool visible = false;
+    if(mApplication){
+        visible = mApplication->updateVisibilityState();
+    }
 
     if (mailboxExistsById(mailboxNmId)) {
         // Fetch inbox id
@@ -122,7 +125,11 @@ void NmMailboxServiceInterface::displayInboxByMailboxId(QVariant data)
 bool NmMailboxServiceInterface::mailboxExistsById(const NmId &mailboxId) const
 {
     NM_FUNCTION;
-
+    //model needs to be refreshed because in some cases, new mailbox
+    //has not been dynamically inserted into the model yet, 
+    //thus returning incorrect count.
+    mUiEngine.refreshMailboxListModel();
+    
     const NmMailboxListModel& mailboxListModel = mUiEngine.mailboxListModel();
     int mailboxCount = mailboxListModel.rowCount();
 

@@ -260,14 +260,17 @@ inline void NM_TIMESTAMP(const QString& msg)
             
     static QFile file(NM_LOG_DIRECTORY +
                       QString("nmail_timestamps.log"));
-        if (NM_LOG_TO_FILE && !file.isOpen()) {
-            file.open(QIODevice::Append | QIODevice::Text | QIODevice::ReadWrite);
-        }
-        if (file.isWritable()) {
-            QTextStream(&file) << timestamp << '\n';
-        } else {
-            qDebug("[Nmail] %s",timestamp.toLatin1().data());
-        }
+    if (NM_LOG_TO_FILE && !file.isOpen()) {
+        file.open(QIODevice::Append | QIODevice::Text | QIODevice::ReadWrite);
+    }
+    if (file.isWritable()) {
+        QTextStream(&file) << timestamp << '\n';
+    } else {
+        qDebug("[Nmail] %s",timestamp.toLatin1().data());
+    }
+    if(file.isOpen()) {
+        file.close();
+    }
 }
 
 #else

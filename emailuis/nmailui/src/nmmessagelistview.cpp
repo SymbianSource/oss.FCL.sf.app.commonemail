@@ -57,7 +57,7 @@ mPreviousModelCount(0),
 mIsFirstSyncInMessageList(true)
 {
     NM_FUNCTION;
-
+    qApp->installEventFilter(this);  
     loadViewLayout();
     createToolBar();
     initTreeView();
@@ -74,6 +74,7 @@ NmMessageListView::~NmMessageListView()
 
     delete mDocumentLoader;
     mWidgetList.clear();
+    mOptionsMenulist.clear();
     if (mItemContextMenu){
         mItemContextMenu->clearActions();
     }
@@ -374,6 +375,8 @@ void NmMessageListView::handleSyncStateEvent(NmSyncState syncState, const NmId &
 void NmMessageListView::folderSelected()
 {
     NM_FUNCTION;
+    
+    NM_TIMESTAMP("NmMessageListView::folderSelected start ***");
 
     // Reload view contents with new startparams if mailbox or folder
     // id is different than current values.
@@ -394,6 +397,7 @@ void NmMessageListView::folderSelected()
         // Set folder text to status bar
         setFolderName();
     }
+    NM_TIMESTAMP("NmMessageListView::folderSelected end ***");      
 }
 
 
@@ -507,10 +511,10 @@ void NmMessageListView::createOptionsMenu()
     NmActionRequest request(this, NmActionOptionsMenu, NmActionContextViewMessageList,
     		NmActionContextDataNone, mStartParam->mailboxId(), mStartParam->folderId() );
     NmUiExtensionManager &extMngr = mApplication.extManager();
-    QList<NmAction*> list;
-    extMngr.getActions(request, list);
-    for (int i=0;i<list.count();i++) {
-        menu()->addAction(list[i]);
+    mOptionsMenulist.clear();
+    extMngr.getActions(request, mOptionsMenulist);
+    for (int i=0;i<mOptionsMenulist.count();i++) {
+        menu()->addAction(mOptionsMenulist[i]);
     }
 }
 
@@ -800,4 +804,41 @@ void NmMessageListView::updateSyncIcon()
         }
     }
 }
+
+/*!
+    Handle application background event. 
+    In this case the menu has to be closed.
+*/
+bool NmMessageListView::eventFilter(QObject *obj,  QEvent *event)
+{
+    if (obj == qApp)
+    {
+        // Close menu if application is switched to background, e.g. deactivated
+        if (event && event->type() == QEvent::ApplicationDeactivate)
+        {
+            // Close options menu if it active
+            HbMenu *optionsMenu = menu();
+            if (optionsMenu && optionsMenu->isVisible()) {
+                // Close any submenus that might be open
+                for (int i=0 ; i<mOptionsMenulist.count() ; i++) {
+                    NmAction *menuItem = mOptionsMenulist[i];
+                    if (menuItem && menuItem->menu()) {
+                        menuItem->menu()->close();
+                    }
+                }
+                // Close options menu
+                optionsMenu->close();
+            }
+            else if (mItemContextMenu && mItemContextMenu->isVisible()) {
+                // Close and delete item contextmenu if open
+                mItemContextMenu->clearActions();
+                delete mItemContextMenu;
+                mItemContextMenu=NULL;
+            }
+        }
+    }
+    return mApplication.eventFilter(obj, event);
+}
+
+
 

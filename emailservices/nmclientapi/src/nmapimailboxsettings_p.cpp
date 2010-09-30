@@ -18,11 +18,10 @@
 #include "nmapiheaders.h"
 #include <nmapisettingsmanager.h>
 
-
 namespace EmailClientApi
 {
-NmApiMailboxSettingsPrivate::NmApiMailboxSettingsPrivate(QObject *parent) : 
-    QObject(parent), 
+NmApiMailboxSettingsPrivate::NmApiMailboxSettingsPrivate(QObject *parent) :
+    QObject(parent),
     mFactory(NULL),
     mDeleteMailboxOperation(NULL)
 {
@@ -36,43 +35,87 @@ NmApiMailboxSettingsPrivate::~NmApiMailboxSettingsPrivate()
     NM_FUNCTION;
     NmApiDataPluginFactory::releaseInstance(mFactory);
     if(mDeleteMailboxOperation && mDeleteMailboxOperation->isRunning()) {
-        mDeleteMailboxOperation->cancelOperation();        
+        mDeleteMailboxOperation->cancelOperation();
     }
 }
 
 bool NmApiMailboxSettingsPrivate::listMailboxIds(QList<quint64> &idList)
 {
-    NM_FUNCTION; 
+    NM_FUNCTION;
     QList<NmId> mailboxIds;
     bool ret = false;
     idList.clear();
-    
+
     NmDataPluginInterface *instance = mFactory->interfaceInstance();
     if (instance) {
         if (instance->listMailboxIds(mailboxIds) == KErrNone) {
-            
+
             foreach (NmId boxId, mailboxIds) {
                         idList.append(boxId.id());
                     }
-            
-            ret = true;   
+
+            ret = true;
             }
-        } 
-     
+        }
+
     return ret;
 }
+
+QString NmApiMailboxSettingsPrivate::getMailboxType(quint64 mailboxId)
+{
+    QString mailboxType;
+    //Return null string if mailbox is not resolved or some error occurs
+    TRAP_IGNORE(mailboxType = resolveMailboxTypeL(mailboxId));
+    NM_ERROR(!mailboxType.isNull(), QString("Can not receive mailbox type")
+                                    + QString::number(mailboxId));
+    return mailboxType;
+}
+
+QString NmApiMailboxSettingsPrivate::resolveMailboxTypeL(quint64 mailboxId)
+{
+    QString mailboxType;
+    quint32 serviceId = mailboxId;
+    CEmailAccounts *accounts = CEmailAccounts::NewLC();
+
+    RArray<TImapAccount> imapAccounts;
+    CleanupClosePushL(imapAccounts);
+    accounts->GetImapAccountsL(imapAccounts);
+    for (int i=0; i < imapAccounts.Count(); ++i) {
+        if (imapAccounts[i].iImapService == serviceId) {
+            mailboxType = NmApiMailboxTypeImap;
+            break;
+        }
+    }
+    CleanupStack::PopAndDestroy(&imapAccounts);
+
+    if (mailboxType.isNull()) {
+        RArray<TPopAccount> popAccounts;
+        CleanupClosePushL(popAccounts);
+        accounts->GetPopAccountsL(popAccounts);
+        for (int i = 0; i < popAccounts.Count(); ++i) {
+            if (popAccounts[i].iPopService == serviceId) {
+                mailboxType = NmApiMailboxTypePop;
+                break;
+            }
+        }
+        CleanupStack::PopAndDestroy(&popAccounts);
+    }
+    CleanupStack::PopAndDestroy(accounts);
+    return mailboxType;
+}
+
 
 bool NmApiMailboxSettingsPrivate::loadSettings(quint64 mailboxId, NmApiMailboxSettingsData &data)
 {
     NM_FUNCTION;
-    QScopedPointer<NmApiSettingsManager> settingsManager(new NmApiSettingsManager(mailboxId));  
+    QScopedPointer<NmApiSettingsManager> settingsManager(new NmApiSettingsManager(mailboxId));
     return settingsManager->load(mailboxId, data);
 }
 
 bool NmApiMailboxSettingsPrivate::saveSettings(const NmApiMailboxSettingsData &data)
 {
     NM_FUNCTION;
-    QScopedPointer<NmApiSettingsManager> settingsManager(new NmApiSettingsManager(data.mailboxId()));  
+    QScopedPointer<NmApiSettingsManager> settingsManager(new NmApiSettingsManager(data.mailboxId()));
     return settingsManager->save(data);
 }
 
@@ -84,10 +127,10 @@ bool NmApiMailboxSettingsPrivate::createMailbox(
     Q_UNUSED(mailboxType);
     Q_UNUSED(data);
     bool ret = false;
-    
+
     /*QT_TRY {
         if (mailboxType==NmApiMailboxTypePop || mailboxType==NmApiMailboxTypeImap) {
-            QScopedPointer<NmApiPopImapSettingsManager> popImapManager(new NmApiPopImapSettingsManager());  
+            QScopedPointer<NmApiPopImapSettingsManager> popImapManager(new NmApiPopImapSettingsManager());
             popImapManager->createMailbox(mailboxType, data);
             ret = true;
         }
@@ -99,41 +142,26 @@ bool NmApiMailboxSettingsPrivate::createMailbox(
     QT_CATCH(...){
         ret = false;
     }*/
-    
+
     return ret;
 }
 
 bool NmApiMailboxSettingsPrivate::deleteMailbox(quint64 mailboxId)
 {
-    NM_FUNCTION;
-    bool ret = false;
-    NmDataPluginInterface *instance = mFactory->interfaceInstance();
-    if (instance) {
-        if (mDeleteMailboxOperation && mDeleteMailboxOperation->isRunning()) {
-            mDeleteMailboxOperation->cancelOperation();
-        }
-        mDeleteMailboxOperation = instance->deleteMailboxById(NmId(mailboxId));
-        
-        if (mDeleteMailboxOperation) {
-            ret = true;
-            connect(mDeleteMailboxOperation, 
-                    SIGNAL(operationCompleted(int)), 
-                    this, 
-                    SIGNAL(mailboxDeleted(int)));
-        }
-    }
-    return ret;
+	Q_UNUSED(mailboxId);
+    return false;
+
 }
 
 bool NmApiMailboxSettingsPrivate::populateDefaultSettings(
-    const QString &mailboxType, NmApiMailboxSettingsData &data) 
+    const QString &mailboxType, NmApiMailboxSettingsData &data)
 {
-    NM_FUNCTION;
-    Q_UNUSED(mailboxType);
-    Q_UNUSED(data);
-    /*QScopedPointer<NmApiPopImapSettingsManager> popImapManager(new NmApiPopImapSettingsManager());  
-    return popImapManager->populateDefaults(mailboxType, data);*/
-    return true;
+	NM_FUNCTION;
+//    Q_UNUSED(mailboxType);
+//    Q_UNUSED(data);
+    QScopedPointer<NmApiPopImapSettingsManager> popImapManager(new NmApiPopImapSettingsManager());
+    return popImapManager->populateDefaults(mailboxType, data);
+//    return true;
 }
 
 }// namespace

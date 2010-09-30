@@ -89,6 +89,9 @@ NmEditorView::~NmEditorView()
 {
     NM_FUNCTION;
 
+    // Delete opened temporary files.
+    NmUtilities::deleteTempFiles(mTempFiles);
+    
     if (mRemoveAttachmentOperation && mRemoveAttachmentOperation->isRunning()) {
         mRemoveAttachmentOperation->cancelOperation();
     }
@@ -104,7 +107,6 @@ NmEditorView::~NmEditorView()
     delete mMessage;
     mWidgetList.clear();
     delete mDocumentLoader;
-    delete mPrioritySubMenu;
 
     if (mAttachmentListContextMenu) {
         mAttachmentListContextMenu->clearActions();
@@ -139,8 +141,6 @@ void NmEditorView::loadViewLayout()
 {
     NM_FUNCTION;
     
-    mPrioritySubMenu = NULL;
-
     // Use the document loader to load the view.
     QObjectList objectList;
     objectList.append(this);
@@ -583,6 +583,30 @@ void NmEditorView::startMessageCreation(NmUiStartParam &startParam)
                 this,
                 SLOT(messageCreated(int)));
     }
+    
+    // Set focus
+    if (mContent && mContent->header() ) {
+        if (startMode == NmUiEditorCreateNew || XQServiceUtil::isEmbedded()) {
+            if (mContent->header()->toEdit()) {
+                mContent->header()->toEdit()->setFocus(Qt::OtherFocusReason);
+            }
+        }
+        else
+        {
+            if (mContent->editor()) {
+                mContent->editor()->setFocus(Qt::OtherFocusReason);
+            }
+        }
+    }
+
+    // Show VKB
+    QInputContext *ic = qApp->inputContext();
+
+    if(ic) {
+        QEvent *event = new QEvent(QEvent::RequestSoftwareInputPanel);
+        ic->filterEvent(event);
+        delete event;
+    }
 }
 
 /*!
@@ -751,34 +775,19 @@ void NmEditorView::updateMessageWithEditorContents()
         }
         if (mContent && mContent->header() ) {
             if (mContent->header()->subjectEdit()) {
-                mMessage->envelope().setSubject(
-                    mContent->header()->subjectEdit()->text());
+                mMessage->envelope().setSubject(mContent->header()->subjectEdit()->text());
             }
             if (mContent->header()->toEdit()) {
-                QString toFieldText =
-                    mContent->header()->toEdit()->text();
-
-                // This verification of zero length string isn't needed
-                // after list of addresses
-                if (toFieldText.length() > 0) {
-                    mMessage->envelope().setToRecipients(mContent->header()->toEdit()->emailAddressList());
-                }
+                mMessage->envelope().setToRecipients(
+                    mContent->header()->toEdit()->emailAddressList());
             }
             if (mContent->header()->ccEdit()) {
-                QString ccFieldText =
-                    mContent->header()->ccEdit()->text();
-
-                if (ccFieldText.length() > 0) {
-                    mMessage->envelope().setCcRecipients(mContent->header()->ccEdit()->emailAddressList());
-                }
+                mMessage->envelope().setCcRecipients(
+                    mContent->header()->ccEdit()->emailAddressList());
             }
             if (mContent->header()->bccEdit()) {
-                QString bccFieldText =
-                    mContent->header()->bccEdit()->text();
-
-                if (bccFieldText.length() > 0) {
-                    mMessage->envelope().setBccRecipients(mContent->header()->bccEdit()->emailAddressList());
-                }
+                mMessage->envelope().setBccRecipients(
+                    mContent->header()->bccEdit()->emailAddressList());
             }
         }
     }
@@ -1031,10 +1040,7 @@ void NmEditorView::createOptionsMenu()
     }
 
 	// Create Priority options menu object
-	if (!mPrioritySubMenu) {
-        mPrioritySubMenu = new HbMenu();
-    }
-    mPrioritySubMenu->clearActions();
+    HbMenu *prioritySubMenu = new HbMenu();
     NmActionRequest request(this, NmActionOptionsMenu, NmActionContextViewEditor,
             NmActionContextDataMessage, mStartParam->mailboxId(), mStartParam->folderId(),
             mStartParam->messageId());
@@ -1044,12 +1050,12 @@ void NmEditorView::createOptionsMenu()
     for (int i = 0; i < list.count(); i++) {
         // check what priority has already been selected and hide it from options menu
         if (!list[i]->objectName().contains(mHiddenPriorityName)) {
-            mPrioritySubMenu->addAction(list[i]);
+	        prioritySubMenu->addAction(list[i]);
         }
     }
-    mPrioritySubMenu->setObjectName("editorPrioritySubMenu");
-    mPrioritySubMenu->setTitle(hbTrId("txt_mail_opt_add_priority"));
-    menu()->addMenu(mPrioritySubMenu);
+    prioritySubMenu->setObjectName("editorPrioritySubMenu");
+    prioritySubMenu->setTitle(hbTrId("txt_mail_opt_add_priority"));
+    menu()->addMenu(prioritySubMenu);
 }
 
 /*!
@@ -1487,25 +1493,15 @@ QString NmEditorView::addressListToString(const QList<NmAddress*> &list) const
     NM_FUNCTION;
 
     QString addressesString;
-    QList<NmAddress*>::const_iterator i = list.constBegin();
-
-    while (i != list.constEnd() && *i) {
-        // Prioritize display name. Add the delimiter in the end also if
-        // address list ends to display name.
-        if ((*i)->displayName().length() > 0) {
-            addressesString += (*i)->displayName();
-            addressesString += NmDelimiter;
+    foreach (NmAddress *nmAddress,list) {
+        if (nmAddress->displayName().length() > 0) {
+            addressesString += nmAddress->displayName();
         }
         else {
-            if (i > list.constBegin()) {
-                // Add the delimiter.
-                addressesString += NmDelimiter;
-            }
-            addressesString += (*i)->address();
+            addressesString += nmAddress->address();
         }
-        ++i;
+        addressesString += NmDelimiter;
     }
-
     return addressesString;
 }
 
@@ -1610,13 +1606,19 @@ void NmEditorView::openAttachmentTriggered(NmId attachmentId)
     NmId folderId = mMessage->envelope().folderId();
     NmId msgId = mMessage->envelope().messageId();
 
-    XQSharableFile file = mUiEngine.messagePartFile(mailboxId, folderId,
-    		msgId, attachmentId);
-    int error = NmUtilities::openFile(file);
-    file.close();
-    if ( error == NmNotFoundError ) {
-        HbMessageBox *box = NmUtilities::displayWarningNote(hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty"));
-        box->setAttribute(Qt::WA_DeleteOnClose);
+    QList<NmMessagePart *> attachments;
+    mMessage->attachmentList(attachments);
+    foreach (NmMessagePart *part, attachments) {
+        if (part->partId() == attachmentId) {
+            // We need to fill the part before opening the attachment.
+            mUiEngine.contentToMessagePart(mailboxId,folderId,msgId, *part);
+            int error = NmUtilities::openAttachment(part,mTempFiles);
+            if ( error == NmGeneralError ) {
+                HbMessageBox *box = NmUtilities::displayWarningNote(hbTrId("txt_mail_dialog_unable_to_open_attachment_file_ty"));
+                box->setAttribute(Qt::WA_DeleteOnClose);
+            }
+            break;
+        }
     }
 }
 

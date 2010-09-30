@@ -79,7 +79,8 @@ EmailClientApi::NmApiMessageEnvelope NmToApiConverter::NmMessageEnvelope2NmApiMe
     api_env.setSender(envelope.sender().address());
     api_env.setSentTime(envelope.sentTime());
     api_env.setSubject(envelope.subject());
-    api_env.setMailboxId(envelope.messageId().id());
+    NmId mailboxId(envelope.mailboxId());
+    api_env.setMailboxId(mailboxId.id());
     api_env.setFlags(static_cast<EmailClientApi::NmApiMessageFlags>(static_cast<int>(envelope.flags())), true);
 
     return api_env;

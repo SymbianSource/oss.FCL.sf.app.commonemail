@@ -35,7 +35,7 @@
 <message numerus="no" id="txt_mail_subhead_outbox">
     <comment>Text for indicating the current folder in mail list view. Component is simple label</comment>        
     <source>Outbox</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>txt_mail_subhead_inbox</extra-loc-layout_id>    
     <extra-loc-viewid>mail_001</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
@@ -365,7 +365,7 @@
 <message numerus="no" id="txt_mail_list_searching">
     <comment>Text for indicating that the search is ongoing in mail list view. Component is simple label</comment>        
     <source>Searching</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>txt_mail_subhead_inbox</extra-loc-layout_id>    
     <extra-loc-viewid>mail_008</extra-loc-viewid>
     <extra-loc-positionid>list</extra-loc-positionid>
@@ -545,7 +545,7 @@
 <message numerus="no" id="txt_mail_dialog_select_file">
     <comment>Title text in file picker view. File picker view is opened when the user selects &quot;Other&quot; option from attachment list. For attaching files to mail messages. Underneath a list of selectable files is displayed.</comment>        
     <source>Select file</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_007</extra-loc-viewid>
     <extra-loc-positionid>dpophead</extra-loc-positionid>
@@ -563,12 +563,22 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dblist_no_messages_matched_your_search">
-    <comment>A text shown in mail list view, if there are no matches to a search.</comment>        
-    <source>No messages matched your search. Try another search term. </source>
+    <comment>A text shown in mail list view, if there are no matches to a search. Note! Draft English changed 8.9.2010</comment>        
+    <source>No matches found. Redefine search criteria.</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>txt_mail_dblist_val_no_subject</extra-loc-layout_id>    
     <extra-loc-viewid>mail_008</extra-loc-viewid>
     <extra-loc-positionid>dblist_4</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mail_list_type_to_search">
+    <comment>Hint text shown in search field. Text disappears when user starts typing search term.</comment>        
+    <source>Type to search</source>
+    <translation variants="yes" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_searchbox_pri_2</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_001_b</extra-loc-viewid>
+    <extra-loc-positionid>dialog_5</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -655,7 +665,7 @@
 <message numerus="no" id="txt_mail_dialog_send_via">
     <comment>Title for send via dialog. This dialog lists all mailboxes the user has. Underneath the title, a list of mailboxes is displayed. </comment>        
     <source>Send via</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
@@ -675,7 +685,7 @@
 <message numerus="no" id="txt_mail_subhead_sent_items">
     <comment>Text for indicating the current folder in mail list view. Component is simple label</comment>        
     <source>Sent items</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>txt_mail_subhead_inbox</extra-loc-layout_id>    
     <extra-loc-viewid>mail_001</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
@@ -715,7 +725,7 @@
 <message numerus="no" id="txt_mail_select_contacts">
     <comment>Title text shown in status pane when contacts are fetched from Phonebook.</comment>        
     <source>Select contacts</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail</extra-loc-viewid>
     <extra-loc-positionid>dpophead</extra-loc-positionid>
@@ -725,7 +735,7 @@
 <message numerus="no" id="txt_mail_dialog_no">
     <comment>Button for notes txt_mail_dialog_server_settings_incorrect and txt_mail_dialog_address_or_password_incorrect.</comment>        
     <source>No</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_softkey_2</extra-loc-layout_id>    
     <extra-loc-viewid>mail_dialog_14_15</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
@@ -825,7 +835,7 @@
 <message numerus="no" id="txt_mail_dialog_yes">
     <comment>Button for notes txt_mail_dialog_server_settings_incorrect and txt_mail_dialog_address_or_password_incorrect.</comment>        
     <source>Yes</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_softkey_2</extra-loc-layout_id>    
     <extra-loc-viewid>mail_dialog_14_15</extra-loc-viewid>
     <extra-loc-positionid>dialog</extra-loc-positionid>
@@ -986,7 +996,7 @@
 <message numerus="no" id="txt_mail_subhead_drafts">
     <comment>Text for indicating the current folder in mail list view. Component is simple label</comment>        
     <source>Drafts</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>txt_mail_subhead_inbox</extra-loc-layout_id>    
     <extra-loc-viewid>mail_001</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
@@ -994,8 +1004,8 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mail_dialog_address_or_password_incorrect">
-    <comment>Notification shown when the connection fails (e.g. when syncing) due to username or password. </comment>        
-    <source>Username or password is incorrect. Do you want to check the settings?</source>
+    <comment>Notification shown when the connection fails (e.g. when syncing) due to username or password. NOTE! Small addition to draft English (1.9.2010)</comment>        
+    <source>Username, password, or mail address is incorrect. Do you want to check the settings?</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri5</extra-loc-layout_id>    
     <extra-loc-viewid>mail_dialog_15</extra-loc-viewid>
@@ -1016,7 +1026,7 @@
 <message numerus="no" id="txt_mail_subhead_deleted_items">
     <comment>Text for indicating the current folder in mail list view. Component is simple label</comment>        
     <source>Deleted items</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>txt_mail_subhead_inbox</extra-loc-layout_id>    
     <extra-loc-viewid>mail_001</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>
@@ -1046,7 +1056,7 @@
 <message numerus="no" id="txt_mail_subhead_inbox">
     <comment>Custom layout ID parent. Text for indicating the current folder in mail list view. Component is simple label</comment>        
     <source>Inbox </source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>txt_mail_subhead_inbox</extra-loc-layout_id>    
     <extra-loc-viewid>mail_001</extra-loc-viewid>
     <extra-loc-positionid>subhead</extra-loc-positionid>

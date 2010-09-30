@@ -1732,4 +1732,15 @@ void CBasePlugin::RefreshCachedMailBoxDisplayNameL( TBool& aMailBoxNameHasChange
     
     CleanupStack::PopAndDestroy( &currentDisplayName );
     }
+ // <qmail> 
+/**
+ * Id - Return plugin implementation id  
+ *
+ */ 
+TUid CBasePlugin::Id( ) const
+    {
+    return TUid::Uid( GetPluginId() );
+    }
+// </qmail>
+
 

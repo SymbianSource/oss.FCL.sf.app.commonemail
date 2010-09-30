@@ -23,6 +23,8 @@
 #include <HbDataForm>
 #include <HbDataFormModel>
 #include <HbDocumentLoader>
+#include <HbLineEdit>
+#include <HbVkbHostBridge>
 
 #include "nmmailboxsettingview.h"
 #include "nmmailboxsettingsmanager.h"
@@ -80,10 +82,12 @@ NmMailboxSettingView::NmMailboxSettingView(const NmId &mailboxId,
     if (mForm) {
 
         qRegisterMetaType<QModelIndex>("QModelIndex");
+
         connect(mForm, SIGNAL(activated(QModelIndex)),
                 this, SLOT(itemActivated(QModelIndex)));
         connect(mForm, SIGNAL(itemShown(QModelIndex)),
                 this, SLOT(disablePredictiveText(QModelIndex)));
+
 
         // Fix for dataform item recycling.
         mForm->setItemRecycling(false);
@@ -183,6 +187,7 @@ void NmMailboxSettingView::itemActivated(const QModelIndex &index)
 
     int type(index.data(HbDataFormModelItem::ItemTypeRole).toInt());
 
+
     if (type == HbDataFormModelItem::GroupItem) {
 
         // Scroll the groupitem to top.
@@ -220,6 +225,7 @@ void NmMailboxSettingView::disablePredictiveText(const QModelIndex &index)
         HbWidget *widget = item->dataItemContentWidget();
         if (widget) {
             widget->setInputMethodHints(Qt::ImhNoPredictiveText);
+            widget->installEventFilter(this);
 		}
     }
 }
@@ -235,4 +241,33 @@ void NmMailboxSettingView::queuedScroll(const QModelIndex &index)
 
     mForm->scrollTo(index, HbAbstractItemView::PositionAtTop);
 }
+
+/*!
+    Forces HbLineEdit to emit editingFinished when focus has been removed from it, if VKB is open.
+    NOTE: This can be removed when VKB handling is fixed by orbit so that editingFinished signal is
+          emitted when group box is collapsed.
+
+    \param watched object that eventFilter has installed to.
+    \param event occured event.
+*/
+bool NmMailboxSettingView::eventFilter(QObject *watched, QEvent *event)
+{
+    if (event->type() == QFocusEvent::FocusOut) {
+        QGraphicsItem *item = qobject_cast<QGraphicsItem *>(watched);
+        if (item && item->type() == Hb::ItemType_LineEdit) {
+            HbVkbHostBridge *instance = HbVkbHostBridge::instance();
+            // Only force emit if VKB is open.
+            if(instance && instance->keypadStatus() == HbVkbHost::HbVkbStatusOpened) {
+                HbLineEdit *edit = static_cast<HbLineEdit *>(item);
+                // Save settings.
+                connect(this, SIGNAL(emitEditingFinished()), edit, SIGNAL(editingFinished()));
+                emit emitEditingFinished();
+                disconnect(this, SIGNAL(emitEditingFinished()), edit, SIGNAL(editingFinished()));
+            }
+        }
+    }
+    // Event has not been consumed.
+    return false;
+}
+
 // End of file.

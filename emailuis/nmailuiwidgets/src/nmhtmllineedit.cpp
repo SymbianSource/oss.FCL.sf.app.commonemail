@@ -16,6 +16,9 @@
 */
 
 #include "nmailuiwidgetsheaders.h"
+
+static const int NmLabelIndentUsePreviousValue = 0;
+
 /*
 #include "nmhtmllineedit.h"
 */
@@ -23,7 +26,8 @@
     Constructor
  */
 NmHtmlLineEdit::NmHtmlLineEdit(QGraphicsItem *parent) :
-    HbLineEdit(parent)
+    HbLineEdit(parent),
+    mIndent(0)
 {
     NM_FUNCTION;
 
@@ -85,6 +89,8 @@ void NmHtmlLineEdit::setHtml(const QString &text)
     NM_FUNCTION;
     
     HbAbstractEdit::setHtml(text);
+    // Resetting the indent is called because setting new content lose old indention set. 
+    setIndentForLabel(NmLabelIndentUsePreviousValue);    
 }
 
 QString NmHtmlLineEdit::toPlainText () const
@@ -99,6 +105,8 @@ void NmHtmlLineEdit::setPlainText (const QString &text)
     NM_FUNCTION;
     
     HbAbstractEdit::setPlainText(text);
+    // Resetting the indent is called because setting new content lose old indention set. 
+    setIndentForLabel(NmLabelIndentUsePreviousValue);    
 }
 
 /*!
@@ -124,11 +132,49 @@ bool NmHtmlLineEdit::hasInputFocus() const
 
 
 /*!
- *  Returns the rectangle for the cursor.
+ *  Returns the rectangle for the cursor including the predictive text area.  
+ *  HbAbstractEditPrivate::ensurePositionVisible() uses the same algorithm.
  */
 QRectF NmHtmlLineEdit::rectForCursorPosition() const
 {
     NM_FUNCTION;
     
-    return HbLineEdit::rectForPosition(cursorPosition());
+    int cursorPos = cursorPosition();
+    QRectF rect = rectForPosition(cursorPos);
+    QTextDocument *doc = document();
+    if (doc) {
+        rect.adjust(0, -doc->documentMargin(), 0, doc->documentMargin());
+        const QTextBlock block = doc->findBlock(cursorPos);
+        QTextLayout *blockLayout = block.layout();
+        if (block.isValid() && blockLayout) {
+            if (blockLayout->preeditAreaText().length()) {
+                // Adjust cursor rect so that predictive text will be also visible
+                rect.adjust(0, 0, boundingRect().width() / 2, 0);
+            }
+        }
+    }
+
+    return rect;
 }
+
+/*!
+    Set margin for the first line. This will create empty space
+    into begining of the edit field to reserve enough space for the
+    label text e.g. 'To:'.
+ */
+void NmHtmlLineEdit::setIndentForLabel(const qreal indent)
+{
+    NM_FUNCTION;
+	
+    // Check that should we use previous value or set new value.
+    // Previous value is used when edit field content is changed.
+    if (indent != NmLabelIndentUsePreviousValue) {
+        mIndent = indent;
+    }
+    QTextCursor cursor(this->document());
+    cursor.select(QTextCursor::BlockUnderCursor);
+    QTextBlockFormat format;
+    format.setTextIndent(mIndent);
+    cursor.mergeBlockFormat(format);
+}
+

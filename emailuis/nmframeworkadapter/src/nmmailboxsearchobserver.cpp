@@ -62,6 +62,8 @@ void NmMailboxSearchObserver::MatchFoundL(CFSMailMessage *aMatchMessage)
             emit matchFound(messageEnvelope.messageId(), messageEnvelope.folderId());
             delete message;
         }
+    delete aMatchMessage;
+    aMatchMessage = NULL;
     }
 }
 

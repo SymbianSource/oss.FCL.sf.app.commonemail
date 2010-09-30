@@ -60,9 +60,10 @@ inline void CFSMailPlugin::ListImplementationsL(
 //
 inline CFSMailPlugin* CFSMailPlugin::NewL(TUid aUid)
     {
-    return static_cast<CFSMailPlugin*>(
+    CFSMailPlugin* plugin = static_cast<CFSMailPlugin*>(
         REComSession::CreateImplementationL(
             aUid, _FOFF( CFSMailPlugin, iDtor_ID_Key ) ) );
+    return plugin;
     }
 
 // -----------------------------------------------------------------------------
@@ -150,16 +151,6 @@ inline void CFSMailPlugin::DeleteMessagesByUidL( const TFSMailMsgId& /*aMailBoxI
 inline HBufC* CFSMailPlugin::GetSignatureL( const TFSMailMsgId& /*aMailBoxId*/ )
     {
     return NULL;
-    }
-// </qmail>
-
-// <qmail>
-// -----------------------------------------------------------------------------
-// CFSMailPlugin::Id
-// -----------------------------------------------------------------------------
-inline TUid CFSMailPlugin::Id( ) const
-    {
-    return iDtor_ID_Key;
     }
 // </qmail>
 

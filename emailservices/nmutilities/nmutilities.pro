@@ -31,7 +31,7 @@ INCLUDEPATH += inc \
                ../../email_plat/contact_history_model_api \
                ../../inc \
                ../../../inc \
-               $$MW_LAYER_SYSTEMINCLUDE
+               $$APP_LAYER_SYSTEMINCLUDE
 
 DEPENDPATH += src \
               inc \
@@ -40,8 +40,7 @@ DEPENDPATH += src \
 
 MOC_DIR = tmp
 
-HEADERS   += nmcenrepkeys.h \
-             emailutilitiesdef.h \
+HEADERS   += emailutilitiesdef.h \
              emailmailboxinfo_p.h \
              emailmailboxinfo.h \
              emailmru.h \
@@ -49,7 +48,8 @@ HEADERS   += nmcenrepkeys.h \
              nmutilitiescommonheaders.h \
              nmcontacthistorymodel_p.h \
              inc/nmcontacthistorymodelcommon.h \
-             inc/nmcontacthistorymodel.h
+             inc/nmcontacthistorymodel.h \
+             nmuriparser.h
              
 SOURCES   += emailmailboxinfo_p.cpp \
              emailmailboxinfo.cpp \
@@ -57,7 +57,8 @@ SOURCES   += emailmailboxinfo_p.cpp \
              emailmru.cpp \
              nmcontacthistorymodelitem.cpp \
              nmcontacthistorymodel_p.cpp \
-             nmcontacthistorymodel.cpp
+             nmcontacthistorymodel.cpp \
+             nmuriparser.cpp
 
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1
@@ -66,9 +67,6 @@ symbian*: {
     TARGET.UID2 = 0x1000008D
     TARGET.UID3 = 0x2002EA97 
 
-    INCLUDEPATH += /epoc32/include/ecom \ 
-                   $$MW_LAYER_SYSTEMINCLUDE
-                      
     defBlock = \      
       "$${LITERAL_HASH}if defined(MARM)" \
       "DEFFILE  eabi/nmutilities.def" \
@@ -81,42 +79,37 @@ symbian*: {
     
     LIBS += -lcentralrepository 
     LIBS += -ltimezonelocalization 
-    LIBS += -lxqsettingsmanager 
+    LIBS += -lxqsettingsmanager
 }
 
-win32 {
-   DESTDIR = ../../bin
-}
 
 # Build.inf rules  
 BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
-                             "rom/nmutilities.iby $$CORE_APP_LAYER_IBY_EXPORT_PATH(nmutilities.iby)" \
-                             "data/icons/gmail.svg                  /epoc32/release/winscw/udeb/z/resource/apps/gmail.svg" \
-                             "data/icons/gmail.svg                  /epoc32/release/winscw/urel/z/resource/apps/gmail.svg" \
-                             "data/icons/gmail.svg                  /epoc32/data/z/resource/apps/gmail.svg" \
-                             "data/icons/microsoft.svg              /epoc32/release/winscw/udeb/z/resource/apps/microsoft.svg" \
-                             "data/icons/microsoft.svg              /epoc32/release/winscw/urel/z/resource/apps/microsoft.svg" \
-                             "data/icons/microsoft.svg              /epoc32/data/z/resource/apps/microsoft.svg" \
-                             "data/icons/ovi.svg                    /epoc32/release/winscw/udeb/z/resource/apps/ovi.svg" \
-                             "data/icons/ovi.svg                    /epoc32/release/winscw/urel/z/resource/apps/ovi.svg" \
-                             "data/icons/ovi.svg                    /epoc32/data/z/resource/apps/ovi.svg" \
-                             "data/icons/yahoo.svg                  /epoc32/release/winscw/udeb/z/resource/apps/yahoo.svg" \
-                             "data/icons/yahoo.svg                  /epoc32/release/winscw/urel/z/resource/apps/yahoo.svg" \
-                             "data/icons/yahoo.svg                  /epoc32/data/z/resource/apps/yahoo.svg" \
-                             "data/icons/aol.svg                    /epoc32/release/winscw/udeb/z/resource/apps/aol.svg" \
-                             "data/icons/aol.svg                    /epoc32/release/winscw/urel/z/resource/apps/aol.svg" \
-                             "data/icons/aol.svg                    /epoc32/data/z/resource/apps/aol.svg" \
-                             "data/2001E277.txt                     /epoc32/release/winscw/udeb/z/private/10202be9/2001E277.txt" \
-                             "data/2001E277.txt                     /epoc32/release/winscw/urel/z/private/10202be9/2001E277.txt" \
-                             "data/2001E277.txt                     /epoc32/data/z/private/10202be9/2001E277.txt" \
-                             "data/2003EA97.txt /epoc32/release/winscw/udeb/z/private/10202be9/2003EA97.txt" \
-                             "data/2003EA97.txt /epoc32/release/winscw/urel/z/private/10202be9/2003EA97.txt" \
-                             "data/2003EA97.txt /epoc32/data/z/private/10202be9/2003EA97.txt" \
-                             "data/nmutilities.confml               APP_LAYER_CONFML(nmutilities.confml)" \
-                             "data/nmutilities_200255BA.crml        APP_LAYER_CRML(nmutilities_200255BA.crml)" \
-                             "inc/emailmru.h APP_LAYER_PLATFORM_EXPORT_PATH(emailmru.h)" \
-                             "inc/emailmailboxinfo.h                APP_LAYER_PLATFORM_EXPORT_PATH(emailmailboxinfo.h)" \
-                             "inc/nmutilitiescommonheaders.h        APP_LAYER_PLATFORM_EXPORT_PATH(nmutilitiescommonheaders.h)" \
+                             "rom/nmutilities.iby                   $$CORE_APP_LAYER_IBY_EXPORT_PATH(nmutilities.iby)" \
+                             "data/gmail.svg                        /epoc32/release/winscw/udeb/z/resource/apps/gmail.svg" \
+                             "data/gmail.svg                        /epoc32/release/winscw/urel/z/resource/apps/gmail.svg" \
+                             "data/gmail.svg                        /epoc32/data/z/resource/apps/gmail.svg" \
+                             "data/microsoft.svg                    /epoc32/release/winscw/udeb/z/resource/apps/microsoft.svg" \
+                             "data/microsoft.svg                    /epoc32/release/winscw/urel/z/resource/apps/microsoft.svg" \
+                             "data/microsoft.svg                    /epoc32/data/z/resource/apps/microsoft.svg" \
+                             "data/ovi.svg                          /epoc32/release/winscw/udeb/z/resource/apps/ovi.svg" \
+                             "data/ovi.svg                          /epoc32/release/winscw/urel/z/resource/apps/ovi.svg" \
+                             "data/ovi.svg                          /epoc32/data/z/resource/apps/ovi.svg" \
+                             "data/yahoo.svg                        /epoc32/release/winscw/udeb/z/resource/apps/yahoo.svg" \
+                             "data/yahoo.svg                        /epoc32/release/winscw/urel/z/resource/apps/yahoo.svg" \
+                             "data/yahoo.svg                        /epoc32/data/z/resource/apps/yahoo.svg" \
+                             "data/aol.svg                          /epoc32/release/winscw/udeb/z/resource/apps/aol.svg" \
+                             "data/aol.svg                          /epoc32/release/winscw/urel/z/resource/apps/aol.svg" \
+                             "data/aol.svg                          /epoc32/data/z/resource/apps/aol.svg" \
+                             "conf/2001E277.txt                     /epoc32/release/winscw/udeb/z/private/10202be9/2001E277.txt" \
+                             "conf/2001E277.txt                     /epoc32/release/winscw/urel/z/private/10202be9/2001E277.txt" \
+                             "conf/2001E277.txt                     /epoc32/data/z/private/10202be9/2001E277.txt" \
+                             "conf/2003EA97.txt                     /epoc32/release/winscw/udeb/z/private/10202be9/2003EA97.txt" \
+                             "conf/2003EA97.txt                     /epoc32/release/winscw/urel/z/private/10202be9/2003EA97.txt" \
+                             "conf/2003EA97.txt                     /epoc32/data/z/private/10202be9/2003EA97.txt" \
+                             "conf/nmutilities.confml               APP_LAYER_CONFML(nmutilities.confml)" \
+                             "conf/nmutilities_200255BA.crml        APP_LAYER_CRML(nmutilities_200255BA.crml)" \
+                             "inc/emailmru.h                        APP_LAYER_PLATFORM_EXPORT_PATH(emailmru.h)" \
                              "inc/emailutilitiesdef.h               APP_LAYER_PLATFORM_EXPORT_PATH(emailutilitiesdef.h)" \
-                             "inc/nmcenrepkeys.h                    APP_LAYER_PLATFORM_EXPORT_PATH(nmcenrepkeys.h)" \ 
-                             "inc/nmuieventsnotifier.h              APP_LAYER_PLATFORM_EXPORT_PATH(nmuieventsnotifier.h)"
+                             "inc/nmuieventsnotifier.h              APP_LAYER_PLATFORM_EXPORT_PATH(nmuieventsnotifier.h)" \
+                             "inc/nmuriparser.h                     APP_LAYER_PLATFORM_EXPORT_PATH(nmuriparser.h)"

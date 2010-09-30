@@ -33,7 +33,10 @@ class NMAPI_EXPORT NmApiMessage
 {
 public:
     NmApiMessage();
+    NmApiMessage(const NmApiMessage &other);
     virtual ~NmApiMessage();
+
+    NmApiMessage& operator=(const NmApiMessage &other);    
 
     NmApiTextContent plainTextContent();
     NmApiTextContent htmlContent();
@@ -48,8 +51,8 @@ public:
     void setEnvelope(NmApiMessageEnvelope &envelope);
     
 private:
-    
-    NmApiMessagePrivate *d;
+
+    QSharedDataPointer<NmApiMessagePrivate> d;
 };
 } // namespace EmailClientApi
 

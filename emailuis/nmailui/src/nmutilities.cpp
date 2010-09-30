@@ -39,6 +39,8 @@ static const QRegExp NmEmailAddressPattern("[A-Za-z\\d!#$%&'*+/=?^_`{|}~-]+"
                                          ")?"
                                         );
 
+static const QRegExp NmEmailDisplayNamePattern("<"+NmEmailAddressPattern.pattern()+">$");
+static const QRegExp NmEmailGreaterThenLessThen(">|<");
 /*!
    Gets valid, invalid or all the recipients from a message
  */
@@ -175,7 +177,7 @@ QString NmUtilities::cleanupDisplayName( const QString &displayName )
   Opens file specified by XQSharableFile handle. Usually used by viewer
   for opening attachments from message store as RFiles
 */
-int NmUtilities::openFile(XQSharableFile &file)
+int NmUtilities::openFile(XQSharableFile &file, QObject* listener)
 {
     NM_FUNCTION;
 
@@ -186,10 +188,15 @@ int NmUtilities::openFile(XQSharableFile &file)
     // Create request for the sharable file
     if (request)
     {
+        QObject::connect(request, SIGNAL(requestOk(const QVariant&)),
+                            listener, SLOT(fileOpenCompleted(const QVariant&)));
+        QObject::connect(request, SIGNAL(requestError(int, const QString&)),
+                                    listener, SLOT(fileOpenError(int, const QString&)));
         // Set request arguments
         QList<QVariant> args;
         args << qVariantFromValue(file);
         request->setArguments(args);
+        request->setSynchronous(false);
         // Send the request, ownership of request is transferred
         bool res = request->send();
         if (res) {
@@ -198,6 +205,82 @@ int NmUtilities::openFile(XQSharableFile &file)
         }
     }
     return ret;
+}
+
+/*!
+   Opens an attachment part via QtHighway. Message part object that is passed
+   to this function must contain binary content, because it is written to a
+   temporary file. List passed is appended with the new temporary filename
+   that is opened. This can be then used to delete the temporary files created
+   with for example NmUtilities::deleteTempFiles function.
+   
+   \param part attachment message part which should contain binary content.
+   \param tmpFiles list of filenames that is appended with new one.
+   \param listener XQAiwRequest listener for listening request send completion
+   \retun int NmGeneralError, if the above requirements aren't filled. Also
+              if file type isn't supported.
+*/
+int NmUtilities::openAttachment(NmMessagePart *part, 
+                                QList<QString> &tmpFiles,
+                                QObject* listener)
+{
+    int ret(NmGeneralError);
+
+    if (part) {
+        // Create a temp file that points to system temp folder.
+        QFile file(QDir::tempPath()+QDir::separator()+part->attachmentName());
+            
+        if (file.open(QIODevice::ReadWrite)) {
+            // Write content to file and close it so it can be used by other
+            // processes.
+            if (file.write(part->binaryContent()) > 0) {
+                file.close();
+                
+                // Create a request from the file.
+                XQApplicationManager aiwMgr;
+                XQAiwRequest *request = aiwMgr.create(file);
+                if (request)
+                {
+                    QObject::connect(request, SIGNAL(requestOk(const QVariant&)),
+                                        listener, SLOT(fileOpenCompleted(const QVariant&)));
+                    QObject::connect(request, SIGNAL(requestError(int, const QString&)),
+                                        listener, SLOT(fileOpenError(int, const QString&)));
+                    // Set request argument.
+                    QList<QVariant> args;
+                    args << file.fileName();
+                    request->setArguments(args);
+                    if (listener) {
+                        request->setSynchronous(false);
+                    }
+                    // Send the request
+                    bool res = request->send();
+                    if (res) {
+                        // Request ok, set error status.
+                        ret = NmNoError;
+                    }
+                }
+                if (!listener) {
+                    delete request;    
+                }
+            }
+            tmpFiles.append(file.fileName());
+        }
+    }
+    return ret;
+}
+
+/*
+ * Deletes files represented in the given list. Also clears
+ * the list after deletion.
+ * 
+ * \param tmpFiles list of files to be removed.
+ */
+void NmUtilities::deleteTempFiles(QList<QString> &tmpFiles)
+{
+    foreach (QString fileName,tmpFiles) {
+        QFile::remove(fileName);
+    }
+    tmpFiles.clear();
 }
 
 /*!
@@ -398,4 +481,24 @@ NmAddress *NmUtilities::qstringToNmAddress(QString str)
         nmAddress = new NmAddress(str);
     }
     return nmAddress;
+}
+
+/*
+ * Function creates a list of NmAddress objects from a string list, that contains email addresses.
+ * \param const QStringList &strlist list of email address strings
+ * \return QList<NmAddress*> *NmAddresses list of NmAddress objects. Returns NULL if strlist does
+ * not contain strings.
+ */
+QList<NmAddress*> *NmUtilities::qstringListToNmAddressList(const QStringList &strlist)
+{
+    QList<NmAddress*> *addresses = NULL;
+    if(!strlist.isEmpty()) {
+        addresses = new QList<NmAddress*>;
+        QString tempString;
+        foreach(tempString, strlist) {
+            NmAddress *address = new NmAddress(tempString);
+            addresses->append(address);
+        }
+    }
+    return addresses;
 }

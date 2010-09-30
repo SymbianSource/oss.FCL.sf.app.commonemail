@@ -368,4 +368,32 @@ EXPORTS
 	_ZNK14EmailClientApi20NmApiMessageEnvelope8priorityEv @ 367 NONAME
 	_ZNK14EmailClientApi20NmApiMessageEnvelope9isFlagSetENS_16NmApiMessageFlagE @ 368 NONAME
 	_ZN14EmailClientApi17NmApiEmailService10getMessageEyyyRNS_12NmApiMessageE @ 369 NONAME
+	_ZN14EmailClientApi17NmApiEmailService9getFolderEyyRNS_11NmApiFolderE @ 370 NONAME
+	_ZN14EmailClientApi14NmApiOperation11qt_metacallEN11QMetaObject4CallEiPPv @ 371 NONAME
+	_ZN14EmailClientApi14NmApiOperation11qt_metacastEPKc @ 372 NONAME
+	_ZN14EmailClientApi14NmApiOperation16staticMetaObjectE @ 373 NONAME DATA 16
+	_ZN14EmailClientApi14NmApiOperation17operationCompleteEi8QVariant @ 374 NONAME
+	_ZN14EmailClientApi14NmApiOperation19getStaticMetaObjectEv @ 375 NONAME
+	_ZN14EmailClientApi14NmApiOperationC2EP7QObjectNS_20NmApiOperationStatusENS_18NmApiOperationTypeE @ 376 NONAME
+	_ZN14EmailClientApi14NmApiOperationD0Ev @ 377 NONAME
+	_ZN14EmailClientApi14NmApiOperationD1Ev @ 378 NONAME
+	_ZN14EmailClientApi14NmApiOperationD2Ev @ 379 NONAME
+	_ZNK14EmailClientApi14NmApiOperation10metaObjectEv @ 380 NONAME
+	_ZNK14EmailClientApi14NmApiOperation6statusEv @ 381 NONAME
+	_ZNK14EmailClientApi14NmApiOperation9operationEv @ 382 NONAME
+	_ZTIN14EmailClientApi14NmApiOperationE @ 383 NONAME
+	_ZTVN14EmailClientApi14NmApiOperationE @ 384 NONAME
+	_ZN14EmailClientApi12NmApiMessageC1ERKS0_ @ 385 NONAME
+	_ZN14EmailClientApi12NmApiMessageC2ERKS0_ @ 386 NONAME
+	_ZN14EmailClientApi12NmApiMessageaSERKS0_ @ 387 NONAME
+	_ZN14EmailClientApi15NmApiAttachmentC1ERKS0_ @ 388 NONAME
+	_ZN14EmailClientApi15NmApiAttachmentC2ERKS0_ @ 389 NONAME
+	_ZN14EmailClientApi15NmApiAttachmentaSERKS0_ @ 390 NONAME
+	_ZN14EmailClientApi16NmApiTextContentC1ERKS0_ @ 391 NONAME
+	_ZN14EmailClientApi16NmApiTextContentC2ERKS0_ @ 392 NONAME
+	_ZN14EmailClientApi16NmApiTextContentaSERKS0_ @ 393 NONAME
+	_ZN14EmailClientApi19NmApiMessageContentC1ERKS0_ @ 394 NONAME
+	_ZN14EmailClientApi19NmApiMessageContentC2ERKS0_ @ 395 NONAME
+	_ZN14EmailClientApi19NmApiMessageContentaSERKS0_ @ 396 NONAME
+	_ZN14EmailClientApi20NmApiMailboxSettings14getMailboxTypeEy @ 397 NONAME
 

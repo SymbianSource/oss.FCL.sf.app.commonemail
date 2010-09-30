@@ -6,6 +6,7 @@ extern bool entryCountCalled;
 extern bool getEntryCalled;
 extern bool nameOrderCalled;
 extern bool fillMruWithFalseValues;
+extern bool returnFalseFromGetEntry;
 
 EmailMRU::EmailMRU()
 {
@@ -85,6 +86,11 @@ bool EmailMRU::getEntry(qint32 entryIndex, QString &displayName, QString &addres
                 success = false;
             break;
         }
+    }
+
+    if (returnFalseFromGetEntry) 
+    {
+        success = false;
     }
 
     return success;

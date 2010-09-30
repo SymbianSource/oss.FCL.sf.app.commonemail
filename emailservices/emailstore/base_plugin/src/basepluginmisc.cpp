@@ -28,14 +28,15 @@
 #include "baseplugincommonutils.h"
 #include "baseplugindelayedopsprivate.h"
 
+// <qmail>
 /**
  * Base plugin has no particular id.
  */
-TUint CBasePlugin::GetPluginId()
+TUint CBasePlugin::GetPluginId() const
     {
     return 0;
     }
-
+// </qmail>
 
 /**
  *

@@ -17,6 +17,7 @@
 
 #include <QList>
 
+#include "emailtrace.h"
 #include "nmcontacthistorymodel.h"
 #include "nmcontacthistorymodel_p.h"
 
@@ -31,8 +32,8 @@
 NmContactHistoryModel::NmContactHistoryModel(
     const NmContactHistoryModelType modelType)
 {
+    NM_FUNCTION;
     d_ptr = new NmContactHistoryModelPrivate(modelType);
-    Q_CHECK_PTR(d_ptr);
 
     QObject::connect(d_ptr, SIGNAL(queryCompleted(int)), this,
         SLOT(handleQueryCompleted(int)));
@@ -43,6 +44,7 @@ NmContactHistoryModel::NmContactHistoryModel(
  */
 NmContactHistoryModel::~NmContactHistoryModel()
 {
+    NM_FUNCTION;
     delete d_ptr;
 }
 
@@ -53,6 +55,7 @@ NmContactHistoryModel::~NmContactHistoryModel()
 */
 void NmContactHistoryModel::query(const QString &query)
 {
+    NM_FUNCTION;
     d_ptr->queryDatabases(query);
 }
 
@@ -64,8 +67,9 @@ void NmContactHistoryModel::query(const QString &query)
 */
 void NmContactHistoryModel::handleQueryCompleted(int err)
 {
+    NM_FUNCTION;
 
-    int lastUpdateIndex = (d_ptr->mPrivateItemList.count())-1;
+    int lastUpdateIndex = (d_ptr->privateDataCount())-1;
 
     if (lastUpdateIndex != -1)
     {
@@ -79,7 +83,7 @@ void NmContactHistoryModel::handleQueryCompleted(int err)
 
         if (validIndex)
         {
-            dataChanged(index(0,0), index(lastUpdateIndex,0));
+            emit dataChanged(index(0,0), index(lastUpdateIndex,0));
         }
     }
 
@@ -93,7 +97,8 @@ void NmContactHistoryModel::handleQueryCompleted(int err)
 */
 int NmContactHistoryModel::rowCount(const QModelIndex &parent) const
 {
-    return d_ptr->rowCount(parent);
+    NM_FUNCTION;
+    return d_ptr->modelRowCount(parent);
 }
 
 /*!
@@ -104,6 +109,7 @@ int NmContactHistoryModel::rowCount(const QModelIndex &parent) const
 */
 QVariant NmContactHistoryModel::data(const QModelIndex &index, int role) const
 {
+    NM_FUNCTION;
     return d_ptr->data(index, role);
 }
 

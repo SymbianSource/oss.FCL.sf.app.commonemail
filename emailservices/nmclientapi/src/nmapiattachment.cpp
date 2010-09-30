@@ -30,11 +30,30 @@ NmApiAttachment::NmApiAttachment()
 }
 
 /*!
+    Class copy constructor.
+*/
+NmApiAttachment::NmApiAttachment(const NmApiAttachment &attachment)
+{
+    NM_FUNCTION;
+    d = attachment.d;
+}
+
+/*!
     Class destructor.
 */
 NmApiAttachment::~NmApiAttachment()
 {
     NM_FUNCTION;
+}
+
+NmApiAttachment& NmApiAttachment::operator=(const NmApiAttachment &attachment)
+{
+    if (this == &attachment)
+        return *this;
+    
+    d = attachment.d;
+
+    return *this;
 }
 
 /*!

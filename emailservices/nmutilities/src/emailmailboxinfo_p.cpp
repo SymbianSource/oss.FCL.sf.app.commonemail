@@ -15,31 +15,30 @@
  *
  */
 
-#include "emailtrace.h"
-
-#include "emailmailboxinfo_p.h"
 #include "nmutilitiescommonheaders.h"
-#include "nmcenrepkeys.h"
-#include <QRegExp>
-#include <QStringList>
 
-const unsigned long int partialKey = 0x0;
-const unsigned long int bitMask = 0x0F000000;
+// data type match the types used by the corresponding APIs
+const long int NmEmailCenrep = 0x2001E277;
+const unsigned long int NmWlbBrandName = 0xfffffffb;
+const unsigned long int NmWlbMailboxName = 0xfffffffc;
+const unsigned long int NmWlbIconPath = 0xfffffffd;
+
+const unsigned long int NmPartialKey = 0x0;
+const unsigned long int NmBitMask = 0x0F000000;
 
 EmailMailboxInfoPrivate* EmailMailboxInfoPrivate::mSelf = NULL;
-qint32 EmailMailboxInfoPrivate::mReferenceCount = 0;
+int EmailMailboxInfoPrivate::mReferenceCount = 0;
 
-const QString KBrandNameGmail("Gmail");
-const QString KBrandNameGoogleMail("Google Mail");
+const QString NmBrandNameGmail("Gmail");
+const QString NmBrandNameGoogleMail("Google Mail");
 
-const QString KMCCGermany("262");
-const QString KMCCUK1("234");
-const QString KMCCUK2("235");
+const QString NmMCCGermany("262");
+const QString NmMCCUK1("234");
+const QString NmMCCUK2("235");
 
-const quint8 KGermanyTzId = 36;
-const quint8 KUKTzId = 104;
+const quint8 NmGermanyTzId = 36;
+const quint8 NmUKTzId = 104;
 
-using namespace NmBrandingApi;
 using namespace QtMobility;
 
 /*!
@@ -51,9 +50,8 @@ EmailMailboxInfoPrivate::EmailMailboxInfoPrivate() :
     NM_FUNCTION;
     
     XQSettingsManager manager;
-    XQCentralRepositorySettingsKey rccKey(EMAIL_CENREP, RCC_PATH);
 
-    XQCentralRepositorySettingsKey wlbKey(EMAIL_CENREP, WLB_BRAND_NAME);
+    XQCentralRepositorySettingsKey wlbKey(NmEmailCenrep, NmWlbBrandName);
 
     mWlbDomainName = manager.readItemValue(wlbKey, XQSettingsManager::TypeString).value<QString> ();    
 }
@@ -103,18 +101,14 @@ void EmailMailboxInfoPrivate::releaseInstance(EmailMailboxInfoPrivate *&instance
     \param branding identifier
     \return branding name
  */
-QString EmailMailboxInfoPrivate::name(const QVariant &identifier)
+QString EmailMailboxInfoPrivate::name(const QString &identifier)
 {
     NM_FUNCTION;
     
     QString returnValue = "";
-    QString domainName = "";
-    if (identifier.canConvert<QString> ()) {
-        domainName = identifier.value<QString> ();
-    }
 
-    if (domainName.length() > 0) {
-        processCenRepRecords(domainName);
+    if (identifier.length() > 0) {
+        processCenRepRecords(identifier);
         returnValue = mTempName;
     }
 
@@ -128,22 +122,14 @@ QString EmailMailboxInfoPrivate::name(const QVariant &identifier)
     \param branding identifier
     \return branding icon
  */
-QString EmailMailboxInfoPrivate::icon(const QVariant &identifier)
+QString EmailMailboxInfoPrivate::icon(const QString &identifier)
 {
     NM_FUNCTION;
     
     QString returnValue = "";
-    QString domainName = "";
-    if (identifier.canConvert<QString> ()) {
-        domainName = identifier.value<QString> ();
-        int delimIndex = domainName.lastIndexOf('@');
-        if(delimIndex >= 0) {
-            domainName = domainName.mid(delimIndex + 1);
-        }
-    }
 
-    if (domainName.length() > 0){
-        processCenRepRecords(domainName);
+    if (identifier.length() > 0) {
+        processCenRepRecords(identifier);
         returnValue = mTempIcon;
     }
 
@@ -166,62 +152,60 @@ void EmailMailboxInfoPrivate::processCenRepRecords(const QString &brandingId)
 
     if (brandingId == mWlbDomainName) {
         found = true;
-        XQCentralRepositorySettingsKey wlbNameKey(EMAIL_CENREP, WLB_MAILBOX_NAME);
-        XQCentralRepositorySettingsKey wlbIconKey(EMAIL_CENREP, WLB_ICON_PATH);
+        XQCentralRepositorySettingsKey wlbNameKey(NmEmailCenrep, NmWlbMailboxName);
+        XQCentralRepositorySettingsKey wlbIconKey(NmEmailCenrep, NmWlbIconPath);
 
-        icon = cenRepManager.readItemValue(wlbIconKey, XQSettingsManager::TypeString).value<QString> ();
-        name = cenRepManager.readItemValue(wlbNameKey, XQSettingsManager::TypeString).value<QString> ();
+        icon = cenRepManager.readItemValue(
+            wlbIconKey, XQSettingsManager::TypeString).value<QString> ();
+        
+        name = cenRepManager.readItemValue(
+            wlbNameKey, XQSettingsManager::TypeString).value<QString> ();
     }
     else {
-        XQCentralRepositorySearchCriteria sCriteria(EMAIL_CENREP, partialKey, bitMask);
+        XQCentralRepositorySearchCriteria sCriteria(NmEmailCenrep, NmPartialKey, NmBitMask);
         XQCentralRepositoryUtils cenrepUtils(cenRepManager);
         QList<XQCentralRepositorySettingsKey> foundKeys = cenrepUtils.findKeys(sCriteria);
 
-        foreach(XQCentralRepositorySettingsKey key, foundKeys)
-        {
+        int count = foundKeys.count();
+        for (int i = 0; i < count && !found; i++) {
+            XQCentralRepositorySettingsKey key = foundKeys[i];
+
             QString dataRow = "";
             if (mBrandingDataMap.contains(key.key())) {
                 dataRow = mBrandingDataMap.value(key.key());
             }
             //first we put every spotted data row to map
             else {
-                QVariant brandingDataRaw = cenRepManager.readItemValue(key,
-					XQSettingsManager::TypeString);
-                if (brandingDataRaw.canConvert<QString>()) {
-                    dataRow = brandingDataRaw.value<QString>();
-                    mBrandingDataMap.insert(key.key(), dataRow);
-                }
+                QVariant brandingDataRaw = cenRepManager.readItemValue(
+                    key, XQSettingsManager::TypeString);
+
+                dataRow = brandingDataRaw.toString(); // empty if cannot be converted
+                mBrandingDataMap.insert(key.key(), dataRow);
             }
 
             // then we check if this row contains matching data
             QStringList cenRepRecord = dataRow.split(";");
 
-            if (cenRepRecord.size() < 4) {
-                continue;
-            }
+            if (cenRepRecord.size() >= 3) {
 
-            if (!brandingId.contains(cenRepRecord.at(0), Qt::CaseInsensitive)) {
-                continue;
-            }
-
-            QRegExp regExp(cenRepRecord.at(1));
-            regExp.setCaseSensitivity(Qt::CaseInsensitive);
-
-            if (regExp.exactMatch(brandingId)) { //match
-                found = true;
-                icon = "z:/resource/apps/" + cenRepRecord.at(3) + ".svg";
-                name = cenRepRecord.at(2);
-                break;
+                QRegExp regExp(cenRepRecord.at(0));
+                regExp.setCaseSensitivity(Qt::CaseInsensitive);
+    
+                if (regExp.exactMatch(brandingId)) { //match
+                    found = true;
+                    icon = "z:/resource/apps/" + cenRepRecord.at(2) + ".svg";
+                    name = cenRepRecord.at(1);
+                }
             }
         }
     }
     if (!found ) { 
         //get default icon and name
         icon = "qtg_large_email";
+        // If "." does not match anywhere in the string, split() returns a single-element list 
+        // containing brandingId string => no safety check needed
         QStringList domain = brandingId.split(".");
-        if (domain.size() > 0) {
-            name = domain.at(0);
-        }
+        name = domain.at(0);
     }
     mTempIcon = icon;
     mTempName = name;
@@ -231,24 +215,33 @@ void EmailMailboxInfoPrivate::processCenRepRecords(const QString &brandingId)
     gets current country code
     \return current country id
  */
-quint8 EmailMailboxInfoPrivate::getCurrentCountryL() const
+int EmailMailboxInfoPrivate::getCurrentCountryL() const
 {
     NM_FUNCTION;
+    
+    int countryId = NmNotFoundError;
     
     CTzLocalizer* localizer = CTzLocalizer::NewLC();
 
     CTzLocalizedCity* city = localizer->GetFrequentlyUsedZoneCityL(
         CTzLocalizedTimeZone::ECurrentZone);
-    CleanupStack::PushL(city);
+    
+    if (city) {
+        CleanupStack::PushL(city);
 
-    CTzLocalizedCityGroup* cityGroup = localizer->GetCityGroupL(city->GroupId());
+        CTzLocalizedCityGroup* cityGroup = localizer->GetCityGroupL(city->GroupId());
+        
+        if (cityGroup) {
+            countryId = cityGroup->Id();
 
-    TUint8 countryId = cityGroup->Id();
+            delete cityGroup;
+            cityGroup = NULL;
+            
+        }
+        CleanupStack::PopAndDestroy(city);
+    }
 
-    delete cityGroup;
-    cityGroup = NULL;
-
-    CleanupStack::PopAndDestroy(2, localizer);
+    CleanupStack::PopAndDestroy(localizer);
 
     return countryId;
 }
@@ -265,7 +258,7 @@ bool EmailMailboxInfoPrivate::verifyTimeZone() const
     bool retVal = false;
     TRAPD(err, timeZone = getCurrentCountryL());
 
-    if (err == KErrNone && (timeZone == KGermanyTzId || timeZone == KUKTzId)) {
+    if (err == KErrNone && (timeZone == NmGermanyTzId || timeZone == NmUKTzId)) {
         retVal = true;
     }
     return retVal;
@@ -279,19 +272,15 @@ void EmailMailboxInfoPrivate::verifyMailAccountName(QString &brandingName) const
 {
     NM_FUNCTION;
     
-    QSystemNetworkInfo *networkInfo = new QSystemNetworkInfo();
-    QString currentMCC = networkInfo->currentMobileCountryCode();
+    if (brandingName == NmBrandNameGmail) {
+        QSystemNetworkInfo *networkInfo = new QSystemNetworkInfo();
+        QString currentMCC = networkInfo->currentMobileCountryCode();
 
-    if (brandingName == KBrandNameGmail) {
-        if (currentMCC.size() > 0) {
-            if ((currentMCC == KMCCGermany) || (currentMCC == KMCCUK1) || (currentMCC == KMCCUK2)) {
-                brandingName = KBrandNameGoogleMail;
-            }
+        if ((currentMCC == NmMCCGermany) || (currentMCC == NmMCCUK1) || (currentMCC == NmMCCUK2)) {
+            brandingName = NmBrandNameGoogleMail;
         }
-        else { //if there is information (no sim)
-            if (verifyTimeZone()) {
-                brandingName = KBrandNameGoogleMail;
-            }
+        else if (verifyTimeZone()) { //if there is information (no sim)
+            brandingName = NmBrandNameGoogleMail;
         }
     }
 }

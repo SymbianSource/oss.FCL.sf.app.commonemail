@@ -562,6 +562,9 @@ void NmApplication::enterNmUiView(NmUiStartParam *startParam)
         // view if started as service to editor view (ShareUI).
         if (mActiveViewId == startParam->viewId() &&
         	(!startParam->service() || mActiveViewId!=NmUiViewMessageEditor)) {
+            
+            //startParam pointer is tested before usage below
+            //coverity[deref_arg]
             mViewStack->top()->reloadViewContents(startParam);
         }
         else {

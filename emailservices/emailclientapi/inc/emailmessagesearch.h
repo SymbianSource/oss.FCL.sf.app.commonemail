@@ -144,6 +144,11 @@ private:
      * Function leaves if search is going on. Otherwise it doesn't do anything.
      */
     inline void IsSearchGoingOnL() const; 
+    
+    /**
+     * Cancels search. For private use.
+     */
+    void CancelSearch();
 
 private:
     

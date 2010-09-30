@@ -23,7 +23,6 @@
 
 class NmHsWidgetEmailEngine;
 class NmHsWidgetTitleRow;
-class NmHsWidgetEmailRow;
 class QGraphicsLinearLayout;
 class QTranslator;
 class HbFrameDrawer;
@@ -32,7 +31,6 @@ class HbLabel;
 class HbDocumentLoader;
 class HbListView;
 class NmHsWidgetListModel;
-class NmHsWidgetListView;
 class QModelIndex;
 
 

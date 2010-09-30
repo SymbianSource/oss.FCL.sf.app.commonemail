@@ -164,10 +164,10 @@ enum NmMailSortOrder
     };
 Q_DECLARE_METATYPE(NmMailSortOrder)
 
+
 /*!
 	NMail error codes
 */
-
 const int NmNoError = 0;
 const int NmNotFoundError = -1;
 const int NmGeneralError = -2;
@@ -175,6 +175,8 @@ const int NmCancelError = -3;
 const int NmAuthenticationError = -200;
 const int NmServerConnectionError = -201;
 const int NmConnectionError = -202;
+const int NmDiskFullError = -300;
+
 
 /*!
 	Predefined constants for ContentTypes and parameters
@@ -201,7 +203,7 @@ const QString NmContentDescrAttachmentHtml = "Attachment.html";
    
    It is used in NmFrameworkAdapter and NmDataPluginInterface
  */
-static const int NmMaxItemsInMessageList = 1000;
+static const int NmMaxItemsInMessageList = 2000;
 
 /*!
     \class NmId

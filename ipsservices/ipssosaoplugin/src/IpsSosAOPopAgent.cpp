@@ -237,8 +237,14 @@ TBool CIpsSosAOPopAgent::IsConnected() const
     FUNC_LOG;
     TMsvEntry tentry;
     TMsvId service;
-    iSession.GetEntry( iServiceId, service, tentry );
-    return tentry.Connected();
+    if (iSession.GetEntry( iServiceId, service, tentry ) == KErrNone)
+        {
+        return tentry.Connected();
+        }
+    else
+        {
+        return EFalse;
+        }
     }
 
 // ----------------------------------------------------------------------------

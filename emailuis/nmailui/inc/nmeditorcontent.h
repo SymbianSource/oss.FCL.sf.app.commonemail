@@ -52,6 +52,9 @@ public:
 
     NmEditorHeader* header() const;
     
+public:
+    bool eventFilter(QObject *obj, QEvent *event);
+
 private:
     void createConnections();
     void removeEmbeddedImages(QString &bodyContent);
@@ -59,6 +62,7 @@ private:
     void createDivisionFromHead(QString &bodyContent);
     void convertBodyToDiv(QString &bodyContent, const QString &replacementString);
     void convertBGColorToStyle(QString &bodyContent);
+    
 
 signals:
     void setPlainText(const QString&);

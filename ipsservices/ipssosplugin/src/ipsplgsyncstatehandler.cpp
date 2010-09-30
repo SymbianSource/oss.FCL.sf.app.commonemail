@@ -88,10 +88,31 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
     
     TInt err = iSession.GetEntry( aMailboxId.Id(), service, tEntry );
 
-    if ( err != KErrNone || iOperationsRef.Count() == 0 )
+    if ( err != KErrNone )
         {
         return Idle;
         }
+    
+    RAlwaysOnlineClientSession aosession;
+    
+    err = aosession.Connect();
+    if ( err == KErrNone )
+        {
+        
+        TPckgBuf<TInt> idBuf( aMailboxId.Id() );
+        TInt status = KErrNotFound;
+        TPckgBuf<TInt> statusBuf( status );
+        TInt error = aosession.SendReceiveSync(
+            EServerAPIEmailQueryState, idBuf, statusBuf );
+        status = statusBuf();
+        if ( error == KErrNone && 
+                status == EIpsAOPluginStatusSyncStarted )
+            {
+            aosession.Close();
+            return EmailSyncing;
+            }
+        }
+    aosession.Close();
 
     // If the mailbox is not online but it has some connection operation
     // already running, it means that it will be synchronized when the mailbox
@@ -113,28 +134,10 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
             }
         }
 
-#ifndef RD_101_EMAIL    
+//#ifndef RD_101_EMAIL    
 // <cmail> RD_IPS_AO_PLUGIN flaf removed
-    RAlwaysOnlineClientSession aosession;
-    
-    err = aosession.Connect();
-    if ( err == KErrNone )
-        {
-        
-        TPckgBuf<TInt> idBuf( aMailboxId.Id() );
-        TInt status = KErrNotFound;
-        TPckgBuf<TInt> statusBuf( status );
-        TInt error = aosession.SendReceiveSync(
-            EServerAPIEmailQueryState, idBuf, statusBuf );
-        status = statusBuf();
-        if ( error == KErrNone && 
-                status == EIpsAOPluginStatusSyncStarted )
-            {
-            return EmailSyncing;
-            }
-        }
-    aosession.Close();
-#endif
+
+//#endif
     
 // </cmail> 
    

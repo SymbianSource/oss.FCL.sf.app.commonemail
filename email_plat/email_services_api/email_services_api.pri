@@ -18,5 +18,5 @@
 symbian*: { 
     # Build.inf rules
     BLD_INF_RULES.prj_exports += "$${LITERAL_HASH}include <platform_paths.hrh>" \
-     "email_services_api/email_services_api.h APP_LAYER_PLATFORM_EXPORT_PATH(email_services_api.h)"
+     "email_services_api/inc/email_services_api.h APP_LAYER_PLATFORM_EXPORT_PATH(email_services_api.h)"
 }

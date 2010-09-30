@@ -23,7 +23,7 @@
  *************************************************/
 //Maximum amount of envelopes that can be provided to client in getData function
 //This is also the amount of envelopes that is kept in mData all the time
-const int KMaxNumberOfEnvelopesProvided = 3;
+const int KMaxNumberOfEnvelopesProvided = 99;
 //Maximum value for unread count
 const int KMaxUnreadCount = 999; 
 
@@ -42,6 +42,8 @@ const QString KNmHsWidgetEmptySpaceContainer = "emptySpaceContainer";
 const QString KNmHsWidgetContentContainer = "mailRowContainer";
 /** no mails label - shown when inbox is empty */
 const QString KNmHsWidgetNoMailsLabel = "noMailsLabel";
+/** mail list view - list component that contains the messages */
+const QString KNmHsWidgetMailListView = "mailListView";
 /** contents margin/spacing in all layouts / container widgets */
 const int KNmHsWidgetContentsMargin = 0;
 /** Widget's background image*/

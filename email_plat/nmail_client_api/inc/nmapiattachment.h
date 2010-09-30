@@ -19,6 +19,7 @@
 #define NMAPIATTACHMENT_H_
 
 #include <QString>
+#include <QSharedDataPointer>
 #include <xqsharablefile.h>
 #include <nmapimessagecontent.h>
 #include <nmapidef.h>
@@ -31,7 +32,10 @@ class NMAPI_EXPORT NmApiAttachment : public NmApiMessageContent
 {
 public:
     NmApiAttachment();
+    NmApiAttachment(const NmApiAttachment &attachment);
     virtual ~NmApiAttachment();
+
+    NmApiAttachment& operator=(const NmApiAttachment &attachment);    
 
     QString fileName();
     XQSharableFile file();
@@ -40,7 +44,7 @@ public:
 
 private:
     
-    NmApiAttachmentPrivate *d;
+    QSharedDataPointer<NmApiAttachmentPrivate> d;
 };
 }
 

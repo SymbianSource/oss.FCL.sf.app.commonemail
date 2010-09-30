@@ -23,10 +23,14 @@
         PhoneNumberModel
     };
 
- #if defined(NMCHMAPI_LIBRARY)
- #define NMCHMAPI_EXPORT Q_DECL_EXPORT
- #else
- #define NMCHMAPI_EXPORT Q_DECL_IMPORT
- #endif
+#if defined(NMCHMAPI_LIBRARY)
+#  define  NMCHMAPI_EXPORT Q_DECL_EXPORT
+#else
+#  if defined(NMCHMAPI_LIBRARY_NO_LIBRARY)
+#    define NMCHMAPI_EXPORT
+#  else
+#    define NMCHMAPI_EXPORT Q_DECL_IMPORT
+#  endif
+#endif
 
 #endif /* NMCONTACTHISTORYMODELCOMMONHEADERS_H_ */

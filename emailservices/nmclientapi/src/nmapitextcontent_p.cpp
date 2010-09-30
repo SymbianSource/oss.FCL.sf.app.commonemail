@@ -29,6 +29,16 @@ NmApiTextContentPrivate::NmApiTextContentPrivate()
 }
 
 /*!
+    Class copy constructor.
+*/
+NmApiTextContentPrivate::NmApiTextContentPrivate(const NmApiTextContentPrivate &textcontentprivate)
+ : QSharedData(textcontentprivate),
+   mContent(textcontentprivate.mContent)
+{
+    NM_FUNCTION;
+}
+
+/*!
     Class destructor.
 */
 NmApiTextContentPrivate::~NmApiTextContentPrivate()

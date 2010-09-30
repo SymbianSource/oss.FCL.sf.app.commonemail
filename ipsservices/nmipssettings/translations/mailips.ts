@@ -25,7 +25,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_refresh_mail">
     <comment>Option item in txt_mailips_dialog_heading_refresh_mail setting dialog. Option for defining that the mailbox gets refreshed from server according to a default refreshing schedule.</comment>        
     <source>Refresh mail</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_f</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -65,7 +65,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_connection">
     <comment>Title text in setting radio button dialog opened from txt_mailips_setlabel_connection. Example of the dialog can be found from settings.ppt, slide 18</comment>        
     <source>Connection</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_a_a</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -75,7 +75,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_show_in_inbox">
     <comment>Title text in setting dialog opened from txt_mailips_setlabel_show_mail_in_inbox. Example flow can be found from 10.2settings.ptt, slide 16</comment>        
     <source>Show mail in inbox</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_a</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -162,16 +162,6 @@
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
-<message numerus="no" id="txt_mailips_list_the_mailbox_is_refreshed_every_hour">
-    <comment>info text to explain the profile (txt_mailmfe_setlabel_selected_mode_val_save_energy)</comment>        
-    <source>The mailbox is refreshed every hour during daytime</source>
-    <translation variants="no" type="unfinished"></translation>
-    <extra-loc-layout_id>qtl_dataform_description_sec</extra-loc-layout_id>    
-    <extra-loc-viewid>mail_006_b</extra-loc-viewid>
-    <extra-loc-positionid>list</extra-loc-positionid>
-    <extra-loc-feature>mail</extra-loc-feature>
-    <extra-loc-blank>False</extra-loc-blank>
-</message>
 <message numerus="no" id="txt_mailips_setlabel_download_images_val_sun">
     <comment>One of the values for txt_mailips_setlabel_receiving_weekdays. Sunday setting item</comment>        
     <source>Sun</source>
@@ -199,6 +189,16 @@
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d_d</extra-loc-viewid>
     <extra-loc-positionid>setlabel_9</extra-loc-positionid>
+    <extra-loc-feature>mail</extra-loc-feature>
+    <extra-loc-blank>False</extra-loc-blank>
+</message>
+<message numerus="no" id="txt_mailips_dpopinfo_saving_settings">
+    <comment>Simple progress dialog shown (if needed i.e. saving takes some time) after the user returns from Settings back to mail list. Under this text a progress bar animation (indefinite) is shown.</comment>        
+    <source>Saving settings</source>
+    <translation variants="no" type="unfinished"></translation>
+    <extra-loc-layout_id>qtl_dialog_pri3</extra-loc-layout_id>    
+    <extra-loc-viewid>mail_001</extra-loc-viewid>
+    <extra-loc-positionid>dpopinfo</extra-loc-positionid>
     <extra-loc-feature>mail</extra-loc-feature>
     <extra-loc-blank>False</extra-loc-blank>
 </message>
@@ -345,7 +345,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_outgoing_authentication">
     <comment>Title text in setting dialog opened from txt_mailips_setlabel_refresh_mail. For defining the settings for outgoing mail authentication. Radio button list. Example flow in settings.ppt, slide 18</comment>        
     <source>Outgoing mail authentication</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d_c</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -475,7 +475,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_end_time">
     <comment>Title text in setting dialog opened from txt_mailips_setlabel_day_end_time. Day here refers to the peak time for synchronization within one day ie. during which hours wihtin one day the user wants the mailbox refreshed from the server most often. Typically for example during business hours but not in the evening in which case the day start time could be 9 am when the user comes to office and the day end time could be 5 pm when the user leaves office. Example flow can be found from 10.2settings.ptt, slide 17</comment>        
     <source>Day end time</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_e</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -495,7 +495,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_outgoing_connection">
     <comment>Title text in setting dialog opened from txt_mailips_setlabel_outgoing_security. Radio button list. Example flow in settings.ppt, slide 18</comment>        
     <source>Outgoing secure connection</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d_b</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -633,7 +633,7 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_setlabel_show_mail_in_other_folders">
-    <comment>Setting label under Receiving schedule &gt; Selected mode &gt; Save energy  (txt_mailips_setlabel_selected_mode_val_save_energy).  Allows the user to define how many mails are synchronized to other folders (than Inbox) from server (50, 100, 200 or All).</comment>        
+    <comment>Setting label under Receiving schedule &gt; Selected mode &gt; Save energy  (txt_mailips_setlabel_selected_mode_val_save_energy).  Allows the user to define how many mails are synchronized to other folders (than Inbox) from server (50, 100, 200 or All). Not 10.1 content.</comment>        
     <source>Show mail in other folders</source>
     <translation variants="no" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dataform_pri</extra-loc-layout_id>    
@@ -755,7 +755,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_folder_path">
     <comment>Title text in setting dialog opened from Server info txt_mailips_subhead_server_info for defining the folder path. See example image from settings.ppt, slide 19</comment>        
     <source>Folder path</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d_d</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -783,9 +783,9 @@
     <extra-loc-blank>False</extra-loc-blank>
 </message>
 <message numerus="no" id="txt_mailips_dialog_heading_show_in_folders">
-    <comment>Title text in setting dialog opened from txt_mailips_setlabel_show_mail_in_other_folders. Example flow can be found from 10.2settings.ptt, slide 16</comment>        
+    <comment>Title text in setting dialog opened from txt_mailips_setlabel_show_mail_in_other_folders. Example flow can be found from 10.2settings.ptt, slide 16. Not 10.1 content.</comment>        
     <source>Show mail in other folders</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_b</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -835,7 +835,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_incoming_connection">
     <comment>Title text in setting dialog opened from txt_mailips_setlabel_incoming_security for defining the secure connection usage for incoming mail. Radio button list. Example flow in settings.ppt, slide 18</comment>        
     <source>Incoming secure connection</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_d_a</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -855,7 +855,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_receiving_days">
     <comment>Title text in setting dialog opened from txt_mailips_setlabel_receiving_weekdays. Allows the user to define the weekdays when mail is refreshed to mailbox from server. Example flow can be found from 10.2settings.ptt, slide 19</comment>        
     <source>Receiving days</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_c</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>
@@ -905,7 +905,7 @@
 <message numerus="no" id="txt_mailips_dialog_heading_start_time">
     <comment>Title text in setting dialog opened from txt_mailips_setlabel_day_start_time. Day here refers to the peak time for synchronization within one day ie. during which hours wihtin one day the user wants the mailbox refreshed from the server most often. Typically for example during business hours but not in the evening in which case the day start time could be 9 am when the user comes to office and the day end time could be 5 pm when the user leaves office. Example flow can be found from 10.2settings.ptt, slide 17</comment>        
     <source>Day start time</source>
-    <translation variants="no" type="unfinished"></translation>
+    <translation variants="yes" type="unfinished"></translation>
     <extra-loc-layout_id>qtl_dialog_pri_heading</extra-loc-layout_id>    
     <extra-loc-viewid>mail_006_b_d</extra-loc-viewid>
     <extra-loc-positionid>title</extra-loc-positionid>

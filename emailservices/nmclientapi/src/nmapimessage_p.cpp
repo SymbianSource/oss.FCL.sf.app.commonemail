@@ -29,6 +29,20 @@ NmApiMessagePrivate::NmApiMessagePrivate()
 }
 
 /*!
+    Class copy constructor.
+*/
+NmApiMessagePrivate::NmApiMessagePrivate(const NmApiMessagePrivate &other)
+ : QSharedData(other),
+   mPlainTextContent(other.mPlainTextContent),
+   mHtmlContent(other.mHtmlContent),
+   mComplete(other.mComplete),
+   mAttachments(other.mAttachments),
+   mEnvelope(other.mEnvelope)
+{
+    NM_FUNCTION;
+}
+
+/*!
     Class destructor.
 */
 NmApiMessagePrivate::~NmApiMessagePrivate()

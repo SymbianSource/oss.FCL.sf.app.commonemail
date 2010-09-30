@@ -79,7 +79,8 @@ mAttaIndexUnderFetch(NmNotFoundError),
 mAttaWidget(NULL),
 mViewReady(false),
 mWaitNoteCancelled(false),
-mErrorNote(NULL)
+mErrorNote(NULL),
+mAttachmentOpen(false)
 {
     // Create documentloader
     mDocumentLoader = new NmUiDocumentLoader(mMainWindow);
@@ -101,6 +102,8 @@ mErrorNote(NULL)
 */
 NmViewerView::~NmViewerView()
 {
+    // Delete opened temporary files.
+    NmUtilities::deleteTempFiles(mTempFiles);
     delete mErrorNote;
     mErrorNote=NULL;
     delete mWebView;
@@ -497,7 +500,7 @@ void NmViewerView::setAttachmentList()
 void NmViewerView::openAttachment(int index)
 {
     NM_FUNCTION;
-    if (index >= 0) {
+    if (index >= 0 && !mAttachmentOpen) {
         NmId attaId = mAttaIdList.at(index);
         // reload message to get updates part sizes
         loadMessage();
@@ -522,11 +525,16 @@ void NmViewerView::openAttachment(int index)
                  // attachment is fetched, open file
                  else if (messageParts[i]->partId() == attaId) {
                      mAttaManager.cancelFetch();
-                     XQSharableFile file = mUiEngine.messagePartFile(mailboxId, folderId,
-                                                                     messageId, attaId);
-                     int error = NmUtilities::openFile(file);
-                     file.close();
-                     if (error==NmNotFoundError){
+                     mAttachmentOpen = true;
+                     QObject::disconnect(mAttaWidget, SIGNAL(itemActivated(int)),
+                                         this, SLOT(openAttachment(int)));
+					 // We need to fill the part before opening the attachment.
+					 mUiEngine.contentToMessagePart(mailboxId, folderId, messageId, *(messageParts[i]));
+					 int error = NmUtilities::openAttachment(messageParts[i],mTempFiles,this);
+                     if (error==NmGeneralError){
+                         mAttachmentOpen = false;
+                         QObject::connect(mAttaWidget, SIGNAL(itemActivated(int)),
+                                              this, SLOT(openAttachment(int)));
                          delete mErrorNote;
                          mErrorNote=NULL;
                          mErrorNote = NmUtilities::displayWarningNote(
@@ -550,6 +558,11 @@ QString NmViewerView::formatMessage()
         NmMessagePart *html = mMessage->htmlBodyPart();
         if (html) {
             msg += formatHtmlMessage(html);
+            // Remove DOCTYPE definition as it will break viewer layout
+            if (msg.startsWith("<!DOCTYPE", Qt::CaseInsensitive)) {
+                int doctypeTagEnd = msg.indexOf(">",0,Qt::CaseInsensitive);
+                msg.remove(0,doctypeTagEnd+1);
+            }     
         }
         else {
             NmMessagePart *plain = mMessage->plainTextBodyPart();
@@ -633,10 +646,13 @@ QString NmViewerView::formatPlainTextMessage(NmMessagePart *plain)
                 currentFont.setPixelSize(fontSpec.font().pixelSize());
             }
             document.setDefaultFont(currentFont);
-            // convert to html
+            // convert to html with html and body tags
+            // for background and text color
             document.setPlainText(plain->textContent());
-            msg = document.toHtml();
-    
+            msg += "<html><body bgcolor=white text=black>";
+            msg += document.toHtml();
+            msg += "</body></html>";
+            
             if (qApp->layoutDirection()==Qt::RightToLeft){
                 // add right alignment to document css section
                 QRegExp rx("(<style type=\"text/css\">)(.+)(</style>)", Qt::CaseInsensitive);
@@ -809,21 +825,37 @@ void NmViewerView::linkClicked(const QUrl& link)
         QDesktopServices::openUrl(link);
     } else if (link.scheme() == NmMailtoLinkScheme){
         mAttaManager.cancelFetch();
-        QList<NmAddress*> *addrList = new QList<NmAddress*>();
-        NmAddress *mailtoAddr = new NmAddress();
-        QString address = link.toString(QUrl::RemoveScheme);
-        mailtoAddr->setAddress(address);
-        mailtoAddr->setDisplayName(address);
-        addrList->append(mailtoAddr);
-        // Create start parameters. Address list ownership
-        // is transferred to startparam object
-        NmUiStartParam* param = new NmUiStartParam(NmUiViewMessageEditor,
-                                                   mStartParam->mailboxId(),
-                                                   mStartParam->folderId(),
-                                                   0,
-                                                   NmUiEditorMailto,
-                                                   addrList);
-        mApplication.enterNmUiView(param);
+
+        NmUriParser uriParser;
+        if (uriParser.extractData(link.toString())) {
+            // Create start parameters. Address list ownership
+            // is transferred to startparam object
+            // The ownership of these is passed to NmApplication in launchEditorView()
+            QList<NmAddress*> *toAddresses = NmUtilities::qstringListToNmAddressList(uriParser.toAddresses());
+            QList<NmAddress*> *ccAddresses = NmUtilities::qstringListToNmAddressList(uriParser.ccAddresses());
+            QList<NmAddress*> *bccAddresses = NmUtilities::qstringListToNmAddressList(uriParser.bccAddresses());
+            
+            QString* subject = new QString(uriParser.subject());
+            QString* bodyText = new QString(uriParser.bodyText());
+            
+            NmUiStartParam* param = new NmUiStartParam(NmUiViewMessageEditor,
+                                                       mStartParam->mailboxId(),
+                                                       mStartParam->folderId(),
+                                                       0, // message id
+                                                       NmUiEditorMailto, // editor start mode
+                                                       toAddresses,
+                                                       NULL, // attachment list
+                                                       false, // start as service
+                                                       subject, // message subject
+                                                       ccAddresses, // cc recipients
+                                                       bccAddresses, //bcc recipients
+                                                       bodyText // body text
+                                                       );
+            
+
+            mApplication.enterNmUiView(param);
+        }
+
     }    
 }
 
@@ -1053,8 +1085,12 @@ void NmViewerView::progressChanged(int value)
     }
 }
 
+
 /*!
-    This is called when attachment fetch is completed
+    This method is called when fetching an attachment is either completed or
+    cancelled.
+
+    \param result The result code (NmNoError if success).
 */
 void NmViewerView::fetchCompleted(int result)
 {
@@ -1064,10 +1100,20 @@ void NmViewerView::fetchCompleted(int result)
             openAttachment(mAttaIndexUnderFetch);
         } else {
             mAttaWidget->hideProgressBar(mAttaIndexUnderFetch);
+
+            if (result == NmDiskFullError) {
+                // Display an error message.
+                delete mErrorNote;
+                mErrorNote = NmUtilities::displayWarningNote(
+                    hbTrId("txt_mail_dialog_downloading_canceled"));
+            }
+
         }
     }
+
     mAttaIndexUnderFetch = NmNotFoundError;
 }
+
 
 /*!
     externalDelete. From NmUiEngine, handles viewer shutdown when current message is deleted.
@@ -1131,5 +1177,19 @@ bool NmViewerView::isInlineImage(NmMessagePart* part)
         }
     }
     return ret;
+}
+
+void NmViewerView::fileOpenCompleted(const QVariant&)
+{
+    mAttachmentOpen = false;
+    QObject::connect(mAttaWidget, SIGNAL(itemActivated(int)),
+                          this, SLOT(openAttachment(int)));
+}
+
+void NmViewerView::fileOpenError(int, const QString&)
+{
+    mAttachmentOpen = false;
+    QObject::connect(mAttaWidget, SIGNAL(itemActivated(int)),
+                          this, SLOT(openAttachment(int)));
 }
 

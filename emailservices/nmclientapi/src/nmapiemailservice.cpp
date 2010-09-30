@@ -60,6 +60,25 @@ bool NmApiEmailService::getEnvelope(
 }
 
 /*!
+    gets mailbox folder by id (see also NmEventNotifier)
+ */
+bool NmApiEmailService::getFolder(
+    const quint64 mailboxId,
+    const quint64 folderId,
+    EmailClientApi::NmApiFolder &mailboxFolder)
+{
+    NM_FUNCTION;
+
+    bool found = false;
+
+    if (mEngine) {
+        found = mEngine->getFolderById(mailboxId, folderId, mailboxFolder);
+    }
+
+    return found;
+}
+
+/*!
     gets mailbox info by id (see also NmEventNotifier)
  */
 bool NmApiEmailService::getMailbox(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailboxInfo)

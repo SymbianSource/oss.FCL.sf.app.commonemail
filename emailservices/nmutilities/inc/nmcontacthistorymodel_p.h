@@ -48,7 +48,7 @@ NmContactHistoryModelItemData() :
 class NmContactHistoryModelPrivate : public QObject
 {
 
-    enum nameOrder 
+    enum NameOrder
     {
         LastNameFirstName = 0x0,
         LastNameCommaFirstName = 0x1,
@@ -80,12 +80,13 @@ private:
                                       const QString &query);
 
 
-    int rowCount(const QModelIndex &parent) const;
+    int modelRowCount(const QModelIndex &parent) const;
+    int privateDataCount() const;
     QVariant data(const QModelIndex &index, int role) const;
     void refreshDataModel();
 
     bool fillMruMatchList();
-    QString obeyContactOrder(const QString &firstName, const QString &lastName);
+    QString obeyContactOrder(const QString &firstName, const QString &lastName) const;
 
 private:
 
