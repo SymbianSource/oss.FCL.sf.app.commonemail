@@ -1283,4 +1283,24 @@
 //
 #define qtn_meet_req_location_parenthesis "(%U)"
 
+// d: Conflict popup conflict message text format for plural conflict. 
+// d: %N is replaced with the number of conflict entries. 
+// l: popup_preview_text_window/opt5
+// r: TB9.2
+//
+#define qtn_meet_req_conflict_otherconflict_format "and %N other entries"
+
+// d: Conflict popup conflict message text format for single conflict. 
+// d: %N is replaced with the number of conflict entry. 
+// l: popup_preview_text_window/opt5
+// r: TB9.2
+//
+#define qtn_meet_req_conflict_otherconflict_singular_format "and %N other entry"
+
+// d: Options menu item for removing entry
+// l: list_single_pane_t1_cp2
+// r: TB9.1
+//
+#define qtn_meet_req_options_delete_event       "Delete event"
+
 // end of file

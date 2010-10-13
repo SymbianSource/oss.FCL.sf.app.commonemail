@@ -54,6 +54,23 @@ class CFSNotificationHandlerMgr :
     public MFSMailEventObserver
     {
 public:
+        
+    enum TState
+        {
+        EPrepareInitialization,
+        EInitializeMailIconHandler,
+        EInitializeLedHandler,
+#ifndef __WINS__
+        ESoundHandler,
+#endif
+        EInitializeMtmHandler,
+        EInitializeOutofMemoryHandler,
+        EInitializeAuthenticationHandler,
+        EInitializeMessageQueryHandlerUid,
+        EWaitForPluginsReady,
+        EInitializeCMailCpsHandlerUid,
+        EFinish
+        };
 
     //<cmail> aAppUi parameter no longer necessary
     static CFSNotificationHandlerMgr* NewL( CFsEmailGlobalDialogsAppUi* aAppUi = NULL );
@@ -217,6 +234,10 @@ private: // data
     TFSMailMsgId  iPreviousMailbox;
     TFSMailMsgId  iPreviousParentFolderId;
     TFSFolderType iPreviousParentFolderType;
+    
+    RTimer iTimer;
+    
+    TState iState;
     };
 
 #endif // C_FSNOTIFICATIONHANDLERMGRIMPL_H

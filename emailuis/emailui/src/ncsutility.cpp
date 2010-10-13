@@ -324,19 +324,19 @@ HBufC* NcsUtility::FormatSubjectLineL(
         // first word, than loop ends
         do
             {
-		    indexRe = formattedSubjectLinePtr.FindC( rePtr );
-			if( indexRe == 0 )
-				{
-				formattedSubjectLinePtr.Delete( indexRe, rePtr.Length() );
-				formattedSubjectLinePtr.Trim();
-				}
+            indexRe = formattedSubjectLinePtr.FindC( rePtr );
+			      if( indexRe == 0 )
+				        {
+                formattedSubjectLinePtr.Delete( indexRe, rePtr.Length() );
+                formattedSubjectLinePtr.Trim();
+                }
 
-			indexFw = formattedSubjectLinePtr.FindC( fwdPrt );
-			if( indexFw == 0 )
-				{
-				formattedSubjectLinePtr.Delete( indexFw, rePtr.Length() );
-				formattedSubjectLinePtr.Trim();
-				}
+            indexFw = formattedSubjectLinePtr.FindC( fwdPrt );
+            if( indexFw == 0 )
+                {
+                formattedSubjectLinePtr.Delete( indexFw, rePtr.Length() );
+                formattedSubjectLinePtr.Trim();
+                }
             }
         while( !( indexRe != 0 && indexFw != 0)  );
         

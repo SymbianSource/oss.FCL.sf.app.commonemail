@@ -28,13 +28,11 @@
 #include <AknsSkinInstance.h>
 #include <aknedsts.h>
 #include <AknsBasicBackgroundControlContext.h>
-#include <centralrepository.h>
 
 #include "ncseditor.h"
 #include "ncsutility.h"
 #include "ncscustomdraw.h"
 #include "ncseditorcustomdraw.h"
-#include "freestyleemailcenrepkeys.h"
 
 // ========================= MEMBER FUNCTIONS ==================================
 
@@ -73,19 +71,6 @@ void CNcsEditor::ConstructL( const CCoeControl* aParent,
             CEikEdwin::ENoAutoSelection | CEikEdwin::EInclusiveSizeFixed |
             CEikEdwin::ENoHorizScrolling | CEikRichTextEditor::EPasteAsPlainText );
     
-    CRepository* repository = NULL;
-    TRAPD( err, repository = CRepository::NewL( KFreestyleEmailCenRep ) );
-    if ( !err )
-        {
-        TInt value( 0 );
-        err = repository->Get( KEmailFeatureSplitScreen, value );
-        if( !err && value )
-            {
-            SetAknEditorFlags( AknEditorFlags() | EAknEditorFlagEnablePartialScreen );  
-            }
-        }
-    delete repository;
-    repository = NULL;
     iGlobalCharFormat = CCharFormatLayer::NewL();
     iGlobalCharFormat->SetBase( GlobalText()->GlobalCharFormatLayer() );
     GlobalText()->SetGlobalCharFormat( iGlobalCharFormat );
@@ -129,11 +114,11 @@ void CNcsEditor::OpenVirtualKeyBoardL()
 // CNcsEditor::GetLineRectL() const
 // -----------------------------------------------------------------------------
 //
-void CNcsEditor::GetLineRect( TRect& aLineRect ) const
+void CNcsEditor::GetLineRectL( TRect& aLineRect ) const
     {
     FUNC_LOG;
     TPoint position;
-    TRAP_IGNORE( iLayout->DocPosToXyPosL( CursorPos(), position ) );
+    iLayout->DocPosToXyPosL( CursorPos(), position );
     iLayout->GetLineRect( position.iY, aLineRect );
     }
 
@@ -670,10 +655,7 @@ TCoeInputCapabilities CNcsEditor::InputCapabilities() const
 void CNcsEditor::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
     {
     iPhysOngoing = aPhysOngoing;
-    if ( IsFocused() )
-        {
-        SetCursorVisible( !aPhysOngoing );
-        }
+    this->SetCursorVisible( !aPhysOngoing );
     }
 
 TBool CNcsEditor::IsPhysicsEmulationOngoing() const

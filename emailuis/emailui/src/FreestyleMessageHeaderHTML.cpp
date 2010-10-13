@@ -141,6 +141,14 @@ CFreestyleMessageHeaderHTML::CFreestyleMessageHeaderHTML( CFSMailMessage& aMailM
 void CFreestyleMessageHeaderHTML::ConstructL()
     {
     iMailMessage.AttachmentListL( iAttachments );
+    // Remove attachments with no name
+    for ( TInt i = iAttachments.Count() - 1; i >= 0; i-- )
+        {
+        if ( !iAttachments[i]->AttachmentNameL().Length() )
+            {
+            iAttachments.Remove( i );
+            }
+        }
     }
 
 EXPORT_C void CFreestyleMessageHeaderHTML::ExportL() const

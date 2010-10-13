@@ -170,7 +170,6 @@ void CIpsSetUtilsOperationWait::StopWaitDialogL()
 	if ( iWaitDialog )
 		{
 		iWaitDialog->ProcessFinishedL();
-		delete iWaitDialog;
 		iWaitDialog = NULL;
 		}
 	}

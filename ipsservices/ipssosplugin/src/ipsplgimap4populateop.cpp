@@ -218,7 +218,7 @@ void CIpsPlgImap4PopulateOp::DoRunL()
             }
         case EStateInfoEntryChange:
             {
-            TMsvEntry tentry;
+			TMsvEntry tentry;
             TMsvId service;
             iMsvSession.GetEntry( iService, service, tentry );
           
@@ -228,8 +228,8 @@ void CIpsPlgImap4PopulateOp::DoRunL()
             	}  
             else
             	{
-            	iState = EStateIdle;
-            	CompleteObserver( err );
+				iState = EStateIdle;
+				CompleteObserver( err );
             	}            
             break;
             }

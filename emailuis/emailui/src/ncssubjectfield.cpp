@@ -21,7 +21,6 @@
 #include <AknIconUtils.h>
 #include <avkon.hrh>
 #include <eiklabel.h>
-#include <aknbutton.h>
 #include <eikimage.h>
 #include <eikenv.h>
 #include <AknsDrawUtils.h>
@@ -82,37 +81,13 @@ void CNcsSubjectField::ConstructL( TInt aLabelTextId )
     // Create label
 	HBufC* aTextBuf = StringLoader::LoadLC( aLabelTextId );
     TPtrC captionText = aTextBuf ? aTextBuf->Des() : TPtrC();
+    iLabel = new ( ELeave ) CNcsLabel( *this, NULL );
+    iLabel->SetTextL( captionText );
 
-    if( AknLayoutUtils::PenEnabled() )
-        {
-        // Create a frameless button that has no observer
-        // This is done like this to make Subject: field appear similar as
-        // other header fields (To:, Cc:), although it doesn't have other
-        // button-like features
-        TRect buttRect( 10, 10, 70, 100 );
-        iButton = CAknButton::NewL( NULL, NULL, NULL, NULL, 
-                                    captionText, TPtrC(), 
-                                    KAknButtonTextLeft | KAknButtonNoFrame ,
-                                    0 );
-        iButton->SetTextColorIds( 
-                KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG63 );
-        iButton->SetContainerWindowL( *iParentControl );
-        iButton->SetRect( buttRect );
-        iButton->EnableFeedback( EFalse );
-        iButton->MakeVisible( ETrue );
-        iButton->ActivateL();
-        }
-    else
-        {
-        iLabel = new ( ELeave ) CNcsLabel( *this, NULL );
-        iLabel->SetTextL( captionText );
-    
-        // S60 Skin support
-        iLabel->SetBrushStyle(CWindowGc::ENullBrush);
-        }
-    
-    iTextEditor = new ( ELeave ) CNcsEditor( 
-            iSizeObserver, ETrue, ENcsEditorSubject, captionText );
+    // S60 Skin support
+	iLabel->SetBrushStyle(CWindowGc::ENullBrush);
+
+    iTextEditor = new ( ELeave ) CNcsEditor( iSizeObserver, ETrue, ENcsEditorSubject, captionText );
     CleanupStack::PopAndDestroy( aTextBuf );
     }
 
@@ -125,41 +100,37 @@ CNcsSubjectField::~CNcsSubjectField()
     FUNC_LOG;
     delete iTextEditor;
     delete iLabel;
-    delete iButton;
+    // Platform layout change
+    /*if ( iFont )
+        {
+        ControlEnv()->ScreenDevice()->ReleaseFont( iFont );
+        iFont = NULL;
+        }*/
     }
 
 // -----------------------------------------------------------------------------
 // CNcsSubjectField::SetContainerWindowL() const
 // -----------------------------------------------------------------------------
 //
-void CNcsSubjectField::SetContainerWindowL( const CCoeControl& aContainer )
+void CNcsSubjectField::SetContainerWindowL(const CCoeControl& aContainer)
 	{
     FUNC_LOG;
-	CCoeControl::SetContainerWindowL( aContainer );
+	CCoeControl::SetContainerWindowL(aContainer);
 
 	// Create the component array
     InitComponentArrayL();
 	CCoeControlArray& controls = Components();
-	controls.SetControlsOwnedExternally( ETrue );
-	if ( iButton )
-	    {
-        controls.AppendLC( iButton );
-        CleanupStack::Pop( iButton );
-	    }
-	else
-	    {
-        controls.AppendLC( iLabel );
-        CleanupStack::Pop( iLabel );
-	    }
-	controls.AppendLC( iTextEditor );
-    CleanupStack::Pop( iTextEditor );
+	controls.SetControlsOwnedExternally(ETrue);
+	controls.AppendLC(iLabel);
+	CleanupStack::Pop(iLabel);
+	controls.AppendLC(iTextEditor);
+    CleanupStack::Pop(iTextEditor);
 
     // Setup text editor
     iTextEditor->ConstructL( &aContainer, KMaxAddressFieldLines, 0 );
 	iTextEditor->SetBorder( TGulBorder::ENone );
     iTextEditor->SetAknEditorInputMode( EAknEditorTextInputMode );
-	iTextEditor->CreateScrollBarFrameL()->SetScrollBarVisibilityL( 
-	        CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOff );
+	iTextEditor->CreateScrollBarFrameL()->SetScrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOff );
     iTextEditor->SetEdwinSizeObserver( this );
     iTextEditor->SetupEditorL();
     // Setup label
@@ -186,7 +157,7 @@ void CNcsSubjectField::Draw( const TRect& /*aRect*/ ) const
 TInt CNcsSubjectField::GetMinLabelLength() const
 	{
     FUNC_LOG;
-    return iLabel ? iLabel->Font()->TextWidthInPixels( *iLabel->Text() ) : 0;
+    return iLabel->Font()->TextWidthInPixels( *iLabel->Text() );
 	}
 
 // -----------------------------------------------------------------------------
@@ -199,49 +170,35 @@ void CNcsSubjectField::SizeChanged()
     FUNC_LOG;
 	
     const TRect rect( Rect() );
-    if ( iButton )
-        {
-        NcsUtility::LayoutCaptionButton( iButton, rect );
-        }
-    else
-        {
-        NcsUtility::LayoutCaptionLabel( iLabel, rect );
-        }
-
-    NcsUtility::LayoutDetailEdwinTouch( 
-            iTextEditor, rect, iEditorLineCount, EFalse );  
+    NcsUtility::LayoutCaptionLabel( iLabel, rect );
+    NcsUtility::LayoutDetailEdwinTouch( iTextEditor, rect, iEditorLineCount, EFalse );  
     
-    if ( iTextEditor->ScrollBarFrame() )
+    if (iTextEditor->ScrollBarFrame())
         {
         TRect rc = iTextEditor->Rect();
-        if ( AknLayoutUtils::LayoutMirrored() )
+        if (AknLayoutUtils::LayoutMirrored())
             {
-            rc.iTl.iX += iTextEditor->ScrollBarFrame()->ScrollBarBreadth( 
-                    CEikScrollBar::EVertical );
+            rc.iTl.iX += iTextEditor->ScrollBarFrame()->ScrollBarBreadth(CEikScrollBar::EVertical);
             }
         else
             {
-            rc.iBr.iX -= iTextEditor->ScrollBarFrame()->ScrollBarBreadth( 
-                    CEikScrollBar::EVertical );
+            rc.iBr.iX -= iTextEditor->ScrollBarFrame()->ScrollBarBreadth(CEikScrollBar::EVertical);
             }
-        iTextEditor->SetRect( rc );
+        iTextEditor->SetRect(rc);
         }
 
     // Setup text alignment according the mirrored/normal layout.
-    if ( iLabel )
+    if ( AknLayoutUtils::LayoutMirrored() )
         {
-        if ( AknLayoutUtils::LayoutMirrored() )
-            {
-            iLabel->SetAlignment( EHLeftVCenter );
-            iLabel->SetLabelAlignment( ELayoutAlignLeft );
-            }
-        else
-            {
-            iLabel->SetAlignment( EHRightVCenter );
-            iLabel->SetLabelAlignment( ELayoutAlignRight );
-            }
+        iLabel->SetAlignment( EHLeftVCenter );
+        iLabel->SetLabelAlignment( ELayoutAlignLeft );
         }
-
+    else
+        {
+        iLabel->SetAlignment( EHRightVCenter );
+        iLabel->SetLabelAlignment( ELayoutAlignRight );
+        }
+    
     // this needs to be bidi as in mirrored layout 
     // writing language left to right can be set 
     iTextEditor->SetAlignment( EAknEditorAlignBidi );
@@ -253,12 +210,13 @@ void CNcsSubjectField::SizeChanged()
 
 // -----------------------------------------------------------------------------
 // CNcsSubjectField::PositionChanged()
+// set size
 // -----------------------------------------------------------------------------
 //
 void CNcsSubjectField::PositionChanged()
     {
     FUNC_LOG;
-    // empty
+    //SizeChanged();
     }
 
 // -----------------------------------------------------------------------------
@@ -266,8 +224,7 @@ void CNcsSubjectField::PositionChanged()
 // Handles key events
 // -----------------------------------------------------------------------------
 //
-TKeyResponse CNcsSubjectField::OfferKeyEventL( 
-        const TKeyEvent& aKeyEvent, TEventCode aType )
+TKeyResponse CNcsSubjectField::OfferKeyEventL( const TKeyEvent& aKeyEvent, TEventCode aType )
     {
     FUNC_LOG;
 	TKeyResponse ret( EKeyWasNotConsumed );
@@ -283,8 +240,8 @@ TKeyResponse CNcsSubjectField::OfferKeyEventL(
 //
 void CNcsSubjectField::HandlePointerEventL( const TPointerEvent& aPointerEvent )
     {
-    FUNC_LOG;
-    CCoeControl::HandlePointerEventL( aPointerEvent );
+	FUNC_LOG;
+    iTextEditor->HandlePointerEventL( aPointerEvent );
     }
 
 // -----------------------------------------------------------------------------
@@ -292,26 +249,51 @@ void CNcsSubjectField::HandlePointerEventL( const TPointerEvent& aPointerEvent )
 // -----------------------------------------------------------------------------
 //
 void CNcsSubjectField::FocusChanged( TDrawNow aDrawNow )
-    {
+	{
     FUNC_LOG;
-    if ( IsFocused() )
-        {
-        iTextEditor->SetFocus( ETrue, aDrawNow );
-        if ( iParentControl )
-            {
-            TRAP_IGNORE( iParentControl->SetMskL() );
-            }
-        }
-    else
-        {
-        iTextEditor->SetFocus( EFalse, aDrawNow );
-        }
+	if ( IsFocused() )
+		{
+		iTextEditor->SetFocus( ETrue );
+		//TRAP_IGNORE( iTextEditor->SetCursorPosL( iTextEditor->TextLength(), EFalse ) ); 
 
-    if ( aDrawNow )
-        {
-        DrawNow();
-        }
-    }
+		// make sure that control is visible on screen
+		if ( Rect().iTl.iY < 0 )
+			{
+			TPoint pt = TPoint( 0, 0 );
+			Reposition( pt, Rect().Width() );
+			iSizeObserver->UpdateFieldPosition( this );
+			}
+		else
+			{
+			TPoint pos = PositionRelativeToScreen();
+			pos.iY += Size().iHeight;
+			CWsScreenDevice* screenDev = ControlEnv()->ScreenDevice();
+			TPixelsAndRotation pix;
+			screenDev->GetDefaultScreenSizeAndRotation( pix );
+			const TInt h = pix.iPixelSize.iHeight;
+			if ( pos.iY >= h - h / 3 )
+				{
+				TPoint pt = TPoint( 0, h / 3 );
+				Reposition( pt, Rect().Width() );
+				iSizeObserver->UpdateFieldPosition( this );
+				}
+			}
+
+		if ( iParentControl )
+			{
+			TRAP_IGNORE( iParentControl->SetMskL() );
+			}
+		}
+	else
+		{
+		iTextEditor->SetFocus( EFalse );
+		}
+
+	if ( aDrawNow )
+		{
+		DrawNow();
+		}
+	}
 
 // -----------------------------------------------------------------------------
 // CNcsSubjectField::MinimumHeight()
@@ -321,6 +303,20 @@ void CNcsSubjectField::FocusChanged( TDrawNow aDrawNow )
 TInt CNcsSubjectField::MinimumHeight()
     {
     FUNC_LOG;
+    // Platform layout changes
+    /*
+    TNcsMeasures m = NcsUtility::Measures();
+	TInt height = m.iAifHeight - m.iAifEditorHeight + iEditorMinimumHeight + m.iSubjectExtraHeightBottom;
+	TInt height2 = m.iAifHeight + m.iSubjectExtraHeightBottom;
+	// if followup icon and priority icon are both visible increase the subject field height
+	if ( iFollowUp && iPriority != EMsgPriorityNormal )
+	    {
+	    height2 += KIconHeightFollowUp;
+	    }
+    return Max( height, height2 );
+    */
+    //return NcsUtility::MinimumHeaderSize( Rect(), iEditorLineCount ).iHeight;
+    // Platform layout changes
     return 0;
     }
 
@@ -344,12 +340,11 @@ void CNcsSubjectField::SetSubjectL( const TDesC& aSubject )
         RMemReadStream inputStream( aSubject.Ptr(), aSubject.Size() );
 	    CleanupClosePushL( inputStream );
 
-	  	iTextEditor->RichText()->ImportTextL( 
-	  	        0, inputStream, CPlainText::EOrganiseByParagraph );
+	  	iTextEditor->RichText()->ImportTextL( 0, inputStream, CPlainText::EOrganiseByParagraph );
 
 		// Activating the field will set the control to the end of the text
 	    iTextEditor->ActivateL();
-	    iTextEditor->SetCursorPosL( 0, EFalse );
+	    iTextEditor->SetCursorPosL(0,EFalse);
 
 	    CleanupStack::PopAndDestroy( &inputStream );
     	}
@@ -363,10 +358,41 @@ TBool CNcsSubjectField::HandleEdwinSizeEventL( CEikEdwin* /*aEdwin*/,
 	TEdwinSizeEvent /*aEventType*/, TSize aDesirableEdwinSize )
     {
     FUNC_LOG;
+    //  Platform layout chage
+    /*
     TInt ret( EFalse );
     TInt htLine = iTextEditor->GetLineHeightL();
     TInt numLinesDesired = aDesirableEdwinSize.iHeight / htLine;
+
+    if ( numLinesDesired < KMaxAddressFieldLines &&
+         iEditorMinimumHeight != aDesirableEdwinSize.iHeight )
+        {
+        iEditorMinimumHeight = aDesirableEdwinSize.iHeight;
+        iTextEditor->CreateScrollBarFrameL()->SetScjrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOff );
+        if ( iSizeObserver )
+            {
+            ret = iSizeObserver->UpdateFieldSizeL();
+            }
+        }
+    else if ( iEditorMinimumHeight != htLine * KMaxAddressFieldLines )
+        {
+        //We may still need to resize the controll.
+        iEditorMinimumHeight = htLine * KMaxAddressFieldLines;
+        iTextEditor->CreateScrollBarFrameL()->SetScrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOn );
+        if ( iSizeObserver )
+            {
+            ret = iSizeObserver->UpdateFieldSizeL();
+            }
+        }
+    */
+
+    TInt ret( EFalse );
+    TInt htLine = iTextEditor->GetLineHeightL();
+    TInt numLinesDesired = aDesirableEdwinSize.iHeight / htLine;
+    // commented because of EGWG-83ECSR, no negative feedback after removing
+    //CEikScrollBarFrame& scrollBarFrame( *iTextEditor->CreateScrollBarFrameL() );
     iEditorLineCount = numLinesDesired;
+    //scrollBarFrame.SetScrollBarVisibilityL( CEikScrollBarFrame::EOff, CEikScrollBarFrame::EOff );
     if ( iSizeObserver )
         {
         ret = iSizeObserver->UpdateFieldSizeL();
@@ -451,6 +477,7 @@ const TDesC& CNcsSubjectField::GetLabelText() const
 	return KNullDesC;
 	}
 
+// Platform layout change
 // ---------------------------------------------------------------------------
 // CNcsSubjectField::LayoutLineCount
 // ---------------------------------------------------------------------------
@@ -467,17 +494,23 @@ TInt CNcsSubjectField::LayoutLineCount() const
 void CNcsSubjectField::Reposition(TPoint& aPt, TInt /*aWidth*/)
 	{
     FUNC_LOG;
+    /*
+	const TSize size( aWidth, MinimumHeight() );
+    SetExtent( aPt, size );
+    aPt.iY += size.iHeight;
+    */
     SetPosition( aPt );
+    // Platform layout changes
 	}
 
 // -----------------------------------------------------------------------------
 // CNcsSubjectField::GetLineRectL
 // -----------------------------------------------------------------------------
-void CNcsSubjectField::GetLineRect( TRect& aLineRect ) const
-    {
+void CNcsSubjectField::GetLineRectL( TRect& aLineRect ) const
+	{
     FUNC_LOG;
-    return iTextEditor->GetLineRect( aLineRect );
-    }
+    return iTextEditor->GetLineRectL( aLineRect );
+	}
 
 // -----------------------------------------------------------------------------
 // CNcsSubjectField::SetMaxLabelLength
@@ -504,19 +537,23 @@ void CNcsSubjectField::SetTextColorL( TLogicalRgb aColor )
 void CNcsSubjectField::UpdateColors()
     {
 	FUNC_LOG;
-
-	if ( iLabel )
-	    {
-        TRgb textColor = KRgbBlack;
-        if ( AknsUtils::GetCachedColor( AknsUtils::SkinInstance(), textColor,
-            KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG6 ) != KErrNone )
-            {
-            textColor = KRgbBlack;
-            }
-        TRAP_IGNORE( iLabel->OverrideColorL( EColorLabelText, textColor ) );
+    // Platform layout change
+    TRgb textColor = KRgbBlack;
+    if ( AknsUtils::GetCachedColor( AknsUtils::SkinInstance(), textColor,
+        KAknsIIDQsnTextColors, EAknsCIQsnTextColorsCG6 ) != KErrNone )
+        {
+        textColor = KRgbBlack;
         }
+    TRAP_IGNORE( iLabel->OverrideColorL( EColorLabelText, textColor ) );
+    // Platform layout change
+
+    CFreestyleEmailUiAppUi* appUi =
+        static_cast<CFreestyleEmailUiAppUi*>( ControlEnv()->AppUi() );
+    iBorderColor = appUi->LayoutHandler()->ComposerFieldBorderColor();
+    iBgColor = appUi->LayoutHandler()->ComposerFieldBackgroundColor();
     }
 
+// Platform layout changes
 // ---------------------------------------------------------------------------
 // CNcsSubjectField::UpdateFontSize()
 // ---------------------------------------------------------------------------
@@ -524,18 +561,20 @@ void CNcsSubjectField::UpdateColors()
 void CNcsSubjectField::UpdateFontSize()
 	{
     FUNC_LOG;
-    CCoeControl* control = 
-            iButton ? ( CCoeControl* )iButton : ( CCoeControl* )iLabel;
-    iFont = NcsUtility::GetLayoutFont( 
-            control->Rect(), NcsUtility::ENcsHeaderCaptionFont );
-    if( control == iButton )
+    /*if ( iFont )
         {
-        iButton->SetTextFont( iFont );
+        ControlEnv()->ScreenDevice()->ReleaseFont( iFont );
+        iFont = NULL;
         }
-    else
-        {
-        iLabel->SetFont( iFont );
-        }
+
+	TNcsMeasures m = NcsUtility::Measures();
+	if ( !iFont )
+	    {
+	    TRAP_IGNORE( iFont = NcsUtility::GetNearestFontL(EAknLogicalFontPrimarySmallFont,
+	    m.iLabelFontHeightPx) );
+	    }*/
+	iFont = NcsUtility::GetLayoutFont( iLabel->Rect(), NcsUtility::ENcsHeaderCaptionFont );
+	iLabel->SetFont( iFont );
 	iTextEditor->UpdateFontSize();
 	UpdateColors();
 	}
@@ -553,24 +592,18 @@ void CNcsSubjectField::HandleResourceChange( TInt aType )
         {
         UpdateFontSize();
         UpdateColors();
-        iTextEditor->HandleResourceChange( aType );
+        // Platform layout changes
+        iTextEditor->HandleResourceChange( aType ) ;//CreateScrollBarFrameL()->DrawScrollBarsNow();
+        // Platform layout changes
         }
     }
 
-// ---------------------------------------------------------------------------
-// CNcsSubjectField::EnableKineticScrollingL()
-// ---------------------------------------------------------------------------
-//
-void CNcsSubjectField::EnableKineticScrollingL( CAknPhysics*  aPhysics )
+void CNcsSubjectField::EnableKineticScrollingL(CAknPhysics*  aPhysics)
     {
-    iTextEditor->EnableKineticScrollingL( aPhysics );
+    iTextEditor->EnableKineticScrollingL(aPhysics);
     iTextEditor->TextLayout()->RestrictScrollToTopsOfLines( ETrue );
     }
 
-// ---------------------------------------------------------------------------
-// CNcsSubjectField::SetPhysicsEmulationOngoing()
-// ---------------------------------------------------------------------------
-//
 void CNcsSubjectField::SetPhysicsEmulationOngoing( TBool aPhysOngoing )
     {
     iTextEditor->SetPhysicsEmulationOngoing( aPhysOngoing );

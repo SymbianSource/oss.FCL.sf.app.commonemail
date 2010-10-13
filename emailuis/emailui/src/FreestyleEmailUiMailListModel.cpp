@@ -593,3 +593,19 @@ void CFSEmailUiMailListModel::GetItemIdsUnderNodeL( const TFsTreeItemId aNodeId,
             }
         }        
     }
+TBool CFSEmailUiMailListModel::ContainsItem( const CFSMailMessage& aMessage ) const
+    {
+	FUNC_LOG;
+	
+	TBool found( EFalse );
+	for (TInt i = iItems.Count() - 1; i >= 0; i--) 
+		{
+		if (aMessage.GetMessageId() == iItems[i]->MessagePtr().GetMessageId())
+			{
+			found = ETrue;
+			break;
+			}
+		}
+	return found;
+	}
+

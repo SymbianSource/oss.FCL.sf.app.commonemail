@@ -126,7 +126,7 @@ public: // new functions
         
     const RPointerArray<CNcsEmailAddressObject>& GetAddressesL( TBool aParseNow=ETrue );
         
-    void GetLineRect( TRect& aLineRect ) const;
+    void GetLineRectL( TRect& aLineRect ) const;
         
     void SetMaxLabelLength( TInt aMaxLength );
         

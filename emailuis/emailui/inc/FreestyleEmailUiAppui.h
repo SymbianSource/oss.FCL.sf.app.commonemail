@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 - 2010 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -502,9 +502,6 @@ public:
     // wouldn't have any visible effect.
     void RunFakeSyncAnimL();
 
-    // Sets text to navi pane
-    void SetNaviPaneTextL( const TDesC& aText );
-    
 public: //from MFSMailEventObserver
     /**
      * Framework event message.
@@ -540,6 +537,14 @@ public:
     * Stop key capture for end-key
     */
     void StopEndKeyCapture();
+
+    /**
+     * Accessor for navipane decorator object.
+     * @param aViewId: Caller identify itself by giving the view Id (see FreestyleEmailUiConstants.h)
+     * This is used for choosing correct decorator.
+     * @return instance of correct navidecorator. NULL if aView doesn't match.
+     */
+    CAknNavigationDecorator* NaviDecoratorL( const TUid aViewId );
 
 public:
 
@@ -608,6 +613,12 @@ private:
 
    	// Send self to background.
    	void SendToBackground();
+
+   	/*
+   	 * Called from ConstructL during start of application.
+   	 * Constructs navipane(s) that are used by different views.
+   	 */
+   	void ConstructNaviPaneL();
 
     // Create custom status pane indicators. (priority and followup)
     void CreateStatusPaneIndicatorsL();
@@ -785,7 +796,8 @@ private:
     CEUiExitGuardian* iExitGuardian;
 
     // navipane decorator
-	CAknNavigationDecorator* iNaviDecorator;
+    // (used at least in mail viewer)
+    CAknNavigationDecorator* iNaviDecorator2MailViewer;
 
     // Resource file offset for message editor external resources
     TInt iMsgEditorResourceOffset;

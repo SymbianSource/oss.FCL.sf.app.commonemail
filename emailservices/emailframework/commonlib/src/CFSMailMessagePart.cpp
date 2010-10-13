@@ -985,88 +985,99 @@ EXPORT_C TDesC& CFSMailMessagePart::AttachmentNameL()
 // -----------------------------------------------------------------------------
 // CFSMailMessagePart::FindBodyPartL
 // -----------------------------------------------------------------------------
-EXPORT_C CFSMailMessagePart* CFSMailMessagePart::FindBodyPartL(const TDesC& aContentType)
-{
+EXPORT_C CFSMailMessagePart* CFSMailMessagePart::FindBodyPartL(
+        const TDesC& aContentType )
+    {
     FUNC_LOG;
 
-	TBuf<KMaxDataTypeLength> ptr;
-	if ( iContentType )
-    {
-		ptr.Copy(iContentType->Des());
-		TInt length = ptr.Locate(';');
-		if(length >= 0)
-			{
-			ptr.SetLength(length);
-			}
-		
-		if( !ptr.CompareF(aContentType) )
-		{
-			return this;
-		}
-    }
+    TBuf<KMaxDataTypeLength> ptr;
+    if ( iContentType )
+        {
+        ptr.Copy( iContentType->Des() );
+        TInt length = ptr.Locate(';');
+        if( length >= 0 )
+            {
+            ptr.SetLength( length );
+            }
+        if( !ptr.CompareF( aContentType ) )
+            {
+            return this;
+            }
+        }
 
-	CFSMailMessagePart* messagePart = NULL;	
-
-	if(CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid(GetMessageId()))
+    CFSMailMessagePart* messagePart = NULL;	
+    CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetMessageId() );
+    if( plugin )
 		{
-		if(iReadMessageParts)
+		if( iReadMessageParts )
 			{
-			plugin->ChildPartsL(GetMailBoxId(),GetFolderId(),GetMessageId(),GetPartId(),iMessageParts);	
-			iReadMessageParts = EFalse;
+			plugin->ChildPartsL( GetMailBoxId(),
+			                     GetFolderId(),
+			                     GetMessageId(),
+			                     GetPartId(),
+			                     iMessageParts );	
+            iReadMessageParts = EFalse;
 			}
-		if(iMessageParts.Count())
-		{
-			if( !ptr.CompareF(KFSMailContentTypeMultipartAlternative) )
-			{
-				// multipart / alternative
-				for(TInt i=0;i<iMessageParts.Count();i++)
-				{
-					ptr.Copy(iMessageParts[i]->GetContentType());
-					TInt length = ptr.Locate(';');
-					if(length >= 0)
-					{
-						ptr.SetLength(length);
-					}
-					if(!ptr.CompareF(aContentType) )
-					{
-						messagePart = iMessageParts[i];
-						// remove part from table
-						iMessageParts.Remove(i);
-						break;
-					}
-					else if(!ptr.CompareF(KFSMailContentTypeMultipartRelated) ||
-					   	 	!ptr.CompareF(KFSMailContentTypeMultipartMixed) ||
-							!ptr.CompareF(KFSMailContentTypeMultipartAlternative) ||
-							!ptr.CompareF(KFSMailContentTypeMultipartDigest) ||
-							!ptr.CompareF(KFSMailContentTypeMultipartParallel))
-					{
-						// multipart, check child parts
-						messagePart = iMessageParts[i];
-						// remove part from table
-						messagePart = messagePart->FindBodyPartL(aContentType);
-						if(messagePart && messagePart->GetPartId() == iMessageParts[0]->GetPartId())
-							{
-							iMessageParts.Remove(i);
-							}
-						break;
-					}					
-				}
-			}
-			else
-			{
-				// all other cases
-				messagePart = iMessageParts[0];
-				// remove part from table
-				messagePart = messagePart->FindBodyPartL(aContentType);
-				if(messagePart && messagePart->GetPartId() == iMessageParts[0]->GetPartId())
-					{
-					iMessageParts.Remove(0);
-					}
-			}
+		if( iMessageParts.Count() )
+		    {
+            if( !ptr.CompareF( KFSMailContentTypeMultipartAlternative ) )
+                {
+                // multipart / alternative
+                for( TInt i=0; i<iMessageParts.Count(); i++ )
+                    {
+                    ptr.Copy( iMessageParts[i]->GetContentType() );
+                    TInt length = ptr.Locate(';');
+                    if( length >= 0 )
+                        {
+                        ptr.SetLength( length );
+                        }
+                    if( !ptr.CompareF( aContentType ) )
+                        {
+                        messagePart = iMessageParts[i];
+                        // remove part from table
+                        iMessageParts.Remove( i );
+                        break;
+                        }
+                    else if( !ptr.CompareF( KFSMailContentTypeMultipartRelated ) ||
+                             !ptr.CompareF( KFSMailContentTypeMultipartMixed ) ||
+                             !ptr.CompareF( KFSMailContentTypeMultipartAlternative ) ||
+                             !ptr.CompareF( KFSMailContentTypeMultipartDigest ) ||
+                             !ptr.CompareF( KFSMailContentTypeMultipartParallel ) )
+                        {
+                        // multipart, check child parts
+                        messagePart = iMessageParts[i];
+                        // remove part from table
+                        messagePart = 
+                                messagePart->FindBodyPartL( aContentType );
+                        if( messagePart && messagePart->GetPartId() == 
+                                    iMessageParts[i]->GetPartId() )
+                            {
+                            iMessageParts.Remove( i );
+                            }
+                        break;
+                        }					
+                    }
+                }
+            else
+                {
+                // all other cases
+                const TInt count = iMessageParts.Count();
+                for ( TInt i = 0; i < count && !messagePart; i++ )
+                    {
+                    messagePart = iMessageParts[i];
+                    // remove part from table
+                    messagePart = messagePart->FindBodyPartL( aContentType );
+                    if( messagePart && messagePart->GetPartId() == 
+                            iMessageParts[i]->GetPartId() )
+                        {
+                        iMessageParts.Remove( i );
+                        }
+                    }
+                }
+		    }
 		}
-	}
     return messagePart;
-}
+    }
 
 
 // -----------------------------------------------------------------------------

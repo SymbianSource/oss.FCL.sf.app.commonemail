@@ -28,52 +28,150 @@
 :"Symbian"
 
 ; Meeting request
-"\epoc32\data\z\resource\esmrgui.rsc"-"!:\resource\esmrgui.rsc"
-"\epoc32\data\z\resource\esmrtasks.rsc"-"!:\resource\esmrtasks.rsc"
-"\epoc32\data\z\resource\esmrpolicies.rsc"-"!:\resource\esmrpolicies.rsc"
-"\epoc32\data\z\resource\esmralarminfo.rsc"-"!:\resource\esmralarminfo.rsc"
-"\epoc32\data\z\resource\esmragnversit2strings.rsc"-"!:\resource\esmragnversit2strings.rsc"
-"\epoc32\data\z\resource\esmrcasplugindata.rsc"-"!:\resource\esmrcasplugindata.rsc"
+
+
+
+
+; mragnversit2 plugin
 "\epoc32\release\armv5\urel\esmragnversit2.dll"-"!:\sys\bin\esmragnversit2.dll"
 "\epoc32\data\Z\Resource\Plugins\esmragnversit2.rsc"-"!:\resource\plugins\esmragnversit2.rsc"
-"\epoc32\data\Z\Resource\Plugins\esmricalviewer.rsc"-"!:\resource\plugins\esmricalviewer.rsc"
-"\epoc32\release\armv5\urel\esmrfieldbuilderplugin.dll"-"!:\sys\bin\esmrfieldbuilderplugin.dll"
-"\epoc32\data\Z\Resource\Plugins\esmrfieldbuilderplugin.rsc"-"!:\resource\plugins\esmrfieldbuilderplugin.rsc"
-"\epoc32\release\armv5\urel\esmrfieldbuilderpluginextension.dll"-"!:\sys\bin\esmrfieldbuilderpluginextension.dll"
-"\epoc32\data\Z\Resource\Plugins\esmrfieldbuilderpluginextension.rsc"-"!:\resource\plugins\esmrfieldbuilderpluginextension.rsc"
+"\epoc32\data\z\resource\esmragnversit2strings.rsc"-"!:\resource\esmragnversit2strings.rsc"
+
+
+; mrbcplugin plugin
+"\epoc32\release\armv5\urel\mrbcplugin.dll"-"!:\sys\bin\mrbcplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\mrbcplugin.rsc"-"!:\resource\plugins\mrbcplugin.rsc"
+; Sub bcmrevent plugin
+"\epoc32\release\armv5\urel\bcmrevent.dll"-"!:\sys\bin\bcmrevent.dll"
+"\epoc32\data\Z\Resource\Plugins\bcmrevent.rsc"-"!:\resource\plugins\bcmrevent.rsc"
+"\epoc32\data\z\resource\bcmreventplugin.rsc"-"!:\resource\bcmreventplugin.rsc"
+
+
+; mrcalremoteattachment component
+"\epoc32\release\armv5\urel\remoteattachment.dll"-"!:\sys\bin\remoteattachment.dll"
+
+
+; mrcasplugin plugin
 "\epoc32\release\armv5\urel\esmrcasplugin.dll"-"!:\sys\bin\esmrcasplugin.dll"
 "\epoc32\data\Z\Resource\Plugins\esmrcasplugin.rsc"-"!:\resource\plugins\esmrcasplugin.rsc"
-"\epoc32\release\armv5\urel\esmricalviewer.dll"-"!:\sys\bin\esmricalviewer.dll"
-"\epoc32\release\armv5\urel\esmrviewer.dll"-"!:\sys\bin\esmrviewer.dll"
-"\epoc32\release\armv5\urel\esmrutils.dll"-"!:\sys\bin\esmrutils.dll"
-"\epoc32\release\armv5\urel\esmrentry.dll"-"!:\sys\bin\esmrentry.dll"
-"\epoc32\release\armv5\urel\esmrpolicy.dll"-"!:\sys\bin\esmrpolicy.dll"
-"\epoc32\release\armv5\urel\esmrcommon.dll"-"!:\sys\bin\esmrcommon.dll"
-"\epoc32\release\armv5\urel\esmrdb.dll"-"!:\sys\bin\esmrdb.dll"
-"\epoc32\release\armv5\urel\esmrservices.dll"-"!:\sys\bin\esmrservices.dll"
-"\epoc32\release\armv5\urel\esmrgui.dll"-"!:\sys\bin\esmrgui.dll"
-"\epoc32\release\armv5\urel\esmrtasks.dll"-"!:\sys\bin\esmrtasks.dll"
-"\epoc32\release\armv5\urel\esmrversit2.dll"-"!:\sys\bin\esmrversit2.dll"
-"\epoc32\release\armv5\urel\esmrfieldbuildercommon.dll"-"!:\sys\bin\esmrfieldbuildercommon.dll"
-"\epoc32\release\armv5\urel\esmrfieldevent.dll"-"!:\sys\bin\esmrfieldevent.dll"
-"\epoc32\data\z\resource\apps\esmrgui.mif"-"!:\resource\apps\esmrgui.mif"
+"\epoc32\data\z\resource\esmrcasplugindata.rsc"-"!:\resource\esmrcasplugindata.rsc"
 "\epoc32\data\z\resource\apps\esmrcasplugin.mif"-"!:\resource\apps\esmrcasplugin.mif"
 
-; esmrviewer calendar plug-in 
-"\epoc32\release\armv5\urel\esmrviewercalplugin.dll"-"!:\sys\bin\esmrviewercalplugin.dll"
-"\epoc32\data\Z\Resource\Plugins\esmrviewercalplugin.rsc"-"!:\resource\plugins\esmrviewercalplugin.rsc"
 
-; esmrutils calendar plug-in 
-"\epoc32\release\armv5\urel\esmrutilscalplugin.dll"-"!:\sys\bin\esmrutilscalplugin.dll"
-"\epoc32\data\Z\Resource\Plugins\esmrutilscalplugin.rsc"-"!:\resource\plugins\esmrutilscalplugin.rsc"
+; mrcmailremoteattachmentplugin plugin
+"\epoc32\release\armv5\urel\mrcmailremoteattachmentplugin.dll"-"!:\sys\bin\mrcmailremoteattachmentplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\mrcmailremoteattachmentplugin.rsc"-"!:\resource\plugins\mrcmailremoteattachmentplugin.rsc"
 
-; Location integration plugin
+
+; mrcommon component
+"\epoc32\release\armv5\urel\esmrcommon.dll"-"!:\sys\bin\esmrcommon.dll"
+
+
+; mrdb component
+"\epoc32\release\armv5\urel\esmrdb.dll"-"!:\sys\bin\esmrdb.dll"
+
+
+; mrentry component
+"\epoc32\release\armv5\urel\esmrentry.dll"-"!:\sys\bin\esmrentry.dll"
+
+
+; mrgui component
+"\epoc32\release\armv5\urel\esmrgui.dll"-"!:\sys\bin\esmrgui.dll"
+"\epoc32\data\z\resource\esmrgui.rsc"-"!:\resource\esmrgui.rsc"
+"\epoc32\data\z\resource\apps\esmrgui.mif"-"!:\resource\apps\esmrgui.mif"
+; Sub mrfieldbuildercommon component
+"\epoc32\release\armv5\urel\esmrfieldbuildercommon.dll"-"!:\sys\bin\esmrfieldbuildercommon.dll"
+; Sub mrfieldbuilderplugin plugin
+"\epoc32\release\armv5\urel\esmrfieldbuilderplugin.dll"-"!:\sys\bin\esmrfieldbuilderplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrfieldbuilderplugin.rsc"-"!:\resource\plugins\esmrfieldbuilderplugin.rsc"
+; Sub mrfieldbuilderpluginextension plugin
+"\epoc32\release\armv5\urel\esmrfieldbuilderpluginextension.dll"-"!:\sys\bin\esmrfieldbuilderpluginextension.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrfieldbuilderpluginextension.rsc"-"!:\resource\plugins\esmrfieldbuilderpluginextension.rsc"
+; Sub mrfieldevent component
+"\epoc32\release\armv5\urel\esmrfieldevent.dll"-"!:\sys\bin\esmrfieldevent.dll"
+; Sub mrlocationplugin plugin
 "\epoc32\release\armv5\urel\esmrlocationplugin.dll"-"!:\sys\bin\esmrlocationplugin.dll"
 "\epoc32\data\Z\Resource\Plugins\esmrlocationplugin.rsc"-"!:\resource\plugins\esmrlocationplugin.rsc"
 
-; Location URL Parser plugin
+
+; mrguicommon component
+"\epoc32\release\armv5\urel\mrguicommon.dll"-"!:\sys\bin\mrguicommon.dll"
+
+
+; mricalviewer plugin
+"\epoc32\release\armv5\urel\esmricalviewer.dll"-"!:\sys\bin\esmricalviewer.dll"
+"\epoc32\data\Z\Resource\Plugins\esmricalviewer.rsc"-"!:\resource\plugins\esmricalviewer.rsc"
+
+
+; mrmbutilsextension plugin
+"\epoc32\release\armv5\urel\mrmbutilsextension.dll"-"!:\sys\bin\mrmbutilsextension.dll"
+"\epoc32\data\Z\Resource\Plugins\mrmbutilsextension.rsc"-"!:\resource\plugins\mrmbutilsextension.rsc"
+
+
+; mrpolicy component
+"\epoc32\release\armv5\urel\esmrpolicy.dll"-"!:\sys\bin\esmrpolicy.dll"
+; Sub mrcalentryresolver plugin
+"\epoc32\release\armv5\urel\mrcalentryresolver.dll"-"!:\sys\bin\mrcalentryresolver.dll"
+"\epoc32\data\Z\Resource\Plugins\mrcalentryresolver.rsc"-"!:\resource\plugins\mrcalentryresolver.rsc"
+"\epoc32\data\z\resource\bccaleventpolicies.rsc"-"!:\resource\bccaleventpolicies.rsc"
+; Sub mrentryresolver plugin
+"\epoc32\release\armv5\urel\mrentryresolver.dll"-"!:\sys\bin\mrentryresolver.dll"
+"\epoc32\data\Z\Resource\Plugins\mrentryresolver.rsc"-"!:\resource\plugins\mrentryresolver.rsc"
+"\epoc32\data\z\resource\esmrpolicies.rsc"-"!:\resource\esmrpolicies.rsc"
+
+
+; mrprocessor component
+; Sub mrcaleventplugin plugin
+"\epoc32\release\armv5\urel\mrcaleventplugin.dll"-"!:\sys\bin\mrcaleventplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\mrcaleventplugin.rsc"-"!:\resource\plugins\mrcaleventplugin.rsc"
+"\epoc32\data\z\resource\mrcaleventdata.rsc"-"!:\resource\mrcaleventdata.rsc"
+; Sub mrprocessorplugin plugin
+"\epoc32\release\armv5\urel\mrprocessorplugin.dll"-"!:\sys\bin\mrprocessorplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\mrprocessorplugin.rsc"-"!:\resource\plugins\mrprocessorplugin.rsc"
+
+
+; mrservices component
+"\epoc32\release\armv5\urel\esmrservices.dll"-"!:\sys\bin\esmrservices.dll"
+"\epoc32\data\z\resource\esmralarminfo.rsc"-"!:\resource\esmralarminfo.rsc"
+
+
+; mrtasks component
+"\epoc32\release\armv5\urel\esmrtasks.dll"-"!:\sys\bin\esmrtasks.dll"
+"\epoc32\data\z\resource\esmrtasks.rsc"-"!:\resource\esmrtasks.rsc"
+; Sub mrcaleventtaskplugin plugin
+"\epoc32\release\armv5\urel\mrcaleventtaskplugin.dll"-"!:\sys\bin\mrcaleventtaskplugin.dll"
+"\epoc32\data\z\resource\Plugins\mrcaleventtaskplugin.rsc"-"!:\resource\plugins\mrcaleventtaskplugin.rsc"
+; Sub mrtaskplugin plugin
+"\epoc32\release\armv5\urel\mrtaskplugin.dll"-"!:\sys\bin\mrtaskplugin.dll"
+"\epoc32\data\z\resource\Plugins\mrtaskplugin.rsc"-"!:\resource\Plugins\mrtaskplugin.rsc"
+
+
+; mrurlparserplugin plugin
 "\epoc32\release\armv5\urel\esmrurlparserplugin.dll"-"!:\sys\bin\esmrurlparserplugin.dll"
 "\epoc32\data\Z\Resource\Plugins\esmrurlparserplugin.rsc"-"!:\resource\plugins\esmrurlparserplugin.rsc"
-"\epoc32\data\z\resource\esmrurlparserplugindata.rsc"-"!:\resource\esmrurlparserplugindata.rsc"
+
+
+; mrutils component
+"\epoc32\release\armv5\urel\esmrutils.dll"-"!:\sys\bin\esmrutils.dll"
+
+
+; mrutilscalplugin plugin
+"\epoc32\release\armv5\urel\esmrutilscalplugin.dll"-"!:\sys\bin\esmrutilscalplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrutilscalplugin.rsc"-"!:\resource\plugins\esmrutilscalplugin.rsc"
+
+
+; mrversit2 component
+"\epoc32\release\armv5\urel\esmrversit2.dll"-"!:\sys\bin\esmrversit2.dll"
+
+
+; mrviewer component
+"\epoc32\release\armv5\urel\esmrviewer.dll"-"!:\sys\bin\esmrviewer.dll"
+
+
+; mrviewercalplugin plugin
+"\epoc32\release\armv5\urel\esmrviewercalplugin.dll"-"!:\sys\bin\esmrviewercalplugin.dll"
+"\epoc32\data\Z\Resource\Plugins\esmrviewercalplugin.rsc"-"!:\resource\plugins\esmrviewercalplugin.rsc"
+
+
 
 ; Meeting request helps

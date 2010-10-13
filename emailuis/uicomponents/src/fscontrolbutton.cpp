@@ -206,11 +206,8 @@ void CFsControlButton::SetIconL(
     TFsControlButtonElem aWhich )
     {
     FUNC_LOG;
-    if ( iModel->Icon( aWhich ) != &aIcon ) // don't set the same icon twice
-        {
-        iModel->SetIconL( aIcon, aWhich );
-        iVisualiser->UpdateElementL( aWhich );
-        }
+    iModel->SetIconL( aIcon, aWhich );
+    iVisualiser->UpdateElementL( aWhich );
     }
 
 
@@ -632,9 +629,7 @@ TBool CFsControlButton::OfferEventL( const TAlfEvent& aEvent )
                     iParent.HandleButtonEvent(
                         MFsControlButtonObserver::EEventButton,
                         iModel->Id() );
-                    
-                    // EStdKeyDevice3 (EKeyOK) cannot be consumed here.
-                    result = EFalse;
+                    result = ETrue;
 
                     if ( iTriggeredComponent )
                         {

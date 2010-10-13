@@ -43,8 +43,6 @@
 #include "cmailpluginproxy.h"
 #include "cmailhandlerpluginpanic.h"
 
-#include "fsemailserverpskeys.h"
-
 using namespace EmailInterface;
 
 // ---------------------------------------------------------
@@ -100,18 +98,6 @@ void CMailCpsHandler::ConstructL()
     InitializeExternalAccountsL();
 
     iSettings->StartObservingL( this );
-
-    TInt err = RProperty::Define( KPSUidEmailServerCategory, 
-                                  KIntMailboxCount, 
-                                  RProperty::EInt );
-    if ( err != KErrAlreadyExists && err != KErrNone )
-        {
-        User::LeaveIfError( err );
-        }
-    
-    // set mailbox initial count 
-    TInt intCount = TotalIntMailboxCount();
-    User::LeaveIfError( RProperty::Set( KPSUidEmailServerCategory, KIntMailboxCount, intCount ) );
     }
 
 // ---------------------------------------------------------
@@ -484,7 +470,7 @@ void CMailCpsHandler::UpdateMailboxNameL( const TInt aMailBoxNumber,
                 // Use localisation format when displaying also unread messages
 
                 // Arrays must be used when loc string contains indexed parameters
-                CDesCArrayFlat* strings = new( ELeave) CDesCArrayFlat( 1 );
+                CDesCArrayFlat* strings = new CDesCArrayFlat( 1 );
                 CleanupStack::PushL( strings );
                 strings->AppendL( accountName ); // replace "%0U" with mailbox name
 
@@ -945,10 +931,6 @@ void CMailCpsHandler::HandleNewMailboxEventL( const TFSMailMsgId aMailbox )
         {
         iLiwIf->AddWidgetToHomescreenL( aMailbox );
         }
-
-    // update total mailbox count. 
-    TInt intCount = TotalIntMailboxCount();
-    User::LeaveIfError( RProperty::Set( KPSUidEmailServerCategory, KIntMailboxCount, intCount ) );
     }
 
 // ---------------------------------------------------------
@@ -998,9 +980,6 @@ void CMailCpsHandler::HandleMailboxDeletedEventL( const TFSMailMsgId aMailbox )
             break;
             }
         }
-    // update total mailbox count. 
-    TInt intCount = TotalIntMailboxCount();
-    User::LeaveIfError( RProperty::Set( KPSUidEmailServerCategory, KIntMailboxCount, intCount ) );
     }
 
 
@@ -1821,6 +1800,17 @@ void CMailCpsHandler::DisplayHSPageFullNoteL()
     str = StringLoader::LoadLC( R_EMAILWIDGET_TEXT_HS_PAGE_FULL );
     iQuery->ShowNoteL(EAknGlobalConfirmationNote, str->Des());
     CleanupStack::PopAndDestroy( str );    
+    }
+
+// ----------------------------------------------------------------------------
+// CMailCpsHandler::GetWidgetSetupBrandIconVariant()
+// Get widget setup brand icon variant
+// ----------------------------------------------------------------------------
+//
+TInt CMailCpsHandler::GetWidgetSetupBrandIconVariant()
+    {
+    FUNC_LOG;
+    return iSettings->GetWidgetSetupBrandIconVariant();
     }
 
 // ----------------------------------------------------------------------------

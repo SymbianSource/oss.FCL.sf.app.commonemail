@@ -186,6 +186,11 @@ public:
      */    
     TInt GetUnreadCountL( TFSMailMsgId aMailbox);
 
+    /**
+     *
+     */
+    TInt GetWidgetSetupBrandIconVariant();
+    
 protected:
     /**
      * From CFSNotificationHandlerBase

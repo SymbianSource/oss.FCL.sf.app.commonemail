@@ -19,6 +19,7 @@
 #include <esmrgui.mbg>
 #include <mrui.loc>
 #include <avkon.hrh>
+#include <aknsconstants.hrh>
 
 #define MRUI_ICON_FILE BITMAP_DIR"\\esmrgui.mif"
 
@@ -33,10 +34,17 @@ RESOURCE AVKON_BUTTON r_toolbar_button_accept
             helptxt = qtn_meet_req_toolbar_hlp_accept;
             bmpfile = MRUI_ICON_FILE;
             bmpid = EMbmEsmrguiQgn_indi_tb_email_accept;
-            bmpmask = EMbmEsmrguiQgn_indi_tb_email_accept_mask;     
+            bmpmask = EMbmEsmrguiQgn_indi_tb_email_accept_mask;
+            extension = r_toolbar_button_accept_extension;
             }  
         };
     }
+
+RESOURCE AVKON_BUTTON_STATE_EXTENSION r_toolbar_button_accept_extension
+     {
+     bmbSkinIdMajor = EAknsMajorGeneric;
+     bmbSkinIdMinor = EAknsMinorGenericQgnIndiTbEmailAccept;
+     } 
 
 RESOURCE AVKON_BUTTON r_toolbar_button_tentative
     {
@@ -48,10 +56,17 @@ RESOURCE AVKON_BUTTON r_toolbar_button_tentative
             helptxt = qtn_meet_req_toolbar_hlp_tentative;
             bmpfile = MRUI_ICON_FILE;
             bmpid = EMbmEsmrguiQgn_indi_tb_email_tentative;
-            bmpmask = EMbmEsmrguiQgn_indi_tb_email_tentative_mask;  
+            bmpmask = EMbmEsmrguiQgn_indi_tb_email_tentative_mask;
+            extension = r_toolbar_button_tentative_extension;
             }  
         };
     }
+
+RESOURCE AVKON_BUTTON_STATE_EXTENSION r_toolbar_button_tentative_extension
+     {
+     bmbSkinIdMajor = EAknsMajorGeneric;
+     bmbSkinIdMinor = EAknsMinorGenericQgnIndiTbEmailTentative;
+     } 
 
 RESOURCE AVKON_BUTTON r_toolbar_button_decline
     {
@@ -63,10 +78,17 @@ RESOURCE AVKON_BUTTON r_toolbar_button_decline
             helptxt = qtn_meet_req_toolbar_hlp_decline;
             bmpfile = MRUI_ICON_FILE;
             bmpid = EMbmEsmrguiQgn_indi_tb_email_decline;
-            bmpmask = EMbmEsmrguiQgn_indi_tb_email_decline_mask;  
+            bmpmask = EMbmEsmrguiQgn_indi_tb_email_decline_mask;
+            extension = r_toolbar_button_decline_extension;
             }  
         };
     }
+
+RESOURCE AVKON_BUTTON_STATE_EXTENSION r_toolbar_button_decline_extension
+     {
+     bmbSkinIdMajor = EAknsMajorGeneric;
+     bmbSkinIdMinor = EAknsMinorGenericQgnIndiTbEmailDecline;
+     } 
 
 /*
  * MR toolbar help texts

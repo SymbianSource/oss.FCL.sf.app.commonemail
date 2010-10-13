@@ -87,6 +87,7 @@ protected:
 // from base class CActive
     virtual void DoCancel();
     virtual void RunL();
+    virtual TInt RunError( TInt aError );
 
 private:
 

@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 - 2010 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -18,16 +18,24 @@
 
 
 // SYSTEM INCLUDES
+// <cmail> SF
 #include "emailtrace.h"
 #include <alf/alfstatic.h>
+// </cmail>
 #include <freestyleemailui.mbg>
 #include <AknUtils.h>
+// <cmail>
 #include <alf/alfframebrush.h>
+// </cmail>
 #include <AknsConstants.h>
+// <cmail>
 #include <alf/alfimageloaderutil.h>
+// </cmail>
 #include <avkon.mbg>
 #include <gulicon.h>
+// <cmail> S60 Skin support
 #include <AknsDrawUtils.h>
+// </cmail>
 
 // INTERNAL INCLUDES
 #include "FreestyleEmailUi.hrh"
@@ -84,10 +92,12 @@ CFreestyleEmailUiTextureManager::~CFreestyleEmailUiTextureManager()
 	delete iFrameBrush;
 	iFrameBrush = NULL;
 
+	//<cmail>
 	delete iNewFrameBrush;
 	iNewFrameBrush = NULL;
 
 	delete iTitleDividerBgBrush;
+	//</cmail>
 	}
 
 
@@ -229,6 +239,7 @@ CAlfFrameBrush* CFreestyleEmailUiTextureManager::NewCtrlBarSelectorBrushLC()
 	return frameBrush;
 	}
 
+// <cmail>
 // -----------------------------------------------------------------------------
 // CFreestyleEmailUiTextureManager::NewListSelectorBrushL
 // NOTE: Gen UI list gets the ownership of the selector brush and deletes it
@@ -258,6 +269,7 @@ CAlfFrameBrush* CFreestyleEmailUiTextureManager::NewListSelectorBrushL()
 
     return iNewFrameBrush;
     }
+// </cmail>
 
 
 // -----------------------------------------------------------------------------
@@ -345,6 +357,20 @@ CAlfFrameBrush* CFreestyleEmailUiTextureManager::NewMailListSeparatorBgBrushLC()
 	frameBrush->SetFrameRectsL(testInnerRect, testOuterRect);
 	return frameBrush;
 	}
+
+// -----------------------------------------------------------------------------
+// CFreestyleEmailUiTextureManager::NewMailListMarkingModeBgBrushLC
+// -----------------------------------------------------------------------------
+//
+CAlfImageBrush* CFreestyleEmailUiTextureManager::NewMailListMarkingModeBgBrushLC()
+    {
+    FUNC_LOG;
+    CAlfTexture& circle = TextureByIndex( EMarkingModeBackgroundIcon );
+    CAlfImageBrush* bgBrush = CAlfImageBrush::NewLC( *iEnv, TAlfImage(circle) );
+    bgBrush->SetLayer( EAlfBrushLayerBackground );
+    bgBrush->SetScaleMode( CAlfImageVisual::EScaleNormal );
+    return bgBrush;
+    }
 
 // -----------------------------------------------------------------------------
 // CFreestyleEmailUiTextureManager::NewControlBarListBgBrushLC
@@ -506,7 +532,11 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
  		}
  	else if ( aId >= ETextureGridFirst ) // GRID ICONS
 		{
+// <cmail> Platform layout change
+	   	//TInt gridIconSize = iAppUi->LayoutHandler()->GridIconSize();
+		//iconSize.SetSize(  gridIconSize, gridIconSize );
 		iconSize = iAppUi->LayoutHandler()->GridIconSize();
+// </cmail>
 		}
 	else  if ( aId >= ETextureMessageFirst /*&& aId < ETextureCalendarFirst*/ ) // MESSAGE ICONS
 		{
@@ -521,6 +551,7 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
   	CFbsBitmap* mask(0);
 	TScaleMode scalemode = EAspectRatioPreserved;
 
+// <cmaill> icons changed
 	switch ( aId )
 		{
 		// LIST TEXTURE READING STARTS HERE
@@ -594,27 +625,26 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
 	                             EMbmFreestyleemailuiQgn_graf_cmail_list_selector_mask);
 			}
 			break;
-		case EListControlMarkOnIcon:
+		case EListControlMarkIcon:
 			{
-	        AknsUtils::CreateIconL( AknsUtils::SkinInstance(),
-	            KAknsIIDQgnFsHscrActionArrowRight, bitmap, mask, iconFileName,
-	            EMbmFreestyleemailuiQgn_prop_checkbox_on,
-	            EMbmFreestyleemailuiQgn_prop_checkbox_on_mask );			    
-            TInt tempsize = iAppUi->LayoutHandler()->SearchMarkIconSize();
+			// <cmail> Platform layout change
+			// Get mark icon from the skin, otherwise use default
+            AknsUtils::CreateColorIconL(
+                AknsUtils::SkinInstance(),
+                KAknsIIDQgnFsListItemSelected,
+                KAknsIIDQsnIconColors,
+                EAknsCIQsnIconColorsCG13,
+                bitmap,
+                mask,
+                //KAvkonBitmapFile,
+                iconFileName,
+                EMbmFreestyleemailuiQgn_indi_marked_add,
+                EMbmFreestyleemailuiQgn_indi_marked_add_mask,
+                KRgbBlack );
+            TInt tempsize = iAppUi->LayoutHandler()->SearchLookingGlassIconSize();
             iconSize.SetSize( tempsize, tempsize );
 			scalemode = EAspectRatioNotPreserved;
-			}
-			break;
-		case EListControlMarkOffIcon:
-			{
-	        AknsUtils::CreateIconL( AknsUtils::SkinInstance(),
-	            KAknsIIDQgnFsHscrActionArrowRight, bitmap, mask, iconFileName,
-	            EMbmFreestyleemailuiQgn_prop_checkbox_off,
-	            EMbmFreestyleemailuiQgn_prop_checkbox_off_mask );			    
-
-            TInt tempsize = iAppUi->LayoutHandler()->SearchMarkIconSize();
-            iconSize.SetSize( tempsize, tempsize );
-			scalemode = EAspectRatioNotPreserved;
+			// </cmail> Platform layout change
 			}
 			break;
 		case EListControlMenuIcon:
@@ -1856,6 +1886,22 @@ void CFreestyleEmailUiTextureManager::ProvideBitmapL(TInt aId, CFbsBitmap*& aBit
                 KRgbBlack );
 		    }
 		    break;
+        case EMarkingModeBackgroundIcon:
+            {
+            TRect mailListRect(iAppUi->LayoutHandler()->GetListRect());
+            if ( mailListRect.Width() > mailListRect.Height() )
+                {
+                iconSize.SetSize( mailListRect.Width(), mailListRect.Width() );            
+                }
+            else
+                {
+                iconSize.SetSize( mailListRect.Height(), mailListRect.Height() );            
+                }                
+            AknIconUtils::CreateIconL( bitmap, mask, iconFileName,
+                                 EMbmFreestyleemailuiCmail_marking_mode_bg,
+                                 EMbmFreestyleemailuiCmail_marking_mode_bg);
+            }
+            break;
 		case EGridAboutTexture:
 		default:
 			// Branded mailbox icon
@@ -2062,14 +2108,9 @@ void CFreestyleEmailUiTextureManager::LoadTextureL( TFSEmailUiTextures aTextureI
 			iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EBackgroundTextureMailList, this, EAlfTextureFlagSkinContent);
 			}
 			break;
-		case EListControlMarkOnIcon:
+		case EListControlMarkIcon:
 			{
-			iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EListControlMarkOnIcon, this, EAlfTextureFlagSkinContent);
-			break;
-			}
-		case EListControlMarkOffIcon:
-			{
-			iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EListControlMarkOffIcon, this, EAlfTextureFlagSkinContent);
+			iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EListControlMarkIcon, this, EAlfTextureFlagSkinContent);
 			break;
 			}
 		case EListControlMenuIcon:
@@ -2103,6 +2144,11 @@ void CFreestyleEmailUiTextureManager::LoadTextureL( TFSEmailUiTextures aTextureI
 			iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EControlBarDescendingArrowTexture, this, EAlfTextureFlagSkinContent);
 			}
 			break;
+		case EMarkingModeBackgroundIcon: 
+		    {
+		    iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EMarkingModeBackgroundIcon, this, EAlfTextureFlagRetainResolution);
+		    }
+		    break;
 			
 		// MESSAGE TEXTURES
 		case EMessageReadIcon: iTextures[aTextureId] = &CAlfStatic::Env().TextureManager().CreateTextureL( EMessageReadIcon, this, EAlfTextureFlagDefault); break;

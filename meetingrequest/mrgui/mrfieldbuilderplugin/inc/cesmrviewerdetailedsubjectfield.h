@@ -107,6 +107,8 @@ private: // data
     CESMRRichTextViewer* iRichTextViewer;
     /// Ref: Pointer to title pane observer
     MESMRTitlePaneObserver* iTitlePaneObserver;
+    // Stores current priority value
+    TUint iCurrentPriority;
     };
 
 #endif // CESMRVIEWERDETAILEDSUBJECTFIELD_H_

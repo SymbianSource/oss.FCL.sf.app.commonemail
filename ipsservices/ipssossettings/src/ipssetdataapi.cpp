@@ -664,23 +664,23 @@ EXPORT_C void CIpsSetDataApi::ConstructImapPartialFetchInfo(
     {
     FUNC_LOG;
     TInt sizeLimit = aImap4Settings.BodyTextSizeLimit();
-    
-    TInt limit(KMaxTInt);
+
+    TInt limit( KMaxTInt );
     CRepository* centRep = NULL;
     TRAP_IGNORE( centRep = CRepository::NewL( KFreestyleEmailCenRep ) );
-    if (NULL != centRep)
+    if ( NULL != centRep )
         {
-        //not necessary to push centRep as no leave function is called
-        TInt err = centRep->Get(KFreestyleMaxBodySize, limit);
+        // not necessary to push centRep as no leave function is called
+        TInt err = centRep->Get( KFreestyleMaxBodySize, limit );
         limit *= KKilo;
-        if (limit == 0 || err)
+        if ( limit == 0 || err )
             {
             limit = KMaxTInt;
             }
-        //free
+        // free
         delete centRep;
         centRep = NULL;		
-        }//end if (NULL != centRep)
+        }
 
     if ( sizeLimit == KIpsSetDataHeadersOnly )
         {

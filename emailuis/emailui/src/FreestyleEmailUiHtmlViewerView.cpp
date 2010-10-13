@@ -38,8 +38,6 @@
 #include <brctlinterface.h>
 #include <csxhelp/cmail.hlp.hrh>
 #include <baclipb.h> // for clipboard copy
-#include <fsmailserver.rsg>
-#include <aknnotewrappers.h>
 
 #ifdef SYMBIAN_ENABLE_SPLIT_HEADERS
 #include <txtclipboard.h>
@@ -74,8 +72,7 @@ CFsEmailUiHtmlViewerView* CFsEmailUiHtmlViewerView::NewL(
     CAlfControlGroup& aControlGroup )
     {
     FUNC_LOG;
-    CFsEmailUiHtmlViewerView* self = new ( ELeave ) CFsEmailUiHtmlViewerView(
-        aEnv, aAppUi, aControlGroup );
+    CFsEmailUiHtmlViewerView* self = new ( ELeave ) CFsEmailUiHtmlViewerView( aEnv, aAppUi, aControlGroup );
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop( self );
@@ -351,18 +348,7 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
                  break;
              case EFsEmailUiCmdActionsMoveMessage:
                  {
-                 TBool asyncFetchStatus = GetAsyncFetchStatus();
-                 if ( asyncFetchStatus )
-                     {
-                     HBufC* noteText = StringLoader::LoadLC( R_FS_MSERVER_TEXT_SERVER_CURRENTLY_BUSY_TRY_AGAIN );
-                     CAknInformationNote* note = new (ELeave) CAknInformationNote();
-                     note->ExecuteLD( *noteText );
-                     CleanupStack::PopAndDestroy( noteText );
-                     }
-                 else
-                     {
-                     OpenFolderListForMessageMovingL();
-                     }
+                 OpenFolderListForMessageMovingL();
                  }
                  break;
              case EFsEmailUiCmdActionsFlag:
@@ -471,18 +457,10 @@ void CFsEmailUiHtmlViewerView::ShowContainerL()
 // ---------------------------------------------------------------------------
 //  hide or show Container ( used for activation of the view )
 //
-void CFsEmailUiHtmlViewerView::FadeOut( TBool aDirectionOut )
+void CFsEmailUiHtmlViewerView::FadeOut(TBool aDirectionOut )
 	{
 	FUNC_LOG;
-	if ( !iContainer )
-		{
-        TFsEmailUiUtility::ShowErrorNoteL( 
-            R_FREESTYLE_EMAIL_ERROR_GENERAL_UNABLE_TO_COMPLETE, ETrue );
-		}
-	else
-		{
-	    iContainer->MakeVisible( !aDirectionOut );
-		}
+	iContainer->MakeVisible(!aDirectionOut);
 	}
 
 
@@ -656,10 +634,6 @@ void CFsEmailUiHtmlViewerView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
             iMessage = iOpenMessages->Head();
             iCreateNewMsgFromEmbeddedMsg = EFalse;
 
-            if (iMessage && !iMailBox)
-                {
-                iMailBox = iAppUi.GetMailClient()->GetMailBoxByUidL( iMessage->GetMailBoxId() );            
-                }
             delete iAttachmentsListModel;
             iAttachmentsListModel = NULL;
             iAttachmentsListModel = CFSEmailUiAttachmentsListModel::NewL( iAppUi, *this );
@@ -1072,6 +1046,12 @@ void CFsEmailUiHtmlViewerView::HandleMrCommandL(
         }
     }
 
+void CFsEmailUiHtmlViewerView::HandleStatusPaneSizeChange()
+    {
+    CFsEmailUiViewBase::HandleStatusPaneSizeChange();
+
+	HandleViewRectChange();
+    }
 
 void CFsEmailUiHtmlViewerView::HandleViewRectChange()
     {
@@ -2214,29 +2194,30 @@ void CFsEmailUiHtmlViewerView::RequestResponseL( TFSProgress aEvent, TInt aReque
                 }
             }
         }
-
-    if ( iContainer )
+    if(iContainer)
         {
         iContainer->HideDownloadStatus();
         }
-
     if ( reloadContent )
         {
-        if ( iContainer )
+
+        if (  iContainer )
             {
-            iContainer->ResetContent( EFalse, EFalse );
-            if ( iMessage )
+            iContainer->ResetContent();
+            if( iMessage )
                 {
-                LoadContentFromMailMessageL( iMessage , EFalse );
+                LoadContentFromMailMessageL( iMessage , EFalse);
                 SetMskL();
                 }
             }
         }
 
-    if ( iAsyncProcessComplete && iWaitDialog && iDialogNotDismissed )
+
+    if(iAsyncProcessComplete && iWaitDialog && iDialogNotDismissed)
         {
         iWaitDialog->ProcessFinishedL(); // deletes the dialog
         }
+
     }
 
 // -----------------------------------------------------------------------------

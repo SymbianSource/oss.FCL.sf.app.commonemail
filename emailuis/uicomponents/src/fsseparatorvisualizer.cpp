@@ -23,13 +23,13 @@
 #include "fsseparatordata.h"
 #include "fstreelist.h"
 #include "fslayoutmanager.h"
-
+// <cmail> SF
 #include <alf/alfanchorlayout.h>
 #include <alf/alfcurvepath.h>
 #include <alf/alflinevisual.h>
 #include <alf/alfenv.h>
 #include <alf/alfevent.h>
-
+// </cmail>
 
 // ======== MEMBER FUNCTIONS ========
  
@@ -218,15 +218,6 @@ void CFsSeparatorVisualizer::SetAlwaysExtended( TBool /*aAlwaysExtended*/ )
     iFlags &= ~KFsTreeListItemAlwaysExtended;
     }
 
-// ---------------------------------------------------------------------------
-//
-//
-// ---------------------------------------------------------------------------
-//
-void CFsSeparatorVisualizer::SetMarkingMode( TBool /*aMarkingMode*/ )
-    {
-    FUNC_LOG;
-    }
 
 // ---------------------------------------------------------------------------
 // From class MFsTreeItemVisualizer.
@@ -287,8 +278,7 @@ void CFsSeparatorVisualizer::ShowL( CAlfLayout& aParentLayout,
 void CFsSeparatorVisualizer::UpdateL( const MFsTreeItemData& aData,
                                           TBool /*aFocused*/,
                                           const TUint aLevel,
-                                          CAlfTexture*& /*aMarkOnIcon*/,
-                                          CAlfTexture*& /*aMarkOffIcon*/,
+                                          CAlfTexture*& /*aMarkIcon*/,
                                           CAlfTexture*& /*aMenuIcon*/,
                                           const TUint /*aTimeout*/,
                                           TBool /*aUpdateData*/)

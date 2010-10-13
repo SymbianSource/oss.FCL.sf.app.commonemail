@@ -48,4 +48,10 @@ const TUint32 KCMailExtWidgetCidOffset            = 0x00000200;
 // Key to store mailboxes where is new messages. Format: <mailbox1><mailbox2><mailbox3>...
 const TUint32 KCMailMailboxesWithNewMail          = 0x10000003;
 
+// Key to variate widget setup brand icons
+const TUint32 KCMailWidgetSetupVariant            = 0x10000004;
+const TInt KWidgetSetupBrandNone                  = 0;
+const TInt KWidgetSetupBrandDefault               = 1;
+const TInt KWidgetSetupBrandChina                 = 2;
+
 #endif // CMAILWIDGETCENREPKEYS_H

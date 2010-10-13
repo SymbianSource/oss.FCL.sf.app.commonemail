@@ -409,7 +409,7 @@ void CFSMailBrandManagerImpl::ConstructFromResourceL( TResourceReader& aReader )
 CFSMailBrand* CFSMailBrandManagerImpl::FindMatchingBrandL( const TDesC& aBrandId )
     {
     FUNC_LOG;
-    if( ( NULL != &aBrandId ) && aBrandId.Length() )
+    if( aBrandId.Length() )
         {
         TInt brandCount( iBrands->Count() );
         for ( TInt i( 0 ); i < brandCount; i++ )

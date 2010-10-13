@@ -71,6 +71,7 @@ public:  // from CAknView
     */
     TUid Id() const;
 
+    void HandleStatusPaneSizeChange();
 
     void HandleViewRectChange();
 

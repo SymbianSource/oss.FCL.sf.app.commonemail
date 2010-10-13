@@ -67,6 +67,12 @@ RESOURCE ESMR_ID_TABLE r_esmr_forward_as_meeting_request_from_mail_fields
             },
         ESMR_FIELD
             {
+            field_id   = EESMRFieldAllDayEvent;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeEdit;
+            }, 
+        ESMR_FIELD
+            {
             field_id   = EESMRFieldMeetingTime;
             field_type = EESMRFieldTypeDefault;
             field_mode = EESMRFieldModeView;
@@ -80,6 +86,18 @@ RESOURCE ESMR_ID_TABLE r_esmr_forward_as_meeting_request_from_mail_fields
         ESMR_FIELD
             {
             field_id   = EESMRFieldStopDate;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },
+        ESMR_FIELD
+            {
+            field_id = EESMRFieldAlarmTime;
+            field_type = EESMRFieldTypeDefault;
+            field_mode = EESMRFieldModeView;
+            },            
+        ESMR_FIELD
+            {
+            field_id = EESMRFieldAlarmDate;
             field_type = EESMRFieldTypeDefault;
             field_mode = EESMRFieldModeView;
             },

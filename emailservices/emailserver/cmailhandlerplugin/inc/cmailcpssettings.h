@@ -210,7 +210,12 @@ public:
      *
      */
     TBool BackupOrRestoreMode();
-    
+
+    /**
+     *
+     */
+    TInt GetWidgetSetupBrandIconVariant();
+
 protected:
     /**
      * From CActive

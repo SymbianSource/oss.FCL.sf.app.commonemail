@@ -155,6 +155,7 @@ void CMRViewerAttachmentsField::ConstructL( )
                 EFalse );
 
     iRichTextViewer->SetSkinBackgroundControlContextL( iBgCtrlContext );
+    iSelectedLink = NULL;
     }
 
 // ---------------------------------------------------------------------------
@@ -467,6 +468,15 @@ TBool CMRViewerAttachmentsField::ExecuteGenericCommandL( TInt aCommand )
     if ( IsValidAttachmentViewerCommand(aCommand) && iAttachmentCommandHandler )
         {
         const CESMRRichTextLink* currentLink = iRichTextViewer->GetSelectedLink();
+        // remember the state if Saving all is not in progress
+        if( currentLink && !iAttachmentCommandHandler->IsSaveAllAttachmentsInProgress() ) 
+        	{
+            iSelectedLink = currentLink;
+        	}      
+        else
+            {
+            currentLink = iSelectedLink;// restore link when selection is lost
+        	}
 
         ASSERT( currentLink );
 
@@ -758,7 +768,14 @@ void CMRViewerAttachmentsField::HandleLongtapEventL( const TPoint& aPosition )
     {
     FUNC_LOG;
 
-    if ( iRichTextViewer->Rect().Contains( aPosition ) )
+    // prevent link selection if SaveAllAttachments is in progress
+    TBool saveAllInProgress ( EFalse );
+    if( iAttachmentCommandHandler ) 
+    	{
+        saveAllInProgress = iAttachmentCommandHandler->IsSaveAllAttachmentsInProgress( );
+    	}
+    
+    if ( !saveAllInProgress && iRichTextViewer->Rect().Contains( aPosition ) )
         {
         iRichTextViewer->LinkSelectedL();
         }
@@ -778,7 +795,15 @@ TBool CMRViewerAttachmentsField::HandleRawPointerEventL(
     if( iAttachmentCount > 0 &&
         aPointerEvent.iType == TPointerEvent::EButton1Up )
         {
-        if( iRichTextViewer->Rect().Contains( aPointerEvent.iPosition ) )
+
+        // prevent handling events if SaveAllAttachments is in progress
+        TBool saveAllInProgress ( EFalse );
+        if( iAttachmentCommandHandler ) 
+    	    {
+            saveAllInProgress = iAttachmentCommandHandler->IsSaveAllAttachmentsInProgress( );
+    	    }
+           
+        if(  !saveAllInProgress && iRichTextViewer->Rect().Contains( aPointerEvent.iPosition ) )
             {
             iRichTextViewer->HandlePointerEventL( aPointerEvent );
             ret = ETrue;

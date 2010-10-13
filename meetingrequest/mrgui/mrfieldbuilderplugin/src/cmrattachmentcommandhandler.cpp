@@ -164,6 +164,8 @@ void CMRAttachmentCommandHandler::ConstructL()
     FUNC_LOG;
 
     iDocHandler = CDocumentHandler::NewL();
+    
+    iAttachmentIndex = KErrNotFound;
     }
 
 // ---------------------------------------------------------------------------
@@ -176,9 +178,43 @@ void CMRAttachmentCommandHandler::HandleAttachmentCommandL(
     {
     FUNC_LOG;
 
-    TInt attachmentIndex( ResolveAttachmentIndexL( aSelectedLink.Value() ) );
-    HandleAttachmentCommandInternalL( aCommandId, attachmentIndex );
+    // If attachment index is not found, we must resolve it
+    if( iAttachmentIndex == KErrNotFound )
+		{
+		iAttachmentIndex = ResolveAttachmentIndexL( aSelectedLink.Value() );
+		}
+	
+	HandleAttachmentCommandInternalL( aCommandId, iAttachmentIndex );
+	
+	// Attachment index can be cleared after the command is executed.
+	iAttachmentIndex = KErrNotFound;
+	
+	// If save all attachments command is in progress ... 
+	if( iSaveAllAttachmentsCommand )
+		{
+		if ( iAttachmentInfo->AttachmentCount() > 0 )
+		   {
+		   // ... Let's continue the download process by starting the 
+		   // next download
+		   SaveNextRemoteAttachmentL();
+		   }
+		else
+		   {
+		   // ... Or show a note if all remote attachments have been saved.
+		   ShowInfoNoteL( iEntry.AttachmentCountL() );
+		   iSaveAllAttachmentsCommand = EFalse;
+		   }
+		}
     }
+
+// ---------------------------------------------------------------------------
+// CMRAttachmentCommandHandler::IsSaveAllAttachmentsInProgress
+// ---------------------------------------------------------------------------
+//
+TBool CMRAttachmentCommandHandler::IsSaveAllAttachmentsInProgress( )
+	{
+	return iSaveAllAttachmentsCommand;// return the flag state
+	}
 
 // ---------------------------------------------------------------------------
 // CMRAttachmentCommandHandler::IsRemoteAttachmentL
@@ -304,6 +340,7 @@ void CMRAttachmentCommandHandler::OperationError(
     // Operation failed or cancelled, hide download indicator
     TRAP_IGNORE( HideDownloadIndicatorL() );
 	iCommandInProgress = 0;
+	iSaveAllAttachmentsCommand = EFalse;
 
 	if ( aErrorCode != KErrCancel )
         {
@@ -463,30 +500,34 @@ void CMRAttachmentCommandHandler::HandleOperationCompletedL(
 
             iCommandInProgress = 0;
             }
-        else
+        else // Save and Save All attachments commands
             {
-            HandleAttachmentCommandInternalL(
-                    EESMRViewerSaveAttachment, attachmentIndex );
+        	// Let's keep in mind, if save all attachments command
+        	// is in progress.
+        	if( EESMRViewerSaveAllAttachments == iCommandInProgress )
+        		{
+        		iSaveAllAttachmentsCommand = ETrue;
+        		}
 
-            if ( EESMRViewerSaveAllAttachments == iCommandInProgress )
-                {
-                iCommandInProgress = 0;
+        	// Send asynchronous event, that attachment with 
+        	// given index is saved. This command will return to
+        	// HandleAttachmentCommandL in this class. Async command
+        	// is used to avoid system caused error where memory selection
+        	// query in document handler does not receive key events 
+        	// correctly.
+			CESMRFieldCommandEvent* event = CESMRFieldCommandEvent::NewLC(
+					NULL,
+					EESMRViewerSaveAttachment );
+			
+			// Record attachment index
+         	iAttachmentIndex = attachmentIndex;
+         	
+         	// Send async event
+			iEventQueue.NotifyEventAsyncL( event );
+			CleanupStack::Pop( event );
 
-                if ( iAttachmentInfo->AttachmentCount() > 0 )
-                    {
-                    // There are more attachments to be downloaded --> Download next
-                    SaveNextRemoteAttachmentL();
-                    }
-                else
-                    {
-                    // All remote attachments have been saved. Show info note.
-                    ShowInfoNoteL( iEntry.AttachmentCountL() );
-                    }
-                }
-            else
-                {
-                iCommandInProgress = 0;
-                }
+			// Set to zero for the duration of the saving.
+            iCommandInProgress = 0;
             }
         }
 
@@ -751,6 +792,8 @@ void CMRAttachmentCommandHandler::HandleRemoteAttachmentCommandInternalL(
                 iDownloadOperations.Remove( remoteCommand );
                 delete command;
                 }
+            
+            iSaveAllAttachmentsCommand = EFalse;
             }
             break;
         case EESMRViewerSaveAllAttachments:

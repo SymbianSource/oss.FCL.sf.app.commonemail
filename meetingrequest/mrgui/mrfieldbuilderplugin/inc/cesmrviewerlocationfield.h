@@ -99,6 +99,8 @@ NONSHARABLE_CLASS( CESMRViewerLocationField ): public CESMRField,
         CESMRRichTextViewer* iRichTextViewer;
         /// Own: Waypoint icon
         CMRImage* iWaypointIcon;
+        /// Own: Lock icon
+        CMRImage* iLockIcon;
         /// Own: RichTextViewer line count.
         TInt iLineCount;
         /// Own: Middle softkey command id

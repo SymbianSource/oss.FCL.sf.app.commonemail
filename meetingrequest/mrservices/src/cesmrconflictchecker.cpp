@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : ESMR conflict checker implementation
-*  Version     : %version: e002sa33#9 %
+*  Version     : %version: e002sa33#10.1.2 %
 *
 */
 
@@ -22,6 +22,7 @@
 #include "esmrhelper.h"
 #include "esmrentryhelper.h"
 #include "esmrinternaluid.h"
+#include "cesmrcaluserutil.h"
 
 #include <calcommon.h>
 #include <calinstance.h>
@@ -96,7 +97,7 @@ CalCommon::TCalTimeRange ResolveFetchTimeRangeL(
     {
     FUNC_LOG;
     const CalCommon::TCalViewFilter instanceFilter =
-            CalCommon::EIncludeAppts;
+            CalCommon::EIncludeAppts | CalCommon::EIncludeEvents;
 
     TDateTime start = aStart.DateTime();
     TDateTime end   = aEnd.DateTime();
@@ -295,7 +296,8 @@ void FindConflictsForEntryL(
 
         allCalenInstanceView[i]->FindInstanceL(
                 aInstances,
-                CalCommon::EIncludeAppts,
+                CalCommon::EIncludeAppts |
+                CalCommon::EIncludeEvents ,
                 timeRange );
         }
 
@@ -367,7 +369,7 @@ void FindConflictsForDailyRRuleL(
                 MoveInstancesL( tmpInstanceArray, aInstances );
                 if ( !aFindAllConflicts )
                     {
-                    break;
+                    //break;
                     }
                 }
             }
@@ -399,7 +401,7 @@ void FindConflictsForDailyRRuleL(
                 MoveInstancesL( tmpInstanceArray, aInstances );
                 if ( !aFindAllConflicts )
                     {
-                    break;
+                    //break;
                     }
                 }
 
@@ -479,7 +481,7 @@ void FindConflictsForWeeklyRRuleL(
                         MoveInstancesL( tmpInstanceArray, aInstances );
                         if ( !aFindAllConflicts )
                             {
-                            break;
+                            //break;
                             }
                         }
                     }
@@ -523,7 +525,7 @@ void FindConflictsForWeeklyRRuleL(
                         MoveInstancesL( tmpInstanceArray, aInstances );
                         if ( !aFindAllConflicts )
                             {
-                            break;
+                           // break;
                             }
                         }
                     }
@@ -545,6 +547,50 @@ void FindConflictsForWeeklyRRuleL(
     }
 
 /**
+ * Judge is one CCalEntry is a all day event
+ * @param aEntry the entry be checked
+ * @return ETure if it is a all day event
+ */
+TBool IsAllDayEventL( const CCalEntry& aEntry )
+    {
+    FUNC_LOG;
+    // for judge all day event
+    CCalEntry* tmpEntry = ESMRHelper::CopyEntryLC(
+						aEntry,
+						aEntry.MethodL(),
+                        ESMRHelper::ECopyFull );
+    
+    CESMRCalUserUtil* entryUtil = CESMRCalUserUtil::NewLC( *tmpEntry );
+    TBool allDayEvent( entryUtil->IsAlldayEventL() );
+    CleanupStack::PopAndDestroy( entryUtil );
+    CleanupStack::PopAndDestroy( tmpEntry );
+    
+    return allDayEvent;
+    }
+/**
+ * Get the first visible instance from the iterater.
+ * @param aIterater the handler of the iterater.
+ * @return the first instance
+ */
+CCalInstance* FirstInstanceL ( CCalInstanceIterator* aIterater)
+	{
+	FUNC_LOG;
+	CCalInstance* previous = aIterater->PreviousL();
+	while( previous )
+		{
+		CleanupStack::PushL( previous );
+		CleanupStack::PopAndDestroy( previous );
+		previous = aIterater->PreviousL();
+		}
+	
+	CCalInstance* next = aIterater->NextL();
+	CleanupStack::PushL( next );
+	CleanupStack::PopAndDestroy( next );
+	previous = aIterater->PreviousL();
+	return previous;
+	}
+
+/**
  * Finds conflict for recurrent entry
  */
 void FindConflictsForRepeatingMeetingL(
@@ -562,38 +608,67 @@ void FindConflictsForRepeatingMeetingL(
         CleanupStack::PushL( instance );
         RCPointerArray< CCalInstance > tmpInstanceArray;
         CleanupClosePushL( tmpInstanceArray );
-
         CCalEntry& parent = instance->Entry();
-        CCalInstanceView* instanceView = aDb.InstanceViewL( parent );
+        CCalInstanceView* instanceView = aDb.InstanceViewL( aEntry );
+
+        // create the iterator for instances by current entry
         CCalInstanceIterator* iterator = instanceView->FindInstanceByUidL(
-                        parent.UidL(),
-                        parent.StartTimeL() );
+        		aEntry.UidL(),
+        		aEntry.StartTimeL() );
+        
         CleanupStack::PushL( iterator );
         CCalEntry* entry = ESMRHelper::CopyEntryLC(
                             parent,
                             parent.MethodL(),
                             ESMRHelper::ECopyFull );
-
-        while ( iterator->HasMore() )
-            {
-            CCalInstance* next = iterator->NextL();
-            CleanupStack::PushL( next );
-            entry->SetStartAndEndTimeL( next->StartTimeL(), next->EndTimeL() );
-            CleanupStack::PopAndDestroy( next );
-            FindConflictsForEntryL( *entry,
-                                    tmpInstanceArray,
-                                    aDb );
-
-            if ( tmpInstanceArray.Count() )
-                {
-                MoveInstancesL( tmpInstanceArray, aInstances );
-
-                if ( !aFindAllConflicts )
-                    {
-                    break;
-                    }
-                }
-            }
+        // For CCalInstanceIterator class don't have any function on how to get current instance, 
+        // handle the special situation for it.
+        if( iterator ->Count() == 1 )
+        	{
+			entry->SetStartAndEndTimeL( aEntry.StartTimeL(), aEntry.EndTimeL() );
+			
+			FindConflictsForEntryL( *entry,
+									tmpInstanceArray,
+									aDb );
+			
+			if ( tmpInstanceArray.Count() )
+				{
+			    MoveInstancesL( tmpInstanceArray, aInstances );
+				}
+        	}
+        else
+        	{
+			 // For CCalInstanceIterator class don't have any function on how to get current instance,
+			 // handle the first instance action when find conflict.
+			 CCalInstance* previous = FirstInstanceL( iterator );
+			 CleanupStack::PushL( previous );
+			 entry->SetStartAndEndTimeL( previous->StartTimeL(), previous->EndTimeL() );
+			 CleanupStack::PopAndDestroy( previous );
+			 FindConflictsForEntryL( *entry, tmpInstanceArray, aDb );
+			 
+			 if ( tmpInstanceArray.Count() )
+				{
+				MoveInstancesL( tmpInstanceArray, aInstances );
+				}
+			 // does the normal find conflict action. From the second to the end.
+			 while ( iterator->HasMore() )
+				{
+				CCalInstance* next = iterator->NextL();
+				CleanupStack::PushL( next );
+				entry->SetStartAndEndTimeL( next->StartTimeL(), next->EndTimeL() );
+	
+				CleanupStack::PopAndDestroy( next );
+	
+				FindConflictsForEntryL( *entry,
+										tmpInstanceArray,
+										aDb );
+	
+				if ( tmpInstanceArray.Count() )
+					{
+					MoveInstancesL( tmpInstanceArray, aInstances );
+					}
+				}
+        	}
 
         CleanupStack::PopAndDestroy( entry );
 

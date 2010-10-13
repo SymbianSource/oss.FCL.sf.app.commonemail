@@ -573,7 +573,7 @@ private: // Private functions
 	// Control bar functions
 	void CreateControlBarLayoutL();
 	void ScaleControlBarL();
-	void SetSortButtonIconL();
+	void SetSortButtonTextAndIconL();
 	HBufC* GetSortButtonTextLC();
     void HandleControlBarEvent( TFsControlBarEvent aEvent, TInt aData );
 
@@ -647,12 +647,12 @@ private: // Private functions
     /**
      * Display marking mode title text
      */ 
-    void DisplayMarkingModeTextOnButtonsL();
+    void DisplayMarkingModeTitleTextL();
     
     /**
      * Remove marking mode title text
      */ 
-    void RemoveMarkingModeTextOnButtonsL();
+    void RemoveMarkingModeTitleTextL();
 
     /**
      * Displays or remove marking mode background
@@ -805,6 +805,11 @@ private: // Private functions
     void FocusVisibilityChange( TBool aVisible );
 
     /**
+     * Update texts in command area buttons
+     */
+    void UpdateButtonTextsL();
+
+    /**
      * Tests whether a point is inside the control.
      *
      * @param aControl  Control that is tested.
@@ -837,9 +842,7 @@ private: // Private functions
      */
     TBool HandleArrowEventInLandscapeL( const TInt aScancode,
             const TAlfEvent& aEvent, const TBool aShiftState );
-    
-    void UpdateFolderAndMarkingModeTextsL();
-    
+
 private: // data types
 
 

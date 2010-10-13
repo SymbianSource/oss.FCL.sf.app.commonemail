@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2001 - 2009 Nokia Corporation and/or its subsidiary(-ies). 
+* Copyright (c) 2001 - 2010 Nokia Corporation and/or its subsidiary(-ies). 
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -25,6 +25,11 @@ NAME FSMB
 #include <ovi_brand_graphics.mbg>
 #include <aol_brand_graphics.mbg>
 #include <mail_for_exchange_brand_graphics.mbg>
+#include <163_brand_graphics.mbg>
+#include <qq_brand_graphics.mbg>
+#include <sina_brand_graphics.mbg>
+#include <126_brand_graphics.mbg>
+#include <sohu_brand_graphics.mbg>
 
 #include "mailbrandmanager.hrh"
 #include "mailbrandmanager.rh"
@@ -284,6 +289,8 @@ RESOURCE BRANDING_DATA r_branding_data
                         BRAND_MATCH_STRING { text = "hotmail.nl"; },
                         BRAND_MATCH_STRING { text = "*.hotmail.es"; },
                         BRAND_MATCH_STRING { text = "hotmail.es"; },
+                        BRAND_MATCH_STRING { text = "*.hotmail.com.hk"; },
+                        BRAND_MATCH_STRING { text = "hotmail.com.hk"; },                        
                         BRAND_MATCH_STRING { text = "*.live.com"; },
                         BRAND_MATCH_STRING { text = "live.com"; },
                         BRAND_MATCH_STRING { text = "*.live.at"; },
@@ -418,6 +425,151 @@ RESOURCE BRANDING_DATA r_branding_data
                     BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
                     icon_id = EMbmMail_for_exchange_brand_graphicsMail_for_exchange;
                     mask_id = EMbmMail_for_exchange_brand_graphicsMail_for_exchange_mask; }                    
+                    };
+
+        	    colors =
+                    {
+                    BRANDABLE_COLOR { id = EFSMailboxNameColor; red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                    };
+            },
+            
+            BRAND {
+        	    // definition of 163 brand
+        	    graphics_file_path = APP_BITMAP_DIR"\\163_brand_graphics.mif";
+
+        	    brand_id_match_strings =
+                    {
+                    BRAND_MATCH_STRING { text = "widget_setup_chn_163"; },
+                    BRAND_MATCH_STRING { text = "*.163.com"; },
+                    BRAND_MATCH_STRING { text = "163.com"; }
+                    };
+
+        	    graphics = 
+                    {
+                    BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                    icon_id = EMbm163_brand_graphics163;
+                    mask_id = EMbm163_brand_graphics163_mask; }                    
+                    };
+
+        	    texts = 
+                    {
+                    BRANDABLE_TEXT { id = EFSMailboxName; text = "163"; }
+                    };
+
+        	    colors =
+                    {
+                    BRANDABLE_COLOR { id = EFSMailboxNameColor; red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                    };
+            },
+
+            BRAND {
+        	    // definition of QQ brand
+        	    graphics_file_path = APP_BITMAP_DIR"\\qq_brand_graphics.mif";
+
+        	    brand_id_match_strings =
+                    {
+                    BRAND_MATCH_STRING { text = "widget_setup_chn_qq"; },
+                    BRAND_MATCH_STRING { text = "*.qq.com"; },
+                    BRAND_MATCH_STRING { text = "qq.com"; }
+                    };
+
+        	    graphics = 
+                    {
+                    BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                    icon_id = EMbmQq_brand_graphicsQq;
+                    mask_id = EMbmQq_brand_graphicsQq_mask; }                    
+                    };
+
+        	    texts = 
+                    {
+                    BRANDABLE_TEXT { id = EFSMailboxName; text = "QQ"; }
+                    };
+
+        	    colors =
+                    {
+                    BRANDABLE_COLOR { id = EFSMailboxNameColor; red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                    };
+            },
+            
+            BRAND {
+        	    // definition of Sina brand
+        	    graphics_file_path = APP_BITMAP_DIR"\\sina_brand_graphics.mif";
+
+        	    brand_id_match_strings =
+                    {
+                    BRAND_MATCH_STRING { text = "widget_setup_chn_sina"; },
+                    BRAND_MATCH_STRING { text = "*.sina.com"; },
+                    BRAND_MATCH_STRING { text = "sina.com"; }
+                    };
+
+        	    graphics = 
+                    {
+                    BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                    icon_id = EMbmSina_brand_graphicsSina;
+                    mask_id = EMbmSina_brand_graphicsSina_mask; }                    
+                    };
+
+        	    texts = 
+                    {
+                    BRANDABLE_TEXT { id = EFSMailboxName; text = "Sina"; }
+                    };
+
+        	    colors =
+                    {
+                    BRANDABLE_COLOR { id = EFSMailboxNameColor; red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                    };
+            },
+            
+            BRAND {
+        	    // definition of 126 brand
+        	    graphics_file_path = APP_BITMAP_DIR"\\126_brand_graphics.mif";
+
+        	    brand_id_match_strings =
+                    {
+                    BRAND_MATCH_STRING { text = "widget_setup_chn_126"; },
+                    BRAND_MATCH_STRING { text = "*.126.com"; },
+                    BRAND_MATCH_STRING { text = "126.com"; }
+                    };
+
+        	    graphics = 
+                    {
+                    BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                    icon_id = EMbm126_brand_graphics126;
+                    mask_id = EMbm126_brand_graphics126_mask; }                    
+                    };
+
+        	    texts = 
+                    {
+                    BRANDABLE_TEXT { id = EFSMailboxName; text = "126"; }
+                    };
+
+        	    colors =
+                    {
+                    BRANDABLE_COLOR { id = EFSMailboxNameColor; red = 0xff; green = 0x30; blue = 0x20; alpha = 0xff; }
+                    };
+            },
+
+            BRAND {
+        	    // definition of Sohu brand
+        	    graphics_file_path = APP_BITMAP_DIR"\\sohu_brand_graphics.mif";
+
+        	    brand_id_match_strings =
+                    {
+                    BRAND_MATCH_STRING { text = "widget_setup_chn_sohu"; },
+                    BRAND_MATCH_STRING { text = "*.sohu.com"; },
+                    BRAND_MATCH_STRING { text = "sohu.com"; }
+                    };
+
+        	    graphics = 
+                    {
+                    BRANDABLE_GRAPHIC { id = EFSMailboxIcon;
+                    icon_id = EMbmSohu_brand_graphicsSohu;
+                    mask_id = EMbmSohu_brand_graphicsSohu_mask; }                    
+                    };
+
+        	    texts = 
+                    {
+                    BRANDABLE_TEXT { id = EFSMailboxName; text = "Sohu"; }
                     };
 
         	    colors =

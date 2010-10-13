@@ -190,7 +190,7 @@ NONSHARABLE_CLASS( CESMRView ):
          */
         void ProcessEventL( const MESMRFieldEvent& aEvent );
         
-        
+        inline CMRListPane* ListPane() { return iListPane; }
     public: // From CCoeControl
         TKeyResponse OfferKeyEventL(const TKeyEvent &aKeyEvent, TEventCode aType);
 

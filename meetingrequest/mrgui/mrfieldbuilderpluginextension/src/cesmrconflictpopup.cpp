@@ -29,6 +29,7 @@
 #include <layoutmetadata.cdl.h>
 
 #include "emailtrace.h"
+#include "cesmrcaluserutil.h"
 
 // Unnamed namespace for local definitions
 namespace{
@@ -43,7 +44,7 @@ const TInt KLandscapeWindowVariety( 7 );
 const TInt KTextLineVariety( 5 );
 
 const TInt KNumTitleLines( 1 );
-const TInt KNumLocationLines( 2 );
+const TInt KNumLocationLines( 1 );
 
 /**
  * Clips given text and allocates new buffer if needed.
@@ -117,7 +118,19 @@ HBufC* ClipTextL( const TDesC& aSource, TInt aNumLines )
     return text;
     }
 
-
+/**
+ * Judge is one CCalEntry is a all day event
+ * @param aEntry the entry be checked
+ * @return ETure if it is a all day event
+ */
+TBool IsAllDayEventL( CCalEntry& aEntry )
+    {
+    FUNC_LOG;
+    CESMRCalUserUtil* entryUtil = CESMRCalUserUtil::NewLC( aEntry );
+    TBool allDayEvent( entryUtil->IsAlldayEventL() );
+    CleanupStack::PopAndDestroy( entryUtil );
+    return allDayEvent;
+    }
 }//namespace
 
 // ======== MEMBER FUNCTIONS ========
@@ -193,7 +206,8 @@ void CESMRConflictPopup::PrepareDisplayStringL()
         {
         User::Leave( KErrNotFound );
         }
-
+    // Record the blank rows.
+    TInt blankRow = 0;
     // Pointer descriptor for R_QTN_MEET_REQ_CONFLICT_UNNAMED
     TPtrC unnamedTitle( KNullDesC );
 
@@ -226,6 +240,13 @@ void CESMRConflictPopup::PrepareDisplayStringL()
 
         startTime = entryArray[ 0 ]->StartTimeL().TimeLocalL();
         endTime = entryArray[ 0 ]->EndTimeL().TimeLocalL();
+        
+        //If the first entry is a all day event, it should be show as 
+        //12:00Am - 11:59Pm, so we should subtract one min from end time.
+        if ( IsAllDayEventL( *entryArray[ 0 ] ) )
+            {
+            endTime	-= TTimeIntervalMinutes( 1 );
+            }
         }
 
     HBufC*  conflictLabel = StringLoader::LoadLC(
@@ -289,23 +310,63 @@ void CESMRConflictPopup::PrepareDisplayStringL()
             CleanupStack::PushL( locationBuf );
             meetingLocation.Set( *locationBuf );
             }
-        strings->AppendL( meetingLocation );
+        if ( meetingLocation.Length() > 0 )
+        	{
+            strings->AppendL( meetingLocation );
+        	}
+        else
+        	{
+            blankRow++ ;
+        	}
+    
         }
     else
         {
+        blankRow++;
         // Prepare location
         locationBuf = ClipTextL(
-                meetingLocation,
-                KNumTitleLines + KNumLocationLines );
+                meetingLocation, KNumLocationLines );
         if ( locationBuf )
             {
             CleanupStack::PushL( locationBuf );
             meetingLocation.Set( *locationBuf );
             }
-        strings->AppendL( meetingLocation );
-        strings->AppendL( KNullDesC() );
+        if ( meetingLocation.Length() > 0 )
+        	{
+            strings->AppendL( meetingLocation );
+        	}
+        else
+        	{
+            blankRow++;
+        	}
         }
-
+    HBufC* otherconflictBuf = NULL ;
+    if( entryArray.Count() == 2)
+    	{
+         otherconflictBuf = StringLoader::LoadLC(
+        		 R_MEET_REQ_CONFLICT_OTHERCONFLICT_SINGULAR_FORMAT,
+        		 entryArray.Count()-1,
+                    env );
+         strings->AppendL( *otherconflictBuf );
+    	}
+    else if ( entryArray.Count() > 2 )
+    	{
+         otherconflictBuf = StringLoader::LoadLC(
+    		R_MEET_REQ_CONFLICT_OTHERCONFLICT_FORMAT,
+    		entryArray.Count()-1,
+    		env );
+         strings->AppendL( *otherconflictBuf );
+    	}
+    else
+    	{
+        blankRow++;
+    	}
+    
+    while( blankRow )
+    	{
+        strings->AppendL( KNullDesC() );
+        blankRow-- ;
+    	}
     HBufC* displayString = StringLoader::LoadLC(
             R_MEET_REQ_CONFLICT_TEXT_FORMAT,
             *strings,
@@ -319,6 +380,10 @@ void CESMRConflictPopup::PrepareDisplayStringL()
 
     // Clean allocated buffers
     CleanupStack::PopAndDestroy( displayString );
+    if ( otherconflictBuf )
+    	{
+        CleanupStack::PopAndDestroy( otherconflictBuf );
+    	}
     if ( locationBuf )
         {
         CleanupStack::PopAndDestroy( locationBuf );

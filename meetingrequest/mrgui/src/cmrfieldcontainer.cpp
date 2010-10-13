@@ -361,8 +361,10 @@ TKeyResponse CMRFieldContainer::MoveFocusVisibleL()
         // Remove existing focus
         focusedField->SetOutlineFocusL( EFalse );
         focusedField->SetFocus( EFalse );
+        focusedField->MoveToScreen( EFalse );
 
         // Set focus to new field
+        visibleField->MoveToScreen( ETrue );
         visibleField->SetOutlineFocusL( ETrue );
         visibleField->SetFocus( ETrue );
 
@@ -554,7 +556,7 @@ void CMRFieldContainer::ControlSizeChanged( CESMRField* aField )
                 // is done.
                 ScrollControlVisible( iFocusedFieldIndex );
                 }
-
+            SizeChanged();
             DrawDeferred();
             }
         }
@@ -920,9 +922,11 @@ void CMRFieldContainer::MoveFields( TInt aIndex, TPoint& aTl )
 
         if ( field->IsVisible() )
             {
-            field->SetPosition( aTl );
-
-            aTl.iY += field->Size().iHeight;
+			TPoint pos( field->Position() );
+			pos.iY = aTl.iY;
+			field->SetPosition( pos );
+	
+			aTl.iY += field->Size().iHeight;
             }
         }
     }
@@ -1064,6 +1068,23 @@ void CMRFieldContainer::SetScrolling( TBool aScrolling )
     field->MoveToScreen( !iScrolling );
     }
 
+// ---------------------------------------------------------------------------
+// CMRFieldContainer::RedrawField
+// ---------------------------------------------------------------------------
+//
+void CMRFieldContainer::RedrawField( CESMRField& aField )
+    {
+    FUNC_LOG;
+
+    // Record and redraw field only if it is not on screen
+    if ( !aField.HasOutlineFocus() )
+        {
+        aField.RecordField();
+        TRect rect( aField.Rect() );
+        rect.Move( iPosition.iX - rect.iTl.iX, 0 );
+        aField.DrawNow( rect );
+        }
+    }
 
 // ---------------------------------------------------------------------------
 // CMRFieldContainer::Draw

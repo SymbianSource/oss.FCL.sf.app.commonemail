@@ -15,6 +15,11 @@
 *
 */
 
+
+//<cmail> removed __FS_ALFRED_SUPPORT flag
+//#include <fsconfig.h>
+//</cmail> removed __FS_ALFRED_SUPPORT flag
+
 #include "emailtrace.h"
 #include "fstreeplainonelinenodevisualizer.h"
 #include "fstreeplainonelinenodedata.h"
@@ -24,6 +29,7 @@
 #include "fsmarqueeclet.h"
 #include <touchlogicalfeedback.h>
 
+// <cmail> SF
 #include <alf/alfanchorlayout.h>
 #include <alf/alfimagevisual.h>
 #include <alf/alfviewportlayout.h>
@@ -33,6 +39,7 @@
 
 #include <alf/alfevent.h>
 #include <alf/alfmappingfunctions.h>
+// </cmail>
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -186,15 +193,6 @@ void CFsTreePlainOneLineNodeVisualizer::SetAlwaysExtended( TBool /*aAlwaysExtend
     iFlags &= ~KFsTreeListItemAlwaysExtended;
     }
 
-// ---------------------------------------------------------------------------
-// From MFsTreeItemVisualizer.
-// 
-// ---------------------------------------------------------------------------
-//
-void CFsTreePlainOneLineNodeVisualizer::SetMarkingMode( TBool /*aMarkingMode*/ ) //TEJ_MMD
-    {
-    FUNC_LOG;
-    }
 
 // ---------------------------------------------------------------------------
 // From MFsTreeItemVisualizer.
@@ -535,7 +533,7 @@ void CFsTreePlainOneLineNodeVisualizer::ShowL( CAlfLayout& aParentLayout,
         if (!iIconVisual)
             {
             iIconVisual = CAlfImageVisual::AddNewL(iOwnerControl,iLayout);
-            iIconVisual->SetScaleMode( CAlfImageVisual::EScaleFitInside);
+            iIconVisual->SetScaleMode( CAlfImageVisual::EScaleNormal );
             iIconVisual->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 
@@ -557,7 +555,7 @@ void CFsTreePlainOneLineNodeVisualizer::ShowL( CAlfLayout& aParentLayout,
         if (!iIconMarked)
             {
             iIconMarked = CAlfImageVisual::AddNewL( iOwnerControl, iLayout );
-            iIconMarked->SetScaleMode( CAlfImageVisual::EScaleFitInside);
+            iIconMarked->SetScaleMode( CAlfImageVisual::EScaleNormal);
             iIconMarked->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 
@@ -565,7 +563,7 @@ void CFsTreePlainOneLineNodeVisualizer::ShowL( CAlfLayout& aParentLayout,
             {
             iIconMenu =
                         CAlfImageVisual::AddNewL(iOwnerControl, iLayout);
-            iIconMenu->SetScaleMode( CAlfImageVisual::EScaleFitInside);
+            iIconMenu->SetScaleMode( CAlfImageVisual::EScaleNormal);
             iIconMenu->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 
@@ -589,8 +587,7 @@ void CFsTreePlainOneLineNodeVisualizer::ShowL( CAlfLayout& aParentLayout,
 void CFsTreePlainOneLineNodeVisualizer::UpdateL( const MFsTreeItemData& aData,
                                           TBool aFocused,
                                           const TUint aLevel,
-                                          CAlfTexture*& aMarkOnIcon,
-                                          CAlfTexture*& /*aMarkOffIcon*/,
+                                          CAlfTexture*& aMarkIcon,
                                           CAlfTexture*& aMenuIcon,
                                           const TUint /*aTimeout*/,
                                           TBool aUpdateData)
@@ -625,7 +622,7 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateL( const MFsTreeItemData& aData,
 
             //update the ancors for current item settings
             const TInt indent( iTextIndentation * ( aLevel - 1 ) );
-            UpdateLayout(data, indent, aMarkOnIcon, aMenuIcon);
+            UpdateLayout(data, indent, aMarkIcon, aMenuIcon);
 
             if (iTextVisual && aUpdateData)
                 {
@@ -698,9 +695,9 @@ void CFsTreePlainOneLineNodeVisualizer::UpdateL( const MFsTreeItemData& aData,
                     }
                 }
 
-            if ( IsMarked() && iIconMarked && aMarkOnIcon )
+            if ( IsMarked() && iIconMarked && aMarkIcon )
                 {
-                iIconMarked->SetImage( *aMarkOnIcon );
+                iIconMarked->SetImage( *aMarkIcon );
                 }
 
             if ( (iFlags & KFsTreeListItemHasMenu) && iIconMenu && aMenuIcon )

@@ -31,7 +31,9 @@
 #include <centralrepository.h>
 #include <CoreApplicationUIsSDKCRKeys.h> 
 #include <settingsinternalcrkeys.h>
+//<cmail> Header neither in Cmail nor in the platform
 #include <crcseprofileregistry.h>
+//</cmail>
 #include <NetworkHandlingDomainPSKeys.h>
 #include <MVPbkStoreContact.h>
 #include <MVPbkStoreContactFieldCollection.h>
@@ -40,8 +42,10 @@
 #include <TVPbkFieldVersitProperty.h>
 #include <MVPbkContactFieldData.h>
 #include <MVPbkContactFieldTextData.h>
+//<cmail>
 #include "fscactionplugincrkeys.h"
 #include "fsccontactactionservicedefines.h"
+//</cmail>
 #include <FscActionUtils.rsg>
 #include <barsread.h>
 #include <Pbk2ContactNameFormatterFactory.h>
@@ -52,8 +56,11 @@
 #include <CVPbkFieldTypeSelector.h>
 #include <CVPbkFieldFilter.h>
 #include <commonphoneparser.h>
-#include <bautils.h>
+#include <bautils.h> // Fix for EMZG-7M23KX
+//<cmail> hardcoded paths removal
 #include <data_caging_path_literals.hrh>
+//</cmail>
+
 #include "cfscactionutils.h"
 #include "cfsccontactaction.h"
 #include "mfscreasoncallback.h"
@@ -80,11 +87,15 @@ const TInt KMaxConfPinLen = 32;
 const TUint32 KPoCDefaultSettings = 0x199;
 
 const TInt KMaxLengthOfNumber = 100;
-const TInt KMaxLengthOfAddrData = 255;
-const TInt KMaxLengthOfName = 256; // same as max addr len + extra whitespace
+
+//Fix for: ECWG-7QYAVS
+const TInt KMaxLengthOfName = 100;
+//end for fix
 
 _LIT( KSpace, " " );
+//<cmail> hard coded path removed
 _LIT( KFscRscFileName, "fscactionutils.rsc" );
+//</cmail>
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -124,7 +135,9 @@ CFscActionUtils::~CFscActionUtils()
     delete iRep;
     if ( iRCSEProfileRegistry != NULL )
         {
+        //<cmail>
         delete iRCSEProfileRegistry;
+        //</cmail>
         }
     }
 
@@ -147,6 +160,7 @@ void CFscActionUtils::ShowInfoNoteL( TInt aNote, const HBufC* aContactName )
     FUNC_LOG;
     HBufC* noteText = NULL;
     
+    // Fix for EMZG-7M23KX
     TInt offset = FindAndAddResourceFileL();
     
     if ( aContactName )
@@ -175,6 +189,7 @@ void CFscActionUtils::ShowInfoNoteL( TInt aNote, TInt aCounter )
     FUNC_LOG;
     HBufC* noteText = NULL;
     
+    // Fix for EMZG-7M23KX
     TInt offset = FindAndAddResourceFileL();
     
     noteText = StringLoader::LoadL( aNote, aCounter );
@@ -195,6 +210,7 @@ void CFscActionUtils::ShowCnfNoteL( TInt aNote, const HBufC* aName )
     {
     FUNC_LOG;
     
+    // Fix for EMZG-7M23KX
     TInt offset = FindAndAddResourceFileL();
     
     HBufC* noteText = NULL;
@@ -253,38 +269,102 @@ TInt CFscActionUtils::ShowNumberMissingNoteL( TInt aMissingCount,
 HBufC* CFscActionUtils::GetContactNameL( MVPbkStoreContact& aStoreContact )
     {
     FUNC_LOG;
-
-    TBuf<KMaxLengthOfName> contactName;
+    HBufC* contactName = HBufC::NewLC( KMaxLengthOfName + 1 ); // one ' ' char
     
+    // Search for the contact name
+    // Fix for EMZG-7M23KX
     TInt offset = FindAndAddResourceFileL();
     
-    TInt err( KErrNone );
-    TRAP( err, AppendFieldToContactL( 
-            contactName, R_FSC_FIRST_NAME_SELECTOR, aStoreContact ) );
-    if ( err == KErrNone )
+    TResourceReader selectorReader;
+    CCoeEnv::Static()->CreateResourceReaderLC( selectorReader,
+            R_FSC_FIRST_NAME_SELECTOR );
+
+    CVPbkFieldTypeSelector* fieldTypeSelector = CVPbkFieldTypeSelector::NewL(
+            selectorReader, iContactManager.FieldTypes() );
+    CleanupStack::PopAndDestroy(); // selectorReader
+
+    CVPbkFieldFilter::TConfig config(
+            const_cast<MVPbkStoreContactFieldCollection&> (
+                    aStoreContact.Fields() ), fieldTypeSelector, NULL );
+
+    CVPbkFieldFilter* fieldFilter = CVPbkFieldFilter::NewL( config );
+    TInt fieldCount = fieldFilter->FieldCount();
+    const MVPbkStoreContactField* field = NULL;
+    if ( fieldCount == 1 )
         {
-        TRAP( err, AppendFieldToContactL( 
-                contactName, R_FSC_LAST_NAME_SELECTOR, aStoreContact, 
-                ETrue ) );
-        }
-    if ( err == KErrNone && contactName.Length() <= 0 )
-        {
-        // If no first or last name was found, try to append company name
-        TRAP_IGNORE( AppendFieldToContactL( 
-                contactName, R_FSC_COMPANY_NAME_SELECTOR, aStoreContact ) );
+        field = fieldFilter->FieldAtLC(0);
+        contactName->Des().Append(
+                MVPbkContactFieldTextData::Cast( 
+                        field->FieldData() ).Text() );
+        CleanupStack::PopAndDestroy();//field
         }
 
-    // If there was an error or the contact name is zero length, use
-    // pre-defined unnamed string instead..
-    if ( err != KErrNone || contactName.Length() <= 0 )
+    delete fieldFilter;
+    delete fieldTypeSelector;
+
+    // Search for the contact second name
+    CCoeEnv::Static()->CreateResourceReaderLC( selectorReader,
+            R_FSC_LAST_NAME_SELECTOR );
+    fieldTypeSelector = CVPbkFieldTypeSelector::NewL( selectorReader,
+            iContactManager.FieldTypes() );
+    CleanupStack::PopAndDestroy();//selectorReader
+    config.iFieldSelector = fieldTypeSelector;
+
+    fieldFilter = CVPbkFieldFilter::NewL( config );
+    fieldCount = fieldFilter->FieldCount();
+    if ( fieldCount == 1 )
         {
+        field = fieldFilter->FieldAtLC(0);
+        if ( contactName->Des().Length() > 0 )
+            {
+            contactName->Des().Append( KSpace );
+            }
+        contactName->Des().Append(
+                MVPbkContactFieldTextData::Cast( 
+                        field->FieldData() ).Text() );
+        CleanupStack::PopAndDestroy();//field
+        }
+
+    // If first or second name hasn't been found -> find company name
+    if ( contactName->Des().Length() <= 0 )
+        {
+        delete fieldFilter;
+        delete fieldTypeSelector;
+
+        CCoeEnv::Static()->CreateResourceReaderLC( selectorReader,
+                R_FSC_COMPANY_NAME_SELECTOR );
+        fieldTypeSelector = CVPbkFieldTypeSelector::NewL( selectorReader,
+                iContactManager.FieldTypes() );
+        CleanupStack::PopAndDestroy();//selectorReader
+        config.iFieldSelector = fieldTypeSelector;
+
+        fieldFilter = CVPbkFieldFilter::NewL( config );
+        fieldCount = fieldFilter->FieldCount();
+        if ( fieldCount == 1 )
+            {
+            field = fieldFilter->FieldAtLC(0);
+            contactName->Des().Append(
+                    MVPbkContactFieldTextData::Cast(
+                            field->FieldData() ).Text() );
+            CleanupStack::PopAndDestroy();//field
+            }
+        }
+    // no first or second name, nor company name -> return "unnamed" string
+    if ( contactName->Des().Length() <= 0 )
+        {
+        //append (Unnamed)
         HBufC* unnamed = StringLoader::LoadL( R_QTN_FS_UNNAMED );
-        contactName.Zero();
-        contactName.Append( *unnamed );
+        contactName->Des().Append( *unnamed );
         delete unnamed;
         }
+
+    delete fieldFilter;
+    delete fieldTypeSelector;
+    CleanupStack::Pop( contactName );
+
     CCoeEnv::Static()->DeleteResourceFile( offset );
-    return contactName.AllocL();
+
+    return contactName;
     }
 
 // ---------------------------------------------------------------------------
@@ -308,6 +388,7 @@ MVPbkStoreContactField* CFscActionUtils::OpenSelectDialogL( TInt aResourceId,
     CFscFieldPropertyArray* fieldProperties =
             CFscFieldPropertyArray::NewL( iContactManager.FieldTypes() );
 
+    // Fix for EMZG-7M23KX
     TInt offset = FindAndAddResourceFileL();
 
     // Create resource reader for new resource
@@ -359,6 +440,7 @@ MVPbkStoreContactField* CFscActionUtils::OpenSelectDialogL( TInt aResourceId,
             {
             defaultPrioritiesArray.Append( EVPbkDefaultTypeSms );
             defaultPrioritiesArray.Append( EVPbkDefaultTypeMms );
+            // Fix for ELWG-7SPH5H 
             params.SetUseDefaultDirectly( ETrue );
             break;
             }
@@ -436,8 +518,10 @@ TInt CFscActionUtils::GetVoiceCallNumberL( MVPbkStoreContact& aStoreContact,
             }
 
         // Format phone number
+        //Fix for: MHOA-7SQF6T
         CommonPhoneParser::ParsePhoneNumber( aNumber,
                             CommonPhoneParser::EPlainPhoneNumber );
+        //end for fix
         }
 
     // Destroy objects
@@ -485,8 +569,10 @@ TInt CFscActionUtils::GetVideoCallNumberL( MVPbkStoreContact& aStoreContact,
             }
 
         // Format phone number
+        //Fix for: MHOA-7SQF6T
         CommonPhoneParser::ParsePhoneNumber( aNumber,
                             CommonPhoneParser::EPlainPhoneNumber );
+        //end for fix
         }
 
     // Destroy objects
@@ -538,8 +624,10 @@ TInt CFscActionUtils::GetVoipAddressL( MVPbkStoreContact& aStoreContact,
         }
 
     // Format phone number
+    //Fix for: MHOA-7SQF6T
     CommonPhoneParser::ParsePhoneNumber( aVoipAddress,
                         CommonPhoneParser::EPlainPhoneNumber );
+    //end for fix
     
     // Destroy objects
     delete selectedField;
@@ -567,6 +655,7 @@ TInt CFscActionUtils::GetConfInfoL( MVPbkStoreContact& aStoreContact,
     TInt ret = KErrNone;
     
     // Search for conference number
+    // Fix for EMZG-7M23KX
     TInt offset = FindAndAddResourceFileL();
     TResourceReader selectorReader;
     CCoeEnv::Static()->CreateResourceReaderLC( selectorReader,
@@ -736,7 +825,7 @@ TInt CFscActionUtils::GetPocAddressL( MVPbkStoreContact& aStoreContact,
     }
 
 // ---------------------------------------------------------------------------
-// CFscActionUtils::GetMessageAddressL
+// CFscActionUtils::GetEmailAddressL
 // ---------------------------------------------------------------------------
 //
 TInt CFscActionUtils::GetMessageAddressL( MVPbkStoreContact& aStoreContact,
@@ -769,8 +858,7 @@ TInt CFscActionUtils::GetMessageAddressL( MVPbkStoreContact& aStoreContact,
         TPtrC msgAddress = MVPbkContactFieldTextData::Cast(
                 selectedField->FieldData() ).Text();
         
-        if ( msgAddress.Length() && 
-             msgAddress.Length() <= KMaxLengthOfAddrData )
+        if ( msgAddress.Length() )
             {
             aMsgAddress.Copy( msgAddress );
             }
@@ -819,8 +907,7 @@ TInt CFscActionUtils::GetEmailAddressL( MVPbkStoreContact& aStoreContact,
         TPtrC emailAddress = MVPbkContactFieldTextData::Cast(
                 selectedField->FieldData() ).Text();
         
-        if ( emailAddress.Length() && 
-             emailAddress.Length() <= KMaxLengthOfAddrData )
+        if ( emailAddress.Length() )
             {
             aEmailAddress.Copy( emailAddress );
             }
@@ -866,11 +953,13 @@ TBool CFscActionUtils::IsContactNumberAvailableL(
     TBool available( EFalse );
 
     // Search for the contact name
+    // Fix for EMZG-7M23KX  
     TInt offset = FindAndAddResourceFileL();
     
     TResourceReader selectorReader;
     CVPbkFieldTypeSelector* fieldTypeSelector = NULL;
     CVPbkFieldFilter* fieldFilter = NULL;
+    TInt fieldCount = 0;
     TInt selector = 0;
 
     switch ( aContactNumberType )
@@ -936,16 +1025,15 @@ TBool CFscActionUtils::IsContactNumberAvailableL(
         fieldTypeSelector = CVPbkFieldTypeSelector::NewL( selectorReader,
                 iContactManager.FieldTypes() );
         CleanupStack::PopAndDestroy(); // selectorReader
-        CleanupStack::PushL( fieldTypeSelector );
-        
+
         CVPbkFieldFilter::TConfig config(
                 const_cast<MVPbkStoreContactFieldCollection&> (
                         aStoreContact.Fields() ), fieldTypeSelector, NULL);
 
         fieldFilter = CVPbkFieldFilter::NewL( config );
-        CleanupStack::PushL( fieldFilter );
+        fieldCount = fieldFilter->FieldCount();
         
-        if ( fieldFilter->FieldCount() )
+        if ( fieldCount )
             {
             if ( selector == R_FSC_CONF_NUMBER_SELECTOR )
                 {
@@ -954,7 +1042,7 @@ TBool CFscActionUtils::IsContactNumberAvailableL(
                 field = fieldFilter->FieldAtLC(0);
                 confNum.Append( MVPbkContactFieldTextData::Cast( 
                         field->FieldData() ).Text() );
-                CleanupStack::PopAndDestroy(); // field
+                CleanupStack::PopAndDestroy();//field
                 
                 if ( CommonPhoneParser::IsValidPhoneNumber( confNum, 
                         CommonPhoneParser::EContactCardNumber ) )
@@ -967,7 +1055,9 @@ TBool CFscActionUtils::IsContactNumberAvailableL(
                 available = ETrue;
                 }
             }
-        CleanupStack::PopAndDestroy( 2 ); // fieldFilter, fieldTypeSelector
+
+        delete fieldFilter;
+        delete fieldTypeSelector;
         }
     
     CCoeEnv::Static()->DeleteResourceFile( offset );
@@ -1043,7 +1133,7 @@ TBool CFscActionUtils::IsPttConfiguredL()
         TInt err = cenRep->Get( KPoCDefaultSettings, settingsId );
         if ( err == KErrNone )
             {
-            result = ( settingsId != KErrNotFound );
+            result = (settingsId != KErrNotFound );
             }
         delete cenRep;
         }
@@ -1064,7 +1154,9 @@ TBool CFscActionUtils::IsVoipConfiguredL()
         {
         RArray<TUint32> ids;
         CleanupClosePushL( ids );
+        //<cmail>
         iRCSEProfileRegistry->GetAllIdsL( ids );
+        //</cmail>
         configured = ids.Count() > 0;
         CleanupStack::PopAndDestroy( &ids );
         }
@@ -1159,8 +1251,15 @@ void CFscActionUtils::ConstructL()
 
     if ( FeatureManager::FeatureSupported( KFeatureIdCommonVoip ) )
         {
+        //<cmail>
         TRAP_IGNORE( iRCSEProfileRegistry = CRCSEProfileRegistry::NewL() );
+        //</cmail>
         }
+    
+    //<cmail>
+    //iRCSEProfileRegistry = NULL;
+    //</cmail>
+
     }
 
 // ---------------------------------------------------------------------------
@@ -1192,6 +1291,7 @@ TPtrC CFscActionUtils::GetFileDirL( const TDesC& aFilePath )
     return fileName;
     }
 
+// Fix for EMZG-7M23KX
 // ---------------------------------------------------------------------------
 // CFscActionUtils::FindAndAddResourceFileL
 // ---------------------------------------------------------------------------
@@ -1199,10 +1299,14 @@ TPtrC CFscActionUtils::GetFileDirL( const TDesC& aFilePath )
 TInt CFscActionUtils::FindAndAddResourceFileL()
     {
     FUNC_LOG;
+    //<cmail> hardcoded removed
     TFileName resourceFileName( KDC_RESOURCE_FILES_DIR );
-    resourceFileName.Append( KFscRscFileName );
+    resourceFileName.Append(KFscRscFileName);
+    //</cmail>
     BaflUtils::NearestLanguageFile( CCoeEnv::Static()->FsSession(), resourceFileName );
-    return CCoeEnv::Static()->AddResourceFileL( resourceFileName );
+    TInt offset = CCoeEnv::Static()->AddResourceFileL( resourceFileName );
+    
+    return offset;
     }
 // ---------------------------------------------------------------------------
 // CFscActionUtils::CloseSelectDialogL
@@ -1217,58 +1321,6 @@ void CFscActionUtils::CloseSelectDialogL()
         }
     }
 
-// ---------------------------------------------------------------------------
-// CFscActionUtils::AppendFieldToContactL
-// ---------------------------------------------------------------------------
-//
-void CFscActionUtils::AppendFieldToContactL( TDes& aContact,
-        TInt aFieldResourceId,
-        MVPbkStoreContact& aStoreContact,
-        TBool aAddSpace )
-    {
-    FUNC_LOG;
 
-    TResourceReader selectorReader;
-    CCoeEnv::Static()->CreateResourceReaderLC( selectorReader,
-            aFieldResourceId );
-
-    CVPbkFieldTypeSelector* fieldTypeSelector = CVPbkFieldTypeSelector::NewL(
-            selectorReader, iContactManager.FieldTypes() );
-    CleanupStack::PopAndDestroy(); // selectorReader
-    CleanupStack::PushL( fieldTypeSelector );
-
-    CVPbkFieldFilter::TConfig config(
-            const_cast<MVPbkStoreContactFieldCollection&> (
-                    aStoreContact.Fields() ), fieldTypeSelector, NULL );
-
-    CVPbkFieldFilter* fieldFilter = CVPbkFieldFilter::NewL( config );
-    CleanupStack::PushL( fieldFilter );
-
-    if ( fieldFilter->FieldCount() == 1 )
-        {
-        if ( aAddSpace && aContact.Length() > 0 )
-            {
-            if ( aContact.Length() < KMaxLengthOfName )
-                {
-                aContact.Append( KSpace );
-                }
-            else
-                {
-                User::Leave( KErrOverflow );
-                }
-            }
-        MVPbkStoreContactField* field = fieldFilter->FieldAtLC( 0 );
-        TPtrC castFieldText = MVPbkContactFieldTextData::Cast( 
-                field->FieldData() ).Text();
-
-        if ( ( aContact.Length() + castFieldText.Length() ) > KMaxLengthOfName )
-            {
-            User::Leave( KErrOverflow );
-            }
-
-        aContact.Append( castFieldText );
-        CleanupStack::PopAndDestroy( field );
-        }
-    CleanupStack::PopAndDestroy( 2 ); // fieldFilter, fieldTypeSelector    
-    }
+// ======== GLOBAL FUNCTIONS ========
 

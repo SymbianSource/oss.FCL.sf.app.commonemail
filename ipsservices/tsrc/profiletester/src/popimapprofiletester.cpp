@@ -2,7 +2,7 @@
  *  Name        :  popimapprofiletester.cpp
  *  Part of     :  ipsservices / ipsprofiletester 
  *  Description :: STIF test cases
- *  Version     : %version: 2 % << Don't touch! Updated by Synergy at check-out.
+ *  Version     : %version: 3 % << Don't touch! Updated by Synergy at check-out.
  *
  *  Copyright © 2010-2010 Nokia and/or its subsidiary(-ies).  All rights reserved.
  *  This material, including documentation and any related computer
@@ -15,10 +15,18 @@
  * ============================================================================
  */
 
+// MACROS
+#define TEST_CLASS_VERSION_MAJOR 0
+#define TEST_CLASS_VERSION_MINOR 0
+#define TEST_CLASS_VERSION_BUILD 0
+
 // INCLUDE FILES
 #include <StifTestInterface.h>
 #include "popimapprofiletester.h"
 #include <SettingServerClient.h>
+
+//const numbers
+const TInt KTimeUnits = 1000000; 
 /*
  * define flag in ctg file
  */
@@ -223,7 +231,8 @@ TInt CPopImapProfileTester::DeleteTestMsgL(TDesC& aFolderName)
                 EFSMsgDataSubject, EFSMailSortByDate, msgCount);
 
         // Step 03: to find to be deleted msgs 
-        for (TInt i = 0; i < messages.Count(); i++)
+		TInt mssagesCount = messages.Count();
+        for (TInt i = 0; i < mssagesCount; i++)
             {
             //deleted msgs with STIF
             if (messages[i]->GetSubject().Find(_L("STIF" )) != KErrNotFound)
@@ -273,7 +282,8 @@ CFSMailFolder* CPopImapProfileTester::FindFolder(const TDesC& aFolderName)
     RPointerArray<CFSMailFolder>& allFolders = iIPSMailbox->ListFolders();
 
     TFSMailMsgId folderId = GetFolderIdFromName(aFolderName);
-    for (TInt i = 0; i < allFolders.Count(); ++i)
+	TInt allFoldersCount = allFolders.Count();
+    for (TInt i = 0; i < allFoldersCount; ++i)
         {
         if (allFolders[i]->GetFolderId() == folderId)
             {
@@ -337,7 +347,9 @@ void CPopImapProfileTester::EventL(TFSMailEvent aEvent,
     LogEvent(_L("Receive Event->"), aEvent, aParam1, aParam2, aParam3);
     if ((aEvent == iCurrWaitedEvent) && (iWait->IsStarted()) && (iWaitingState
             == EWaitingEvent) && ParseEventParams(aParam1, aParam2))
-        OpComplete();
+		{
+         OpComplete();
+		}
     }
 
 // -----------------------------------------------------------------------------
@@ -353,7 +365,9 @@ void CPopImapProfileTester::RequestResponseL(TFSProgress aEvent,
     LogTFSProgress(_L("Receive Response->"), aEvent.iProgressStatus, aRequestId);
     if ((aEvent.iProgressStatus == iCurrWaitedResponse) && (iWaitingState
             == EWaitingResponse) && (iWait->IsStarted()))
-        OpComplete();
+        {
+         OpComplete();
+		}
     }
 
 // -----------------------------------------------------------------------------
@@ -363,7 +377,7 @@ void CPopImapProfileTester::RequestResponseL(TFSProgress aEvent,
 //
 void CPopImapProfileTester::MatchFoundL(CFSMailMessage* aMatchMessage)
     {
-    TBuf<20> tempFolderName;
+    TFolderName tempFolderName;
     GetFolderNameFromId(aMatchMessage->GetFolderId(), tempFolderName);
     TPtrC folderName = tempFolderName.Mid(0);
     iLog->Log(_L("  MatchFound %S in %S"), &aMatchMessage->GetSubject(),
@@ -431,13 +445,13 @@ TInt CPopImapProfileTester::SendMsgL(CFSMailMessage& aMsg,
         TFSMailMsgId folderId = iIPSMailbox->GetStandardFolderId(EFSSentFolder);
         iIPSMailbox->RefreshNowL();
         err = WaitForEvent(TFSEventMailMoved, NULL, &folderId);
-        iIPSMailbox->GoOfflineL();
-        WaitForEvent(TFSEventMailboxOffline);
-        iIPSMailbox->RefreshNowL(*this);
-        WaitForResponse(TFSProgress::EFSStatus_RequestComplete);
-
-        if (KErrNone == err)
-            {
+		if ( KErrNone == err )
+		{
+         iIPSMailbox->GoOfflineL();
+         WaitForEvent(TFSEventMailboxOffline);
+         iIPSMailbox->RefreshNowL(*this);
+         WaitForResponse(TFSProgress::EFSStatus_RequestComplete);
+       
             // Step04: To check 'Inbox' folder to sure message sent
             TFSMailMsgId folderId = iIPSMailbox->GetStandardFolderId(EFSInbox);
             CFSMailFolder* folder = iMailClient->GetFolderByUidL(
@@ -451,7 +465,8 @@ TInt CPopImapProfileTester::SendMsgL(CFSMailMessage& aMsg,
                 if (gotMsgs > 0)
                     {
                     iLog->Log(_L("  Listing first %d emails:"), gotMsgs);
-                    for (TInt i = 0; i < messages.Count(); i++)
+					TInt messagesCount = messages.Count();
+                    for (TInt i = 0; i < messagesCount; i++)
                         {
                         iLog->Log(_L("Found: %S"), &messages[i]->GetSubject());
 
@@ -518,7 +533,7 @@ TInt CPopImapProfileTester::DoSearch(
             {
             iLog->Log(_L("  Searching for '%S':"), aSearchStrings[0]);
             iSearchOngoing = ETrue;
-            iTimeoutTimer->Start(aTimeout * 1000000);
+            iTimeoutTimer->Start(aTimeout * KTimeUnits);
             iWait->Start();
             if (iTimeout)
                 {
@@ -551,7 +566,7 @@ TInt CPopImapProfileTester::WaitForEvent(TFSMailEvent aWaitedEvent,
     iCurrWaitedEvent = aWaitedEvent;
     iEventParam1 = aEventParam1;
     iEventParam2 = aEventParam2;
-    iTimeoutTimer->Start(aTimeout * 1000000);
+    iTimeoutTimer->Start(aTimeout * KTimeUnits);
     if (iWait->IsStarted() == EFalse)
         {
         iWait->Start();
@@ -570,11 +585,10 @@ TInt CPopImapProfileTester::WaitForEvent(TFSMailEvent aWaitedEvent,
             return KErrNone;
             }
         }
-    else
-        {
-        iLog->Log(_L(" Stop the wait before start it"));
-        return KErrGeneral;
-        }
+
+     iLog->Log(_L(" Stop the wait before start it"));
+     return KErrGeneral;
+
     }
 // -----------------------------------------------------------------------------
 // CPopImapProfileTester::WaitForResponse
@@ -587,7 +601,7 @@ TInt CPopImapProfileTester::WaitForResponse(
     LogTFSProgress(_L("Waiting for Response->"), aWaitedResponse, 0);
     iWaitingState = EWaitingResponse;
     iCurrWaitedResponse = aWaitedResponse;
-    iTimeoutTimer->Start(aTimeout * 1000000);
+    iTimeoutTimer->Start(aTimeout * KTimeUnits);
     if (iWait->IsStarted() == EFalse)
         {
         iWait->Start();
@@ -604,26 +618,31 @@ TInt CPopImapProfileTester::WaitForResponse(
             return KErrNone;
             }
         }
-    else
-        return KErrGeneral;
+      return KErrGeneral;
     }
 
 void CPopImapProfileTester::OpComplete()
     {
     if (iWait)
+	  {
         iWait->AsyncStop();
+	  }
     if (iTimeoutTimer)
+	  {
         iTimeoutTimer->Stop();
+	  }
     }
 // -----------------------------------------------------------------------------
 // CPopImapProfileTester::InitMailbox()
-// Method to initiate mailbxo, depends on type of account in .cfg file
+// Method to initiate mailbox, depends on type of account in .cfg file
 // -----------------------------------------------------------------------------
 //
 TInt CPopImapProfileTester::InitMailboxL()
     {
     if (NULL != iIPSMailbox)
+	  {
         return KErrNone;
+	  }
 
     TBuf<10> accountType;
 
@@ -632,7 +651,9 @@ TInt CPopImapProfileTester::InitMailboxL()
     accountType.TrimAll();
     accountType.LowerCase();
     if (accountType.Compare(KIMAPAccount) == 0)
+	    {
         iPluginId.SetPluginId(TUid::Uid(KIPSSosImap4PluginUid));
+		}
     else if (accountType.Compare(KPOPAccount) == 0)
         {
         iPluginId.SetPluginId(TUid::Uid(KIPSSosPop3PluginUid));
@@ -735,7 +756,7 @@ CFSMailMessage* CPopImapProfileTester::CreatePlainTextMsgL(
             if (NULL != newMsgPart)
                 {
                 CleanupStack::PushL(newMsgPart);
-                TBuf<256> buf(aMsgBodyText);
+                TBuf<KMaxBufLen> buf(aMsgBodyText);
                 newMsgPart->SetContent(buf);
                 newMsgPart->SetContentSize(buf.Length());
                 newMsgPart->SetFetchedContentSize(buf.Length());
@@ -744,8 +765,8 @@ CFSMailMessage* CPopImapProfileTester::CreatePlainTextMsgL(
                 }
             else
                 {
-                iLog->Log(_L( "Error: Failed to create msg part" ));
-                err = KErrNoMemory;
+				err = KErrNoMemory;
+                iLog->Log(_L( "Error: Failed to create msg part(%d)" ),err);
                 }
             }//end if 'KErrNone == err'
         else
@@ -756,8 +777,8 @@ CFSMailMessage* CPopImapProfileTester::CreatePlainTextMsgL(
         }//end if 'NULL != newMsg'
     else
         {
-        iLog->Log(_L( "   Error: Failed to create new msg" ));
-        err = KErrNoMemory;
+		err = KErrNoMemory;
+        iLog->Log(_L( "Error: Failed to create new msg(%d)" ),err);
         }
     return newMsg;
     }
@@ -771,6 +792,7 @@ TInt CPopImapProfileTester::ReadAccountSettings(
         TAccountSetting& aAccountSetting)
     {
     TInt err(KErrNone);
+	TInt errInside(KErrNone);
     err = GetConstantValue(KSetupWizAccountType, aAccountSetting.iAccountType);
     aAccountSetting.iAccountType.TrimAll();
     aAccountSetting.iAccountType.LowerCase();
@@ -787,43 +809,80 @@ TInt CPopImapProfileTester::ReadAccountSettings(
         iLog->Log(_L("Wrong Account Type %S, "), &aAccountSetting.iAccountType);
         return KErrNotFound;
         }
-    err = GetConstantValue(KSetupWizAccountsConfigured,
+    errInside = GetConstantValue(KSetupWizAccountsConfigured,
             aAccountSetting.iAccountsConfigured);
-    err = GetConstantValue(KSetupWizMaxAccountsReached,
+	iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+    errInside = GetConstantValue(KSetupWizMaxAccountsReached,
             aAccountSetting.iMaxAccountsReached);
-    err
+    iLog->Log(_L( "Information: GetConstantValue with error (%d)" ),errInside);
+    
+	errInside
             = GetConstantValue(KSetupWizEmailAddress,
                     aAccountSetting.iEmailAddress);
-    err = GetConstantValue(KSetupWizUsername, aAccountSetting.iUserName);
-    err = GetConstantValue(KSetupWizPassword, aAccountSetting.iPassWord);
-    err = GetConstantValue(KSetupWizMailboxName, aAccountSetting.iMailboxName);
-    err = GetConstantValue(KSetupWizIncomingServer,
+	iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+    errInside = GetConstantValue(KSetupWizUsername, aAccountSetting.iUserName);
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside = GetConstantValue(KSetupWizPassword, aAccountSetting.iPassWord);
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside = GetConstantValue(KSetupWizMailboxName, aAccountSetting.iMailboxName);
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside = GetConstantValue(KSetupWizIncomingServer,
             aAccountSetting.iIncomingServer);
-    err = GetConstantValue(KSetupWizOutgoingServer,
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside = GetConstantValue(KSetupWizOutgoingServer,
             aAccountSetting.iOutgoingServer);
-    err
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside
             = GetConstantValue(KSetupWizIncomingPort,
                     aAccountSetting.iIncomingPort);
-    err
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside
             = GetConstantValue(KSetupWizOutgoingPort,
                     aAccountSetting.iOutgoingPort);
-
-    err = GetConstantValue(KSetupWizIncomingSecurityAuth,
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+    errInside = GetConstantValue(KSetupWizIncomingSecurityAuth,
             aAccountSetting.iIncomingSecurityAuth);
-    err = GetConstantValue(KSetupWizOutgoingSecurityAuth,
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside = GetConstantValue(KSetupWizOutgoingSecurityAuth,
             aAccountSetting.iOutgoingSecurityAuth);
-    err = GetConstantValue(KSetupWizIncomingSecurityProtocol,
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside = GetConstantValue(KSetupWizIncomingSecurityProtocol,
             aAccountSetting.iIncomingSecurityProtocol);
-    err = GetConstantValue(KSetupWizOutgoingSecurityProtocol,
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside = GetConstantValue(KSetupWizOutgoingSecurityProtocol,
             aAccountSetting.iOutgoingSecurityProtocol);
-    err = GetConstantValue(KSetupWizOperatorSecurityAuth,
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside = GetConstantValue(KSetupWizOperatorSecurityAuth,
             aAccountSetting.iOperatorSecurityAuth);
-    err = GetConstantValue(KSetupWizOperatorSecurityProtocol,
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside = GetConstantValue(KSetupWizOperatorSecurityProtocol,
             aAccountSetting.iOperatorSecurityProtocol);
-    err
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	errInside
             = GetConstantValue(KSetupWizOperatorPort,
                     aAccountSetting.iOperatorPort);
-
+    iLog->Log(_L( "Information: GetConstantValue with error(%d)" ),errInside);
+	
+	if (KErrNone != errInside )
+	{
+	    err = KErrGeneral;
+		iLog->Log(_L( "Error: Failed to get constant value with error(%d)" ),err);
+	}
+	
     aAccountSetting.iWizardAccountType = KWizAccountTypeDefault;
     aAccountSetting.iOperatorOutgoingServer = KNullDesC;
     aAccountSetting.iHideUserNameInSetting = ETrue;
@@ -849,45 +908,89 @@ TInt CPopImapProfileTester::WriteToWizardCRL(TAccountSetting aAccountSetting)
         {
         err = rep->Set(ECRKSetupWizAccountType,
                 aAccountSetting.iWizardAccountType);
+		iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
         err = rep->Set(ECRKAccountsConfigured,
                 aAccountSetting.iAccountsConfigured);
-        err = rep->Set(ECRKMaxAccountsReached,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKMaxAccountsReached,
                 aAccountSetting.iMaxAccountsReached);
-        err = rep->Set(ECRKPopImapEmailAddressId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapEmailAddressId,
                 aAccountSetting.iEmailAddress);
-        err = rep->Set(ECRKPopImapUsernameId, aAccountSetting.iUserName);
-        err = rep->Set(ECRKPopImapPasswordId, aAccountSetting.iPassWord);
-        err = rep->Set(ECRKPopImapIncomingServerId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapUsernameId, aAccountSetting.iUserName);
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapPasswordId, aAccountSetting.iPassWord);
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapIncomingServerId,
                 aAccountSetting.iIncomingServer);
-        err = rep->Set(ECRKPopImapOutgoingServerId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapOutgoingServerId,
                 aAccountSetting.iOutgoingServer);
-        err = rep->Set(ECRKPopImapProtocolIndicatorId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapProtocolIndicatorId,
                 aAccountSetting.iProtocolIndicator);
-        err = rep->Set(ECRKPopImapIncomingPortId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapIncomingPortId,
                 aAccountSetting.iIncomingPort);
-        err = rep->Set(ECRKPopImapOutgoingPortId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapOutgoingPortId,
                 aAccountSetting.iOutgoingPort);
-        err = rep->Set(ECRKPopImapIncomingSecurityAuthId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapIncomingSecurityAuthId,
                 aAccountSetting.iIncomingSecurityAuth);
-        err = rep->Set(ECRKPopImapIncomingSecurityProtocolId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapIncomingSecurityProtocolId,
                 aAccountSetting.iIncomingSecurityProtocol);
-        err = rep->Set(ECRKPopImapOutgoingSecurityAuthId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapOutgoingSecurityAuthId,
                 aAccountSetting.iOutgoingSecurityAuth);
-        err = rep->Set(ECRKPopImapOutgoingSecurityProtocolId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapOutgoingSecurityProtocolId,
                 aAccountSetting.iOutgoingSecurityProtocol);
-        err = rep->Set(ECRKPopImapOperatorOutgoingServerId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapOperatorOutgoingServerId,
                 aAccountSetting.iOperatorOutgoingServer);
-        err = rep->Set(ECRKPopImapOperatorSecurityAuthId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapOperatorSecurityAuthId,
                 aAccountSetting.iOperatorSecurityAuth);
-        err = rep->Set(ECRKPopImapOperatorSecurityProtocolId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapOperatorSecurityProtocolId,
                 aAccountSetting.iOperatorSecurityProtocol);
-        err = rep->Set(ECRKPopImapOperatorPortId,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapOperatorPortId,
                 aAccountSetting.iOperatorPort);
-        err = rep->Set(ECRKHideUsernameInSettings,
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKHideUsernameInSettings,
                 aAccountSetting.iHideUserNameInSetting); // 1 = ETrue if there are some field that should be hidden from ui
-        err = rep->Set(ECRKPopImapAccessPointId, aAccountSetting.iAccessPoint);
-        err = rep->Set(ECRKPopImapMailboxName, aAccountSetting.iMailboxName);
-        iLog->Log(_L( "==Error:=%d" ), err);
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapAccessPointId, aAccountSetting.iAccessPoint);
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		err = rep->Set(ECRKPopImapMailboxName, aAccountSetting.iMailboxName);
+        iLog->Log(_L( "Information: repository set value with error(%d)" ),err);
+		
+		iLog->Log(_L( "==Error:=%d" ), err);
 
         err = rep->CommitTransaction(keyInfo);
         if (KErrLocked == err || KErrAbort == err || KErrNone != err)
@@ -909,6 +1012,33 @@ TInt CPopImapProfileTester::WriteToWizardCRL(TAccountSetting aAccountSetting)
     }
 
 // -----------------------------------------------------------------------------
+// CPopImapProfileTester::LogNewEntriesCount
+// Method used to print log about count of new entries
+// -----------------------------------------------------------------------------
+//
+void CPopImapProfileTester::LogNewEntriesCount(TDes& aLog,TAny* aParam)
+	{
+	RArray<TFSMailMsgId>* newEntries =
+			static_cast<RArray<TFSMailMsgId>*> (aParam);
+	TInt newEntriesCount = newEntries->Count();
+	aLog.AppendFormat(_L("(%d)"), newEntriesCount);
+	}
+// -----------------------------------------------------------------------------
+// CPopImapProfileTester::LogFolderName
+// Method used to print log about name of folder
+// -----------------------------------------------------------------------------
+//
+void CPopImapProfileTester::LogFolderName(TDes& aLog,TAny* aParam)
+	{
+	TFSMailMsgId* parentFolder = static_cast<TFSMailMsgId*> (aParam);
+	TFolderName folderName;
+	if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
+		{
+		aLog.Append(folderName);
+		}
+	}
+ 
+// -----------------------------------------------------------------------------
 // CPopImapProfileTester::LogEvent
 // Method used to print log about event
 // -----------------------------------------------------------------------------
@@ -916,7 +1046,7 @@ TInt CPopImapProfileTester::WriteToWizardCRL(TAccountSetting aAccountSetting)
 void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
         TFSMailEvent aEvent, TAny* aParam1, TAny* aParam2, TAny* aParam3)
     {
-    TBuf<256> log(aLogText);
+    TBuf<KMaxBufLen> log(aLogText);
 
     switch (aEvent)
         {
@@ -1077,20 +1207,11 @@ void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
             log.Append(_L( "NewEmail" ));
             if (aParam1)
                 {
-                RArray<TFSMailMsgId>* newEntries = static_cast<RArray<
-                        TFSMailMsgId>*> (aParam1);
-                TInt newEntriesCount = newEntries->Count();
-                log.AppendFormat(_L("(%d)"), newEntriesCount);
+                  LogNewEntriesCount(log,aParam1);
                 }
             if (aParam2)
                 {
-                TFSMailMsgId* parentFolder =
-                        static_cast<TFSMailMsgId*> (aParam2);
-                TBuf<20> folderName;
-                if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
-                    {
-                    log.Append(folderName);
-                    }
+                  LogFolderName(log,aParam2);
                 }
             break;
 
@@ -1102,20 +1223,11 @@ void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
             log.Append(_L( "MailChanged" ));
             if (aParam1)
                 {
-                RArray<TFSMailMsgId>* newEntries = static_cast<RArray<
-                        TFSMailMsgId>*> (aParam1);
-                TInt newEntriesCount = newEntries->Count();
-                log.AppendFormat(_L("(%d)"), newEntriesCount);
+                  LogNewEntriesCount(log,aParam1);
                 }
             if (aParam2)
                 {
-                TFSMailMsgId* parentFolder =
-                        static_cast<TFSMailMsgId*> (aParam2);
-                TBuf<20> folderName;
-                if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
-                    {
-                    log.Append(folderName);
-                    }
+                  LogFolderName(log,aParam2);
                 }
             break;
 
@@ -1127,20 +1239,11 @@ void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
             log.Append(_L( "MailDeleted" ));
             if (aParam1)
                 {
-                RArray<TFSMailMsgId>* newEntries = static_cast<RArray<
-                        TFSMailMsgId>*> (aParam1);
-                TInt newEntriesCount = newEntries->Count();
-                log.AppendFormat(_L("(%d)"), newEntriesCount);
+                  LogNewEntriesCount(log,aParam1);
                 }
             if (aParam2)
                 {
-                TFSMailMsgId* parentFolder =
-                        static_cast<TFSMailMsgId*> (aParam2);
-                TBuf<20> folderName;
-                if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
-                    {
-                    log.Append(folderName);
-                    }
+                  LogFolderName(log,aParam2);
                 }
             break;
 
@@ -1152,31 +1255,15 @@ void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
             log.Append(_L( "MailMoved" ));
             if (aParam1)
                 {
-                RArray<TFSMailMsgId>* newEntries = static_cast<RArray<
-                        TFSMailMsgId>*> (aParam1);
-                TInt newEntriesCount = newEntries->Count();
-                log.AppendFormat(_L("(%d)"), newEntriesCount);
+                 LogNewEntriesCount(log,aParam1);
                 }
             if (aParam2)
                 {
-                TFSMailMsgId* parentFolder =
-                        static_cast<TFSMailMsgId*> (aParam2);
-                TBuf<20> folderName;
-                if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
-                    {
-                    log.Append(_L("---"));
-                    log.Append(folderName);
-                    }
+                 LogFolderName(log,aParam2);
                 }
             if (aParam3)
                 {
-                TFSMailMsgId* parentFolder =
-                        static_cast<TFSMailMsgId*> (aParam3);
-                TBuf<20> folderName;
-                if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
-                    {
-                    log.Append(folderName);
-                    }
+                 LogFolderName(log,aParam3);
                 }
             break;
 
@@ -1196,20 +1283,11 @@ void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
             log.Append(_L( "NewFolder" ));
             if (aParam1)
                 {
-                RArray<TFSMailMsgId>* newEntries = static_cast<RArray<
-                        TFSMailMsgId>*> (aParam1);
-                TInt newEntriesCount = newEntries->Count();
-                log.AppendFormat(_L("(%d)"), newEntriesCount);
+                  LogNewEntriesCount(log,aParam1);
                 }
             if (aParam2)
                 {
-                TFSMailMsgId* parentFolder =
-                        static_cast<TFSMailMsgId*> (aParam2);
-                TBuf<20> folderName;
-                if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
-                    {
-                    log.Append(folderName);
-                    }
+                  LogFolderName(log,aParam2);
                 }
             break;
 
@@ -1221,20 +1299,11 @@ void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
             log.Append(_L( "FolderChanged" ));
             if (aParam1)
                 {
-                RArray<TFSMailMsgId>* newEntries = static_cast<RArray<
-                        TFSMailMsgId>*> (aParam1);
-                TInt newEntriesCount = newEntries->Count();
-                log.AppendFormat(_L("(%d)"), newEntriesCount);
+                  LogNewEntriesCount(log,aParam1);
                 }
             if (aParam2)
                 {
-                TFSMailMsgId* parentFolder =
-                        static_cast<TFSMailMsgId*> (aParam2);
-                TBuf<20> folderName;
-                if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
-                    {
-                    log.Append(folderName);
-                    }
+                  LogFolderName(log,aParam2);
                 }
             break;
 
@@ -1246,20 +1315,11 @@ void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
             log.Append(_L( "FoldersDeleted" ));
             if (aParam1)
                 {
-                RArray<TFSMailMsgId>* newEntries = static_cast<RArray<
-                        TFSMailMsgId>*> (aParam1);
-                TInt newEntriesCount = newEntries->Count();
-                log.AppendFormat(_L("(%d)"), newEntriesCount);
+                  LogNewEntriesCount(log,aParam1);
                 }
             if (aParam2)
                 {
-                TFSMailMsgId* parentFolder =
-                        static_cast<TFSMailMsgId*> (aParam2);
-                TBuf<20> folderName;
-                if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
-                    {
-                    log.Append(folderName);
-                    }
+                  LogFolderName(log,aParam2);
                 }
             break;
 
@@ -1289,20 +1349,11 @@ void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
             log.Append(_L( "MailDeletedFromViewer" ));
             if (aParam1)
                 {
-                RArray<TFSMailMsgId>* newEntries = static_cast<RArray<
-                        TFSMailMsgId>*> (aParam1);
-                TInt newEntriesCount = newEntries->Count();
-                log.AppendFormat(_L("(%d)"), newEntriesCount);
+                  LogNewEntriesCount(log,aParam1);
                 }
             if (aParam2)
                 {
-                TFSMailMsgId* parentFolder =
-                        static_cast<TFSMailMsgId*> (aParam2);
-                TBuf<20> folderName;
-                if (KErrNone == GetFolderNameFromId(*parentFolder, folderName))
-                    {
-                    log.Append(folderName);
-                    }
+                  LogFolderName(log,aParam2);
                 }
             break;
 
@@ -1321,7 +1372,7 @@ void CPopImapProfileTester::LogEvent(const TDesC& aLogText,
 void CPopImapProfileTester::LogTFSProgress(const TDesC& aLogText,
         const TFSProgress::TFSProgressStatus aProgress, TInt aReqId)
     {
-    TBuf<100> log(aLogText);
+    TBuf<KMaxBufLen> log(aLogText);
     if (aReqId >= 0)
         {
         log.AppendFormat(_L("%d-"), aReqId);
@@ -1379,7 +1430,7 @@ void CPopImapProfileTester::LogTFSProgress(const TDesC& aLogText,
 void CPopImapProfileTester::LogTSSMailSyncState(const TDesC& aLogText,
         const TSSMailSyncState aState)
     {
-    TBuf<100> log(aLogText);
+    TBuf<KMaxBufLen> log(aLogText);
     switch (aState)
         {
         case Idle:
@@ -1487,7 +1538,8 @@ TInt CPopImapProfileTester::GetFolderNameFromId(TFSMailMsgId aFolderId,
     {
     RPointerArray<CFSMailFolder>& folders = iIPSMailbox->ListFolders();
     TInt err(KErrNotFound);
-    for (TInt i = 0; i < folders.Count(); i++)
+	TInt foldersCount = folders.Count();
+    for (TInt i = 0; i < foldersCount; i++)
         {
         if (folders[i]->GetFolderId() == aFolderId)
             {

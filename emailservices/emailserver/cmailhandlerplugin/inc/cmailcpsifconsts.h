@@ -71,11 +71,19 @@ _LIT(KContTypeSetupBrandIcon3, "ct_setup_brand_icon_3");
 _LIT8(KKeySetupBrandIcon3, "key_setup_brand_icon_3");
 _LIT(KContTypeSetupBrandIcon4, "ct_setup_brand_icon_4");
 _LIT8(KKeySetupBrandIcon4, "key_setup_brand_icon_4");
+_LIT(KContTypeSetupBrandIcon5, "ct_setup_brand_icon_5");
+_LIT8(KKeySetupBrandIcon5, "key_setup_brand_icon_5");
 
-_LIT(KSetupBrand1, "ovi.com");
-_LIT(KSetupBrand2, "yahoo.com");
-_LIT(KSetupBrand3, "hotmail.com");
-_LIT(KSetupBrand4, "gmail.com");
+_LIT(KSetupBrand2, "ovi.com");
+_LIT(KSetupBrand3, "yahoo.com");
+_LIT(KSetupBrand4, "hotmail.com");
+_LIT(KSetupBrand5, "gmail.com");
+
+_LIT(KSetupBrandChn1, "widget_setup_chn_163");
+_LIT(KSetupBrandChn2, "widget_setup_chn_qq");
+_LIT(KSetupBrandChn3, "widget_setup_chn_sina");
+_LIT(KSetupBrandChn4, "widget_setup_chn_126");
+_LIT(KSetupBrandChn5, "widget_setup_chn_sohu");
 
 _LIT(KContTypeBodyText, "ct_body_text_");
 _LIT(KKeyBodyText, "key_body_text_");

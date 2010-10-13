@@ -307,13 +307,6 @@
 //
 #define qtn_fse_settings_outgoing_no_server "No user authentication"
 
-
-// d:Radio button item in user authentication for outgoing mails selection list
-// l:list_set_graphic_pane_t1
-// r:TB9.1
-//
-#define qtn_fse_settings_outgoing_user_authentication "User authentication"
-
 // d:Setting item in Outgoing Email Settings view
 // l:list_setting_pane_t1
 // r:TB9.1

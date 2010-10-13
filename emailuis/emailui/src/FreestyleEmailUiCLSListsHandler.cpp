@@ -16,17 +16,19 @@
 */
 
 #include "emailtrace.h"
-#include <eikenv.h>
-#include <centralrepository.h>
-#include <AknFepInternalCRKeys.h>
-#include "cfsmailbox.h"
+#include <eikenv.h>									// CEikonEnv
+#include <centralrepository.h>						// CRepository
+#include <AknFepInternalCRKeys.h>					// KCRUidAknFep
+//<cmail>
+#include "cfsmailbox.h"								// cfsmailbox
+//</cmail>
 #include <CPsRequestHandler.h>
 #include <CPsSettings.h>
 #include <VPbkEng.rsg>
 
-#include "FreestyleEmailUiCLSListsHandler.h"
-#include "FreestyleEMailUiCLSMatchObserverInterface.h"
-#include "FreestyleEmailUiInputModeObserver.h"
+#include "FreestyleEmailUiCLSListsHandler.h"		// CFSEmailUiClsListsHandler
+#include "FreestyleEMailUiCLSMatchObserverInterface.h"// CFSEmailUiClsContactMatchObserver
+#include "FreestyleEmailUiInputModeObserver.h"		// CFSEmailUiInputModeObserver
 #include "FreestyleEmailUiUtilities.h"
 #include "FreestyleEmailUiCLSItem.h"
 
@@ -35,7 +37,7 @@
 // CFSEmailUiClsListsHandler::NewL
 // -----------------------------------------------------------------------------
 CFSEmailUiClsListsHandler* CFSEmailUiClsListsHandler::NewL( RFs& aFs,
-        CVPbkContactManager* aContactManager )
+    CVPbkContactManager* aContactManager )
 	{
     FUNC_LOG;
 	CFSEmailUiClsListsHandler* object = 
@@ -47,12 +49,10 @@ CFSEmailUiClsListsHandler* CFSEmailUiClsListsHandler::NewL( RFs& aFs,
 // -----------------------------------------------------------------------------
 // CFSEmailUiClsListsHandler::NewLC
 // -----------------------------------------------------------------------------
-CFSEmailUiClsListsHandler* CFSEmailUiClsListsHandler::NewLC( 
-        RFs& aFs, CVPbkContactManager* aContactManager )
+CFSEmailUiClsListsHandler* CFSEmailUiClsListsHandler::NewLC( RFs& aFs, CVPbkContactManager* aContactManager )
 	{
     FUNC_LOG;
-	CFSEmailUiClsListsHandler* object = 
-	        new (ELeave) CFSEmailUiClsListsHandler( aFs, aContactManager );
+	CFSEmailUiClsListsHandler* object = new (ELeave) CFSEmailUiClsListsHandler( aFs, aContactManager );
 	CleanupStack::PushL( object );
 	object->ConstructL();
 	return object;
@@ -85,55 +85,52 @@ void CFSEmailUiClsListsHandler::UpdateContactMatchListsL(
     const RPointerArray<CFSEmailUiClsItem>& aMatches )
 	{
     FUNC_LOG;
-
-    TInt matchCount = aMatches.Count();
-	for( TInt i = 0 ; i < matchCount ; ++i )
+	for( TInt i = 0 ; i < aMatches.Count() ; ++i )
 		{
-        if( aMatches[i]->IsMruItem() )
-            {
-            // MRU items are added to iMatchingMRUContacts and any already
-            // added duplicate is removed from iMatchingCompleteContacts
-            iMatchingMRUContacts.AppendL( aMatches[i] );
-            TInt itemIndex = FindDuplicate( *aMatches[i], 
-                    iMatchingCompleteContacts );
-            if ( KErrNotFound != itemIndex )
-                {
-                iMatchingCompleteContacts.Remove( itemIndex );
-                }
-            }
-        else if( aMatches[i]->EmailAddress().Length() > 0 )
-            {
-            // For Phonebook items, it is checked that it there doesn't 
-            // already exist a duplicate in iMatchingMRUContacts
-            if( KErrNotFound == 
-                FindDuplicate( *aMatches[i], iMatchingMRUContacts ) )
-                {
-                // No duplicate in iMatchingMRUContacts, 
-                // this can be appended to iMatchingCompleteContacts
-                iMatchingCompleteContacts.AppendL( aMatches[i] );
-                }
-            }
-        else
-            {
-            // No email, add always to the end of the list
-            iMatchingMissingEmailContacts.AppendL( aMatches[i] );
-            }
-        }
-	
-    RPointerArray<CFSEmailUiClsItem> allMatches = 
-            ConstructOneListL( iMatchingCompleteContacts,
-                               iMatchingMRUContacts,
-                               iMatchingMissingEmailContacts );
+		if( aMatches[i]->IsMruItem() )
+			{
+			// If this is MRU item, we need to check that it doesn't 
+			// already exist in iMatchingCompleteContacts
+			TInt itemIndex = FindDuplicate( *aMatches[i], iMatchingCompleteContacts );
+			if( itemIndex == KErrNotFound )
+				{
+				iMatchingMRUContacts.AppendL( aMatches[i] );
+				}
+			
+			}
+		else if( aMatches[i]->EmailAddress().Length() > 0 )
+			{
+			// If this is Phonebook item, we need to check that it doesn't 
+			// already exist in iMatchingMRUContacts
+			TInt itemIndex = FindDuplicate( *aMatches[i], iMatchingMRUContacts );
+			if( itemIndex != KErrNotFound )
+				{
+				// Found, this needs to be removed from the MRU list
+				iMatchingMRUContacts.Remove( itemIndex );
+				}
+
+			// Phonebook items are always added to the top of the list
+			iMatchingCompleteContacts.AppendL( aMatches[i] );
+			}
+		else
+			{
+			// No email, nothing to compare, so add this always to the end of the list
+			iMatchingMissingEmailContacts.AppendL( aMatches[i] );
+			}
+		}
+		
+    RPointerArray<CFSEmailUiClsItem> allMatches = ConstructOneListL( iMatchingCompleteContacts,
+                                                                      iMatchingMRUContacts,
+                                                                      iMatchingMissingEmailContacts );
     CleanupResetAndDestroyClosePushL( allMatches ); // Ownership is taken
     iClsListObserver->ArrayUpdatedL( allMatches ); 
-    CleanupStack::PopAndDestroy( &allMatches ); 
+    CleanupStack::PopAndDestroy(&allMatches ); // Array is released, destructors are called 
     }
 
 // -----------------------------------------------------------------------------
 // CFSEmailUiClsListsHandler::InputModeChangedL
 // -----------------------------------------------------------------------------
-void CFSEmailUiClsListsHandler::InputModeChangedL( 
-        TKeyboardModes aNewInputMode )
+void CFSEmailUiClsListsHandler::InputModeChangedL( TKeyboardModes aNewInputMode )
 	{
     FUNC_LOG;
 	iPcsMatchObserver->SetInputMode( aNewInputMode );
@@ -171,8 +168,7 @@ void CFSEmailUiClsListsHandler::SearchMatchesL( const TDesC& aText )
 // -----------------------------------------------------------------------------
 // CFSEmailUiClsListsHandler::CFSEmailUiClsListsHandler
 // -----------------------------------------------------------------------------
-CFSEmailUiClsListsHandler::CFSEmailUiClsListsHandler( 
-        RFs& aFs, CVPbkContactManager* aContactManager ) :
+CFSEmailUiClsListsHandler::CFSEmailUiClsListsHandler( RFs& aFs, CVPbkContactManager* aContactManager ) :
 	iContactManager( aContactManager ),
 	iClsListObserver( NULL ), 
 	iFs( aFs ),
@@ -189,19 +185,20 @@ CFSEmailUiClsListsHandler::CFSEmailUiClsListsHandler(
 void CFSEmailUiClsListsHandler::ConstructL()
 	{
     FUNC_LOG;
-	iRequestHandler = CPSRequestHandler::NewL();  
+	iRequestHandler = CPSRequestHandler::NewL();
+    
 	iAknFepCenRep = CRepository::NewL( KCRUidAknFep );
-	iPcsMatchObserver = CFSEmailUiClsMatchObserver::NewL( 
-	        *iAknFepCenRep, *this, *iRequestHandler, iContactManager );
+	
+	iPcsMatchObserver = CFSEmailUiClsMatchObserver::NewL( *iAknFepCenRep, *this, *iRequestHandler, iContactManager );
 	SetSearchSettingsForPcsMatchObserverL();
 	
     // Monitors inputMode changes (predictive vs. non-predictive
 	iInputObserver = CFSEmailUiInputModeObserver::NewL( *iAknFepCenRep, *this );
 
 	if( !iSearchedText )
-	    {
 		iSearchedText = KNullDesC().AllocL();
-	    }
+	
+    //iRemoteLookupSupported = TFsEmailUiUtility::IsRemoteLookupSupported( *iMailBox );
     }
 
 // -----------------------------------------------------------------------------
@@ -218,24 +215,19 @@ CFSEmailUiClsItem* CFSEmailUiClsListsHandler::CopyClsItemLC(
 // -----------------------------------------------------------------------------
 // CFSEmailUiClsListsHandler::ReadCLSInfoFromMRUListIndexL
 // -----------------------------------------------------------------------------
-TBool CFSEmailUiClsListsHandler::ReadCLSInfoFromMRUListIndexL( 
-        MDesCArray& aTextArray,
-        CFSEmailUiClsItem& aClsItem,
-        TInt aCurrentMatchIndex, 
-        TInt aPreviousMatchIndex )
+TBool CFSEmailUiClsListsHandler::ReadCLSInfoFromMRUListIndexL( MDesCArray& aTextArray,
+										CFSEmailUiClsItem& aClsItem,
+										const TInt aCurrentMatchIndex, const TInt aPreviousMatchIndex )
 	{
     FUNC_LOG;
 	TBool retVal = EFalse;	
 	// This should be even number
-	TInt currentRealItemIndex = 
-	        aCurrentMatchIndex - ( aCurrentMatchIndex % 2 );
+	TInt currentRealItemIndex = aCurrentMatchIndex - ( aCurrentMatchIndex % 2 );
 	// Here we need to check if match is found both from the display name and email address 
 	if( currentRealItemIndex != aPreviousMatchIndex )
 		{
-		aClsItem.SetDisplayNameL( 
-		        aTextArray.MdcaPoint( currentRealItemIndex ) );
-		aClsItem.SetEmailAddressL( 
-		        aTextArray.MdcaPoint( currentRealItemIndex + 1 ) );
+		aClsItem.SetDisplayNameL( aTextArray.MdcaPoint( currentRealItemIndex )  );
+		aClsItem.SetEmailAddressL( aTextArray.MdcaPoint( currentRealItemIndex + 1 )  );
 		retVal = ETrue;
 		}
 	return retVal;
@@ -245,9 +237,8 @@ TBool CFSEmailUiClsListsHandler::ReadCLSInfoFromMRUListIndexL(
 // -----------------------------------------------------------------------------
 // CFSEmailUiClsListsHandler::FindAndDestroyDuplicate
 // -----------------------------------------------------------------------------
-TInt CFSEmailUiClsListsHandler::FindDuplicate( 
-        const CFSEmailUiClsItem& aClsItem,
-        RPointerArray<CFSEmailUiClsItem>& aContacts )
+TInt CFSEmailUiClsListsHandler::FindDuplicate( const CFSEmailUiClsItem& aClsItem,
+		  RPointerArray<CFSEmailUiClsItem>& aContacts )
 	{
     FUNC_LOG;
 	// find duplicate email addresses from aContacts
@@ -270,38 +261,35 @@ TInt CFSEmailUiClsListsHandler::FindDuplicate(
 // CFSEmailUiClsListsHandler::ConstructOneListL
 // -----------------------------------------------------------------------------
 RPointerArray<CFSEmailUiClsItem> CFSEmailUiClsListsHandler::ConstructOneListL( 
-        const RPointerArray<CFSEmailUiClsItem>& aContactMatchesWithEmail,
-        const RPointerArray<CFSEmailUiClsItem>& aMRUMatches,
-        const RPointerArray<CFSEmailUiClsItem>& aContactMatchesWithoutEmail )
+								const RPointerArray<CFSEmailUiClsItem>& aContactMatchesWithEmail,
+								const RPointerArray<CFSEmailUiClsItem>& aMRUMatches,
+								const RPointerArray<CFSEmailUiClsItem>& aContactMatchesWithoutEmail )
 	{
     FUNC_LOG;
 	RPointerArray<CFSEmailUiClsItem> allMatches;
 	CleanupResetAndDestroyClosePushL( allMatches );
 	
 	// Copy all the objects from three other lists to the all matches list
-   TInt matchingMRUItemsCount = aMRUMatches.Count();
-    for ( TInt i = 0 ; i < matchingMRUItemsCount ; i++ )
-        {
-        CFSEmailUiClsItem* newClsItem = CopyClsItemLC( *aMRUMatches[i] );
-        allMatches.AppendL( newClsItem );
-        CleanupStack::Pop( newClsItem );
-        }
-
 	TInt matchingComleteItemsCount = aContactMatchesWithEmail.Count();
 	for( TInt i = 0 ; i <  matchingComleteItemsCount; i++ )
 		{
-		CFSEmailUiClsItem* newClsItem = 
-		        CopyClsItemLC( *aContactMatchesWithEmail[i] );
+		CFSEmailUiClsItem* newClsItem = CopyClsItemLC( *aContactMatchesWithEmail[i] );
 		allMatches.AppendL( newClsItem );
 		CleanupStack::Pop( newClsItem );
 		}
 
-	TInt mathingContactItemsWithoutEmailCount = 
-	        aContactMatchesWithoutEmail.Count();
+	TInt matchingMRUItemsCount = aMRUMatches.Count();
+	for ( TInt i = 0 ; i < matchingMRUItemsCount ; i++ )
+		{
+		CFSEmailUiClsItem* newClsItem = CopyClsItemLC( *aMRUMatches[i] );
+		allMatches.AppendL( newClsItem );
+		CleanupStack::Pop( newClsItem );
+		}
+
+	TInt mathingContactItemsWithoutEmailCount = aContactMatchesWithoutEmail.Count();
 	for( TInt i = 0 ; i < mathingContactItemsWithoutEmailCount ; i++ )
 		{
-		CFSEmailUiClsItem* newClsItem = 
-		        CopyClsItemLC( *aContactMatchesWithoutEmail[i] );
+		CFSEmailUiClsItem* newClsItem = CopyClsItemLC( *aContactMatchesWithoutEmail[i] );
 		allMatches.AppendL( newClsItem );
 		CleanupStack::Pop( newClsItem );
 		}
@@ -318,15 +306,15 @@ void CFSEmailUiClsListsHandler::SetSearchSettingsForPcsMatchObserverL()
     FUNC_LOG;
     // Create predictive search settings
     CPsSettings* searchSettings = CPsSettings::NewL();
-    CleanupStack::PushL( searchSettings );
+    CleanupStack::PushL(searchSettings);
 
     RPointerArray<TDesC> databases;
-    CleanupClosePushL( databases );
+    CleanupClosePushL(databases);
 
-    HBufC* store1 = HBufC::NewLC( 50 );
-    store1->Des().Copy( KVPbkDefaultCntDbURI ); // Phone contacts store
+    HBufC* store1 = HBufC::NewLC(50);
+    store1->Des().Copy( KVPbkDefaultCntDbURI ); // To specify phone contacts store
     
-    databases.AppendL( store1 );
+    databases.AppendL(store1);
     HBufC* store2 = NULL;
     if ( iMailBox )
         {
@@ -334,7 +322,7 @@ void CFSEmailUiClsListsHandler::SetSearchSettingsForPcsMatchObserverL()
         GetMruDatastoreUriFromMailbox( *iMailBox, *store2 );
         databases.AppendL( store2 );
         }
-    searchSettings->SetSearchUrisL( databases );
+    searchSettings->SetSearchUrisL(databases);
 
     // Set displayfields according to sort order
     RArray<TInt> sortOrder;
@@ -342,8 +330,7 @@ void CFSEmailUiClsListsHandler::SetSearchSettingsForPcsMatchObserverL()
     iRequestHandler->GetSortOrderL( *store1, sortOrder );
     if ( sortOrder.Count() )
         {
-        iUseLastNameFirstOrder = 
-                ( sortOrder[0] == R_VPBK_FIELD_TYPE_LASTNAME );
+        iUseLastNameFirstOrder = ( sortOrder[0] == R_VPBK_FIELD_TYPE_LASTNAME );
         }
     else
         {
@@ -351,14 +338,8 @@ void CFSEmailUiClsListsHandler::SetSearchSettingsForPcsMatchObserverL()
         }
     RArray<TInt> displayFields( 6 );
     CleanupClosePushL( displayFields );
-    if ( sortOrder.Count() ) 
-        {
-        displayFields.AppendL( sortOrder[0] );
-        }
-    if ( sortOrder.Count() >= 1 ) 
-        {
-        displayFields.AppendL( sortOrder[1] );
-        }
+    displayFields.AppendL( sortOrder[0] );
+    if ( sortOrder.Count() >= 1 ) displayFields.AppendL( sortOrder[1] );
     displayFields.AppendL( R_VPBK_FIELD_TYPE_EMAILGEN );
     displayFields.AppendL( R_VPBK_FIELD_TYPE_EMAILHOME );
     displayFields.AppendL( R_VPBK_FIELD_TYPE_EMAILWORK );
@@ -368,22 +349,26 @@ void CFSEmailUiClsListsHandler::SetSearchSettingsForPcsMatchObserverL()
     displayFields.Close();
     sortOrder.Close();
 
+    // Set maximum for search results
+    //How many results is shown on the screen??
+    //searchSettings->SetMaxResults(const TInt aMaxResults);
+
     // Set the new search settings
-    iRequestHandler->SetSearchSettingsL( *searchSettings );	
+    iRequestHandler->SetSearchSettingsL(*searchSettings);	
 
     if ( store2 )
         {
-        CleanupStack::PopAndDestroy( store2 );
+        CleanupStack::PopAndDestroy(store2);
         }
-    CleanupStack::PopAndDestroy( store1 );
-    CleanupStack::Pop( &databases );
+    CleanupStack::PopAndDestroy(store1);
+    CleanupStack::Pop(&databases);
     databases.Close();
-    CleanupStack::PopAndDestroy( searchSettings );
+    CleanupStack::PopAndDestroy(searchSettings);
 
 	}
 
 // -----------------------------------------------------------------------------
-// CFSEmailUiClsListsHandler::IsLanguageSupported()
+// CFSEmailUiClsListsHandler::isLanguageSupported()
 // -----------------------------------------------------------------------------
 TBool CFSEmailUiClsListsHandler::IsLanguageSupportedL()
 	{
@@ -392,14 +377,10 @@ TBool CFSEmailUiClsListsHandler::IsLanguageSupportedL()
 	TLanguage lang = User::Language();
 
 	// Check for language support
-	return iRequestHandler->IsLanguageSupportedL( lang );
+	return iRequestHandler->IsLanguageSupportedL(lang);
 	}
 
-// -----------------------------------------------------------------------------
-// CFSEmailUiClsListsHandler::GetMruDatastoreUriFromMailbox()
-// -----------------------------------------------------------------------------
-void CFSEmailUiClsListsHandler::GetMruDatastoreUriFromMailbox( 
-        CFSMailBox& aMailbox, HBufC& aUri )
+void CFSEmailUiClsListsHandler::GetMruDatastoreUriFromMailbox( CFSMailBox& aMailbox, HBufC& aUri )
 	{
     FUNC_LOG;
 	aUri.Des().Copy( KDefaultMailBoxURI );
@@ -408,19 +389,12 @@ void CFSEmailUiClsListsHandler::GetMruDatastoreUriFromMailbox(
 	aUri.Des().AppendNum( aMailbox.GetId().Id() );
 	}
 
-// -----------------------------------------------------------------------------
-// CFSEmailUiClsListsHandler::SetObserver()
-// -----------------------------------------------------------------------------
-void CFSEmailUiClsListsHandler::SetObserver( 
-        MFSEmailUiClsListsObserver* aClsListObserver )
+void CFSEmailUiClsListsHandler::SetObserver( MFSEmailUiClsListsObserver* aClsListObserver )
     {
     FUNC_LOG;
     iClsListObserver = aClsListObserver;
     }
 
-// -----------------------------------------------------------------------------
-// CFSEmailUiClsListsHandler::SetCurrentMailboxL()
-// -----------------------------------------------------------------------------
 void CFSEmailUiClsListsHandler::SetCurrentMailboxL( CFSMailBox* aMailBox )
     {
     FUNC_LOG;
@@ -443,18 +417,12 @@ void CFSEmailUiClsListsHandler::SetCurrentMailboxL( CFSMailBox* aMailBox )
     	}
     }
 
-// -----------------------------------------------------------------------------
-// CFSEmailUiClsListsHandler::OperationErrorL()
-// -----------------------------------------------------------------------------
 void CFSEmailUiClsListsHandler::OperationErrorL( TInt aErrorCode )
 	{
     FUNC_LOG;
 	iClsListObserver->OperationErrorL( aErrorCode );
 	}
 
-// -----------------------------------------------------------------------------
-// CFSEmailUiClsListsHandler::UseLastNameFirstOrder()
-// -----------------------------------------------------------------------------
 TBool CFSEmailUiClsListsHandler::UseLastNameFirstOrder()
     {
     FUNC_LOG;

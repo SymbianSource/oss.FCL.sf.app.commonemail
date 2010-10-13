@@ -49,7 +49,7 @@ CHARACTER_SET UTF8
 // l:cell_cmail_l_pane_t1
 // r:TB9.1
 //
-#define qtn_fse_launcher_directory  "Contact search"
+#define qtn_fse_launcher_directory	"Directory"
 
 // d:About item in launcher grid
 // l:cell_cmail_l_pane_t1

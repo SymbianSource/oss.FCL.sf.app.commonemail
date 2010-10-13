@@ -197,12 +197,14 @@ public:
     void LoadContentFromFileL( RFile& aFile );
     void LoadContentFromUrlL( const TDesC& aUrl );
     void LoadContentFromMailMessageL( CFSMailMessage* aMailMessage, TBool aResetScrollPos=ETrue );
-    void ResetContent( TBool aDisconnect = EFalse, TBool aClearFlags = ETrue );
+    void ResetContent(const TBool aDisconnect = EFalse);
     void CancelFetch();
     void ClearCacheAndLoadEmptyContent();
+    // <cmail>
     void PrepareForExit();
     void PrepareForMessageNavigation();
-
+    // </cmail>
+    
 // from base class CCoeControl
 
     CCoeControl* ComponentControl( TInt aIndex ) const;

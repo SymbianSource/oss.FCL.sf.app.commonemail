@@ -979,7 +979,7 @@ RESOURCE AVKON_VIEW r_fsemailui_attachments_view
 RESOURCE AVKON_VIEW r_fsemailui_mail_search_view
     {
     menubar = r_fsemailui_searchlist_menubar;  
-    cba = r_freestyle_emauil_ui_sk_options_back;
+    cba = r_freestyle_emauil_ui_sk_options_back__open;
     }   
 
 RESOURCE AVKON_VIEW r_fsemailui_html_view
@@ -1210,7 +1210,7 @@ RESOURCE TBUF r_freestyle_email_ui_griditem_teams			{ buf=qtn_fsemail_griditem_t
 RESOURCE TBUF r_freestyle_email_ui_griditem_weather			{ buf=qtn_fsemail_griditem_weather; }
 RESOURCE TBUF r_freestyle_email_ui_griditem_settings { buf=qtn_fse_launcher_settings; }
 RESOURCE TBUF r_freestyle_email_ui_griditem_add_new_mailbox { buf=qtn_fse_launcher_add_new_mailbox; }
-RESOURCE TBUF r_freestyle_email_ui_griditem_help { buf=qtn_options_help; }
+RESOURCE TBUF r_freestyle_email_ui_griditem_help { buf=qtn_fse_launcher_help; }
 
 // ITEM IN MAIL VIEWER
 RESOURCE TBUF r_freestyle_email_ui_viewer_from					{ buf=qtn_fse_viewer_header_from; }
@@ -1580,7 +1580,6 @@ RESOURCE MENU_PANE r_fsemailui_maillist_menupane
           MENU_ITEM { command = EFsEmailUiCmdActionsForward; txt = qtn_fse_message_list_options_forward; },
           MENU_ITEM { command = EFsEmailUiCmdMailActions; txt = qtn_cmail_message_list_options_actions; cascade=r_fsemailui_maillist_submenu_mail_actions;},
           MENU_ITEM { command = EFsEmailUiCmdSync; txt = qtn_cmail_message_list_options_send_receive; },
-          MENU_ITEM { command = EFsEmailUiCmdCancelSync; txt = qtn_fse_launcher_options_cancel_sync; }, 
           MENU_ITEM { command = EFsEmailUiCmdMarkingMode; txt = qtn_fse_message_list_options_mark; },
           MENU_ITEM { command = EFsEmailUiCmdSettings; txt = qtn_fse_message_list_options_settings; },
           MENU_ITEM { command = EFsEmailUiCmdHelp; txt = qtn_options_help; },

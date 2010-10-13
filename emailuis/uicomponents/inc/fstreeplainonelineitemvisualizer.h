@@ -20,7 +20,12 @@
 #define C_FSTREEPLAINONELINEITEMVISUALIZER_H
 
 #include <e32base.h>
+//<cmail> removed __FS_ALFRED_SUPPORT flag
+//#include <fsconfig.h>
+//</cmail> removed __FS_ALFRED_SUPPORT flag
+// <cmail> SF
 #include <alf/alfeventhandler.h>
+// </cmail>
 #include "fstreeitemvisualizerbase.h"
 
 class CAlfViewportLayout;
@@ -90,8 +95,7 @@ public:
     virtual void UpdateL( const MFsTreeItemData& aData,
                           TBool aFocused,
                           const TUint aLevel,
-                          CAlfTexture*& aMarkOnIcon,
-                          CAlfTexture*& aMarkOffIcon,
+                          CAlfTexture*& aMarkIcon,
                           CAlfTexture*& aMenuIcon,
                           const TUint aTimeout = 0,
                           TBool aUpdateData = ETrue);
@@ -173,7 +177,7 @@ protected:
     /**
      * Visual for a mark icon.
      */
-    CAlfImageVisual* iIconMark;
+    CAlfImageVisual* iIconMarked;
     
     /**
      * Visual for a menu icon.

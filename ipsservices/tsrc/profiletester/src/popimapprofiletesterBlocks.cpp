@@ -2,7 +2,7 @@
  *  Name        :  popimapprofiletesterBlocks.cpp
  *  Part of     :  ipsservices / profiletester 
  *  Description :: STIF test cases
- *  Version     : %version: 1 % << Don't touch! Updated by Synergy at check-out.
+ *  Version     : %version: 2 % << Don't touch! Updated by Synergy at check-out.
  *
  *  Copyright © 2010-2010 Nokia and/or its subsidiary(-ies).  All rights reserved.
  *  This material, including documentation and any related computer
@@ -22,6 +22,12 @@
 #include <e32math.h>
 #include <msvids.h>
 #include "popimapprofiletester.h"
+
+//const values
+const TInt KMailboxStatusLen = 10;
+const TInt KTimeUnits = 3;
+const TInt KNumOfRec= 2;
+
 _LIT( KPopImapProfileTester, "c:\\TestFramework\\TestFramework_ips.ini" );
 _LIT( KStifEmailSubject, "STIF Basic Operations test" );
 _LIT( KStifEmailSubjectDes,"STIF_");
@@ -116,12 +122,18 @@ TInt CPopImapProfileTester::SetupAccountL(CStifItemParser& /* aItem */)
     // IV. Create mailbox through WizardDataAvailableL()
     err = iMailClient->WizardDataAvailableL();
     if (KErrNone == err)
+	  {
         WaitForEvent(TFSEventNewMailbox, NULL, NULL, KTenSecondsTime);
+	  }
     err = InitMailboxL();
     if ((KErrNone == err) && NULL != iIPSMailbox)
+	  {
         err = KErrNone;
+	  }
     else
+	  {
         err = KErrGeneral;
+	  }
 
     iLog->Log(_L( "== SetupAccount Ends err=%d" ), err);
     return err;
@@ -143,7 +155,7 @@ TInt CPopImapProfileTester::GoOnlineL(CStifItemParser& /* aItem */)
     iLog->Log(_L( "== GoOnline Begins ==" ));
 
     // check current mailbox status
-    TBuf<10> statusDes;
+    TBuf<KMailboxStatusLen> statusDes;
     TFSMailBoxStatus status = iIPSMailbox->GetMailBoxStatus();
     if (status == EFSMailBoxOffline)
         {
@@ -169,23 +181,26 @@ TInt CPopImapProfileTester::GoOnlineL(CStifItemParser& /* aItem */)
     syncstatus = iIPSMailbox->CurrentSyncState();
     // we should likely base on TFSEventMailboxOnline, but this does not come always (?)
     err = WaitForEvent(TFSEventMailboxOnline, NULL, NULL, KOneMinuteTime);
+    
+	if( KErrNone == err)
+	{
+     syncstatus = iIPSMailbox->CurrentSyncState();
 
-    syncstatus = iIPSMailbox->CurrentSyncState();
+     //check status of current mailbox again
+     status = iIPSMailbox->GetMailBoxStatus();
 
-    //check status of current mailbox again
-    status = iIPSMailbox->GetMailBoxStatus();
-
-    if (status == EFSMailBoxOnline)
+     if (status == EFSMailBoxOnline)
         {
         err = KErrNone;
         iLog->Log(_L("Success: mailbox online"));
         }
-    else
+     else
         {
         err = KErrGeneral;
         iLog->Log(_L("Failed: mailbox status- %S"), &statusDes);
         }
-
+	} //end if 'KErrNone == err'
+	
     iLog->Log(_L( "== GoOnline ends err=%d" ), err);
     return err;
     }
@@ -204,7 +219,7 @@ TInt CPopImapProfileTester::GoOfflineL(CStifItemParser& /* aItem */)
         }
 
     iLog->Log(_L( "== GoOffline Begins ==" ));
-    TBuf<10> statusDes;
+    TBuf<KMailboxStatusLen> statusDes;
     TFSMailBoxStatus status = iIPSMailbox->GetMailBoxStatus();
     if (status == EFSMailBoxOffline)
         {
@@ -230,20 +245,22 @@ TInt CPopImapProfileTester::GoOfflineL(CStifItemParser& /* aItem */)
     iIPSMailbox->GoOfflineL();
     syncstatus = iIPSMailbox->CurrentSyncState();
     err = WaitForEvent(TFSEventMailboxOffline, NULL, NULL, KOneMinuteTime);
-    syncstatus = iIPSMailbox->CurrentSyncState();
-    //check status of current mailbox again
-    status = iIPSMailbox->GetMailBoxStatus();
+	if( KErrNone == err)
+	{
+     syncstatus = iIPSMailbox->CurrentSyncState();
+     //check status of current mailbox again
+     status = iIPSMailbox->GetMailBoxStatus();
 
-    if (status == EFSMailBoxOffline)
+     if (status == EFSMailBoxOffline)
         {
         iLog->Log(_L("Success: mailbox offline"));
         }
-    else
+     else
         {
         err = KErrGeneral;
         iLog->Log(_L("Failed: mailbox status- %S"), &statusDes);
         }
-
+    } //end if 'KErrNone == err'
     iLog->Log(_L( "GoOffline ends err=%d" ), err);
     return err;
     }
@@ -265,12 +282,16 @@ TInt CPopImapProfileTester::RefreshNowL(CStifItemParser& /* aItem */)
     iLog->Log(_L("Request Id -> %d"), reqId);
     TSSMailSyncState syncstatus = iIPSMailbox->CurrentSyncState();
     if ((StartingSync == syncstatus) || (EmailSyncing == syncstatus))
+	  {
         err = WaitForEvent(TFSEventMailboxOnline);
+	  }
     else
+	  {
         err = KErrGeneral;
+	  }
     if (err == KErrNone)
         {
-        WaitForResponse(TFSProgress::EFSStatus_RequestComplete, KOneMinuteTime*3);
+        WaitForResponse(TFSProgress::EFSStatus_RequestComplete, KOneMinuteTime*KTimeUnits);
         syncstatus = iIPSMailbox->CurrentSyncState();
         }
     iLog->Log(_L( "RefreshNow ends err=%d" ), err);
@@ -504,7 +525,8 @@ TInt CPopImapProfileTester::ListMessagesL(CStifItemParser& aItem)
                 {
                 iLog->Log(_L("  Listing first %d emails:"), gotMsgs);
                 }
-            for (TInt i = 0; i < messages.Count(); ++i)
+			TInt messagesCount = messages.Count();
+            for (TInt i = 0; i < messagesCount; ++i)
                 {
                 iLog->Log(_L("    %d. %S"), i + 1, &messages[i]->GetSubject());
                 }
@@ -555,7 +577,8 @@ TInt CPopImapProfileTester::FetchMessagesL(CStifItemParser& aItem)
         {
         RPointerArray<CFSMailFolder>& folders = iIPSMailbox->ListFolders();
         // find and get folder id
-        for (TInt i = 0; i < folders.Count(); i++)
+		TInt foldersCount = folders.Count();
+        for (TInt i = 0; i < foldersCount; i++)
             {
             if (folders[i]->GetFolderName().Compare(folderS) == 0)
                 {
@@ -657,10 +680,13 @@ TInt CPopImapProfileTester::SendMessageL(CStifItemParser& /* aItem*/)
         err = SendMsgL(*newMsg, subject, newMsgId); //sending message..
 
         if (KErrNone == err)
+		  {
             iLog->Log(_L("Message was sent successfully"));
+		  }
         else
+		  {
             iLog->Log(_L("Failed to send message with error (ID:%d)"), err);
-
+		  }
         CleanupStack::PopAndDestroy(newMsg);
         }
     else
@@ -720,6 +746,7 @@ TInt CPopImapProfileTester::BasicMsgOperationsL(CStifItemParser& /* aItem */)
     // II. Send test message
     TFSMailMsgId newMsgId = TFSMailMsgId();
     err = SendMsgL(*newMsg, KStifEmailSubject, newMsgId);
+	iLog->Log(_L("'SendMsgL' returns value of err=%d"),err);
     CleanupStack::PopAndDestroy(newMsg);
     newMsg = NULL;
     TFSMailMsgId msgFolderId = iIPSMailbox->GetStandardFolderId(EFSInbox);
@@ -784,7 +811,7 @@ TInt CPopImapProfileTester::BasicMsgOperationsL(CStifItemParser& /* aItem */)
             RPointerArray<CFSMailAddress>& toRecipients =
                     newMsg->GetToRecipients();
             TInt toRec = toRecipients.Count();
-            if (toRec != 2)
+            if (toRec != KNumOfRec)
                 {
                 iLog->Log(_L("   Error: Got %d 'To' recipients, expected 2"),
                         toRec);
@@ -811,7 +838,7 @@ TInt CPopImapProfileTester::BasicMsgOperationsL(CStifItemParser& /* aItem */)
             RPointerArray<CFSMailAddress>& ccRecipients =
                     newMsg->GetCCRecipients();
             TInt ccRec = ccRecipients.Count();
-            if (ccRec != 2)
+            if (ccRec != KNumOfRec)
                 {
                 iLog->Log(_L("   Error: Got %d 'Cc' recipients, expected 2"),
                         ccRec);
@@ -933,7 +960,8 @@ TInt CPopImapProfileTester::CopyMoveMsgsL(CStifItemParser& /* aItem */)
         if (gotMsgs > 0)
             {
             iLog->Log(_L("  Listing %d messages:"), gotMsgs);
-            for (TInt i = 0; i < messages.Count(); i++)
+			TInt messagesCount = messages.Count();
+            for (TInt i = 0; i < messagesCount; i++)
                 {
                 iLog->Log(_L("%d.ID:,Subject: %S"), i + 1,
                         &messages[i]->GetSubject());
@@ -992,8 +1020,8 @@ TInt CPopImapProfileTester::SearchL(CStifItemParser& /* aItem */)
     iLog->Log(_L( "Search begins" ));
 
     // Step01: to prepare testing msg
-    HBufC* bufSubject = HBufC::NewL(30);
-    HBufC* bufBody = HBufC::NewL(128);
+    HBufC* bufSubject = HBufC::NewL(KMidBufLen);
+    HBufC* bufBody = HBufC::NewL(KMidBufLen);
     TPtr subject = bufSubject->Des();
     TPtr body = bufBody->Des();
     subject.Append(KStifEmailSubjectDes);

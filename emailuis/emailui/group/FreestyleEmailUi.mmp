@@ -124,12 +124,6 @@ USERINCLUDE     ../../inc
 USERINCLUDE     ../../../inc
 USERINCLUDE     ../../../ipsservices/inc
 
-// 9.11.2009: Temporary flagging SYMBIAN_ENABLE_SPLIT_HEADERS
-// Can be removed when header structure change is complete
-#ifndef SYMBIAN_ENABLE_SPLIT_HEADERS
-SYSTEMINCLUDE   /epoc32/include/uikon
-#endif // SYMBIAN_ENABLE_SPLIT_HEADERS
-
 START RESOURCE  ../data/FreestyleEmailUi.rss
 HEADER
 TARGETPATH      APP_RESOURCE_DIR

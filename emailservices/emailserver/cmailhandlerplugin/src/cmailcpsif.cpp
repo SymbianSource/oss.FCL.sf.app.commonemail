@@ -207,16 +207,11 @@ void CMailCpsIf::PublishSetupWizardL(TInt aInstance)
             EMbmCmailhandlerpluginQgn_prop_cmail_new_mailbox_mask,
             mailBoxId,
             KNullDes);
-            
-        PublishImageL(
-            iInstIdList[aInstance].iCid,
-            KContTypeSetupBrandIcon1,
-            KKeySetupBrandIcon1,
-            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
-            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account_mask,
-            mailBoxId,
-            KSetupBrand1);
 
+    TInt widgetSetupVariant = iMailCpsHandler->GetWidgetSetupBrandIconVariant();
+
+    if ( widgetSetupVariant == KWidgetSetupBrandDefault )
+        {
         PublishImageL(
             iInstIdList[aInstance].iCid,
             KContTypeSetupBrandIcon2,
@@ -243,6 +238,64 @@ void CMailCpsIf::PublishSetupWizardL(TInt aInstance)
             EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account_mask,
             mailBoxId,
             KSetupBrand4);
+            
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
+            KContTypeSetupBrandIcon5,
+            KKeySetupBrandIcon5,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account_mask,
+            mailBoxId,
+            KSetupBrand5);
+        }
+    else if ( widgetSetupVariant == KWidgetSetupBrandChina )
+        {
+            PublishImageL(
+            iInstIdList[aInstance].iCid,
+            KContTypeSetupBrandIcon1,
+            KKeySetupBrandIcon1,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account_mask,
+            mailBoxId,
+            KSetupBrandChn1);
+
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
+            KContTypeSetupBrandIcon2,
+            KKeySetupBrandIcon2,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account_mask,
+            mailBoxId,
+            KSetupBrandChn2);
+
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
+            KContTypeSetupBrandIcon3,
+            KKeySetupBrandIcon3,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account_mask,
+            mailBoxId,
+            KSetupBrandChn3);
+
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
+            KContTypeSetupBrandIcon4,
+            KKeySetupBrandIcon4,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account_mask,
+            mailBoxId,
+            KSetupBrandChn4);
+            
+        PublishImageL(
+            iInstIdList[aInstance].iCid,
+            KContTypeSetupBrandIcon5,
+            KKeySetupBrandIcon5,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account,
+            EMbmCmailhandlerpluginQgn_indi_cmail_drop_email_account_mask,
+            mailBoxId,
+            KSetupBrandChn5);
+        }
+        
         iInstIdList[aInstance].iWizardPublished = ETrue;
         CleanupStack::PopAndDestroy(setupEmail);
         }        

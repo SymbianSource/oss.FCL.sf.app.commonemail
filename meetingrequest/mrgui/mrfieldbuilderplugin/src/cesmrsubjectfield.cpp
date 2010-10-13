@@ -141,7 +141,7 @@ TSize CESMRSubjectField::MinimumSize()
        fieldRect, 
        NMRLayoutManager::EMRTextLayoutTextEditor ).TextRect() );
     
-    if( iPriorityIcon )
+    if( iPriorityIcon && ( iCurrentPriority != EFSCalenMRPriorityNormal ) )
         {
 		editorRect = NMRLayoutManager::GetLayoutText( 
 			   fieldRect, 
@@ -443,9 +443,19 @@ CCoeControl* CESMRSubjectField::ComponentControl(
         case 0:
             return iFieldIcon;
         case 1:
-            return iSubject;
+        	if( iPriorityIcon )
+        		{
+        	    return iPriorityIcon;          
+        		}
+        	else
+        		{
+        	    return iSubject;                       
+        		}
         case 2:
-            return iPriorityIcon;
+        	if( iPriorityIcon )
+        		{
+        	    return iSubject;       
+        		}
         default:
             return NULL;
         }
@@ -475,15 +485,23 @@ void CESMRSubjectField::SizeChanged( )
     // Layouting priority icon
     if( iPriorityIcon )
         {
-        TAknWindowComponentLayout iconLayout( 
-                NMRLayoutManager::GetWindowComponentLayout( 
-                    NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
-        AknLayoutUtils::LayoutImage( iPriorityIcon, rowRect, iconLayout );
+		if( iCurrentPriority != EFSCalenMRPriorityNormal )
+			{
+			TAknWindowComponentLayout iconLayout(
+					NMRLayoutManager::GetWindowComponentLayout(
+						NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
+			AknLayoutUtils::LayoutImage( iPriorityIcon, rowRect, iconLayout );
+			}
         }
-
+	else
+		{
+		delete iPriorityIcon;
+		iPriorityIcon = NULL;			
+		}
+    
     TAknLayoutText editorLayoutText;
 
-    if( iPriorityIcon )
+    if( iPriorityIcon && ( iCurrentPriority != EFSCalenMRPriorityNormal ) )
         {
         editorLayoutText = NMRLayoutManager::GetLayoutText( rowRect, 
                     NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
@@ -511,6 +529,12 @@ void CESMRSubjectField::SizeChanged( )
     // Move focus rect so that it's relative to field's position.
     bgRect.Move( -Position() );
     SetFocusRect( bgRect );    
+
+    if ( !iOutlineFocus )
+        {
+        RecordField();
+        iObserver->RedrawField( *this );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -557,8 +581,11 @@ void CESMRSubjectField::SetPriorityIconL( TUint aPriority )
         {
         case EFSCalenMRPriorityHigh:
             {
-            delete iPriorityIcon;
-            iPriorityIcon = NULL;
+            if( iPriorityIcon )
+            	{
+				delete iPriorityIcon;
+				iPriorityIcon = NULL;
+            	}
             
             iPriorityIcon = CMRImage::NewL( 
                   NMRBitmapManager::EMRBitmapPriorityHigh,
@@ -567,6 +594,7 @@ void CESMRSubjectField::SetPriorityIconL( TUint aPriority )
             iPriorityIcon->SetParent( this );
             if( iCurrentPriority == EFSCalenMRPriorityNormal )
             	{
+				iCurrentPriority = EFSCalenMRPriorityHigh;
 				SizeChanged();
             	}
             iCurrentPriority = EFSCalenMRPriorityHigh;
@@ -587,14 +615,18 @@ void CESMRSubjectField::SetPriorityIconL( TUint aPriority )
           
         case EFSCalenMRPriorityLow:
             {
-            delete iPriorityIcon;
-            iPriorityIcon = NULL;
+            if( iPriorityIcon )
+            	{
+				delete iPriorityIcon;
+				iPriorityIcon = NULL;
+            	}
             
             iPriorityIcon = CMRImage::NewL( 
                   NMRBitmapManager::EMRBitmapPriorityLow );
             iPriorityIcon->SetParent( this );  
             if( iCurrentPriority == EFSCalenMRPriorityNormal )
 				{
+				iCurrentPriority = EFSCalenMRPriorityLow;
 				SizeChanged();
 				}
             iCurrentPriority = EFSCalenMRPriorityLow;

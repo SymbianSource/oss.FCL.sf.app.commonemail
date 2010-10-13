@@ -15,11 +15,16 @@
 *
 */
 #include "cmrresponsedialogview.h"
+#include "nmrcolormanager.h"
+#include "nmrlayoutmanager.h"
+
 // System includes
 #include <AknsDrawUtils.h>
 #include <AknsBasicBackgroundControlContext.h>
 #include <eikrted.h>
 #include <AknDef.h>
+#include <AknUtils.h>
+#include <eiksbfrm.h>
 // DEBUG
 #include "emailtrace.h"
 
@@ -156,6 +161,11 @@ void CESMRResponseDialogView::SetContainerWindowL(
     iEditor->SetSize( Rect().Size() );
     iEditor->SetSkinBackgroundControlContextL( iBgContext );
     iEditor->EnableCcpuSupportL(ETrue);
+	CEikScrollBarFrame* scrollBar = iEditor->CreateScrollBarFrameL();
+	scrollBar->SetScrollBarVisibilityL(
+			CEikScrollBarFrame::EOff,
+			CEikScrollBarFrame::EAuto );
+	iEditor->TextLayout()->RestrictScrollToTopsOfLines( EFalse );
     }
 
 // ---------------------------------------------------------------------------
@@ -166,10 +176,27 @@ void CESMRResponseDialogView::HandleResourceChange( TInt aType )
     {
     FUNC_LOG;
     CCoeControl::HandleResourceChange( aType );
+	TInt error = KErrNone;
 
-    if ( aType == KEikDynamicLayoutVariantSwitch )
+    switch ( aType )
         {
-        iEditor->SetRect( Rect() );
+        case KAknsMessageSkinChange:
+        case KEikMessageColorSchemeChange:
+            {
+            TAknLayoutText editorLayoutText = NMRLayoutManager::GetLayoutText(
+                                Rect(),
+                                NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
+            TRAP( error, SetFontL( editorLayoutText.Font() ) );
+            if ( error != KErrNone )
+                {
+                iCoeEnv->HandleError( error );
+                }
+            break;
+            }
+        case KEikDynamicLayoutVariantSwitch:
+            {
+            iEditor->SetRect( Rect() );
+            }
         }
     }
 
@@ -179,18 +206,95 @@ void CESMRResponseDialogView::HandleResourceChange( TInt aType )
 //
 void CESMRResponseDialogView::SizeChanged()
     {
-    if(iBgContext)
-        {
-        iBgContext->SetRect(Rect());
-        if ( &Window() )
+	if(iBgContext)
+		{
+		iBgContext->SetRect(Rect());
+		if ( &Window() )
+			{
+			iBgContext->SetParentPos( PositionRelativeToScreen() );
+			}
+		}
+	if( iEditor )
+		{
+		TRect r = Rect();
+		TInt scrollbarWidth = iEditor->ScrollBarFrame()->
+			ScrollBarBreadth(CEikScrollBar::EVertical);
+		TInt editorWidth = r.Width() - scrollbarWidth;
+		TPoint upperLeftCorner = TPoint(0, 0);
+		iEditor->SetExtent(upperLeftCorner, TSize(editorWidth, r.Height()));
+		
+		TAknLayoutText editorLayoutText = NMRLayoutManager::GetLayoutText(
+                            r,
+                            NMRLayoutManager::EMRTextLayoutMultiRowTextEditor );
+							
+		TInt error = KErrNone;
+		TRAP( error, SetFontL( editorLayoutText.Font() ) );
+        if ( error != KErrNone )
             {
-            iBgContext->SetParentPos( PositionRelativeToScreen() );
+            iCoeEnv->HandleError( error );
             }
-        }
-    if( iEditor )
-        {
-        iEditor->SetRect( Rect() );
-        }
+		}
     }
 
+// ---------------------------------------------------------------------------
+// CESMRResponseDialogView::MinimumSize()
+// ---------------------------------------------------------------------------
+//
+TSize CESMRResponseDialogView::MinimumSize()
+    {
+    FUNC_LOG;
+    TRect rect;
+    AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, rect );
+    return rect.Size();
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRResponseDialogView::SetFontL()
+// ---------------------------------------------------------------------------
+//
+void CESMRResponseDialogView::SetFontL( const CFont* aFont )
+    {
+    FUNC_LOG;
+
+    TFontSpec fontSpec = aFont->FontSpecInTwips();
+
+    CParaFormat* paraFormat = CParaFormat::NewLC();
+    TParaFormatMask paraFormatMask;
+    paraFormat->iLineSpacingControl = CParaFormat::ELineSpacingExactlyInPixels;
+
+    paraFormatMask.SetAttrib( EAttLineSpacing );
+    paraFormat->iHorizontalAlignment = CParaFormat::ELeftAlign;
+    if ( AknLayoutUtils::LayoutMirrored() )
+        {
+        paraFormat->iHorizontalAlignment = CParaFormat::ERightAlign;
+        }
+    paraFormatMask.SetAttrib( EAttAlignment );
+
+    TCharFormat charFormat;
+    TCharFormatMask formatMask;
+    charFormat.iFontSpec = fontSpec;
+
+    formatMask.SetAttrib( EAttFontTypeface );
+    formatMask.SetAttrib( EAttFontHeight );
+    formatMask.SetAttrib( EAttFontPosture );
+    formatMask.SetAttrib( EAttFontStrokeWeight );
+    formatMask.SetAttrib( EAttFontHighlightColor );
+    formatMask.SetAttrib( EAttColor );
+
+    charFormat.iFontPresentation.iTextColor = NMRColorManager::Color(
+            NMRColorManager::EMRMainAreaTextColor );
+    charFormat.iFontPresentation.iHighlightColor =
+        NMRColorManager::Color( NMRColorManager::EMRCutCopyPasteHighlightColor );
+
+    CParaFormatLayer* paraFormatLayer =
+        CParaFormatLayer::NewL( paraFormat, paraFormatMask );
+    CleanupStack::PushL( paraFormatLayer );
+    CCharFormatLayer* charFormatLayer =
+        CCharFormatLayer::NewL( charFormat, formatMask );
+
+    iEditor->SetParaFormatLayer( paraFormatLayer );
+    CleanupStack::Pop( paraFormatLayer );
+    CleanupStack::PopAndDestroy( paraFormat );
+    iEditor->SetCharFormatLayer( charFormatLayer );
+    }
 // end of file

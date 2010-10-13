@@ -167,8 +167,6 @@ public:
      */
     virtual void SetAlwaysExtended( TBool aAlwaysExtended );
     
-    virtual void SetMarkingMode( TBool aMarkingMode );
-    
     /**
      * From MFsTreeItemVisualizer.
      * This function returns wether an item is always in extended state.
@@ -196,8 +194,7 @@ public:
     virtual void UpdateL( const MFsTreeItemData& aData,
                           TBool aFocused,
                           const TUint aLevel,
-                          CAlfTexture*& aMarkOnIcon,
-                          CAlfTexture*& aMarkOffIcon,
+                          CAlfTexture*& aMarkIcon,
                           CAlfTexture*& aMenuIcon,
                           const TUint aTimeout = 0,
                           TBool aUpdateData = ETrue);

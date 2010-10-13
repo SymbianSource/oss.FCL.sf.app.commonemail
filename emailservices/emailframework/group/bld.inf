@@ -85,3 +85,38 @@ OPTION HEADERFILE mail_for_exchange_brand_graphics.mbg
 OPTION SOURCEDIR ../data
 OPTION SOURCES -c16,8 mail_for_exchange.svg
 END
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE 163_brand_graphics.mif
+OPTION HEADERFILE 163_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 163.svg
+END
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE qq_brand_graphics.mif
+OPTION HEADERFILE qq_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 qq.svg
+END
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE sina_brand_graphics.mif
+OPTION HEADERFILE sina_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 sina.svg
+END
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE 126_brand_graphics.mif
+OPTION HEADERFILE 126_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 126.svg
+END
+
+START EXTENSION s60/mifconv
+OPTION TARGETFILE sohu_brand_graphics.mif
+OPTION HEADERFILE sohu_brand_graphics.mbg
+OPTION SOURCEDIR ../data
+OPTION SOURCES -c16,8 sohu.svg
+END

@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : CEikRichTextEditor based Rich Text viewer
-*  Version     : %version: e002sa33#45.3 %
+*  Version     : %version: e002sa33#45.4 %
 *
 */
 
@@ -429,8 +429,6 @@ EXPORT_C void CESMRRichTextViewer::SetTextL(
 
     iLinkList.ResetAndDestroy();
 
-    TextView()->SetMarginWidths( KDefaultTextSideMargin ,0);
-
     // Clear edwin text
     CEikEdwin::SetCursorPosL( 0, EFalse );
     CEikRichTextEditor::SetTextL( &KNullDesC );
@@ -443,6 +441,8 @@ EXPORT_C void CESMRRichTextViewer::SetTextL(
     // Set new edwin text
     CEikEdwin::SetTextLimit( aText->Length ( ) );
     CEikRichTextEditor::SetTextL( aText );
+	
+	TextView()->SetMarginWidths( KDefaultTextSideMargin ,0);
 
     //Make sure cursor is invisible and selection visible
     TextView()->SetCursorVisibilityL(

@@ -27,6 +27,25 @@
 class MNcsFieldSizeObserver;
 class CNcsHeaderContainer;
 
+/**
+ * Interface for the attachment field observer
+ */
+class MNcsAttachmentFieldObserver
+    {
+public:
+    /**
+     * AttachmentOpenL
+     * Informs observer that focused attachment should be opened
+     */
+    virtual void AttachmentOpenL() = 0;
+
+    /**
+     * AttachmentRemoveL
+     * Informs observer that focused attachment should be removed
+     */
+    virtual void AttachmentRemoveL() = 0;
+    };
+
 
 /**
  *  CNcsAttachmentField
@@ -40,6 +59,7 @@ public: // construct & destruct
     static CNcsAttachmentField* NewL( 
     	TInt aLabelTextId,
         MNcsFieldSizeObserver* aSizeObserver,
+        MNcsAttachmentFieldObserver* aObserver,
         CNcsHeaderContainer* aParentControl );
 
     virtual ~CNcsAttachmentField();
@@ -55,8 +75,10 @@ public: // methods
     void SetTextsLD( CDesCArray* aAttachmentNames, 
                      CDesCArray* aAttachmentSizes );
 
-    TInt FocusedAttachmentLabelIndex();
-  
+    TInt FocusedAttachmentLabelIndex() const;
+
+    void SetFocusedAttachmentLabelIndex( TInt aIndex );
+
 public: // from MNcsControl
     
     TInt LineCount() const;
@@ -85,18 +107,21 @@ public: // from CCoeControl
 
     void SetContainerWindowL( const CCoeControl& aContainer );
 
-    void FocusChanged( TDrawNow aDrawNow );                  
+    void FocusChanged( TDrawNow aDrawNow );
 
     void HandleResourceChange( TInt aType );
 
     void HandlePointerEventL( const TPointerEvent& aPointerEvent );
-    
+
+    TKeyResponse OfferKeyEventL( const TKeyEvent& aKeyEvent,TEventCode aType );
+
 private: // methods
-    
+
     CNcsAttachmentField( TInt aLabelTextId,
                          MNcsFieldSizeObserver* aSizeObserver, 
+                         MNcsAttachmentFieldObserver* aObserver,
                          CNcsHeaderContainer* aParentControl );
-        
+
     void ConstructL();
     
     void UpdateColors();
@@ -124,9 +149,12 @@ private: // methods
     void UpdateSingleAttachmentLabelTextL( CNcsLabel* aLabel, TInt aIndex );
     
 private: // data
-    
+
     CNcsHeaderContainer* iParentControl; // not owned
-    
+
+    // attachment field observer
+    MNcsAttachmentFieldObserver* iObserver;
+
     // attachment labels (within the array) owned
     RPointerArray<CNcsLabel> iAttachmentLabels;
     

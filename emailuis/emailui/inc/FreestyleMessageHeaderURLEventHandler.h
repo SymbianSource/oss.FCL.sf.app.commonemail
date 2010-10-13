@@ -93,7 +93,6 @@ private:
     CFSHtmlReloadAO*                iHTMLReloadAO; 
     };
 
-
 /******************************************************************************
  * class TPopupMenuItem
  ******************************************************************************/
@@ -136,6 +135,4 @@ private:
     
     RArray<TPopupMenuItem> iItemList;
     };
-
-
 #endif //__CFREESTYLE_MESSAGE_HEADER_EVENTHANDLER_URL_H__

@@ -295,12 +295,12 @@ void CFSEmailUiLauncherGridVisualiser::HandleButtonReleaseEvent()
 void CFSEmailUiLauncherGridVisualiser::ResizeItemIcon( TBool aReduce )
     {
     TInt selectedItem( iCurrentLevel.iSelected );
+    
     TInt count = iCurrentLevel.iItemVisualData.Count();
     if ( selectedItem < 0 || selectedItem >= count )
         {
         return;  // incorrect index
         }
-    
     if( selectedItem >= 0 )
         {
         TReal transition( KScaleNotSelected );
@@ -1233,7 +1233,6 @@ TBool CFSEmailUiLauncherGridVisualiser::HandlePointerEventL(
                     {
                     // Hide focus always when dragging.
                     HandleButtonReleaseEvent();
- 
                     iIsDragging = ETrue;
                 
                     iPhysics->RegisterPanningPosition( delta );
@@ -2785,6 +2784,7 @@ void CFSEmailUiLauncherGridVisualiser::LaunchStylusPopupMenu(
         {
         return;  // incorrect index
         }
+
 	// Get the ID of the mailbox in case the user wants to delete it.
 	iMailboxToDelete = iCurrentLevel.iItems[aItemId].iMailBoxId;
 

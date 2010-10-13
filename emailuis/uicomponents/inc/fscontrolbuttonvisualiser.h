@@ -548,11 +548,6 @@ protected: // data
      * Show dropdown shadow for buttons  
      */
     TBool iShowShadow;
-
-    /**
-     * Help variable to omit unnecessary iDefaultBgBrush updates.
-     */
-    TSize iLastUpdatedButtonModelSize; 
     };
 
 

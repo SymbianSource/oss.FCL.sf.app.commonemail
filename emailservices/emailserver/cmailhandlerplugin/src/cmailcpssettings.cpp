@@ -965,7 +965,7 @@ void CMailCpsSettings::HandlePropertyChangedL( const TUid& aCategory, TInt aKey 
     }
 
 // ----------------------------------------------------------------------------
-// CMailCpsHandler::BackupOrRestoreMode()
+// CMailCpsSettings::BackupOrRestoreMode()
 // Check if phone is in backup/restore mode
 // ----------------------------------------------------------------------------
 //
@@ -980,4 +980,19 @@ TBool CMailCpsSettings::BackupOrRestoreMode()
         backupOrRestore = ETrue;
         }
     return backupOrRestore;
+    }
+
+// ----------------------------------------------------------------------------
+// CMailCpsSettings::GetWidgetSetupBrandIconVariant()
+// Get widget setup brand icon variant
+// ----------------------------------------------------------------------------
+//
+TInt CMailCpsSettings::GetWidgetSetupBrandIconVariant()
+    {
+    FUNC_LOG;
+
+    TInt ret(KWidgetSetupBrandDefault);
+    iCenRep->Get( KCMailWidgetSetupVariant, ret );
+
+    return ret;
     }

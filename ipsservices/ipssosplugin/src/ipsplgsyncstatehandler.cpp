@@ -129,6 +129,7 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
         if ( error == KErrNone && 
                 status == EIpsAOPluginStatusSyncStarted )
             {
+            aosession.Close();
             return EmailSyncing;
             }
         }

@@ -239,11 +239,6 @@ void CESMRViewerDialog::ConstructL()
     // we want in case of non-MR
     iToolbar = CMRToolbar::NewL();
 
-    TRect clientRect;
-    AknLayoutUtils::LayoutMetricsRect(
-            AknLayoutUtils::EMainPane,
-            clientRect );
-
     TBool responseReady(EFalse);
     MESMRCalEntry* calEntry = iInfoProvider.EntryL();
     MESMRMeetingRequestEntry* mrEntry = NULL;
@@ -255,8 +250,23 @@ void CESMRViewerDialog::ConstructL()
 
         // Change the status pane layout to remove navi pane
         CEikStatusPane* sp = iEikonEnv->AppUiFactory()->StatusPane();
-        sp->SwitchLayoutL(R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT);
+        // If open the MR viewer from Cmail side, the status pane
+        // is not visible, we need to show it in viewer dialog
+        if ( sp && !sp->IsVisible() )
+            {
+            sp->MakeVisible( ETrue );
+            }
+        // Change the type of statuspane to usual_flat.
+        if ( sp )
+            {
+            sp->SwitchLayoutL( R_AVKON_STATUS_PANE_LAYOUT_USUAL_FLAT );
+            }
         }
+    
+    TRect clientRect;
+    AknLayoutUtils::LayoutMetricsRect(
+            AknLayoutUtils::EMainPane,
+            clientRect );
 
     iESMRSendUI = CESMRSendUI::NewL(EESMRCmdSendAs);
 
@@ -432,6 +442,22 @@ TKeyResponse CESMRViewerDialog::OfferKeyEventL(
                 ProcessCommandL(EESMRCmdMailNextMessage);
                 break;
                 }
+			case EStdKeyDelete:
+			case EStdKeyBackspace:
+				{
+				if( CCalenInterimUtils2::IsMeetingRequestL( 
+						iInfoProvider.EntryL()->Entry() ) )
+					{
+					response = EKeyWasConsumed;
+					ProcessCommandL( EESMRCmdDeleteMR );
+					}
+				else
+					{
+					response = EKeyWasConsumed;
+					ProcessCommandL( EESMRCmdCalEntryUIDelete );
+					}
+				break;
+				}
             default:
                 {
                 response = CAknDialog::OfferKeyEventL( aEvent, aType );
@@ -1235,13 +1261,35 @@ TBool CESMRViewerDialog::HandleCommandForEventL( TInt aCommand )
         case EESMRCmdDeleteMR:          // Fall through
         case EESMRCmdCalEntryUIDelete:
             {
-            TBool okToDelete = ETrue;
+            TBool okToDelete( ETrue );
             MESMRCalEntry* calEntry = iInfoProvider.EntryL();
-            if ( calEntry->IsRecurrentEventL() )
+            
+            if ( calEntry->IsRecurrentEventL() && calEntry->IsStoredL() )
                 {
-                SetRecurrenceModRuleL(
-                 *calEntry,
-                 CESMRListQuery::EESMRDeleteThisOccurenceOrSeriesQuery );
+                if( CCalenInterimUtils2::IsMeetingRequestL( calEntry->Entry() ) )
+                	{
+                    // Static cast is safe here. We know for sure that entry is MR
+                    MESMRMeetingRequestEntry* mrEntry =
+                            static_cast<MESMRMeetingRequestEntry*>( calEntry );
+                    
+                    if( mrEntry->IsOpenedFromMail() )
+                    	{
+                        okToDelete = CESMRConfirmationQuery::ExecuteL(
+                                                CESMRConfirmationQuery::EESMRDeleteMR );
+                    	}
+                    else
+                    	{
+                    	SetRecurrenceModRuleL(
+                    			*calEntry,
+                        		CESMRListQuery::EESMRDeleteThisOccurenceOrSeriesQuery );
+                    	}
+                	}
+                else
+                	{
+    				SetRecurrenceModRuleL(
+    					*calEntry,
+    					CESMRListQuery::EESMRDeleteThisOccurenceOrSeriesQuery );                	
+                	}
                 }
             else
                 {
@@ -1892,6 +1940,9 @@ void CESMRViewerDialog::ConstructToolbarL()
 
                     // Toolbar created, relayouting needed
                     SizeChanged();
+                    // help the relayout of the viewer
+                    iView->ListPane()->RecordFields();
+                    DrawDeferred();
                     }
                 }
             }

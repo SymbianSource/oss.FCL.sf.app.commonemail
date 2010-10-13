@@ -104,7 +104,11 @@ TBool CFSNotificationHandlerBase::MessagesCauseNotificationL( TFSMailMsgId aMail
 
     CFSMailFolder* parentFolder(
         MailClient().GetFolderByUidL( aMailboxId, aParentFolderId ) );
-    User::LeaveIfNull( parentFolder );
+    if ( !parentFolder )
+        {
+        // by some reason the folder could not be found..
+        return EFalse;
+        }
     CleanupStack::PushL( parentFolder );
     
     CFSMailMessage* newestMsg( NULL );
@@ -144,19 +148,20 @@ TBool CFSNotificationHandlerBase::MessagesCauseNotificationL( TFSMailMsgId aMail
                 aParentFolderId,
                 aMsgIdList[index], 
                 EFSMsgDataEnvelope ) );
-        User::LeaveIfNull( currentMessage );
-        const TTime dateOfCurrentMsg( currentMessage->GetDate() );
-        
-        
-        const TBool msgIsUnread( MsgIsUnread( *currentMessage ) );
-        delete currentMessage;
-        currentMessage = NULL;
-        
-        if ( msgIsUnread &&
-             ( dateOfCurrentMsg >= dateOfNewest ) )
+        if ( currentMessage )
             {
-            // At least one of the messages is unread and newest.
-            return ETrue;
+            const TTime dateOfCurrentMsg( currentMessage->GetDate() );
+            
+            const TBool msgIsUnread( MsgIsUnread( *currentMessage ) );
+            delete currentMessage;
+            currentMessage = NULL;
+            
+            if ( msgIsUnread &&
+                 ( dateOfCurrentMsg >= dateOfNewest ) )
+                {
+                // At least one of the messages is unread and newest.
+                return ETrue;
+                }
             }
             
         --index;
@@ -182,7 +187,7 @@ TBool CFSNotificationHandlerBase::CapabilitiesToContinueL(
     if ( aEvent != TFSEventMailboxDeleted )
         {
         CFSMailBox* mailBox( MailClient().GetMailBoxByUidL( aMailbox ) );
-        if ( mailBox == NULL )
+        if ( !mailBox )
             {
             User::Leave( KErrArgument );
             }
@@ -219,7 +224,7 @@ void CFSNotificationHandlerBase::HandleEventL(
         // in aParam2
         TFSMailMsgId* parentFolderId( NULL );
         parentFolderId = static_cast< TFSMailMsgId* >( aParam2 );
-        if ( parentFolderId == NULL )
+        if ( !parentFolderId )
             {
             User::Leave( KErrArgument );
             }
@@ -263,6 +268,8 @@ void CFSNotificationHandlerBase::TimerExpiredL()
     {
     // process collected insert requests
     RArray<TFSMailMsgId> msgIds;
+    CleanupClosePushL( msgIds );
+
     TFSMailMsgId mailBoxId;
     TFSMailMsgId parentFolderId;
     for ( TInt i = 0; i< iNewInboxEntries.Count(); i++ )
@@ -299,6 +306,7 @@ void CFSNotificationHandlerBase::TimerExpiredL()
         }
     // clear processed entries
     msgIds.Reset();
+    CleanupStack::PopAndDestroy( &msgIds );
     iNewInboxEntries.Reset();    
     }
 
@@ -323,7 +331,7 @@ CFSMailMessage* CFSNotificationHandlerBase::NewestMsgInFolderL(
     
     // Resetting array of sort criteria already here because
     // the iterator does not need it anymore.
-    CleanupStack::PopAndDestroy(); // sorting
+    CleanupStack::PopAndDestroy( &sorting );
                                     
     // CleanupStack::PushL doesn't work for M-class
     CleanupDeletePushL( iterator ); 
@@ -342,7 +350,7 @@ CFSMailMessage* CFSNotificationHandlerBase::NewestMsgInFolderL(
     CFSMailMessage* outcome = messages[0];
     messages.Remove( 0 ); // remove from array to prevent destruction of element
     messages.ResetAndDestroy();
-    CleanupStack::PopAndDestroy(); // messages
+    CleanupStack::PopAndDestroy( &messages ); 
     CleanupStack::PopAndDestroy( iterator );
     return outcome;
     }
@@ -392,6 +400,15 @@ void CNewMailNotificationTimer::RunL()
     iObserver.TimerExpiredL();
     }
 
+TInt CNewMailNotificationTimer::RunError(TInt aError)
+    {
+    if( aError )
+        {
+        INFO_1( "CNewMailNotificationTimer::RunError( aError: %d )", aError );
+        }
+    
+    return KErrNone;
+    }
 
 void Panic( TCmailhandlerPanic aPanic )
     {

@@ -82,7 +82,6 @@ void CBaseMrInfoObject::ConstructL(
     
     iSequenceNumber = aMrInfo.MRSequenceNumberL();
     iPriority = aMrInfo.PriorityL();
-    iPrivacy = aMrInfo.PrivacyL();
 
     iOrganizer = CBaseMrAttendee::NewL( aMrInfo.MROrganizerL() );
     
@@ -1134,20 +1133,3 @@ EXPORT_C void CBaseMrInfoProcessor::ReplyToMeetingRequestL(
         }
     	
     } //ReplyToMeetingRequestL.
-
-/**
- *
- */
-EXPORT_C void CBaseMrInfoObject::SetPrivacyL( MMRInfoObject::TCalSensitivity aPrivacyL )
-    {
-    iPrivacy = aPrivacyL;
-    }
-
-
-/**
- *
- */
-EXPORT_C MMRInfoObject::TCalSensitivity CBaseMrInfoObject::PrivacyL() const
-    {
-    return iPrivacy;
-    }

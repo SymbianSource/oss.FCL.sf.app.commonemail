@@ -574,8 +574,7 @@ void CFSEmailUiMailListVisualiser::DoFirstStartL()
     iNewEmailText = StringLoader::LoadL( R_COMMAND_AREA_NEW_EMAIL );
 
     // Set menu, mark and background icons
-    iMailTreeListVisualizer->SetMarkOnIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMarkOnIcon ) );
-    iMailTreeListVisualizer->SetMarkOffIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMarkOffIcon ) );
+    iMailTreeListVisualizer->SetMarkIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMarkIcon ) );
     iMailTreeListVisualizer->SetMenuIcon( iAppUi.FsTextureManager()->TextureByIndex( EListControlMenuIcon ) );
     iMailList->AddObserverL( *this );
     iMailList->AddObserverL( *iTouchManager );
@@ -758,10 +757,27 @@ void CFSEmailUiMailListVisualiser::UpdateBeginL()
 void CFSEmailUiMailListVisualiser::UpdateProgressL(TFsTreeItemId& aParentId, RPointerArray<CFSMailMessage>& aMessages)
     {
     FUNC_LOG;
-    
     const TInt itemsInModel(iModel->Count());
-    CreateModelItemsL(aMessages);
-    RefreshListItemsL(aParentId, itemsInModel, iModel->Count());
+
+    // cleanup items that are already found in model
+    for (TInt i = 0; i < aMessages.Count(); )
+        {
+        if ( iModel->ContainsItem( *aMessages[i] ) )
+            {
+            delete aMessages[i];
+            aMessages.Remove(i);
+            }
+        else
+            {
+            i++;
+            }            
+        }
+
+    if (aMessages.Count() > 0)
+        {
+        CreateModelItemsL(aMessages);
+        RefreshListItemsL(aParentId, itemsInModel, iModel->Count());
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -777,7 +793,7 @@ void CFSEmailUiMailListVisualiser::UpdateCompleteL()
         sorting = ETrue;
         }
     DeleteSortWaitNote();
-
+    
     if ( !iModel->Count() )
         {
         iFocusedControl = EControlBarComponent;
@@ -833,7 +849,7 @@ void CFSEmailUiMailListVisualiser::DeleteSortWaitNote()
 void CFSEmailUiMailListVisualiser::SortMailListModelAsyncL()
     {
     FUNC_LOG;
-
+   
     DeleteSortWaitNote();
   
     TBool ret = UpdateMailListModelAsyncL( KCMsgBlockSort );
@@ -1278,10 +1294,10 @@ void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* aTrigger
             case ESortRequested:
                 {
                 if( !iNewMailTimer->IsActive() && iNewMailTimer->iStatus != KErrInUse )
-        	{
+        	        {
                     // Size sorting does not use nodes, so disable those, otherwise check from CR
                     iNodesInUse = iAppUi.GetCRHandler()->TitleDividers();
-                    SetSortButtonIconL();
+                    SetSortButtonTextAndIconL();
 
                     iFocusedControl = EControlBarComponent;
                     iMailList->SetFocusedL( EFalse );
@@ -1328,7 +1344,7 @@ void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* aTrigger
             case ESortCompleted:
                 {
             	if( !iNewMailTimer->IsActive() )
-            	    {
+            		{
             	    // refresh the whole mail list if list was sorted
             	    if(iSortState != ESortStartError )
             	    	{
@@ -1361,12 +1377,6 @@ void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* aTrigger
     
     if( aTriggeredTimer == iNewMailTimer )
         {
-        if ( ! iThisViewActive ) // don't proceed if view is not active 
-            { 
-            iNewMailTimer->Stop();
-            return;
-            }
-        
         TInt count = Min( KNewMailMaxBatch, iNewMailIds.Count() );
         CFSMailClient* mailClient = iAppUi.GetMailClient();
 
@@ -1387,18 +1397,12 @@ void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* aTrigger
                 return; // leave  method
                 }
     
-            CFSMailMessage* msgPtr(NULL);
-            TRAPD( err, msgPtr = mailClient->GetMessageByUidL( iAppUi.GetActiveMailboxId(),
+            CFSMailMessage* msgPtr = mailClient->GetMessageByUidL( iAppUi.GetActiveMailboxId(),
                                                                iMailFolder->GetFolderId(),
                                                                iNewMailIds[ 0 ],
-                                                               EFSMsgDataEnvelope ) );
-            if ( KErrNone != err ) 
-                {
-                iNewMailTimer->iStatus = KErrNone;
-                User::Leave(err);
-                }
+                                                               EFSMsgDataEnvelope );
             if ( msgPtr != NULL )
- {
+                {
                 __ASSERT_DEBUG( FolderId() == msgPtr->GetFolderId(), User::Invariant() );
                 CleanupStack::PushL( msgPtr );
                 //first item - show scrollbar
@@ -1432,6 +1436,14 @@ void CFSEmailUiMailListVisualiser::TimerEventL( CFSEmailUiGenericTimer* aTrigger
 void CFSEmailUiMailListVisualiser::InsertNewMessageL( CFSMailMessage* aNewMessage, const TBool aAllowRefresh )
     {
     FUNC_LOG;
+    
+    // If item is already in model, just delete the pointer and return
+    if ( iModel->ContainsItem( *aNewMessage ) )
+        {
+        delete aNewMessage;
+        return;
+        }
+    
     // Use simple heuristic rule: if the first item is highlighted before the new
     // item is added, the highlight is forced to remain on the (possibly new) first
     // item. Otherwise the highligh stays on the same item as before.
@@ -1656,24 +1668,21 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
         }
 
     iShowReplyAll = EFalse;
-    TBool bDoFirstStartCalled( EFalse );
-    if ( !iFirstStartCompleted )
-        {
-        DoFirstStartL();
-        bDoFirstStartCalled = ETrue;
-        }
+
+	if ( !iFirstStartCompleted )
+	    {
+	    DoFirstStartL();
+	    }
     // set when editor was called so reset is needed i.e. here (Called by DoActivate)
-    iMailOpened = EFalse; 
+   	iMailOpened = EFalse; 
 
     // Make sure that pending popup is not displayd
-    if ( iAppUi.FolderList().IsPopupShown() )
+	if ( iAppUi.FolderList().IsPopupShown() )
         {
         iAppUi.FolderList().HidePopupL();
         }
     DisableMailList( EFalse );
 
-    UpdateFolderAndMarkingModeTextsL();
-    
 	// inform baseView if view entered with forward navigation
 	TBool forwardNavigation = EFalse;
 	if ( aCustomMessageId != KStartListReturnToPreviousFolder &&
@@ -1694,20 +1703,18 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
     SetMailListLayoutAnchors();
     //if the view is already active don't update the icons so they won't "blink" 
     //when the view is activated.
-    if( !iThisViewActive && !iMarkingMode )
+    if(!iThisViewActive)
         {     
-        
         ScaleControlBarL();
-        if ( !bDoFirstStartCalled ) // Don't set the icon if set by DoFirstStart()
-            { 
-            // Set icons on toolbar
-            iAppUi.FsTextureManager()->ClearTextureByIndex( EListControlBarMailboxDefaultIcon );
-            iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
-            iAppUi.FsTextureManager()->ClearTextureByIndex( EListTextureCreateNewMessageIcon );
-            iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
-            iAppUi.FsTextureManager()->ClearTextureByIndex( GetSortButtonTextureIndex() );
-            iSortButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ) );
-            }
+        
+        // Set icons on toolbar
+        iAppUi.FsTextureManager()->ClearTextureByIndex( EListControlBarMailboxDefaultIcon );
+        iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
+        iAppUi.FsTextureManager()->ClearTextureByIndex( EListTextureCreateNewMessageIcon );
+        iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
+        iAppUi.FsTextureManager()->ClearTextureByIndex( GetSortButtonTextureIndex() );
+        iSortButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ) );
+
         SetListAndCtrlBarFocusL();
         }
 
@@ -1876,7 +1883,7 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
          // Set initial sort criteria when folder is changed
          iCurrentSortCriteria.iField = EFSMailSortByDate;
          iCurrentSortCriteria.iOrder = EFSMailDescending;
-         SetSortButtonIconL();
+         SetSortButtonTextAndIconL();
 
          SafeDelete(iMailFolder);
          TRAP_IGNORE( iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL(
@@ -1891,6 +1898,9 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
              TFSMailMsgId inboxId = iAppUi.GetActiveMailbox()->GetStandardFolderId( EFSInbox );
              iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL( activationData.iMailBoxId, inboxId );
              }
+         HBufC* newFolderName = CreateFolderNameLC( iMailFolder );
+         iFolderListButton->SetTextL( *newFolderName );
+         CleanupStack::PopAndDestroy( newFolderName );
          iMailList->SetFocusedItemL( KFsTreeNoneID );
          refreshState = EFullRefreshNeeded;
          }
@@ -1991,17 +2001,11 @@ void CFSEmailUiMailListVisualiser::ChildDoActivateL(const TVwsViewId& aPrevViewI
 	    SetControlBarFocusedL();
 	    iControlBarControl->MakeSelectorVisible( iAppUi.IsFocusShown() );
 	    }
+	UpdateButtonTextsL();
 	FocusVisibilityChange( iAppUi.IsFocusShown() );
 	iAppUi.ShowTitlePaneConnectionStatus();
-
-    // if timer stoped when quitting view then restart if more messages available
-    if ( iNewMailIds.Count() && ( ! iNewMailTimer->IsActive() ) && iSortState == ESortNone )
-        {
-        iNewMailTimer->Start( KNewMailTimerDelay );
-        }
-
 	TIMESTAMP( "Message list view opened" );
-	}  // CFSEmailUiMailListVisualiser::ChildDoActivateL
+	}
 
 // ---------------------------------------------------------------------------
 // Sets status bar layout
@@ -2043,7 +2047,6 @@ void CFSEmailUiMailListVisualiser::ChildDoDeactivate()
             iMailList->SetFocusedL( EFalse );
   	        } );
   	    iMailTreeListVisualizer->NotifyControlVisibilityChange( EFalse );
-  	    TRAP_IGNORE( UpdateFolderAndMarkingModeTextsL() );
   	    }
 	iThisViewActive = EFalse;
 	}
@@ -2220,21 +2223,7 @@ void CFSEmailUiMailListVisualiser::DynInitMenuPaneL(TInt aResourceId, CEikMenuPa
 	        {
 	        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsEmptyDeleted, ETrue );
 	        }
-	    
-	    CConnectionStatusQueryExtension::TConnectionStatus connetionStatus;
-        iAppUi.GetConnectionStatusL( connetionStatus );
-        if ( connetionStatus == CConnectionStatusQueryExtension::ESynchronizing )
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, EFalse );
-            }
-        else
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdSync, EFalse );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdCancelSync, ETrue );
-            }
-	    }
-	
+		}
     // MAIN MENU ***************************************************************************
 
 
@@ -2540,11 +2529,10 @@ void CFSEmailUiMailListVisualiser::MarkMessagesIfFoundL( const RArray<TFSMailMsg
 //
 void CFSEmailUiMailListVisualiser::ExitMarkingModeL()
     {
-    FUNC_LOG;
-    iMarkingMode = EFalse;    
+    FUNC_LOG;	
     // Hide marking mode text on the place of drop down menus
-    UpdateFolderAndMarkingModeTextsL();
-    iMailList->SetMarkingModeL( EFalse );
+    RemoveMarkingModeTitleTextL();	
+    iMarkingMode = EFalse;
     UnmarkAllItemsL();
     // Change softkeys back to normal
     SetViewSoftkeysL( R_FREESTYLE_EMAUIL_UI_SK_OPTIONS_BACK );
@@ -2552,16 +2540,14 @@ void CFSEmailUiMailListVisualiser::ExitMarkingModeL()
     CEikMenuBar* menu = iAppUi.CurrentActiveView()->MenuBar();
     menu->StopDisplayingMenuBar();
     menu->SetMenuTitleResourceId(R_FSEMAILUI_MAILLIST_MENUBAR);
+    // Change background back to normal
+    DisplayMarkingModeBgL( EFalse );   
     // Display drop down menu buttons
     iControlBarControl->SetRectL( iAppUi.LayoutHandler()->GetControlBarRect() );
     iNewEmailButton->SetDimmed( EFalse );
     iFolderListButton->SetDimmed( EFalse );   
     iSortButton->SetDimmed( EFalse );
     ScaleControlBarL();
-
-    iMailTreeListVisualizer->HideList();   
-    SetMailListLayoutAnchors();
-    iMailTreeListVisualizer->ShowListL();
     }
 
 // ---------------------------------------------------------------------------
@@ -2573,7 +2559,6 @@ void CFSEmailUiMailListVisualiser::EnterMarkingModeL()
     {
     FUNC_LOG;	
     iMarkingMode = ETrue;
-    iMailList->SetMarkingModeL( ETrue );
 	iListMarkItemsState = ETrue; // shift-scrolling does marking after one item is marked
     HandleCommandL( EFsEmailUiCmdActionsExpandAll );
     // Change softkeys for marking mode
@@ -2582,17 +2567,19 @@ void CFSEmailUiMailListVisualiser::EnterMarkingModeL()
     CEikMenuBar* menu = iAppUi.CurrentActiveView()->MenuBar();
     menu->StopDisplayingMenuBar();
     menu->SetMenuTitleResourceId(R_FSEMAILUI_MAILLIST_MENUBAR_MARKING_MODE);
+    // Change background to marking mode
+    DisplayMarkingModeBgL( ETrue );       
     // Hide drop down menu buttons
     iNewEmailButton->SetDimmed();
     iFolderListButton->SetDimmed();   
     iSortButton->SetDimmed();
-    TRect rect(0,0,0,0);
-    iControlBarControl->SetRectL( rect );
-    UpdateFolderAndMarkingModeTextsL();
-    
-    iMailTreeListVisualizer->HideList();   
-    SetMailListLayoutAnchors();
-    iMailTreeListVisualizer->ShowListL();
+    if( !Layout_Meta_Data::IsLandscapeOrientation() )
+        {
+        TRect rect(0,0,0,0);
+        iControlBarControl->SetRectL( rect );
+        // Display marking mode text on the place of drop down menus   
+        DisplayMarkingModeTitleTextL();
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -2606,12 +2593,20 @@ void CFSEmailUiMailListVisualiser::RefreshMarkingModeL()
     if ( iMarkingMode )
         {
         // Hide drop down menu buttons    
-        TRect rect(0,0,0,0);
-        iControlBarControl->SetRectL( rect );
-        iNewEmailButton->SetDimmed();
-        iFolderListButton->SetDimmed();
-        iSortButton->SetDimmed();
-        UpdateFolderAndMarkingModeTextsL();
+        if( !Layout_Meta_Data::IsLandscapeOrientation() )
+            {
+            TRect rect(0,0,0,0);
+            iControlBarControl->SetRectL( rect );
+            DisplayMarkingModeTitleTextL();
+            }
+        else
+            {
+            iControlBarControl->SetRectL( iAppUi.LayoutHandler()->GetControlBarRect() );
+            iNewEmailButton->SetDimmed();
+            iFolderListButton->SetDimmed();
+            iSortButton->SetDimmed();
+            RemoveMarkingModeTitleTextL();
+            }
         }
     }
 
@@ -2620,7 +2615,7 @@ void CFSEmailUiMailListVisualiser::RefreshMarkingModeL()
 //
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::DisplayMarkingModeTextOnButtonsL()
+void CFSEmailUiMailListVisualiser::DisplayMarkingModeTitleTextL()
     {
     FUNC_LOG;     
     if (!iMarkingModeTextVisual)
@@ -2658,7 +2653,7 @@ void CFSEmailUiMailListVisualiser::DisplayMarkingModeTextOnButtonsL()
             {
             iMarkingModeTextVisual->SetTextL( KNullDesC );
             }
-        }
+        }        
     }
 
 // ---------------------------------------------------------------------------
@@ -2666,7 +2661,7 @@ void CFSEmailUiMailListVisualiser::DisplayMarkingModeTextOnButtonsL()
 //
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::RemoveMarkingModeTextOnButtonsL()
+void CFSEmailUiMailListVisualiser::RemoveMarkingModeTitleTextL()
     {
     FUNC_LOG;
     if (iMarkingModeTextVisual)
@@ -2678,6 +2673,26 @@ void CFSEmailUiMailListVisualiser::RemoveMarkingModeTextOnButtonsL()
         iMarkingModeTextContentLayout = NULL;
         iMarkingModeTextParentLayout->RemoveAndDestroyAllD();
         iMarkingModeTextParentLayout = NULL;
+        }
+    }
+
+// ---------------------------------------------------------------------------
+//
+//
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::DisplayMarkingModeBgL( TBool aDisplay )
+    {
+    FUNC_LOG;
+    if (aDisplay)
+        {
+        CAlfBrush* brush = iAppUi.FsTextureManager()->NewMailListMarkingModeBgBrushLC();
+        iMailTreeListVisualizer->SetBackgroundBrushL( brush );
+        CleanupStack::Pop( brush );
+        }
+    else
+        {
+        iMailTreeListVisualizer->ClearBackground();
         }
     }
 
@@ -3353,6 +3368,7 @@ void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchL(
         if ( aType == EScreenLayoutChanged )
         	{
             SetStatusBarLayout();
+            UpdateButtonTextsL();
         	}
 
         if ( aType == ESkinChanged )
@@ -3389,8 +3405,7 @@ void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchL(
     if (iMarkingMode)
         {
         RefreshMarkingModeL();
-        }
-    UpdateFolderAndMarkingModeTextsL();
+        }    
 	}
 
 // ---------------------------------------------------------------------------
@@ -3406,6 +3421,36 @@ void CFSEmailUiMailListVisualiser::HandleDynamicVariantSwitchOnBackgroundL(
     if ( aType == ESkinChanged )
         {
         UpdateThemeL();
+        }
+    else if ( aType == EScreenLayoutChanged )
+        {
+        UpdateButtonTextsL();
+        }
+    }
+
+// ---------------------------------------------------------------------------
+// Update texts for command area buttons
+// ---------------------------------------------------------------------------
+//
+void CFSEmailUiMailListVisualiser::UpdateButtonTextsL()
+    {
+    if ( !Layout_Meta_Data::IsLandscapeOrientation() )
+        {
+        // No texts in portrait mode
+        iNewEmailButton->SetTextL( KNullDesC() );
+        iSortButton->SetTextL( KNullDesC() );
+        }
+    else
+        {
+        // Set button text if necessary
+        HBufC* buttonText = GetSortButtonTextLC();
+        if ( buttonText )
+            {
+            iSortButton->SetTextL( *buttonText );
+            CleanupStack::PopAndDestroy( buttonText );
+            }
+
+        iNewEmailButton->SetTextL( *iNewEmailText );
         }
     }
 
@@ -3917,8 +3962,7 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
     	   aCommand == EFsEmailUiCmdActionsMoveMessage ||
     	   aCommand == EFsEmailUiCmdMarkingModeFromPopUp ||
     	   aCommand == EFsEmailUiCmdActionsCollapseAll ||
-    	   aCommand == EFsEmailUiCmdActionsExpandAll ||
-           aCommand == EFsEmailUiCmdActionsFlag ) )
+    	   aCommand == EFsEmailUiCmdActionsExpandAll ) )
     	{
    		// We end up here if the user selects an option from the pop up menu
     	// or exits the menu by tapping outside of it's area.
@@ -4384,14 +4428,6 @@ void CFSEmailUiMailListVisualiser::HandleCommandL( TInt aCommand )
 				}
 			}
 			break;
-       	case EFsEmailUiCmdCancelSync:
-       	    {
-       	    if ( GetLatestSyncState() )
-       	        {
-                iAppUi.StopActiveMailBoxSyncL();
-       	        }
-       	    }
-       	    break;
        	case EFsEmailUiCmdGoOffline:
         	{
     	   	iAppUi.GetActiveMailbox()->GoOfflineL();
@@ -4615,6 +4651,7 @@ TInt CFSEmailUiMailListVisualiser::MoveMsgsToFolderL( const TFSMailMsgId& aDesti
             if ( aDestinationFolderId.IsNullId() )
                 {
                 // Activate folder selection view and handle moving after callback gets destination
+                RemoveMarkingModeTitleTextL();    
                 iMoveToFolderOngoing = ETrue;
                 TFolderListActivationData folderListData;
                 folderListData.iCallback = this;
@@ -5887,10 +5924,11 @@ void CFSEmailUiMailListVisualiser::CreateControlBarLayoutL()
         {
         horizontalAlign = EAlfAlignHRight;
         }
+
     // Icons and sort button text
     iFolderListButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListControlBarMailboxDefaultIcon ) );
     iNewEmailButton->SetIconL( iAppUi.FsTextureManager()->TextureByIndex( EListTextureCreateNewMessageIcon ) );
-    SetSortButtonIconL();
+    SetSortButtonTextAndIconL();
 
     iNewEmailButton->SetElemAlignL(
         ECBElemIconA,
@@ -5911,14 +5949,10 @@ void CFSEmailUiMailListVisualiser::CreateControlBarLayoutL()
         EAlfAlignVCenter );
 
 	// Show the buttons
-    if( iThisViewActive || iMarkingMode )
-        {
-        iNewEmailButton->ShowButtonL();
-        iFolderListButton->ShowButtonL();
-        iSortButton->ShowButtonL();
-        }
-    // else buttons shown later in ChildDoActivete() by ScaleControlBarL()
-    }
+  	iNewEmailButton->ShowButtonL();
+    iFolderListButton->ShowButtonL();
+    iSortButton->ShowButtonL();
+	}
 
 // ---------------------------------------------------------------------------
 //
@@ -5980,9 +6014,27 @@ void CFSEmailUiMailListVisualiser::ScaleControlBarL()
 //
 // ---------------------------------------------------------------------------
 //
-void CFSEmailUiMailListVisualiser::SetSortButtonIconL()
+void CFSEmailUiMailListVisualiser::SetSortButtonTextAndIconL()
 	{
     FUNC_LOG;
+
+    // Set button text if necessary
+    HBufC* buttonText = GetSortButtonTextLC();
+
+	if ( !Layout_Meta_Data::IsLandscapeOrientation() )
+		{
+		if ( buttonText )
+			{
+			buttonText->Des().Zero();
+			}
+		}
+
+	if ( buttonText )
+		{
+		iSortButton->SetTextL( *buttonText );
+		}
+	CleanupStack::PopAndDestroy( buttonText );
+
 	iSortButton->SetIconL(
 			iAppUi.FsTextureManager()->TextureByIndex( GetSortButtonTextureIndex() ),
 			ECBElemIconA );
@@ -6000,52 +6052,59 @@ TFSEmailUiTextures CFSEmailUiMailListVisualiser::GetSortButtonTextureIndex()
     
     TFSEmailUiTextures textureIndex( ETextureFirst );
     switch ( iCurrentSortCriteria.iField )
-        {
-        case EFSMailSortBySubject:
-            {
-            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-                ESortListSubjectAscTexture : ESortListSubjectDescTexture;
-            }
-            break;
-        case EFSMailSortByAttachment:
-            {
-            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-                ESortListAttachmentAscTexture : ESortListAttachmentDescTexture;
-            }
-            break;
-        case EFSMailSortByFlagStatus:
-            {
-            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-                ESortListFollowAscTexture : ESortListFollowDescTexture;
-            }
-            break;
-        case EFSMailSortByRecipient:
-        case EFSMailSortBySender:
-            {
-            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-                ESortListSenderAscTexture : ESortListSenderDescTexture;
-            }
-            break;
-        case EFSMailSortByPriority:
-            {
-            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-                ESortListPriorityAscTexture : ESortListPriorityDescTexture;
-            }
-            break;
-        case EFSMailSortByUnread:
-            {
-            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-                ESortListUnreadAscTexture : ESortListUnreadDescTexture;
-            }
-            break;
-        case EFSMailSortByDate:
-        default:
-            {
-            textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
-                ESortListDateAscTexture : ESortListDateDescTexture;
-            }
-            break;
-        }
+		{
+		case EFSMailSortBySubject:
+			{
+			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+						   ESortListSubjectDescTexture :
+						   ESortListSubjectAscTexture;
+			}
+			break;
+		case EFSMailSortByAttachment:
+			{
+			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+						   ESortListAttachmentDescTexture :
+						   ESortListAttachmentAscTexture;
+			}
+			break;
+		case EFSMailSortByFlagStatus:
+			{
+			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+						   ESortListFollowDescTexture :
+						   ESortListFollowAscTexture;
+			}
+			break;
+		case EFSMailSortByRecipient:
+		case EFSMailSortBySender:
+			{
+			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+						   ESortListSenderDescTexture :
+						   ESortListSenderAscTexture;
+			}
+			break;
+		case EFSMailSortByPriority:
+			{
+			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+						   ESortListPriorityDescTexture :
+						   ESortListPriorityAscTexture;
+			}
+			break;
+		case EFSMailSortByUnread:
+			{
+			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+						   ESortListUnreadDescTexture :
+						   ESortListUnreadAscTexture;
+			}
+			break;
+		case EFSMailSortByDate:
+		default:
+			{
+			textureIndex = iCurrentSortCriteria.iOrder == EFSMailAscending ?
+						   ESortListDateDescTexture :
+						   ESortListDateAscTexture;
+			}
+			break;
+  		}
     return textureIndex;
 	}
 
@@ -6137,6 +6196,7 @@ void CFSEmailUiMailListVisualiser::SetMailListLayoutAnchors()
         EAlfAnchorMetricRelativeToSize, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint(1, iAppUi.LayoutHandler()->ControlBarHeight() ));
 
+    // <cmail> Platform layout changes
     TRect listRect = iAppUi.LayoutHandler()->GetListRect();
 	// Set anchors so that list leaves space for control bar
     if( Layout_Meta_Data::IsMirrored() ) 
@@ -6151,23 +6211,15 @@ void CFSEmailUiMailListVisualiser::SetMailListLayoutAnchors()
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint(listRect.iTl.iX, listRect.iTl.iY));
-    
-    if (iMarkingMode && Layout_Meta_Data::IsLandscapeOrientation())
-        {
-        iScreenAnchorLayout->SetAnchor(EAlfAnchorBottomRight, 1,
-                EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
-                EAlfAnchorMetricRelativeToSize, EAlfAnchorMetricAbsolute,
-                TAlfTimedPoint(1, listRect.iBr.iY));
-        }
-    else
-        {
-        iScreenAnchorLayout->SetAnchor(EAlfAnchorBottomRight, 1,
-                EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
-                EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
-                TAlfTimedPoint(listRect.iBr.iX, listRect.iBr.iY));    
-        }
+    iScreenAnchorLayout->SetAnchor(EAlfAnchorBottomRight, 1,
+        EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
+        EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
+        TAlfTimedPoint(listRect.iBr.iX, listRect.iBr.iY));
+    // </cmail> Platform layout changes
 
  	// Set anchors for connection icon
+
+    // <cmail> Platform layout changes
     TRect connectionIconRect( iAppUi.LayoutHandler()->GetControlBarConnectionIconRect() );
     const TPoint& tl( connectionIconRect.iTl );
  	iScreenAnchorLayout->SetAnchor(EAlfAnchorTopLeft, 2,
@@ -6179,6 +6231,7 @@ void CFSEmailUiMailListVisualiser::SetMailListLayoutAnchors()
         EAlfAnchorOriginLeft, EAlfAnchorOriginTop,
         EAlfAnchorMetricAbsolute, EAlfAnchorMetricAbsolute,
         TAlfTimedPoint( br.iX, br.iY ));
+    // </cmail> Platform layout changes
 
     iScreenAnchorLayout->UpdateChildrenLayout();
     }
@@ -6317,7 +6370,7 @@ void CFSEmailUiMailListVisualiser::UpdateItemAtIndexL( TInt aIndex )
                                                                                      modelItem->MessagePtr().GetMessageId() ,
                                                                                      EFSMsgDataEnvelope ) );
             if( aIndex < iTreeItemArray.Count() )
-                {
+            	{
                 if ( confirmedMsgPtr )
                     {
                     const SMailListItem& item = iTreeItemArray[aIndex];
@@ -6700,21 +6753,13 @@ void CFSEmailUiMailListVisualiser::HandleDeleteTaskLeavingCodeL( const RFsTreeIt
     TFSMailMsgId mailBox = iAppUi.GetActiveMailboxId();
     RArray<TFSMailMsgId> msgIds;
     CleanupClosePushL( msgIds );
-    for ( TInt i = aEntries.Count() - 1; i >= 0; i-- )
+    for ( TInt i = 0; i < aEntries.Count(); i++ )
         {
         msgIds.AppendL( MsgIdFromListId( aEntries[i] ) );
         }
-
-    // Clear the focused item to avoid repeated selection of a new focused
-    // item, unnecessary scrolling of the viewport, etc.
-    iMailTreeListVisualizer->SetFocusedItemL( KFsTreeNoneID );
-
-    iMailList->BeginUpdate();
     iAppUi.GetMailClient()->DeleteMessagesByUidL( mailBox, folderId, msgIds );
     // Remove from mail list if not already removed by mailbox events
     RemoveMsgItemsFromListIfFoundL( msgIds );
-    iMailList->EndUpdateL();
-
     CleanupStack::PopAndDestroy(); // msgIds.Close()
     }
 
@@ -7080,6 +7125,10 @@ void CFSEmailUiMailListVisualiser::FolderSelectedL(
 		switch ( aResponse )
 			{
 			case EFSEmailUiCtrlBarResponseCancel:
+			    if ( iMarkingMode )
+			        {
+                    DisplayMarkingModeTitleTextL();
+			        }
 			    iMarkingModeWaitingToExit = EFalse;
 			    SetMskL();
 				return;
@@ -7123,13 +7172,17 @@ void CFSEmailUiMailListVisualiser::FolderSelectedL(
 			case EFSEmailUiCtrlBarResponseCancel:
 			    iMarkingModeWaitingToExit = EFalse;
 			    SetMskL();
+			    // <cmail> Touch
                 //Set touchmanager back to active
                 DisableMailList(EFalse);
+                // </cmail>
 				return;
 			case EFSEmailUiCtrlBarResponseSelect:
 			    SetMskL();
+			    // <cmail> Touch
                 //Set touchmanager back to active
                 DisableMailList(EFalse);
+                // </cmail>
 			default:
 				break;
 			}
@@ -7148,14 +7201,17 @@ void CFSEmailUiMailListVisualiser::FolderSelectedL(
                 return;
                 }
 
-            UpdateFolderAndMarkingModeTextsL();
+            // Set new text to folder button in control bar
+            HBufC* newFolderName = CreateFolderNameLC( iMailFolder );
+            iFolderListButton->SetTextL( *newFolderName );
+            CleanupStack::PopAndDestroy( newFolderName );
 
             // Set initial sort criteria when folder has changed
             iCurrentSortCriteria.iField = EFSMailSortByDate;
             iCurrentSortCriteria.iOrder = EFSMailDescending;
             // reload node state because in file sort mode this is disabled even when globally enabled
             iNodesInUse = iAppUi.GetCRHandler()->TitleDividers();
-            SetSortButtonIconL();
+            SetSortButtonTextAndIconL();
 
             // Update the mail list contents
             UpdateMailListModelL();
@@ -7189,10 +7245,12 @@ void CFSEmailUiMailListVisualiser::MailboxSelectedL( TFSMailMsgId aSelectedMailb
     iCurrentSortCriteria.iOrder = EFSMailDescending;
     // reload node state because in file sort mode this is disabled even when globally enabled
     iNodesInUse = iAppUi.GetCRHandler()->TitleDividers();
-    SetSortButtonIconL();
+    SetSortButtonTextAndIconL();
 
     // Set folder name to the control bar button
-    UpdateFolderAndMarkingModeTextsL();
+    HBufC* newFolderName = CreateFolderNameLC( iMailFolder );
+    iFolderListButton->SetTextL( *newFolderName );
+    CleanupStack::PopAndDestroy( newFolderName );
 
     // Set mailbox name and icons
     SetMailboxNameToStatusPaneL();
@@ -7288,7 +7346,7 @@ void CFSEmailUiMailListVisualiser::SortOrderChangedL(
 	iCurrentSortCriteria.iField = aSortField;
 	iModel->SetSortCriteria(iCurrentSortCriteria);
 
-	// rest of the code moved to TimerEventL ( iSortTimer part )
+        // rest of the code moved to TimerEventL ( iSortTimer part )
 	// used also in DoHandleControlBarOpenL to prevent SortList reopening
 	iSortState = ESortRequested; 
 	iSortTimer->Start( KSortTimerDelay );	
@@ -7688,7 +7746,9 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 						    iMailFolder = iAppUi.GetMailClient()->GetFolderByUidL( aMailboxId, inboxId );
 						    UpdateMailListModelL();
 					        RefreshL();
-						    UpdateFolderAndMarkingModeTextsL();
+							HBufC* newFolderName = CreateFolderNameLC( iMailFolder );
+						    iFolderListButton->SetTextL( *newFolderName );
+							CleanupStack::PopAndDestroy( newFolderName );
 						    }
 						else
 							{
@@ -7743,7 +7803,9 @@ void CFSEmailUiMailListVisualiser::HandleMailBoxEventL( TFSMailEvent aEvent,
 				    // Check that mailfolder fetching succeeded
 				    if ( iMailFolder )
 				    	{
-					    UpdateFolderAndMarkingModeTextsL();
+						HBufC* newFolderName = CreateFolderNameLC( iMailFolder );
+					    iFolderListButton->SetTextL( *newFolderName );
+						CleanupStack::PopAndDestroy( newFolderName );
 				    	}
 				    }
 				}
@@ -8411,49 +8473,6 @@ TBool CFSEmailUiMailListVisualiser::CheckAutoSyncSettingL()
             }
         }
     return manualSync;
-    }
-
-
-void CFSEmailUiMailListVisualiser::UpdateFolderAndMarkingModeTextsL()
-    {
-    if ( iAppUi.CurrentActiveView()->Id() == MailListId )
-        {
-        HBufC* folder = CreateFolderNameLC( iMailFolder );
-        if( Layout_Meta_Data::IsLandscapeOrientation() )
-            {
-            iFolderListButton->SetTextL( KNullDesC );
-            if (iMarkingMode)
-                {
-                RemoveMarkingModeTextOnButtonsL();
-                HBufC* txt = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_MARKINGMODE );
-                iAppUi.SetNaviPaneTextL( *txt );
-                CleanupStack::PopAndDestroy( txt );
-                }
-            else
-                {
-                iAppUi.SetNaviPaneTextL( *folder );
-                }
-            }
-        else // Portrait orientation
-            {
-            iAppUi.SetNaviPaneTextL( KNullDesC );        
-            if (iMarkingMode)
-                {
-                DisplayMarkingModeTextOnButtonsL();
-                }
-            else
-                {
-                RemoveMarkingModeTextOnButtonsL();
-                iFolderListButton->SetTextL( *folder );
-                }        
-            }
-        CleanupStack::PopAndDestroy( folder );
-        }
-    else
-        {
-        iAppUi.SetNaviPaneTextL( KNullDesC );
-        RemoveMarkingModeTextOnButtonsL();
-        }
     }
 
 //////////////////////////////////////////////////////////////////

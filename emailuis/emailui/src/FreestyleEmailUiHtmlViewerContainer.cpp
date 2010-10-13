@@ -176,9 +176,9 @@ void CEUiHtmlViewerSettingsKeyListener::DoCancel()
 CEUiHtmlViewerSettings* CEUiHtmlViewerSettings::NewL( MObserver& aObserver )
     {
     CEUiHtmlViewerSettings* self = new (ELeave) CEUiHtmlViewerSettings(aObserver);
-    CleanupStack::PushL( self );
+    CleanupStack::PushL(self);
     self->ConstructL();
-    CleanupStack::Pop( self );
+    CleanupStack::Pop(); // self
     return self;
     }
 
@@ -216,12 +216,11 @@ void CEUiHtmlViewerSettings::ConstructL()
 //
 void CEUiHtmlViewerSettings::AddKeyListenerL( TUint32 aKey )
     {
-    CEUiHtmlViewerSettingsKeyListener* listener = 
-        new (ELeave) CEUiHtmlViewerSettingsKeyListener( *this, aKey );
-    CleanupStack::PushL( listener );
-    iKeyListeners.AppendL( listener );
-    CleanupStack::Pop( listener );
-    UpdateValue( aKey );
+    CEUiHtmlViewerSettingsKeyListener* listener = new (ELeave) CEUiHtmlViewerSettingsKeyListener(*this, aKey);
+    CleanupStack::PushL(listener);
+    iKeyListeners.AppendL(listener);
+    CleanupStack::Pop(); // listener
+    UpdateValue(aKey);
     }
 
 // ---------------------------------------------------------------------------
@@ -447,9 +446,8 @@ void CFsEmailUiHtmlViewerContainer::CreateBrowserControlInterfaceL()
 
     if ( iBrCtlInterface )
         {
-       	SetZoomLevelL(100);
-		iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsAutoLoadImages, iViewerSettings->AutoLoadImages() );
-       	return;
+        delete iBrCtlInterface;
+        iBrCtlInterface = NULL;
         }
 
     TUint brCtlCapabilities = TBrCtlDefs::ECapabilityClientResolveEmbeddedURL |
@@ -504,6 +502,9 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
 #endif 
 
     
+    SetRect( iView.ContainerRect() );
+    CreateBrowserControlInterfaceL();
+
     iEventHandler = CFreestyleMessageHeaderURLEventHandler::NewL( iAppUi, iView );
 
     TRect nextButtonRect = OverlayButtonRect( EFalse );
@@ -520,9 +521,6 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
 
     iTouchFeedBack = MTouchFeedback::Instance();
     iTouchFeedBack->EnableFeedbackForControl(this, ETrue);
-
-    CreateBrowserControlInterfaceL();
-    SetRect( iView.ContainerRect() );
 
     ActivateL();
     }
@@ -701,8 +699,7 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
 // Reset content
 // ---------------------------------------------------------------------------
 //
-void CFsEmailUiHtmlViewerContainer::ResetContent( TBool aDisconnect,
-    TBool aClearFlags )
+void CFsEmailUiHtmlViewerContainer::ResetContent(const TBool aDisconnect)
     {
     FUNC_LOG;
     if ( iBrCtlInterface )
@@ -721,10 +718,7 @@ void CFsEmailUiHtmlViewerContainer::ResetContent( TBool aDisconnect,
     iLinkContents.Reset();
     iMessageParts.Reset();
     iMessage = NULL;
-    if ( aClearFlags )
-        {
-        iFlags.ClearAll();
-        }
+    iFlags.ClearAll();
     iScrollPosition = 0;
     }
 
@@ -1868,6 +1862,7 @@ void CFsEmailUiHtmlViewerContainer::HideDownloadStatus()
     if ( iStatusIndicator )
         {
         iStatusIndicator->MakeVisible( EFalse );
+        iStatusIndicator->HideIndicator();
         }
     }
 

@@ -99,6 +99,7 @@ NONSHARABLE_CLASS( CMRFieldContainer ) :
         void ScrollControlVisible( TInt aInd );
         void RePositionFields( TInt aAmount );
         TRect ViewableAreaRect();
+        void RedrawField( CESMRField& aField );
 
     public: // From CCoeControl
         TSize MinimumSize();

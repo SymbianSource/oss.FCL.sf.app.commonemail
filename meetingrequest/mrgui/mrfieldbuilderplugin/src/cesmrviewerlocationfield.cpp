@@ -56,6 +56,7 @@ CESMRViewerLocationField* CESMRViewerLocationField::NewL( )
 CESMRViewerLocationField::~CESMRViewerLocationField()
     {
     delete iFieldButton;
+    delete iLockIcon;
     delete iWaypointIcon;
     delete iFeatures;
     }
@@ -192,7 +193,11 @@ void CESMRViewerLocationField::ConstructL( )
 	        NMRBitmapManager::EMRBitmapLocation,
 	        this );
     iFieldButton->SetObserver(this);
-
+	iLockIcon = CMRImage::NewL(
+			NMRBitmapManager::EMRBitmapLockField,
+			this,
+			ETrue );
+	
     iRichTextViewer = CESMRRichTextViewer::NewL( this );
     CESMRField::ConstructL( iRichTextViewer ); // ownership transfered
     iRichTextViewer->SetEdwinSizeObserver( this );
@@ -308,12 +313,17 @@ TInt CESMRViewerLocationField::CountComponentControls() const
         ++count;
         }
 
-    if ( iRichTextViewer )
+    if( iWaypointIcon )
         {
         ++count;
         }
 
-    if( iWaypointIcon )
+    if( iLockIcon )
+        {
+        ++count;
+        }
+
+    if ( iRichTextViewer )
         {
         ++count;
         }
@@ -331,9 +341,31 @@ CCoeControl* CESMRViewerLocationField::ComponentControl( TInt aIndex ) const
         case 0:
             return iFieldButton;
         case 1:
-            return iRichTextViewer;
+        	{
+        	if( iWaypointIcon )
+        		{
+				return iWaypointIcon;
+        		}
+        	else if( iLockIcon )
+				{
+				return iLockIcon;
+				}
+        	else if( iRichTextViewer )
+				{
+				return iRichTextViewer;
+				}
+        	}
         case 2:
-            return iWaypointIcon;
+        	if( iWaypointIcon && iLockIcon )
+				{
+				return iLockIcon;
+				}
+			else if( iRichTextViewer )
+				{
+				return iRichTextViewer;
+				}
+        case 3:
+            return iRichTextViewer;
         default:
             return NULL;
         }
@@ -370,10 +402,19 @@ void CESMRViewerLocationField::SizeChanged( )
                     NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
         AknLayoutUtils::LayoutImage( iWaypointIcon, rowRect, iconLayout );
         }
+    
+    // Layouting lock icon
+    if( iLockIcon && IsLocked() )
+        {
+        TAknWindowComponentLayout iconLayout(
+                NMRLayoutManager::GetWindowComponentLayout(
+                    NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
+        AknLayoutUtils::LayoutImage( iLockIcon, rowRect, iconLayout );
+        }
 
     TAknLayoutText viewerLayoutText;
 
-    if( iWaypointIcon )
+    if( iWaypointIcon || ( iLockIcon && IsLocked() ) )
         {
         viewerLayoutText = NMRLayoutManager::GetLayoutText( rowRect,
                     NMRLayoutManager::EMRTextLayoutSingleRowEditorText );
@@ -479,16 +520,22 @@ void CESMRViewerLocationField::LockL()
 		return;
 		}
 
-	CESMRField::LockL();
+	// If waypoint icon is present, let's hide that,
+	// because locked icon replaces it.
+	if( iWaypointIcon )
+		{
+		iWaypointIcon->MakeVisible( EFalse );
+		}
 
-	delete iWaypointIcon;
-	iWaypointIcon = NULL;
-	iWaypointIcon = CMRImage::NewL(
-	        NMRBitmapManager::EMRBitmapLockField,
-	        this,
-	        ETrue );
+	if( !iLockIcon )
+		{	
+		iLockIcon = CMRImage::NewL(
+				NMRBitmapManager::EMRBitmapLockField,
+				this,
+				ETrue );
+		}
 
-	iWaypointIcon->SetObserver( this );
+	iLockIcon->SetObserver( this );
 	}
 
 // ---------------------------------------------------------------------------

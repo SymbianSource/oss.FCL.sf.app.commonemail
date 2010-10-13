@@ -60,11 +60,14 @@ public:// From CCoeControl
     void HandleResourceChange( TInt aType );
     TTypeUid::Ptr MopSupplyObject( TTypeUid aId );
     void SizeChanged();
+	TSize MinimumSize();
     
 private:    
 
     CESMRResponseDialogView();
     void ConstructL();
+	void SetFontL( const CFont* aFont );
+	
 private: // Data
     /// Own:
     CEikRichTextEditor* iEditor;

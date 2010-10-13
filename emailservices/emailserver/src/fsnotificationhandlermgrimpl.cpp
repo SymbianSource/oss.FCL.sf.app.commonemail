@@ -38,6 +38,10 @@
 
 static const TInt64 KMegaByte = 1048576;
 
+_LIT( KFSMailServerPanic, "FS mail server" );
+const TInt KUndefinedState = 1;
+const TTimeIntervalMicroSeconds32 KDelay = 5000000; // 5 seconds 
+
 // ======== MEMBER FUNCTIONS ========
 
 
@@ -64,9 +68,11 @@ void CFSNotificationHandlerMgr::ConstructL()
     FUNC_LOG;
     // Performs the time consuming initialization asynchronously in RunL, in order
     // to let the process startup finish quicker
-    TRequestStatus* status = &iStatus;
-    User::RequestComplete(status, KErrNone);
+    iTimer.CreateLocal();
     SetActive();
+    iState = EPrepareInitialization;
+    TRequestStatus* status = &iStatus;
+    User::RequestComplete( status, KErrNone );
     }
 
 // ---------------------------------------------------------------------------
@@ -76,48 +82,98 @@ void CFSNotificationHandlerMgr::ConstructL()
 void CFSNotificationHandlerMgr::RunL()
     {
     FUNC_LOG;
-    // Create mail client
-    iMailClient = CFSMailClient::NewL();
-    if ( iMailClient == NULL )
+    
+    TBool goToNextState = ETrue;
+    
+    switch( iState )
         {
-        User::Leave( KErrNoMemory );
-        }
-
-    // Once mail client is created ok, disk space needs to be checked
-    // and cleaned if necessary
-    CleanTempFilesIfNeededL();
-
-    //<cmail>
-    // Notification handlers are created next.
-    // Notice that if a handler cannot be created it does not mean
-    // that the construction of the manager would be stopped. This
-    // approach is chosen so that if something goes wrong with
-    // construction of a handler it can safely leave and get
-    // destroyed but does not interfere other handlers.
-
-    CreateAndStoreHandlerL( KMailIconHandlerUid );
-
-    CreateAndStoreHandlerL( KLedHandlerUid );
-
+        case EPrepareInitialization:
+            {
+            // Create mail client
+            iMailClient = CFSMailClient::NewL();
+            if ( iMailClient == NULL )
+                {
+                User::Leave( KErrNoMemory );
+                }
+            // Once mail client is created ok, disk space needs to be checked
+            // and cleaned if necessary
+            CleanTempFilesIfNeededL();
+            break;
+            }
+        case EInitializeMailIconHandler:
+            {
+            CreateAndStoreHandlerL( KMailIconHandlerUid );
+            break;
+            }
+        case EInitializeLedHandler:
+            {
+            CreateAndStoreHandlerL( KLedHandlerUid );
+            break;
+            }
 #ifndef __WINS__
-    CreateAndStoreHandlerL( KSoundHandlerUid );
-    // Earlier RefreshData() was called for the soundhandler
-    // object after creation, but as it does not do anything
-    // it is not called anymore.
+        case ESoundHandler:
+            {
+            // Earlier RefreshData() was called for the soundhandler
+            // object after creation, but as it does not do anything
+            // it is not called anymore.
+            CreateAndStoreHandlerL( KSoundHandlerUid );
+            break;
+            }
 #endif
-
-    CreateAndStoreHandlerL( KMtmHandlerUid );
-
-    CreateAndStoreHandlerL( KOutofMemoryHandlerUid );
-
-    CreateAndStoreHandlerL( KAuthenticationHandlerUid );
-
-    CreateAndStoreHandlerL( KMessageQueryHandlerUid );
-
-    CreateAndStoreHandlerL( KCMailCpsHandlerUid );
-    //</cmail>
-
-    StartObservingL();
+        case EInitializeMtmHandler:
+            {
+            CreateAndStoreHandlerL( KMtmHandlerUid );
+            break;
+            }      
+        case EInitializeOutofMemoryHandler:
+            {
+            CreateAndStoreHandlerL( KOutofMemoryHandlerUid );
+            break;
+            }
+        case EInitializeAuthenticationHandler:
+            {
+            CreateAndStoreHandlerL( KAuthenticationHandlerUid );
+            break;
+            }
+        case EInitializeMessageQueryHandlerUid:
+            {
+            CreateAndStoreHandlerL( KMessageQueryHandlerUid );
+            break;
+            }
+        case EWaitForPluginsReady:
+            {
+            if ( !iMailClient->AreAllPluginsLoaded() )
+                {
+                goToNextState = EFalse;
+                SetActive();
+                iTimer.After( iStatus, KDelay );
+                }
+            break;
+            }
+        case EInitializeCMailCpsHandlerUid:
+            {
+            CreateAndStoreHandlerL( KCMailCpsHandlerUid );
+            break;
+            }
+        case EFinish:
+            {
+            StartObservingL();
+            goToNextState = EFalse;
+            break;
+            }
+        default:
+            {
+            User::Panic( KFSMailServerPanic, KUndefinedState );
+            break;
+            }
+        }
+    if ( goToNextState )
+        {
+        iState = TState( iState + 1 );
+        SetActive();
+        TRequestStatus* status = &iStatus; 
+        User::RequestComplete( status, KErrNone );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -196,6 +252,8 @@ CFSNotificationHandlerMgr::~CFSNotificationHandlerMgr()
         }
 
     iAppUi = NULL;
+    
+    iTimer.Close();
 
     // Finished using ECom
     // ECom used at least in CFSMailHSUpdateHandler

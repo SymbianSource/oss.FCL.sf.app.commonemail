@@ -19,7 +19,7 @@
 #ifndef __FREESTYLEMAILUI_UTILITIES_H_
 #define __FREESTYLEMAILUI_UTILITIES_H_
 
-#include <e32base.h>	// CTimer
+#include <e32base.h>    // CTimer
 #include <e32cmn.h>
 #include <hlplch.h>
 #include <msvstd.h>
@@ -70,12 +70,12 @@ typedef RArray<TActionMenuCustomItemId> RFsEActionMenuIdList;
 
 
 enum TFollowUpNewState
-	{
-	EFollowUp = 0, // don't change, as these are the in the order they are in popup selection list
-	EFollowUpComplete = 1, // don't change
-	EFollowUpClear = 2, // don't change
-	EFollowUpNoChanges = 3
-	};
+    {
+    EFollowUp = 0, // don't change, as these are the in the order they are in popup selection list
+    EFollowUpComplete = 1, // don't change
+    EFollowUpClear = 2, // don't change
+    EFollowUpNoChanges = 3
+    };
 
 enum TMessageSizeClass
     {
@@ -100,7 +100,7 @@ public:
     static CFSMailBox* GetMailboxForMtmIdL( CFSMailClient& aClient, CMsvSession& aMsvSession, TMsvId aMtmId );
 
     static TBool IsRemoteLookupSupported( CFSMailBox& aMailBox );
-		
+        
     static void CopyToClipboardL( const TDesC& aBuf );
 
     static TInt ShowConfirmationQueryL( TInt aResourceStringId, const TDesC& aResourceParameter = KNullDesC );
@@ -108,7 +108,7 @@ public:
 
     static void ShowErrorNoteL( TInt aResourceStringId, TBool aWaitingDialog = EFalse );
     static void ShowInfoNoteL( TInt aResourceStringId, TBool aWaitingDialog = EFalse );
-	
+    
     static void ShowGlobalErrorNoteL( TInt aResourceStringId );
     static void ShowGlobalInfoNoteL( TInt aResourceStringId );
     static void ShowDiscreetInfoNoteL( TInt aResourceStringId );
@@ -149,11 +149,11 @@ public:
     * @param aFilePath Path to where the file is to be saved
     * @param aAttachmentPart Message part of the attachment to be saved
     * @return ETrue if OK to save the file to a given path, EFalse if not
-    */	
-	static TBool OkToSaveFileL( const TDesC& aFilePath, CFSMailMessagePart& aAttachmentPart );
+    */  
+    static TBool OkToSaveFileL( const TDesC& aFilePath, CFSMailMessagePart& aAttachmentPart );
 
-	static void ShowFilesSavedToFolderNoteL( TInt aCount );
-	
+    static void ShowFilesSavedToFolderNoteL( TInt aCount );
+    
     static void ShowCreateMessageQueryL( const TDesC& aAddressData, TBool aSendingToEmail = EFalse );
     
     static TInt CountRecepients( CFSMailMessage* aMsgPtr );
@@ -205,35 +205,35 @@ public:
      * @param aShowFlagCompleted Whether to show the completed flag.
      *                           When false we are in the editor view.
      */
-  	static TFollowUpNewState SetMessageFollowupFlagL( CFSMailMessage& aMsg, TBool aShowFlagCompleted = ETrue ); 
+    static TFollowUpNewState SetMessageFollowupFlagL( CFSMailMessage& aMsg, TBool aShowFlagCompleted = ETrue ); 
     static void SetMessageFollowupStateL( CFSMailMessage& aMsg, TFollowUpNewState aNewFollowUpState ); 
     static TBool RunFollowUpListDialogL( TFollowUpNewState& aSelectedOption, TBool aShowFlagCompleted = ETrue );
-	
-	static TFileType GetFileType( const TDesC& aFileName, const TDesC& aMimeType );
-	
-	static CAlfTexture& GetAttachmentIcon( TFileType aAttachmentType, CFreestyleEmailUiTextureManager& aTextureManager );
-	static TFSEmailUiTextures GetAttachmentIconTextureId( TFileType aAttachmentType );
-	
+    
+    static TFileType GetFileType( const TDesC& aFileName, const TDesC& aMimeType );
+    
+    static CAlfTexture& GetAttachmentIcon( TFileType aAttachmentType, CFreestyleEmailUiTextureManager& aTextureManager );
+    static TFSEmailUiTextures GetAttachmentIconTextureId( TFileType aAttachmentType );
+    
     static CAlfTexture& GetMsgIcon( CFSMailMessage* aMsgPtr, CFreestyleEmailUiTextureManager& aTextureManager );
     static TFSEmailUiTextures GetMsgIconTextureId( CFSMailMessage* aMsgPtr );
-		
+        
     static void MoveMessageToDraftsL( CFSMailBox& aMailBox, CFSMailMessage& aMsg );
-		
+        
     static TBool IsMessagePartFullyFetched( const CFSMailMessagePart& aPart );
 
     static TBool IsMessageStructureKnown( const CFSMailMessagePart& aPart );
-		
+        
     static void CreatePlainTextPartL( CFSMailMessage& aMsg, CFSMailMessagePart*& aPart );
-		
+        
     static TBool IsCompleteOrCancelEvent( TFSProgress aEvent );
-		
+        
     static TBool HasUnfetchedAttachmentsL( CFSMailMessage& aMsg );
-		
+        
     static TBool IsFollowUpSupported( const CFSMailBox& aMailBox );
-		
+        
     // Set new email message icon on/off
     static void ToggleEmailIconL( TBool aIconOn );
-	static void ToggleEmailIconL( TBool aIconOn, const TFSMailMsgId& aMailBox );
+    static void ToggleEmailIconL( TBool aIconOn, const TFSMailMsgId& aMailBox );
     
     static HBufC* DateTextFromMsgLC( const CFSMailMessage* aMessage,  TBool aAddYearNumer = ETrue );
     static HBufC* TimeTextFromMsgLC( const CFSMailMessage* aMessage );
@@ -249,16 +249,17 @@ public:
     static HBufC* CreateSubjectTextLC( const CFSMailMessage* aMessage );
     static HBufC* CreateBodyTextLC( const CFSMailMessage* aMessage );
     static void FilterListItemTextL( TDes& aText );
+    static void FilterListItemText2L( TDes& aText );
     static TMessageSizeClass MessageSizeClass( const CFSMailMessage& aMessage );
         
     static HBufC* ConvertHtmlToTxtL( const TDesC& aHtml );
-		
+        
     static void DisplayMsgsMovedNoteL( TInt aMsgCount, 
                                        const TFSMailMsgId aDestinationFolderId,
                                        TBool aIsWaitingNote );
 
     static TBool IsOfflineModeL();
-			
+            
     /**
     * Shows mailbox creation query:
     * "No e-mail mailboxes defined. Create a mailbox?"
@@ -267,14 +268,14 @@ public:
     */
     static TBool DisplayCreateMailboxQueryL();
     
-//	static CAlfTexture& GetAttachmentIconL( TFileType aAttachmentType, CFreestyleEmailUiTextureManager& aTextureManager );
-//	static TFSEmailUiTextures GetAttachmentIconTextureIdL( TFileType aAttachmentType );
+//  static CAlfTexture& GetAttachmentIconL( TFileType aAttachmentType, CFreestyleEmailUiTextureManager& aTextureManager );
+//  static TFSEmailUiTextures GetAttachmentIconTextureIdL( TFileType aAttachmentType );
 
     // Brings Freestyle Email UI application to foreground if it's not already
     static void BringFsEmailToForeground();
   
     // Formats display name
-	static void StripDisplayName( HBufC& aDisplayName );
+    static void StripDisplayName( HBufC& aDisplayName );
 
     // Creates a displayname of firstname and lastname components
     static HBufC* CreateDisplayNameLC( const TDesC& aFirstname, const TDesC& aLastname, TBool aSwitchOrder = EFalse );
@@ -286,11 +287,6 @@ public:
      * Determines if the descriptor is a Chinese word
      */
     static TBool IsChineseWord( const TDesC& aWord );
-    
-    /**
-     * Determines if the descriptor is a Korean word
-     */
-    static TBool IsKoreanWord( const TDesC& aWord );
     
     // Get the icon file name including the drive letter and full path
     static void GetFullIconFileNameL( TDes& aFileName );
@@ -369,7 +365,7 @@ private: // static data
 */
 class CFSEmailUiActionMenu : public CBase
     {
-	friend class CFreestyleEmailUiAppUi;
+    friend class CFreestyleEmailUiAppUi;
 public:
     /**
     * Get pointer to the action menu, can be used if built-in methods are
@@ -378,19 +374,19 @@ public:
     * @return Action menu pointer
     */
     static CFscContactActionMenu* GetActionMenu();
-		
+        
     /**
     * Remove all items from action menu
     */
     static void RemoveAllL();
-		
+        
     /**
     * Add one email specific custom item by id
     *
     * @param aItemId Item id of the item to be added
     */
     static void AddCustomItemL( TActionMenuCustomItemId aItemId );
-		
+        
     /**
     * Add several email specific custom items by list of ids
     *
@@ -398,7 +394,7 @@ public:
     */
     static void AddCustomItemsL( RFsEActionMenuIdList aItemList );
 
-	// <cmail>
+    // <cmail>
     /**
     * Execute previously constructed action menu
     *
@@ -421,7 +417,7 @@ public:
     static TActionMenuCustomItemId ExecuteL( RFsEActionMenuIdList aItemList,
                                              TFscContactActionMenuPosition aPosition = EFscCenter,
                                              TInt aIndex = 0, MFsActionMenuPositionGiver* aPositionGiver = 0 );
-	
+    
     /**
     * Dismiss menu
     *   Menu gets closed if it was visible when the method was called. 
@@ -430,9 +426,9 @@ public:
     * @param aSlide If ETrue menu slides away from the screen. 
     *   Otherwise it disappears instantly
     */
-	static void Dismiss( TBool aSlide );
+    static void Dismiss( TBool aSlide );
     // </cmail> 
-		
+        
     /**
     * Create icon by bitmap and mask
     *
@@ -459,7 +455,7 @@ private:
     static TFileName iIconFilePath;
     static RPointerArray<CGulIcon> iIconArray;
     CFreestyleEmailUiAppUi* iAppUi;
-	};
+    };
 
 /**
 *  Generic timer's callback
@@ -540,7 +536,7 @@ protected:
     */
     CFSEmailUiGenericTimer( MFSEmailUiGenericTimerCallback* aCallback,
                             const TInt aPriority );
-		
+        
 private:
     /**
     * 2nd phase constructor.

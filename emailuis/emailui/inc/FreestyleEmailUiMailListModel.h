@@ -89,6 +89,7 @@ public: // from base class MFSEmailListModel
 	MFSListModelItem* Item(TInt aIndex);
     const MFSListModelItem* Item(TInt aIndex) const;
 	TInt Count() const;
+	TBool ContainsItem(const CFSMailMessage& aMessage) const;
 
 public: // new methods
 	

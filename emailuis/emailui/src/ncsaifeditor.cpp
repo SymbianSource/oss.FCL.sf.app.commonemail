@@ -216,17 +216,16 @@ TBool CNcsAifEntry::IsSameDN( const CNcsAifEntry& entry ) const
     }
 
 // ---------------------------------------------------------------------------
-// Constructor
+// constructor/destructor
 // ---------------------------------------------------------------------------
 //
 CNcsAifEditor::CNcsAifEditor(
     MNcsFieldSizeObserver* aSizeObserver, const TDesC& aCaptionText ) 
-    : CNcsEditor( aSizeObserver, ETrue, ENcsEditorAddress, aCaptionText ),
-    iAddressPopupList( NULL ),
+    : CNcsEditor( aSizeObserver, ETrue, ENcsEditorAddress, aCaptionText ), iAddressPopupList( NULL ),
     iAddLeftover( ETrue )
     {
     FUNC_LOG;
-    SetEdwinObserver( this );
+	SetEdwinObserver( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -249,14 +248,15 @@ void CNcsAifEditor::ConstructL( const CCoeControl* aParent,
 CNcsAifEditor::~CNcsAifEditor()
     {
     FUNC_LOG;
-    iArray.ResetAndDestroy();
-    iAddressArray.Reset();
-    if ( iAsyncCallBack )
-        {
-        iAsyncCallBack->Cancel();
-        delete iAsyncCallBack;
-        }
+	iArray.ResetAndDestroy();
+	iAddressArray.Reset();
+	if ( iAsyncCallBack )
+	    {
+	    iAsyncCallBack->Cancel();
+	    delete iAsyncCallBack;
+	    }
     }
+
 
 // -----------------------------------------------------------------------------
 // CNcsAifEditor::CursorLineNumber() const
@@ -311,61 +311,22 @@ TKeyResponse CNcsAifEditor::OfferKeyEventL( const TKeyEvent& aKeyEvent,
         {
         ret = SetEditorSelectionL( aKeyEvent, aType );
         }
-
+    
     //when press a key down, record the coursor position
     if ( aType == EEventKeyDown )
-        {
-        iLastTimeCursorPos = CursorPos();
-        }
+    	{
+    	iLastTimeCursorPos = CursorPos();
+    	}
 
     if ( ret == EKeyWasNotConsumed )
         {
         // enter completes the address entry
-        if ( aType == EEventKey && ( aKeyEvent.iCode == EKeyEnter || 
-             aKeyEvent.iScanCode == EStdKeyEnter ) )
-            {
-            // make sure there is really some text inputted 
-            const TInt cursorPos = CursorPos();
-            TCursorSelection selection = NonEntryTextAtPos( cursorPos );
-
-            const TInt length = selection.Length();
-            if ( length > 0 )
-                {
-                HBufC* text = HBufC::NewLC( length );
-                TPtr ptr = text->Des();
-                Text()->Extract( ptr, selection.LowerPos(), length );
-                ptr.Trim();
-
-                // complete the entry by adding a semicolon, 
-                // address will be added in HandleTextUpdateL
-                if ( ptr.Length() > 0 )
-                    {
-                    Text()->InsertL( cursorPos, KCharAddressDelimeterSemiColon );
-                    HandleTextChangedL();
-                    SetCursorPosL( cursorPos + 1, EFalse );
-                    iLastTimeCursorPos = CursorPos();
-                    HandleTextUpdateL();
-                    }
-
-                CleanupStack::PopAndDestroy( text );
-                }
-            }
-        else if ( IsCharacterKey( aKeyEvent ) )
-            {
-            PrepareForTextInputL( CursorPos() );
-            }
-        iTextSelection = Selection();
-        ret = CNcsEditor::OfferKeyEventL( aKeyEvent, aType );
-        }
-
-    // for Korean we need to simulate event 'text update' as FEP
-    // doesn't send it and the MRU is not shown
-    if ( User::Language() == ELangKorean )
-        {
-        if ( ret == EKeyWasNotConsumed && aType == EEventKeyUp )
-            {
+        if( aType == EEventKey && (aKeyEvent.iCode == EKeyEnter || 
+        	aKeyEvent.iScanCode == EStdKeyEnter) )
+        	{
+        	// make sure there is really some text inputted 
             TInt cursorPos( CursorPos() );
-
+        	
             TCursorSelection selection = NonEntryTextAtPos( cursorPos );
             
             TInt length( selection.Length() );
@@ -374,14 +335,20 @@ TKeyResponse CNcsAifEditor::OfferKeyEventL( const TKeyEvent& aKeyEvent,
             TPtr ptr = text->Des();
             Text()->Extract( ptr, selection.LowerPos(), length );
             ptr.Trim();
-        
-            if ( TFsEmailUiUtility::IsKoreanWord( ptr ) )
-                {
-                HandleTextUpdateDeferred();
-                }
-        
-            CleanupStack::PopAndDestroy( text );
-            }
+            
+            // complete the entry by adding a semicolon, 
+            // address will be added in HandleTextUpdateL
+            if( ptr.Length() > 0 )
+            	{            
+				Text()->InsertL( cursorPos, KCharAddressDelimeterSemiColon );
+				HandleTextChangedL();
+				SetCursorPosL( cursorPos + 1, EFalse );
+            	}
+            
+            CleanupStack::PopAndDestroy( text );            
+        	}
+        iTextSelection = Selection();        
+        ret = CNcsEditor::OfferKeyEventL( aKeyEvent, aType );
         }
     
     return ret;
@@ -433,7 +400,7 @@ TKeyResponse CNcsAifEditor::SetEditorSelectionL( const TKeyEvent& aKeyEvent,
     if ( aKeyEvent.iCode == EKeyUpArrow || aKeyEvent.iCode == EKeyDownArrow )
         {
         CompleteEntryL();
-
+		
         response = CNcsEditor::OfferKeyEventL( aKeyEvent,aType );
         if ( response == EKeyWasConsumed ) 
             {
@@ -446,11 +413,10 @@ TKeyResponse CNcsAifEditor::SetEditorSelectionL( const TKeyEvent& aKeyEvent,
             }
         }
     // Check if the cursor is in any of the addresses
-    else if ( aKeyEvent.iCode == EKeyLeftArrow || aKeyEvent.iCode == EKeyBackspace ) 
+    else if( aKeyEvent.iCode == EKeyLeftArrow || aKeyEvent.iCode == EKeyBackspace ) 
         {
         // We're moving left, but haven't yet.
-        const TInt cursorPos = CursorPos();
-        entry = GetEntryAt( cursorPos, EDirectionLeft );
+        entry = GetEntryAt( CursorPos(), EDirectionLeft );
         if ( entry )
             {
             if ( selection.Length() && aKeyEvent.iCode == EKeyLeftArrow)
@@ -465,25 +431,11 @@ TKeyResponse CNcsAifEditor::SetEditorSelectionL( const TKeyEvent& aKeyEvent,
                 response = EKeyWasConsumed;
                 }
             }
-        else
-            {
-            // Complete entry, if cursor is being moved to the previous row.
-            TCursorSelection selection = NonEntryTextAndSpaceAtPos( cursorPos );
-            if ( cursorPos > 0 && selection.LowerPos() + 1 == cursorPos )
-                {
-                if ( IsDelimiter( CharAtPos( selection.LowerPos() ) ) )
-                    {
-                    CompleteEntryL();
-                    SetCursorPosL( cursorPos, EFalse );
-                    }
-                }
-            }
         }
-    else if ( aKeyEvent.iCode == EKeyRightArrow || aKeyEvent.iCode == EKeyDelete )
+    else if( aKeyEvent.iCode == EKeyRightArrow || aKeyEvent.iCode == EKeyDelete )
         {
         // We're moving right, but haven't yet.
-        const TInt cursorPos = CursorPos();
-        entry = GetEntryAt( cursorPos, EDirectionRight );
+        entry = GetEntryAt( CursorPos(), EDirectionRight );
         if ( entry )
             {
             if ( selection.Length() && aKeyEvent.iCode == EKeyRightArrow  )
@@ -496,18 +448,6 @@ TKeyResponse CNcsAifEditor::SetEditorSelectionL( const TKeyEvent& aKeyEvent,
                 {
                 SetSelectionL( entry->HigherPos(), entry->LowerPos() );
                 response = EKeyWasConsumed;
-                }
-            }
-        else
-            {
-            // Complete entry, if cursor is being moved to the next row.
-            TCursorSelection selection = NonEntryTextAndSpaceAtPos( cursorPos );
-            if ( cursorPos > 0 && selection.HigherPos() - 1 == cursorPos )
-                {
-                if ( IsDelimiter( CharAtPos( selection.HigherPos() - 1 ) ) )
-                    {
-                    CompleteEntryL();
-                    }
                 }
             }
         }
@@ -567,11 +507,10 @@ TKeyResponse CNcsAifEditor::HandleContactDeletionL( const TKeyEvent& aKeyEvent,
                     break;
                     }
                 }
-
-            SetCursorVisible( EFalse );
+            
             ClearSelectionL();
-            RepositionEntries( entry );
-            SetCursorVisible( ETrue );
+            
+            RepositionEntriesL( entry );
 
             // The key event is set consumed only on delete and backpace
             // events, other events need to be forwarded to the editor.
@@ -590,26 +529,26 @@ TKeyResponse CNcsAifEditor::HandleContactDeletionL( const TKeyEvent& aKeyEvent,
 // ---------------------------------------------------------------------------
 //
 void CNcsAifEditor::DoCharChangeL()
-    {
+	{
     FUNC_LOG;
-    RecalculateEntryPositions();
+	RecalculateEntryPositions();
 
-    TChar previousChar = CharAtPos( CursorPos() - 1 );
-    TBool sentinel = ( previousChar == KCharAddressDelimeterSemiColon || 
-        previousChar == KCharAddressDelimeterComma );
-    if ( sentinel )
+	TChar previousChar = CharAtPos( CursorPos() - 1 );
+	TBool sentinel = ( previousChar == KCharAddressDelimeterSemiColon || 
+	    previousChar == KCharAddressDelimeterComma );
+	if ( sentinel )
         {
         // if comma was pressed we replace it with semicolon
-        if ( previousChar == KCharAddressDelimeterComma )
+		if ( previousChar == KCharAddressDelimeterComma )
             {
-            CPlainText* text = Text();
-            text->DeleteL( CursorPos() - 1, 1 );
-            text->InsertL( CursorPos() - 1, KCharAddressDelimeterSemiColon );
+			CPlainText* text = Text();
+			text->DeleteL( CursorPos() - 1, 1 );
+			text->InsertL( CursorPos() - 1, KCharAddressDelimeterSemiColon );
             }
-        ParseNewAddressL();
+		ParseNewAddressL();
         }
-    UpdateAddressAutoCompletionL();
-    }
+	UpdateAddressAutoCompletionL();
+	}
 
 // ---------------------------------------------------------------------------
 // CNcsAddressInputField::CharAtPos
@@ -618,15 +557,15 @@ void CNcsAifEditor::DoCharChangeL()
 TChar CNcsAifEditor::CharAtPos( TInt aPos ) const
     {
     FUNC_LOG;
-    if ( aPos >= 0 && aPos < TextLength() )
+	if ( aPos >= 0 && aPos < TextLength() )
         {
-        TBuf<1> buf;
-        Text()->Extract( buf, aPos, 1 );
-        return buf[0];
+		TBuf<1> buf;
+		Text()->Extract( buf, aPos, 1 );
+		return buf[0];
         }
-    else
+	else
         {
-        return 0;
+		return 0;
         }
     }
 
@@ -645,8 +584,7 @@ void CNcsAifEditor::SetAddressesL( const RPointerArray<CNcsEmailAddressObject>& 
 // CNcsAifEditor::AppendAddressesL()
 // -----------------------------------------------------------------------------
 //
-void CNcsAifEditor::AppendAddressesL( 
-    const RPointerArray<CNcsEmailAddressObject>& aAddresses )
+void CNcsAifEditor::AppendAddressesL( const RPointerArray<CNcsEmailAddressObject>& aAddresses )
     {
     FUNC_LOG;
     // First, add all the addresses without updating the editor text contents 
@@ -654,13 +592,8 @@ void CNcsAifEditor::AppendAddressesL(
         {
         AddAddressL( *aAddresses[i], EFalse );
         }
-
-    // Update editor text content after all the items have been added.
-    SetCursorVisible( EFalse );
-    const TInt count = iArray.Count();
-    CNcsAifEntry* lastEntry = count ? iArray[count-1] : NULL;
-    RepositionEntries( lastEntry );
-    SetCursorVisible( ETrue );
+    // Update editor text content after all the items have been added
+    RepositionEntriesL( NULL );
     }
 
 // -----------------------------------------------------------------------------
@@ -669,17 +602,17 @@ void CNcsAifEditor::AppendAddressesL(
 //   
 const RPointerArray<CNcsEmailAddressObject>& CNcsAifEditor::GetAddressesL()
     {
-    // Clear the existing array since it may be out of sync
-    iAddressArray.Reset();
+	// Clear the existing array since it may be out of sync
+	iAddressArray.Reset();
 
-    for ( TInt i=0; i<iArray.Count(); i++ ) 
+	for ( TInt i=0 ; i<iArray.Count() ; i++ ) 
         {
-        iAddressArray.AppendL( &iArray[i]->Address() );
+		iAddressArray.AppendL(&iArray[i]->Address());
         }
 
-    return iAddressArray;
+	return iAddressArray;
     }
-
+    
 // -----------------------------------------------------------------------------
 // CNcsAifEditor::GetEntryAt()
 // -----------------------------------------------------------------------------
@@ -777,29 +710,29 @@ void CNcsAifEditor::CheckAddressWhenFocusLostL()
 void CNcsAifEditor::ParseNewAddressL()
 	{
     FUNC_LOG;
-    HBufC* text = GetNonEntryTextLC();
-    __ASSERT_ALWAYS( text, Panic(EFSEmailUiNullPointerException) );
+	HBufC* text = GetNonEntryTextLC();
+	__ASSERT_ALWAYS( text, Panic(EFSEmailUiNullPointerException) );
 
-    if ( text->Length() )
-        {
+	if ( text->Length() )
+		{
         // if changing focus leftover text is parsed to email
         // object - we don't need to add it anymore
         iAddLeftover = EFalse;
         // check if there is a name for the email address
         HBufC* name = CFsDelayedLoader::InstanceL()->GetContactHandlerL()->GetLastSearchNameL( *text );
-        if ( name )
-            {
+	if ( name )
+		{
             CleanupStack::PushL( name );
-            AddAddressL( *name, *text, ETrue );
-            CleanupStack::PopAndDestroy( name );
-            }
-        else
-            {
-            AddAddressL( KNullDesC, *text );
-            }
-        }
-
-    CleanupStack::PopAndDestroy(text);
+		AddAddressL( *name, *text, ETrue );
+		CleanupStack::PopAndDestroy( name );
+		}
+	else
+		{
+		AddAddressL( KNullDesC, *text );
+		}
+	    }
+	
+	CleanupStack::PopAndDestroy(text);
 	}
 
 // -----------------------------------------------------------------------------
@@ -915,8 +848,7 @@ const CNcsEmailAddressObject* CNcsAifEditor::EmailAddressObjectBySelection() con
 // CNcsAifEditor::AddAddressL()
 // -----------------------------------------------------------------------------
 //
-void CNcsAifEditor::AddAddressL( const CNcsEmailAddressObject& aAddress,
-    TBool aUpdateEditorText /*= ETrue*/ )
+void CNcsAifEditor::AddAddressL( const CNcsEmailAddressObject& aAddress, TBool aUpdateEditorText /*= ETrue*/ )
     {
     FUNC_LOG;
     CNcsAifEntry* entry = CNcsAifEntry::NewL( aAddress );
@@ -934,59 +866,57 @@ void CNcsAifEditor::AddAddressL(
     FUNC_LOG;
     CNcsAifEntry* entry = CNcsAifEntry::NewL( aDisplayName, aEmail, aDisplayFull );
     CleanupStack::PushL( entry );
-    AddAddressL( entry, aUpdateEditorText );
-    CleanupStack::Pop( entry );
+	AddAddressL( entry, aUpdateEditorText );
+	CleanupStack::Pop( entry );
     }
 
 void CNcsAifEditor::AddAddressL( CNcsAifEntry* aNewEntry, TBool aUpdateEditorText )
     {
     FUNC_LOG;
-    TInt idx;
-
-    // Check for duplicate display names
-    for ( idx=0 ; idx<iArray.Count() ; idx++ ) 
+	TInt idx;
+	
+	// Check for duplicate display names
+	for ( idx=0 ; idx<iArray.Count() ; idx++ ) 
         {
-        if ( iArray[idx]->IsSameDN(*aNewEntry) ) 
+		if ( iArray[idx]->IsSameDN(*aNewEntry) ) 
             {
-            iArray[idx]->SetDupL();
-            aNewEntry->SetDupL();
+			iArray[idx]->SetDupL();
+			aNewEntry->SetDupL();
             }
         }
 
-    // Find the location where we need to insert the address.
-    // Browse from back to forth to make last index as default index. 
-    // This ensures items remain in correct order when populating field from
-    // existing message.
-    TInt cursorPos = CursorPos();
+	// Find the location where we need to insert the address.
+	// Browse from back to forth to make last index as default index. 
+	// This ensures items remain in correct order when populating field from
+	// existing message.
+	TInt cursorPos = CursorPos();
     // if we are at the end of editor the address was
     // added from MRU list or separator was typed in
     if ( cursorPos == Text()->DocumentLength() )
         {
         iAddLeftover = EFalse;
         }
-
-    for ( idx = iArray.Count() ; idx > 0 ; idx-- ) 
+	
+	for ( idx = iArray.Count() ; idx > 0 ; idx-- ) 
         {
-        if ( cursorPos >= iArray[idx-1]->End() ) break;
+		if ( cursorPos >= iArray[idx-1]->End() ) break;
         }
-    if ( idx == iArray.Count() ) 
+	if ( idx == iArray.Count() ) 
         {
-        // Tack the address onto the end of the array
-        iArray.AppendL( aNewEntry );
+		// Tack the address onto the end of the array
+		iArray.AppendL( aNewEntry );
         }
-    else
+	else
         {
-        iArray.InsertL( aNewEntry, idx );
+		iArray.InsertL( aNewEntry, idx );
         }
-
-    if ( aUpdateEditorText )
-        {
-        // Trap because we must not leave after we have taken the ownership of
-        // aNewEntry. Otherwise douple deletion might happen.
-        SetCursorVisible( EFalse );
-        RepositionEntries( aNewEntry );
-        SetCursorVisible( ETrue );
-        }
+	
+	if ( aUpdateEditorText )
+	    {
+	    // Trap because we must not leave after we have taken the ownership of aNewEntry.
+	    // Otherwise douple deletion might happen.
+	    TRAP_IGNORE( RepositionEntriesL( aNewEntry ) );
+	    }
     }
 
 // ---------------------------------------------------------------------------
@@ -1036,37 +966,27 @@ void CNcsAifEditor::RecalculateEntryPositions()
 	}
 
 // ---------------------------------------------------------------------------
-// CNcsAifEditor::RepositionEntries()
-// ---------------------------------------------------------------------------
-//
-TInt CNcsAifEditor::RepositionEntries( const CNcsAifEntry* aPosEntry )
-    {
-    FUNC_LOG;
-    TRAPD( err, RepositionEntriesL( aPosEntry ) );
-    return err;
-    }
-
-// ---------------------------------------------------------------------------
 // CNcsAifEditor::RepositionEntriesL()
 // ---------------------------------------------------------------------------
 //
 void CNcsAifEditor::RepositionEntriesL( const CNcsAifEntry* aPosEntry )
-    {
+	{
     FUNC_LOG;
-    TInt pos = 0;
-    CNcsAifEntry* entry;
-    for ( TInt i=0 ; i<iArray.Count() ; i++ ) 
-        {
-        entry = iArray[i];
-        pos = entry->SetPos( pos );
-        pos++; // for whitespace
-        }
+	TInt pos = 0;
+	CNcsAifEntry* entry;
+	for ( TInt i=0 ; i<iArray.Count() ; i++ ) 
+		{
+		entry = iArray[i];
+		pos = entry->SetPos( pos );
+		pos++; // for whitespace
+		}
 
-    // Reset the text
-    HBufC* text = GetFormattedAddressListLC( iArray );
-    // fix for dissapearing text PWAN-82DNEJ
-    //SetCursorPosL( 0, EFalse ); //In case the cursor pos is invalid
-
+  // Reset the text
+	HBufC* text = NULL;
+	text = GetFormattedAddressListLC( iArray );
+	// fix for dissapearing text PWAN-82DNEJ	
+	SetCursorPosL( 0, EFalse ); //In case the cursor pos is invalid
+	
     if ( iAddLeftover )
         {
         TInt lengthBefore = Text()->DocumentLength();
@@ -1081,10 +1001,10 @@ void CNcsAifEditor::RepositionEntriesL( const CNcsAifEntry* aPosEntry )
         HBufC* newText = HBufC::NewLC( text->Length() + leftover.Length() );
         TPtr newTextPtr = newText->Des();
         // add all email addresses
-        newTextPtr.Append( *text );
+        newTextPtr.Append( text->Des() );
         // add the text that was after last email object
         newTextPtr.Append( leftover );
-
+    
         SetTextL( newText );
         CleanupStack::PopAndDestroy( newText );
         CleanupStack::PopAndDestroy( textBefore );
@@ -1093,21 +1013,19 @@ void CNcsAifEditor::RepositionEntriesL( const CNcsAifEntry* aPosEntry )
         {
         SetTextL( text );
         }
-
-    if ( !aPosEntry )
-        {
-        // Set cursor at the beginning of the document.
-        SetCursorPosL( 0, EFalse );
-        }
-    else
-        {
-        // Set the cursor at the end of the given entry 
-        SetCursorPosL( aPosEntry->End(), EFalse );
-        }
-
     CleanupStack::PopAndDestroy( text );
     HandleTextChangedL();
-    }
+    
+    // Set the cursor at the end of the given entry 
+    if ( !aPosEntry )
+    	{
+	    SetCursorPosL( 0, EFalse );
+    	}
+    else
+    	{
+    	SetCursorPosL( aPosEntry->End(), EFalse );
+    	}
+	}
 
 // ---------------------------------------------------------------------------
 // CNcsAifEditor::CheckAndRemoveInvalidEntriesL()
@@ -1165,19 +1083,19 @@ void CNcsAifEditor::CheckAndRemoveInvalidEntriesL()
 HBufC* CNcsAifEditor::GetLookupTextLC() const
     {
     FUNC_LOG;
-    HBufC* text = GetTextInHBufL();
-    CleanupStack::PushL( text );
-    if ( text )
+	HBufC* text = GetTextInHBufL();
+	
+	if (text == NULL) return NULL;
+
+	CleanupStack::PushL( text );
+	TPtr ptr( text->Des() );
+	TInt location = ptr.LocateReverse( KCharAddressDelimeterSemiColon );
+	if( location != KErrNotFound )
         {
-        TPtr ptr( text->Des() );
-        TInt location = ptr.LocateReverse( KCharAddressDelimeterSemiColon );
-        if ( location != KErrNotFound )
-            {
-            ptr = ptr.RightTPtr( ptr.Length() - location -1 );
-            ptr.TrimLeft();
-            }
+		ptr = ptr.RightTPtr( ptr.Length() - location -1 );
+		ptr.TrimLeft();
         }
-    return text;
+	return text;
     }
 
 // ---------------------------------------------------------------------------
@@ -1189,17 +1107,17 @@ HBufC* CNcsAifEditor::GetFormattedAddressListLC(
     TBool aDisplayList ) const
     {
     FUNC_LOG;
-    TInt length = CalculateAddressListLength( aEntries, aDisplayList );
-    if ( length <= 0 )
+	TInt length = CalculateAddressListLength( aEntries, aDisplayList );
+	if ( length <= 0 )
         {
-        return HBufC::NewLC(0);
+		return HBufC::NewLC(0);
         }
-
-    HBufC* buf = HBufC::NewLC( length );
-    TPtr ptr = buf->Des();
-
-    TInt count = aEntries.Count();
-    for ( TInt i = 0; i < count; i++ )
+    
+	HBufC* buf = HBufC::NewLC( length );
+	TPtr ptr = buf->Des();
+    
+	TInt count = aEntries.Count();
+	for ( TInt i = 0; i < count; i++ )
         {
         if ( aDisplayList )
             {
@@ -1228,12 +1146,12 @@ HBufC* CNcsAifEditor::GetFormattedAddressListLC(
 HBufC* CNcsAifEditor::GetFormattedAddressListL(
     RPointerArray<CNcsAifEntry>& aEntries,
     TBool aDisplayList ) const
-    {
+	{
     FUNC_LOG;
     HBufC* buf = GetFormattedAddressListLC( aEntries, aDisplayList );
     CleanupStack::Pop( buf );
     return buf;
-    }
+	}
 
 // ---------------------------------------------------------------------------
 // CNcsAifEditor::CalculateAddressListLength()
@@ -1284,12 +1202,12 @@ TInt CNcsAifEditor::CalculateAddressListLength(
 void CNcsAifEditor::UpdateAddressAutoCompletionL()
     {
     FUNC_LOG;
-    HBufC* text = GetNonEntryTextLC();
-    __ASSERT_ALWAYS( text, Panic(EFSEmailUiNullPointerException) );
+	HBufC* text = GetNonEntryTextLC();
+	__ASSERT_ALWAYS( text, Panic(EFSEmailUiNullPointerException) );
 
-    iAddressPopupList->UpdatePopupContactListL( *text, EFalse );
-    CleanupStack::PopAndDestroy( text );
-    }
+		iAddressPopupList->UpdatePopupContactListL( *text, EFalse );
+		CleanupStack::PopAndDestroy( text );
+        }
 
 // ---------------------------------------------------------------------------
 // CNcsAifEditor::UpdateAddressAutoCompletionL()
@@ -1322,8 +1240,9 @@ void CNcsAifEditor::UpdateAddressAutoCompletionL(
 void CNcsAifEditor::UpdateAddressListAllL()
     {
     FUNC_LOG;
-    iAddressPopupList->UpdatePopupContactListL( KNullDesC, ETrue );
+	iAddressPopupList->UpdatePopupContactListL( KNullDesC, ETrue );
     }
+
 
 // ---------------------------------------------------------------------------
 // Updates the duplicate markings in the entry array.
@@ -1387,23 +1306,38 @@ void CNcsAifEditor::HandleTextUpdateL()
     FUNC_LOG;
     RecalculateEntryPositions();
     TCursorSelection textSelection = NonEntryTextAtPos( CursorPos() );
+    TBool newEntryCreated = EFalse;
     if ( textSelection.Length() )
         {
         // Check non-entry text for complete entries.
-        const TBool newEntriesAdded = HandleTextUpdateL( textSelection );
-        if ( newEntriesAdded )
-            {
-            iAddressPopupList->ClosePopupContactListL();
-            iSizeObserver->UpdateFieldSizeL( ETrue );
-            iPartialRemove = EFalse;
-            }
-        else
-            {
-            MoveNonEntryTextToDedicatedRowsL( CursorPos() );
-            }
-        textSelection = NonEntryTextAtPos( CursorPos() );
+        newEntryCreated = HandleTextUpdateL( textSelection );
         }
-    UpdateAddressAutoCompletionL( textSelection );
+    
+    if ( newEntryCreated )
+        {
+        iAddressPopupList->ClosePopupContactListL();
+        
+        // add line feed after new entry
+        TInt cursorPos( CursorPos() );
+        // related to PWAN-82DNEJ cursorPos shouldn't be 0 here
+        if (cursorPos == 0)
+          {
+          cursorPos = TextLength();
+          }
+          
+        if ( !iPartialRemove )
+            {
+            Text()->InsertL( cursorPos, TChar(CEditableText::ELineBreak) );
+            }
+        HandleTextChangedL();
+        SetCursorPosL( cursorPos + 1, EFalse );
+        iSizeObserver->UpdateFieldSizeL( ETrue );
+        iPartialRemove = EFalse;
+        }
+    else
+        {
+        UpdateAddressAutoCompletionL( textSelection );
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -1416,10 +1350,10 @@ TBool CNcsAifEditor::HandleTextUpdateL( const TCursorSelection& aSelection )
     iAddLeftover = ETrue;
     TInt firstCharacter = aSelection.LowerPos();
     TInt lastCharacter = aSelection.HigherPos();
-
+    
     // get the inputted text
-    const TInt length = lastCharacter - firstCharacter;
-
+    TInt length = lastCharacter - firstCharacter;
+    
     HBufC* text = HBufC::NewLC( length );
     TPtr ptr = text->Des();
     Text()->Extract( ptr, firstCharacter, length );
@@ -1477,103 +1411,19 @@ TBool CNcsAifEditor::HandleTextUpdateL( const TCursorSelection& aSelection )
                 }
             }
         }
-
+    
     // add email that wasn't ended with semicolon
     if ( lastSentinel != KErrNotFound )
         {
         if ( lastSentinel < end && start < end )
             {
             AddAddressL( KNullDesC(), ptr.Mid(start, end-start) );
-            entriesFound = ETrue;
             }
         }
-
+    
     CleanupStack::PopAndDestroy( text );
+        
     return entriesFound;
-    }
-
-// ---------------------------------------------------------------------------
-// Moves inputted non-entry text to separate row
-// ---------------------------------------------------------------------------
-//
-void CNcsAifEditor::MoveNonEntryTextToDedicatedRowsL( TUint aPosition )
-    {
-    // Get the non-entry text and whitespace at given location
-    TCursorSelection textSelection = NonEntryTextAndSpaceAtPos( aPosition );
-    const TInt start = textSelection.LowerPos();
-    const TInt end = textSelection.HigherPos();
-    const TInt length = end - start;
-
-    const TChar lineBreak = TChar( CEditableText::ELineBreak );
-    const TChar paragraphDelimiter =
-        TChar( CEditableText::EParagraphDelimiter );
-
-    // Make sure that the inputted non-entry text is not on the same lines
-    // with existing entries.
-    if ( length )
-        {
-        HBufC* text = HBufC::NewLC( length );
-        TPtr ptr = text->Des();
-        Text()->Extract( ptr, start, length );
-
-        const TChar firstCharacter = TChar( ptr[0] );
-        const TChar lastCharacter = TChar( ptr[length-1] );
-        const TInt documentLength = Text()->DocumentLength();
-
-        TBool textChanged = EFalse;
-
-        if ( end < documentLength &&
-             lastCharacter != paragraphDelimiter &&
-             lastCharacter != lineBreak )
-            {
-            Text()->InsertL( end, lineBreak );
-            HandleTextChangedL();
-            textChanged = ETrue;
-            }
-
-        if ( start > 0 && start < end &&
-             firstCharacter != paragraphDelimiter &&
-             firstCharacter != lineBreak )
-            {
-            Text()->InsertL( start, lineBreak );
-            SetCursorVisible( EFalse );
-            HandleTextChangedL();
-            SetCursorPosL( CursorPos() + 1, EFalse );
-            SetCursorVisible( ETrue );
-            textChanged = ETrue;
-            }
-
-        if ( textChanged )
-            {
-            RecalculateEntryPositions();
-            }
-
-        CleanupStack::PopAndDestroy( text );
-        }
-    }
-
-// ---------------------------------------------------------------------------
-// Prepares for text entry to given cursor position making sure that the
-// new text will not be entered on same row with existing 
-// ---------------------------------------------------------------------------
-//
-void CNcsAifEditor::PrepareForTextInputL( TUint aPosition )
-    {
-    FUNC_LOG;
-    // Get the non-entry text and whitespace at given position.
-    TCursorSelection textSelection = NonEntryTextAndSpaceAtPos( aPosition );
-    const TInt start = textSelection.LowerPos();
-    const TInt end = textSelection.HigherPos();
-    const TInt length = end - start;
-
-    const TChar lineBreak = TChar( CEditableText::ELineBreak );
-
-    if ( start > 0 && ( !length || aPosition == start ) )
-        {
-        Text()->InsertL( start, lineBreak );
-        HandleTextChangedL();
-        SetCursorPosL( start + 1, EFalse );
-        }
     }
 
 // ---------------------------------------------------------------------------
@@ -1583,8 +1433,8 @@ void CNcsAifEditor::PrepareForTextInputL( TUint aPosition )
 void CNcsAifEditor::HandleNavigationEventL()
     {
     FUNC_LOG;
-    // Close the contact popup when cursor is moved withing the field to make
-    // it less distracting. It's reopened when user types something.
+    // Close the contact popup when cursor is moved withing the field to make it less distracting. 
+    // It's reopened when user types something.
     iAddressPopupList->ClosePopupContactListL();
     }
 
@@ -1593,51 +1443,6 @@ void CNcsAifEditor::HandleNavigationEventL()
 // ---------------------------------------------------------------------------
 //
 TCursorSelection CNcsAifEditor::NonEntryTextAtPos( TUint aPosition ) const
-    {
-    FUNC_LOG;
-    // Get the range of non-entry text and whitespace at given position.
-    TCursorSelection text = NonEntryTextAndSpaceAtPos( aPosition );
-
-    // Get the selected text to remove whitespace
-    const TInt length = text.Length();
-
-    HBufC* selectedText = NULL;
-    TRAPD( err, selectedText = HBufC::NewL( length ) );
-
-    if( err == KErrNone )
-        {
-        TPtr ptr = selectedText->Des();
-        Text()->Extract( ptr, text.LowerPos(), length );
-
-        // trim from end
-        TInt index( length - 1 );
-
-        while( index >= 0 && IsWhitespace( ptr[index--] ) )
-            {
-            text.iCursorPos--;
-            }
-
-        // trim from begin
-        index = 0;
-
-        while( index < length && IsWhitespace( ptr[index++] ) )
-            {
-            text.iAnchorPos++;
-            }
-
-        delete selectedText;
-        selectedText = NULL;
-        }    
-
-    return text;
-    }
-
-// ---------------------------------------------------------------------------
-// Gets non-entry text including surrounding whitespace at given position.
-// ---------------------------------------------------------------------------
-//
-TCursorSelection CNcsAifEditor::NonEntryTextAndSpaceAtPos(
-    TUint aPosition ) const
     {
     FUNC_LOG;
     TCursorSelection text( TextLength(), 0 );
@@ -1662,6 +1467,37 @@ TCursorSelection CNcsAifEditor::NonEntryTextAndSpaceAtPos(
             }
         }
 
+    // get the selected text to remove whitespace
+    TInt length( text.Length() );    
+    
+    HBufC* selectedText = NULL;
+    TRAPD( err, selectedText = HBufC::NewL( length ) );
+    
+    if( err == KErrNone )
+    	{
+		TPtr ptr = selectedText->Des();
+		Text()->Extract( ptr, text.LowerPos(), length );
+		
+		// trim from end
+		TInt index( length - 1 );
+		
+		while( index >= 0 && IsWhitespace( ptr[index--] ) )
+			{
+			text.iCursorPos--;
+			}
+		
+		// trim from begin
+		index = 0;
+		
+		while( index < length && IsWhitespace( ptr[index++] ) )
+			{
+			text.iAnchorPos++;
+			}
+
+		delete selectedText;
+		selectedText = NULL;
+    	}    
+    	
     return text;
     }
 
@@ -1704,18 +1540,6 @@ TBool CNcsAifEditor::IsSentinel( TChar aCharacter ) const
     }
 
 // ---------------------------------------------------------------------------
-// Checks whether given character is considered as line delimiter.
-// ---------------------------------------------------------------------------
-//
-//
-TBool CNcsAifEditor::IsDelimiter( TChar aCharacter ) const
-    {
-    FUNC_LOG;
-    return ( aCharacter == TChar( CEditableText::ELineBreak) || 
-             aCharacter == TChar( CEditableText::EParagraphDelimiter) );
-    }
-
-// ---------------------------------------------------------------------------
 // Checks whether given character is considered as whitespace.
 // ---------------------------------------------------------------------------
 //
@@ -1723,8 +1547,8 @@ TBool CNcsAifEditor::IsWhitespace( TChar aCharacter ) const
     {
     FUNC_LOG;
     return ( aCharacter == KCharSpace || 
-             aCharacter == TChar(CEditableText::ELineBreak) || 
-             aCharacter == TChar(CEditableText::EParagraphDelimiter) );
+    		 aCharacter == TChar(CEditableText::ELineBreak) || 
+    		 aCharacter == TChar(CEditableText::EParagraphDelimiter) );
     }
 
 // ---------------------------------------------------------------------------
@@ -1824,68 +1648,61 @@ void CNcsAifEditor::HandlePointerEventL( const TPointerEvent& aPointerEvent )
 
         //adjust touch point to mach editor coordinates
         touchPoint.iX -= Position().iX;
-
-        TInt pointerLineNbr = textLayout->GetLineNumber( 
-            textLayout->XyPosToDocPosL( touchPoint ) );
+        
+        TInt pointerLineNbr = textLayout->GetLineNumber( textLayout->XyPosToDocPosL( touchPoint ));
         TInt cursorLineNbr = textLayout->GetLineNumber( cursorPos );
-
+        
+        
         if ( pointerLineNbr != cursorLineNbr )
             {
             CompleteEntryL();
             
             // We're moving to a new line.
-            CNcsAifEntry* entry = GetEntryAt( CursorPos() );
+            CNcsAifEntry* entry = NULL;
+            entry = GetEntryAt( CursorPos() );
             if ( entry )
                 {
                 SetSelectionL( entry->iCursorPos, entry->iAnchorPos );
                 }
-            }
+            }    
         }
-
+            
     CEikEdwin::HandlePointerEventL( aPointerEvent );
-
-    // Do not allow to insert cursor into the middle of some entry
-    CNcsAifEntry* entry = GetEntryAt( CursorPos() );
-    if ( entry )
-        {
-        SetSelectionL( entry->iCursorPos, entry->iAnchorPos );
-        }
     }
 
 
 // -----------------------------------------------------------------------------
 // CNcsAifEditor::CompleteEntryL()
-// Adds semicolon to the end of the entry.
+// Adds semicolol to the of the entry
 // -----------------------------------------------------------------------------
 //
 void CNcsAifEditor::CompleteEntryL()
     {
     // make sure there is really some text inputted 
-    const TInt cursorPos = CursorPos();
+    TInt cursorPos( CursorPos() );
 
     TCursorSelection selection = NonEntryTextAtPos( cursorPos );
-    const TInt length =  selection.Length();
 
-    if ( length > 0 && selection.LowerPos() >= 0 )
+    TInt length( selection.Length() );
+
+    HBufC* text = HBufC::NewLC( length );
+    TPtr ptr = text->Des();
+
+    if( selection.LowerPos() >= 0 )
         {
-        HBufC* text = HBufC::NewLC( length );
-        TPtr ptr = text->Des();
-
         Text()->Extract( ptr, selection.LowerPos(), length );
         ptr.Trim();
-
+        
         // complete the entry
-        if ( ptr.Length() > 0 )
+        if( ptr.Length() > 0 )
             {
             Text()->InsertL( selection.HigherPos(), KCharAddressDelimeterSemiColon );
             HandleTextChangedL();
-            HandleTextUpdateL( TCursorSelection( selection.LowerPos(),
-                selection.HigherPos() + 1 ) );
+            HandleTextUpdateL( TCursorSelection(selection.LowerPos(), selection.HigherPos() + 1) );
             }
-
-        CleanupStack::PopAndDestroy( text );
         }
-    }
 
+    CleanupStack::PopAndDestroy( text );
+    }
 // End of File
 

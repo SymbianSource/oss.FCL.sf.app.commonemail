@@ -259,13 +259,15 @@ public:
 	 * @param aObserver = observer to collect results
 	 */
 	void GetAddressesFromPhonebookL( MFSEmailUiContactHandlerObserver* aObserver );
-
+	
+    // <cmail> video call
     /**
      * Enables/disables video call.
      *
      * @param aState ETrue for 'enable', EFalse for 'disable'
      */
     void SetVideoCall( TBool aState );
+    // </cmail>
 
 // from base class MFSEmailUiClsListsObserver
 
@@ -275,14 +277,18 @@ public:
 // from base class MVPbkSingleContactOperationObserver
 
     void VPbkSingleContactOperationCompleteL(
-        MVPbkContactOperationBase& aOperation, MVPbkStoreContact* aContact );
-    void VPbkSingleContactOperationComplete(
-        MVPbkContactOperationBase& aOperation, MVPbkStoreContact* aContact );
-
-    void VPbkSingleContactOperationFailedL(
-        MVPbkContactOperationBase& aOperation, TInt aError );
-    void VPbkSingleContactOperationFailed(
-        MVPbkContactOperationBase& aOperation, TInt aError );
+    		    MVPbkContactOperationBase& aOperation,
+    		    MVPbkStoreContact* aContact );
+    
+    
+	void VPbkSingleContactOperationComplete(
+	    MVPbkContactOperationBase& aOperation,
+	    MVPbkStoreContact* aContact );
+	
+	void VPbkSingleContactOperationFailedL(
+		    MVPbkContactOperationBase& aOperation, TInt aError );
+	void VPbkSingleContactOperationFailed(
+	    MVPbkContactOperationBase& aOperation, TInt aError );
 
 // from base class MVPbkContactStoreListObserver
 
@@ -340,12 +346,6 @@ public:
 // from MCCAObserver      
     void CCASimpleNotifyL( TNotifyType aType, TInt aReason );
       
-    TUid GetDetailsViewUid();
-    TUid GetDetailsAppUid();
-    TBool WasDetailsClosed();
-    void CloseContactDetailsL();
-    void ReopenContactDetailsL(RWsSession&);
-
 private:
     
     CFSEmailUiContactHandler( RFs& aSession );
@@ -354,21 +354,18 @@ private:
     
 // <cmail> call observer's MFSEmailUiContactHandlerObserver::OperationErrorL( TContactHandlerCmd aCmd, TInt aError ) 
     void ObserverOperationErrorL( TContactHandlerCmd aCmd, TInt aErrorCode );
+    
 
 private:
-
-    TInt SelectBetweenCsAndVoip() const;
+    
+	TInt SelectBetweenCsAndVoip() const;
     void HandleCallL( const RPointerArray<CFSEmailUiClsItem>& aMatchingItems );
-
-    void CreateMessageL( const RPointerArray<CFSEmailUiClsItem>& aMatchingItems );
-    void SendMessageL( CAiwGenericParamList& aEventParamList, TInt aServiceType );
-    void GetSmsAddressFromPhonebookAndSendL( MVPbkContactLink* aContactLink );
-    void GetMmsAddressFromPhonebookAndSendL( MVPbkContactLink* aContactLink,
-        TBool aIsVoiceMessage = EFalse );
-
-    // Starts retrieving addresses from contact stores.
-    void RetrieveContactsL();
-
+    
+	void CreateMessageL( const RPointerArray<CFSEmailUiClsItem>& aMatchingItems );
+	void SendMessageL( CAiwGenericParamList& aEventParamList, TInt aServiceType );
+ 	void GetSmsAddressFromPhonebookAndSendL( MVPbkContactLink* aContactLink );
+	void GetMmsAddressFromPhonebookAndSendL( MVPbkContactLink* aContactLink, TBool aIsVoiceMessage = EFalse );
+ 
     TBool IsRemoteLookupSupported();
     
     void GetContactFieldsL( RArray<TInt>& aFieldIds, RPointerArray<HBufC>& aNumbers, 
@@ -459,9 +456,6 @@ private: // data
     // Flag for making video call
     TBool iVideoCall;
 
-    // flag to check if it was remotely closed (using CloseContactDetailsL method)
-    TBool iContactDetailsClosed;
-    
     // connection to CCMA launcher    
     MCCAConnection* iConnection;
 

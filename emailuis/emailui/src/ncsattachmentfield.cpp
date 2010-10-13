@@ -37,11 +37,13 @@
 CNcsAttachmentField* CNcsAttachmentField::NewL(
     TInt aLabelTextId,
     MNcsFieldSizeObserver* aSizeObserver,
+    MNcsAttachmentFieldObserver* aObserver,
     CNcsHeaderContainer* aParentControl )
     {
     FUNC_LOG;
     CNcsAttachmentField* self =
-        new ( ELeave ) CNcsAttachmentField( aLabelTextId, aSizeObserver, aParentControl );
+        new ( ELeave ) CNcsAttachmentField( aLabelTextId, aSizeObserver,
+                                            aObserver, aParentControl );
     CleanupStack::PushL( self );
     self->ConstructL();
     CleanupStack::Pop( self );
@@ -66,9 +68,11 @@ CNcsAttachmentField::~CNcsAttachmentField()
 //
 CNcsAttachmentField::CNcsAttachmentField( TInt aLabelTextId, 
         MNcsFieldSizeObserver* aSizeObserver,
+        MNcsAttachmentFieldObserver* aObserver,
         CNcsHeaderContainer* aParentControl ):
     MNcsControl( aSizeObserver ),
     iParentControl( aParentControl ),
+    iObserver( aObserver ),
     iLabelTextId ( aLabelTextId ),
     iFocusedLabelIndex( KNoAttachmentLabelFocused )
     {
@@ -274,12 +278,11 @@ TInt CNcsAttachmentField::GetMinLabelLength() const
 // -----------------------------------------------------------------------------
 //
 void CNcsAttachmentField::SetContainerWindowL( const CCoeControl& aContainer )
-	{
+    {
     FUNC_LOG;
-	CCoeControl::SetContainerWindowL( aContainer );
-
-	UpdateComponentArrayL();
-	}
+    CCoeControl::SetContainerWindowL( aContainer );
+    UpdateComponentArrayL();
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsAttachmentField::UpdateComponentArrayL()
@@ -376,10 +379,20 @@ void CNcsAttachmentField::SetTextsLD(
 // CNcsAttachmentField::FocusedAttachmentLabelIndex()
 // -----------------------------------------------------------------------------
 //
-TInt CNcsAttachmentField::FocusedAttachmentLabelIndex()
+TInt CNcsAttachmentField::FocusedAttachmentLabelIndex() const
     {
     FUNC_LOG;
     return iFocusedLabelIndex;
+    }
+
+// -----------------------------------------------------------------------------
+// CNcsAttachmentField::SetFocusedAttachmentLabelIndex()
+// -----------------------------------------------------------------------------
+//
+void CNcsAttachmentField::SetFocusedAttachmentLabelIndex( TInt aIndex )
+    {
+    FUNC_LOG;
+    iFocusedLabelIndex = aIndex;
     }
 
 // -----------------------------------------------------------------------------
@@ -457,14 +470,14 @@ void CNcsAttachmentField::ResizeIcons()
 // -----------------------------------------------------------------------------
 //
 void CNcsAttachmentField::FocusChanged( TDrawNow aDrawNow )
-	{
+    {
     FUNC_LOG;
-	if ( IsFocused() )
-	    {
-	    for ( TInt i( 0 ); i<iAttachmentLabelCount; ++i )
-	        {
-	        iAttachmentLabels[i]->SetFocus( i==iFocusedLabelIndex );
-	        }
+    if ( IsFocused() )
+        {
+        for ( TInt i( 0 ); i < iAttachmentLabelCount; ++i )
+            {
+            iAttachmentLabels[i]->SetFocus( i==iFocusedLabelIndex );
+            }
         // make sure that control is visible on screen
 		if ( Rect().iTl.iY < 0 )
 			{
@@ -492,26 +505,26 @@ void CNcsAttachmentField::FocusChanged( TDrawNow aDrawNow )
             {
             TRAP_IGNORE( iParentControl->SetMskL() );
             }
-		}
-	else
-		{
-		for ( TInt i( 0 ); i<iAttachmentLabelCount; ++i )
-		    {
-		    iAttachmentLabels[i]->SetFocus( EFalse );
-		    }
-		}
-	
+        }
+    else
+        {
+        for ( TInt i( 0 ); i<iAttachmentLabelCount; ++i )
+            {
+            iAttachmentLabels[i]->SetFocus( EFalse );
+            }
+        }
+
     UpdateColors();
-    
-	if ( aDrawNow )
-		{
-		DrawNow();
-		}
-	else
-	    {
-	    DrawDeferred();
-	    }
-	}
+
+    if ( aDrawNow )
+        {
+        DrawNow();
+        }
+    else
+        {
+        DrawDeferred();
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsAttachmentField::UpdateColors()
@@ -662,7 +675,7 @@ void CNcsAttachmentField::HandlePointerEventL(
     {
     FUNC_LOG;
     CCoeControl::HandlePointerEventL( aPointerEvent );
-    
+
     if ( aPointerEvent.iType == TPointerEvent::EButton1Down  &&
          Rect().Contains( aPointerEvent.iPosition ) )
         {
@@ -679,7 +692,7 @@ void CNcsAttachmentField::HandlePointerEventL(
                     {
                     feedback->InstantFeedback( this, ETouchFeedbackBasic );
                     }
-                
+
                 if ( iFocusedLabelIndex != i )
                     {
                     focusedAttachmentLabelIndexChanged = ETrue;
@@ -709,6 +722,67 @@ void CNcsAttachmentField::HandlePointerEventL(
             DrawDeferred();
             }
         }
+    }
+
+// -----------------------------------------------------------------------------
+// CNcsAttachmentField::OfferKeyEventL()
+// -----------------------------------------------------------------------------
+//
+TKeyResponse CNcsAttachmentField::OfferKeyEventL( const TKeyEvent& aKeyEvent,
+    TEventCode aType )
+    {
+    TKeyResponse response = EKeyWasNotConsumed;
+    TBool focusedAttachmentLabelIndexChanged = EFalse;
+
+    if ( aType == EEventKey )
+        {
+        if ( aKeyEvent.iCode == EKeyUpArrow )
+            {
+            if ( iFocusedLabelIndex > 0 )
+                {
+                iFocusedLabelIndex -= 1;
+                focusedAttachmentLabelIndexChanged = ETrue;
+                response = EKeyWasConsumed;
+                }
+            }
+        else if ( aKeyEvent.iCode == EKeyDownArrow )
+            {
+            if ( iFocusedLabelIndex < iAttachmentLabelCount - 1 )
+                {
+                iFocusedLabelIndex += 1;
+                focusedAttachmentLabelIndexChanged = ETrue;
+                response = EKeyWasConsumed;
+                }
+            }
+        else if ( aKeyEvent.iCode == EKeyBackspace ||
+                  aKeyEvent.iCode == EKeyDelete )
+            {
+            iObserver->AttachmentRemoveL();
+            response = EKeyWasConsumed;
+            }
+        else if ( aKeyEvent.iCode == EKeyEnter ||
+                  aKeyEvent.iScanCode == EStdKeyEnter ||
+                  aKeyEvent.iCode == EKeyOK ||
+                  aKeyEvent.iScanCode == EStdKeyDevice3 )
+            {
+            iObserver->AttachmentOpenL();
+            response = EKeyWasConsumed;
+            }
+        }
+
+    if ( focusedAttachmentLabelIndexChanged )
+        {
+        // only redraw if focused attachment label changed
+        for ( TInt i = 0; i < iAttachmentLabelCount; i++ )
+            {
+            iAttachmentLabels[i]->SetFocus( i == iFocusedLabelIndex );
+            }
+
+        UpdateColors();
+        DrawDeferred();
+        }
+
+    return response;
     }
 
 // -----------------------------------------------------------------------------

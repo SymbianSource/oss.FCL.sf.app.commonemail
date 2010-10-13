@@ -41,6 +41,11 @@ data=DATAZ_\RESOURCE\APPS\google_brand_graphics.mif	APP_BITMAP_DIR\google_brand_
 data=DATAZ_\RESOURCE\APPS\aol_brand_graphics.mif	APP_BITMAP_DIR\aol_brand_graphics.mif
 data=DATAZ_\RESOURCE\APPS\microsoft_brand_graphics.mif	APP_BITMAP_DIR\microsoft_brand_graphics.mif
 data=DATAZ_\RESOURCE\APPS\mail_for_exchange_brand_graphics.mif  APP_BITMAP_DIR\mail_for_exchange_brand_graphics.mif
+data=DATAZ_\RESOURCE\APPS\163_brand_graphics.mif	APP_BITMAP_DIR\163_brand_graphics.mif
+data=DATAZ_\RESOURCE\APPS\qq_brand_graphics.mif	        APP_BITMAP_DIR\qq_brand_graphics.mif
+data=DATAZ_\RESOURCE\APPS\sina_brand_graphics.mif	APP_BITMAP_DIR\sina_brand_graphics.mif
+data=DATAZ_\RESOURCE\APPS\126_brand_graphics.mif	APP_BITMAP_DIR\126_brand_graphics.mif
+data=DATAZ_\RESOURCE\APPS\sohu_brand_graphics.mif	APP_BITMAP_DIR\sohu_brand_graphics.mif
 
 // ECOM_PLUGIN( CFSMailMockupPlugin.dll, CFSMailMockupPlugin.rsc)
 

@@ -102,6 +102,8 @@ void CESMRViewerDescriptionField::InitializeL()
 void CESMRViewerDescriptionField::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
+    iDisableRedraw = ETrue;
+    
     TPtrC text = aEntry.Entry().DescriptionL ( );
     if( text.Length() == 0 )
         {
@@ -119,7 +121,6 @@ void CESMRViewerDescriptionField::InternalizeL( MESMRCalEntry& aEntry )
         iRichTextViewer->SetMargins( KMargin );
         iRichTextViewer->ApplyLayoutChangesL();
         }
-    iDisableRedraw = ETrue;
     }
 
 // ---------------------------------------------------------------------------

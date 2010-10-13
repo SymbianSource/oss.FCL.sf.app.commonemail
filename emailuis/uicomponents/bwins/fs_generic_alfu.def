@@ -306,5 +306,4 @@ EXPORTS
 	?VisibilityMode@CFsAlfScrollbarLayout@@QAE?AW4TFsScrollbarVisibility@@W4TFsScrollbar@@@Z @ 305 NONAME ; enum TFsScrollbarVisibility CFsAlfScrollbarLayout::VisibilityMode(enum TFsScrollbar)
 	?Visual@CFsControlBar@@QAEPAVCAlfVisual@@XZ @ 306 NONAME ; class CAlfVisual * CFsControlBar::Visual(void)
 	?Width@CFsControlBar@@QBEHXZ @ 307 NONAME ; int CFsControlBar::Width(void) const
-	?SetMarkingModeL@CFsTreeList@@QAEXH@Z @ 308 NONAME ; void CFsTreeList::SetMarkingModeL(int)
 

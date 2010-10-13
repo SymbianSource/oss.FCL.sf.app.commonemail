@@ -78,8 +78,6 @@ public: // Datatypes and definitions
         EESMRInfoFieldRecurrence,
         /** Priority field */
         EESMRInfoFieldPriority,
-        /** Privacy field */
-        EESMRInfoFieldPrivacy
         };
 
     /** Definition for meeting request method */
@@ -93,21 +91,12 @@ public: // Datatypes and definitions
         EMRMethodResponse
         };
 
-    enum TResponse
-        {     
-            EMrCmdResponseAccept,
-            EMrCmdResponseTentative,
-            EMrCmdResponseDecline
-        };
-
-    /** MFE Client Protocol indicates the sensitivity for a meeting request. */	
-    enum TCalSensitivity
-        {
-        EMRSensitivityNormal,
-        EMRSensitivityPersonal,
-        EMRSensitivityPrivate,
-        EMRSensitivityConfidential
-        };
+	enum TResponse
+		{     
+      		EMrCmdResponseAccept,
+			EMrCmdResponseTentative,
+			EMrCmdResponseDecline
+		};    
 
 public: // Destruction
 
@@ -335,20 +324,6 @@ public: // Interface
      * @exception KErrNotFound, if field cannot be fetched.
      */
     virtual TUint PriorityL() const = 0;
-
-    /**
-     * Sets MR privacy.
-     * @param aPrivacy MR privacy.
-     * @exception System wide error code.
-     */    
-    virtual void SetPrivacyL( TCalSensitivity aPrivacy ) = 0;
-        
-    /**
-     * Fetches MR privacy.
-     * @return MR privacy.
-     * @exception KErrNotFound, if field cannot be fetched.
-     */
-    virtual TCalSensitivity PrivacyL() const = 0;
     
     /**
      * Fetches meeting request attachments.

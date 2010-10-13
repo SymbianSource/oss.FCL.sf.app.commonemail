@@ -730,16 +730,10 @@ void CESMRView::SizeChanged()
                                 NMRLayoutManager::EMRLayoutMRNaviArrowRight );
                 TRect naviArrowRightRect( naviArrowRightLayoutRect.Rect() );
     
-                // Right arrow needs to be moved left the amount of
-                // possible toolbar width in landscape
-                TInt scrollWidth( 0 );
-                if( iScrollBar )
-                    {
-                    scrollWidth = iScrollBar->Rect().Width();
-                    }
-                
-                naviArrowRightRect.Move( scrollWidth, 0 );
-    
+                // Right arrow needs to be moved right the amount of
+                // stripe width in landscape
+                naviArrowRightRect.Move( iStripeRect.Width(), 0 );
+
                 iNaviArrowRight->SetRect( naviArrowRightRect );
                 }
             }

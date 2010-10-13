@@ -66,7 +66,6 @@ const TUint32 KFsTreeListItemAlwaysExtended =   0x0400;
 const TUint32 KFsTreeListItemManagedLayout =    0x0800;
 const TUint32 KFsTreeListItemHasMenu =          0x1000;
 const TUint32 KFsTreeListItemTextBold =         0x2000;
-const TUint32 KFsTreeListMarkingMode =          0x4000;
 
 
 const TInt KFsDefaultIndentation = 20;
@@ -268,6 +267,7 @@ public:
      */
     virtual void SetBackgroundTexture( const CAlfTexture& aTexture ) = 0;
 
+    // <cmail>
     /**
      * Sets item background brush. Ownership not transfered.
      * 
@@ -284,6 +284,7 @@ public:
      * @return ETrue if background brush is set, EFalse otherwise.
      */
     virtual TBool GetBackgroundBrush( CAlfBrush*& aBrush ) = 0;
+    // </cmail>
     
     /**
      * Returns background texture if it's set.
@@ -392,8 +393,7 @@ public:
     virtual void UpdateL( const MFsTreeItemData& aData,
                         TBool aFocused,
                         const TUint aLevel,
-                        CAlfTexture*& aMarkOnIcon,
-                        CAlfTexture*& aMarkOffIcon,
+                        CAlfTexture*& aMarkIcon,
                         CAlfTexture*& aMenuIcon,
                         const TUint aTimeout = 0,
                         TBool aUpdateData = ETrue) = 0;
@@ -449,8 +449,6 @@ public:
      * @param ETrue if item should always be in extended state.
      */
     virtual void SetAlwaysExtended( TBool aAlwaysExtended ) = 0;
-
-    virtual void SetMarkingMode( TBool aMarkingMode ) = 0;
     
     /**
      * This function returns wether an item is always in extended state.

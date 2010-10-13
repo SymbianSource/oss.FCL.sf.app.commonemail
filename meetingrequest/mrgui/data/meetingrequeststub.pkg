@@ -28,52 +28,145 @@
 :"Symbian"
 
 ; Meeting request
-""-"z:\resource\esmrgui.r*"
-""-"z:\resource\esmrtasks.r*"
-""-"z:\resource\esmrpolicies.r*"
-""-"z:\resource\esmralarminfo.r*"
-""-"z:\resource\esmragnversit2strings.r*"
-""-"z:\resource\esmrcasplugindata.r*"
+
+; mragnversit2 plugin
 ""-"z:\sys\bin\esmragnversit2.dll"
 ""-"z:\resource\plugins\esmragnversit2.r*"
-""-"z:\resource\plugins\esmricalviewer.r*"
-""-"z:\sys\bin\esmrfieldbuilderplugin.dll"
-""-"z:\resource\plugins\esmrfieldbuilderplugin.r*"
-""-"z:\sys\bin\esmrfieldbuilderpluginextension.dll"
-""-"z:\resource\plugins\esmrfieldbuilderpluginextension.r*"
+""-"z:\resource\esmragnversit2strings.r*"
+
+
+; mrbcplugin plugin
+""-"z:\sys\bin\mrbcplugin.dll"
+""-"z:\resource\plugins\mrbcplugin.r*"
+; Sub bcmrevent plugin
+""-"z:\sys\bin\bcmrevent.dll"
+""-"z:\resource\plugins\bcmrevent.r*"
+""-"z:\resource\bcmreventplugin.r*"
+
+
+; mrcalremoteattachment component
+""-"z:\sys\bin\remoteattachment.dll"
+
+
+; mrcasplugin plugin
 ""-"z:\sys\bin\esmrcasplugin.dll"
 ""-"z:\resource\plugins\esmrcasplugin.r*"
-""-"z:\sys\bin\esmricalviewer.dll"
-""-"z:\sys\bin\esmrviewer.dll"
-""-"z:\sys\bin\esmrutils.dll"
-""-"z:\sys\bin\esmrentry.dll"
-""-"z:\sys\bin\esmrpolicy.dll"
-""-"z:\sys\bin\esmrcommon.dll"
-""-"z:\sys\bin\esmrdb.dll"
-""-"z:\sys\bin\esmrservices.dll"
-""-"z:\sys\bin\esmrgui.dll"
-""-"z:\sys\bin\esmrtasks.dll"
-""-"z:\sys\bin\esmrversit2.dll"
-""-"z:\sys\bin\esmrfieldbuildercommon.dll"
-""-"z:\sys\bin\esmrfieldevent.dll"
-""-"z:\resource\apps\esmrgui.mif"
+""-"z:\resource\esmrcasplugindata.r*"
 ""-"z:\resource\apps\esmrcasplugin.mif"
 
-; esmrviewer calendar plug-in 
-""-"z:\sys\bin\esmrviewercalplugin.dll"
-""-"z:\resource\plugins\esmrviewercalplugin.r*"
 
-; esmrutils calendar plug-in 
-""-"z:\sys\bin\esmrutilscalplugin.dll"
-""-"z:\resource\plugins\esmrutilscalplugin.rsc"
+; mrcmailremoteattachmentplugin plugin
+""-"z:\sys\bin\mrcmailremoteattachmentplugin.dll"
+""-"z:\resource\plugins\mrcmailremoteattachmentplugin.r*"
 
-; Location integration plugin
+
+; mrcommon component
+""-"z:\sys\bin\esmrcommon.dll"
+
+
+; mrdb component
+""-"z:\sys\bin\esmrdb.dll"
+
+
+; mrentry component
+""-"z:\sys\bin\esmrentry.dll"
+
+
+; mrgui component
+""-"z:\sys\bin\esmrgui.dll"
+""-"z:\resource\esmrgui.r*"
+""-"z:\resource\apps\esmrgui.mif"
+; Sub mrfieldbuildercommon component
+""-"z:\sys\bin\esmrfieldbuildercommon.dll"
+; Sub mrfieldbuilderplugin plugin
+""-"z:\sys\bin\esmrfieldbuilderplugin.dll"
+""-"z:\resource\plugins\esmrfieldbuilderplugin.r*"
+; Sub mrfieldbuilderpluginextension plugin
+""-"z:\sys\bin\esmrfieldbuilderpluginextension.dll"
+""-"z:\resource\plugins\esmrfieldbuilderpluginextension.r*"
+; Sub mrfieldevent component
+""-"z:\sys\bin\esmrfieldevent.dll"
+; Sub mrlocationplugin plugin
 ""-"z:\sys\bin\esmrlocationplugin.dll"
 ""-"z:\resource\plugins\esmrlocationplugin.r*"
 
-; Location URL Parser plugin
+
+; mrguicommon component
+""-"z:\sys\bin\mrguicommon.dll"
+
+
+; mricalviewer plugin
+""-"z:\sys\bin\esmricalviewer.dll"
+""-"z:\resource\plugins\esmricalviewer.r*"
+
+
+; mrmbutilsextension plugin
+""-"z:\sys\bin\mrmbutilsextension.dll"
+""-"z:\resource\plugins\mrmbutilsextension.r*"
+
+
+; mrpolicy component
+""-"z:\sys\bin\esmrpolicy.dll"
+; Sub mrcalentryresolver plugin
+""-"z:\sys\bin\mrcalentryresolver.dll"
+""-"z:\resource\plugins\mrcalentryresolver.r*"
+""-"z:\resource\bccaleventpolicies.r*"
+; Sub mrentryresolver plugin
+""-"z:\sys\bin\mrentryresolver.dll"
+""-"z:\resource\plugins\mrentryresolver.r*"
+""-"z:\resource\esmrpolicies.r*"
+
+
+; mrprocessor component
+; Sub mrcaleventplugin plugin
+""-"z:\sys\bin\mrcaleventplugin.dll"
+""-"z:\resource\plugins\mrcaleventplugin.r*"
+""-"z:\resource\mrcaleventdata.r*"
+; Sub mrprocessorplugin plugin
+""-"z:\sys\bin\mrprocessorplugin.dll"
+""-"z:\resource\plugins\mrprocessorplugin.r*"
+
+
+; mrservices component
+""-"z:\sys\bin\esmrservices.dll"
+""-"z:\resource\esmralarminfo.r*"
+
+
+; mrtasks component
+""-"z:\sys\bin\esmrtasks.dll"
+""-"z:\resource\esmrtasks.r*"
+; Sub mrcaleventtaskplugin plugin
+""-"z:\sys\bin\mrcaleventtaskplugin.dll"
+""-"z:\resource\plugins\mrcaleventtaskplugin.r*"
+; Sub mrtaskplugin plugin
+""-"z:\sys\bin\mrtaskplugin.dll"
+""-"z:\resource\Plugins\mrtaskplugin.r*"
+
+
+; mrurlparserplugin plugin
 ""-"z:\sys\bin\esmrurlparserplugin.dll"
 ""-"z:\resource\plugins\esmrurlparserplugin.r*"
-""-"z:\resource\esmrurlparserplugindata.r*"
+
+
+; mrutils component
+""-"z:\sys\bin\esmrutils.dll"
+
+
+; mrutilscalplugin plugin
+""-"z:\sys\bin\esmrutilscalplugin.dll"
+""-"z:\resource\plugins\esmrutilscalplugin.r*"
+
+
+; mrversit2 component
+""-"z:\sys\bin\esmrversit2.dll"
+
+
+; mrviewer component
+""-"z:\sys\bin\esmrviewer.dll"
+
+
+; mrviewercalplugin plugin
+""-"z:\sys\bin\esmrviewercalplugin.dll"
+""-"z:\resource\plugins\esmrviewercalplugin.r*"
 
 ; Meeting request helps

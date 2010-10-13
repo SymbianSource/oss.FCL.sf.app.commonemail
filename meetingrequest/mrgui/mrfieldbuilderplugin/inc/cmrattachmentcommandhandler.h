@@ -72,6 +72,12 @@ public: // Interface
             const CESMRRichTextLink& aSelectedLink );
 
     /**
+     * Check if SaveAllAttachments is in progress
+     * @return ETrue, if iSaveAllAttachmentsCommand is ETrue
+     */
+    TBool IsSaveAllAttachmentsInProgress( );
+    
+    /**
      * Tests whether curerntly selected link is remote or not.
      * @param aSelectedLink Reference to selected link.
      * @return ETrue, if currently selected link is remote attachment
@@ -169,6 +175,10 @@ private: // Data
     CDocumentHandler* iDocHandler;
     /// Ref: Event queue
     MESMRFieldEventQueue& iEventQueue;
+    /// Record attachment index when saving an attachment
+    TInt iAttachmentIndex;
+    /// Flag to indicate if save all command is in question 
+    TBool iSaveAllAttachmentsCommand;
     };
 
 #endif // CMRATTACHMENTCOMMANDHANDLER_H

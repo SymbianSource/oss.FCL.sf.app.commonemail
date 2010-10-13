@@ -875,12 +875,13 @@ TBool CMRListPane::HiddenFocus()
         TInt listTopY( listPaneRect.iTl.iY );
         TInt listBottomY( listPaneRect.iBr.iY );
 
-        if ( ( fieldBottomY > listBottomY ||
-                fieldTopY < listTopY ) &&
+        if ( ( fieldTopY > listBottomY ||
+                fieldBottomY < listTopY ) &&
                     focusedFieldRect.Height() < listPaneRect.Height() )
             {
             hiddenFocus = ETrue;
             }
+
         }
     return hiddenFocus;
     }

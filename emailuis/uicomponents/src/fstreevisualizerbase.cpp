@@ -24,6 +24,7 @@
 #include <centralrepository.h>
 
 //////TOOLKIT INCLUDES
+// <cmail> SF
 #include <alf/alfstatic.h>
 #include <alf/alfownership.h>
 #include <alf/alfevent.h>
@@ -49,6 +50,7 @@
 //visuals
 #include <alf/alfvisual.h>
 #include <alf/alfimagevisual.h>
+// </cmail>
 
 
 //////PROJECT INCLUDES
@@ -362,6 +364,8 @@ void TWorld::GetItemsL(RArray<TFsTreeItemId>& aItems, TInt aY, TInt aHeight,
     aItems.Reset();
     TInt i(0);
     aOffset = 0;
+    aBeginIndex = KErrNotFound;
+    
     if (aY > Height())
         {
         aHeight = -1;
@@ -1062,40 +1066,20 @@ TBool CFsTreeVisualizerBase::IsCustomPageDownKey(TInt aKeyCode)
 //  Sets icon for a mark sign.
 // ---------------------------------------------------------------------------
 //
-void CFsTreeVisualizerBase::SetMarkOnIcon(CAlfTexture& aMarkOnIcon)
+void CFsTreeVisualizerBase::SetMarkIcon(CAlfTexture& aMarkIcon)
     {
     FUNC_LOG;
-    iMarkOnIcon = &aMarkOnIcon;
-    }
-
-// ---------------------------------------------------------------------------
-//  Sets icon for a unmark sign.
-// ---------------------------------------------------------------------------
-//
-void CFsTreeVisualizerBase::SetMarkOffIcon(CAlfTexture& aMarkOffIcon)
-    {
-    FUNC_LOG;
-    iMarkOffIcon = &aMarkOffIcon;
+    iMarkIcon = &aMarkIcon;
     }
 
 // ---------------------------------------------------------------------------
 //  Returns icon used to mark items.
 // ---------------------------------------------------------------------------
 //
-CAlfTexture* CFsTreeVisualizerBase::MarkOnIcon()
+CAlfTexture* CFsTreeVisualizerBase::MarkIcon()
     {
     FUNC_LOG;
-    return iMarkOnIcon;
-    }
-
-// ---------------------------------------------------------------------------
-//  Returns icon used to unmark items.
-// ---------------------------------------------------------------------------
-//
-CAlfTexture* CFsTreeVisualizerBase::MarkOffIcon()
-    {
-    FUNC_LOG;
-    return iMarkOffIcon;
+    return iMarkIcon;
     }
 
 // ---------------------------------------------------------------------------
@@ -1127,7 +1111,7 @@ void CFsTreeVisualizerBase::MarkItemL(const TFsTreeItemId aItemId,
         data = &(iTreeData->ItemData(aItemId));
 
         vis->UpdateL(*data, IsItemFocused(aItemId) && IsFocusShown(),
-                iTreeData->Level(aItemId), iMarkOnIcon, iMarkOffIcon, iMenuIcon);
+                iTreeData->Level(aItemId), iMarkIcon, iMenuIcon);
         }
     }
 
@@ -1287,64 +1271,12 @@ void CFsTreeVisualizerBase::SetFocusedL(const TBool aFocused)
                             MakeSelectorVisibleL(EFalse);
                             visualizer->UpdateL(*data, EFalse,
                                     iTreeData->Level(iFocusedItem),
-                                    iMarkOnIcon, iMarkOffIcon, 
-                                    iMenuIcon, iCurrentScrollSpeed);
+                                    iMarkIcon, iMenuIcon, iCurrentScrollSpeed);
                             }
                         }
                     }
                 }
             iListLayout->UpdateChildrenLayout();
-            }
-        }
-    }
-
-// ---------------------------------------------------------------------------
-//  The functions sets wether all item in the list should be always in
-//  extended state or in normal state.
-// ---------------------------------------------------------------------------
-//
-void CFsTreeVisualizerBase::SetMarkingModeL( TBool aMarkingMode )
-    {
-    FUNC_LOG;
-    // Do not change this to: IsMarkingMode() != aAlwaysExtended, because
-    // it will not work. TBool is defined as TInt and thus this comparison
-    // comes out as TInt != TInt, which always evaluates true in this case.
-    if ( ( IsMarkingMode() && !aMarkingMode ) || 
-         ( !IsMarkingMode() && aMarkingMode ) )
-        {
-        iFlags.Assign(EMarkingMode, aMarkingMode);
-        TFsTreeIterator treeIter(
-                iTreeData->Iterator(KFsTreeRootID, KFsTreeRootID));
-        while (treeIter.HasNext())
-            {
-            TFsTreeItemId itemId(treeIter.Next());
-            if (itemId != KFsTreeNoneID && !iTreeData->IsNode(itemId))
-                {
-                MFsTreeItemVisualizer* itemviz(iTreeData->ItemVisualizer(itemId));
-                ApplyListSpecificValuesToItem(itemviz);
-                }
-            }
-            const TBool isUpdating(iWorld.IsUpdating());
-        if (!isUpdating)
-            {
-            iWorld.BeginUpdate();
-            }
-        iWorld.RemoveAllL();
-        treeIter = iTreeData->Iterator(KFsTreeRootID, KFsTreeRootID,
-                KFsTreeIteratorSkipCollapsedFlag);
-        while (treeIter.HasNext())
-            {
-            TFsTreeItemId itemId(treeIter.Next());
-            if (itemId != KFsTreeNoneID)
-                {
-                MFsTreeItemVisualizer* itemviz(iTreeData->ItemVisualizer(itemId));
-                iWorld.AppendL(itemId, itemviz->Size());
-                }
-            }
-        iViewPort.ClearCache();
-        if (!isUpdating)
-            {
-            iWorld.EndUpdateL();
             }
         }
     }
@@ -1780,7 +1712,7 @@ void CFsTreeVisualizerBase::SetFocusedItemL( const TFsTreeItemId aItemId,
         if ( visualizer )
             {
             visualizer->UpdateL( iTreeData->ItemData( iFocusedItem ), EFalse,
-            		iTreeData->Level( iFocusedItem ), iMarkOnIcon, iMarkOffIcon, iMenuIcon, 0 );
+            		iTreeData->Level( iFocusedItem ), iMarkIcon, iMenuIcon, 0 );
             }
 
         iFocusedItem = aItemId;
@@ -1791,8 +1723,7 @@ void CFsTreeVisualizerBase::SetFocusedItemL( const TFsTreeItemId aItemId,
     if ( visualizer )
         {
         visualizer->UpdateL( iTreeData->ItemData( iFocusedItem ), IsFocusShown(),
-                             iTreeData->Level( iFocusedItem ), iMarkOnIcon, 
-                             iMarkOffIcon, iMenuIcon, 0 );
+                iTreeData->Level( iFocusedItem ), iMarkIcon, iMenuIcon, 0 );
         }
 
     if ( iFocusedItem != KFsTreeNoneID )
@@ -1841,6 +1772,7 @@ TBool CFsTreeVisualizerBase::IsFocused(const TFsTreeItemId aItemId) const
 // Sets an item as first visible one in the list.
 // ---------------------------------------------------------------------------
 //
+// <cmail>
 void CFsTreeVisualizerBase::SetFirstVisibleItemL(const TFsTreeItemId /*aItemId*/)
     {
     FUNC_LOG;
@@ -1856,6 +1788,9 @@ TFsTreeItemId CFsTreeVisualizerBase::FirstVisibleItem()
     TFsTreeItemId retId = KFsTreeNoneID;
     if (iVisibleItems.Count())
         {
+        // <cmail>
+        //        TRAP_IGNORE( ClearVisibleItemsListL(EFalse) );
+        // </cmail>
         retId = iVisibleItems[0];
         }
     else
@@ -1889,6 +1824,7 @@ MFsTreeNodeVisualizer* CFsTreeVisualizerBase::RootNodeVisualizer()
 // Displays the list.
 // ---------------------------------------------------------------------------
 //
+// <cmail>
 void CFsTreeVisualizerBase::ShowListL(const TBool aFadeIn,
         const TBool aSlideIn)
     {
@@ -1897,8 +1833,7 @@ void CFsTreeVisualizerBase::ShowListL(const TBool aFadeIn,
     if (iTreeData->Count() == 0)
         {
         iRootVisualizer->ShowL(*iRootLayout);
-        iRootVisualizer->UpdateL(*iRootData, EFalse, 0, iMarkOnIcon, 
-                                  iMarkOffIcon, iMenuIcon);
+        iRootVisualizer->UpdateL(*iRootData, EFalse, 0, iMarkIcon, iMenuIcon);
         }
     else
         {
@@ -1913,7 +1848,7 @@ void CFsTreeVisualizerBase::ShowListL(const TBool aFadeIn,
 			if ( visualizer )
 				{
 	        	visualizer->UpdateL(iTreeData->ItemData(itemId), itemFocused,
-	                iTreeData->Level(itemId), iMarkOnIcon, iMarkOffIcon, iMenuIcon,
+	                iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
 	                0);
 				}
             }
@@ -1990,6 +1925,7 @@ void CFsTreeVisualizerBase::ShowListL(const TBool aFadeIn,
 
     UpdateScrollBarL();
     }
+// </cmail>
 
 // ---------------------------------------------------------------------------
 // The function assures that the list view is correct.
@@ -2592,7 +2528,7 @@ void CFsTreeVisualizerBase::UpdateItemL(const TFsTreeItemId aItemId)
             vis->UpdateL(iTreeData->ItemData(aItemId),
                     IsItemFocused(aItemId) && IsFocusShown(),
                     iTreeData->Level(aItemId),
-                    iMarkOnIcon, iMarkOffIcon, iMenuIcon, 0);
+                    iMarkIcon, iMenuIcon, 0);
             }
         }
     }
@@ -2658,16 +2594,6 @@ TBool CFsTreeVisualizerBase::IsItemsAlwaysExtended()
     {
     FUNC_LOG;
     return iFlags.IsSet(EItemsAlwaysExtended);
-    }
-
-// ---------------------------------------------------------------------------
-//  The function returns if marking mode is on or off
-// ---------------------------------------------------------------------------
-//
-TBool CFsTreeVisualizerBase::IsMarkingMode()
-    {
-    FUNC_LOG;
-    return iFlags.IsSet(EMarkingMode);
     }
 
 // ---------------------------------------------------------------------------
@@ -2806,7 +2732,9 @@ EXPORT_C void CFsTreeVisualizerBase::SetWatermarkL(CAlfTexture* aTexture)
             iWatermark
                     = CFsWatermark::NewL(*iOwnerControl, *iWatermarkLayout);
             }
+        // <cmail>
         iWatermark->SetWatermarkTextureL(*aTexture);
+        // </cmail>
         }
     else
         {
@@ -2918,8 +2846,8 @@ void CFsTreeVisualizerBase::TreeEventL(
             if (!iWorld.IsUpdating())
                 {
                 iRootVisualizer->ShowL(*iRootLayout);
-                iRootVisualizer->UpdateL(*iRootData, EFalse, 0, iMarkOnIcon,
-                        iMarkOffIcon, iMenuIcon);
+                iRootVisualizer->UpdateL(*iRootData, EFalse, 0, iMarkIcon,
+                        iMenuIcon);
                 }
             iVisibleItems.Reset();
             iWorld.RemoveAllL();
@@ -2941,7 +2869,7 @@ void CFsTreeVisualizerBase::TreeEventL(
                 {
                 visualizer->UpdateL(iTreeData->ItemData(itemId),
                         IsItemFocused(itemId), iTreeData->Level(itemId),
-                        iMarkOnIcon, iMarkOffIcon, iMenuIcon, 0);
+                        iMarkIcon, iMenuIcon, 0);
                 }
             }
             break;
@@ -3001,8 +2929,7 @@ void CFsTreeVisualizerBase::RefreshListViewL()
     if (iTreeData->Count() == 0)
         {
         iRootVisualizer->ShowL(*iRootLayout);
-        iRootVisualizer->UpdateL(*iRootData, EFalse, 0, iMarkOnIcon, 
-                iMarkOffIcon, iMenuIcon);
+        iRootVisualizer->UpdateL(*iRootData, EFalse, 0, iMarkIcon, iMenuIcon);
         }
     else
         {
@@ -3338,16 +3265,20 @@ void CFsTreeVisualizerBase::FadeEffectEvent(
 
     if (iVisualizationState == EFsTreeVisible && iVisualizerObserver)
         {
-        TRAP_IGNORE(iVisualizerObserver->TreeVisualizerEventL(
+            // <cmail> Touch
+            TRAP_IGNORE(iVisualizerObserver->TreeVisualizerEventL(
                             MFsTreeVisualizerObserver::EFsTreeListVisualizerShown,
                             KFsTreeNoneID ));
+        // </cmail>
         }
 
     if (iVisualizationState == EFsTreeHidden && iVisualizerObserver)
         {
-        TRAP_IGNORE(iVisualizerObserver->TreeVisualizerEventL(
+            // <cmail> Touch
+            TRAP_IGNORE(iVisualizerObserver->TreeVisualizerEventL(
                             MFsTreeVisualizerObserver::EFsTreeListVisualizerHidden,
                             KFsTreeNoneID ));
+        // </cmail>
         }
     }
 
@@ -3396,7 +3327,8 @@ void CFsTreeVisualizerBase::SlideEffectEvent(
 
     if (iVisualizationState == EFsTreeVisible && iVisualizerObserver)
         {
-        TRAP_IGNORE(iVisualizerObserver->TreeVisualizerEventL(
+            // <cmail> Touch
+            TRAP_IGNORE(iVisualizerObserver->TreeVisualizerEventL(
                             MFsTreeVisualizerObserver::EFsTreeListVisualizerShown,
                             KFsTreeNoneID ));
 
@@ -3404,9 +3336,10 @@ void CFsTreeVisualizerBase::SlideEffectEvent(
 
     if (iVisualizationState == EFsTreeHidden && iVisualizerObserver)
         {
-        TRAP_IGNORE(iVisualizerObserver->TreeVisualizerEventL(
+            TRAP_IGNORE(iVisualizerObserver->TreeVisualizerEventL(
                             MFsTreeVisualizerObserver::EFsTreeListVisualizerHidden,
                             KFsTreeNoneID ));
+        // </cmail>
         }
     }
 
@@ -3862,8 +3795,7 @@ void CFsTreeVisualizerBase::UpdateScrollBarL(const TInt /*aTimeout*/)
                 {
                 visualizer->UpdateL(iTreeData->ItemData(itemId),
 					IsItemFocused(itemId) && IsFocusShown(),
-                    iTreeData->Level(itemId), iMarkOnIcon, iMarkOffIcon,
-                    iMenuIcon, 0, EFalse);
+                    iTreeData->Level(itemId), iMarkIcon, iMenuIcon, 0, EFalse);
                 }
             }
         UpdateSelectorVisualL();
@@ -3933,6 +3865,9 @@ void CFsTreeVisualizerBase::SetBorderL(const TBool aVisible,
         border->SetLayer(EAlfBrushLayerBackground);
 
         border->SetBorders(-8, -8, -8, -8);
+        //<cmail>
+        // layout values needed here (not: only used from FS action menu)
+        //</cmail>
         iBorderLayout->SetPadding(TPoint(5, 5));
 
         if (iBorderLayout->Brushes()->Count() > 0)
@@ -4614,8 +4549,6 @@ void CFsTreeVisualizerBase::ApplyListSpecificValuesToItem(
     FUNC_LOG;
     //list can have all items in extended or in a normal state
     aItemVis->SetAlwaysExtended(IsItemsAlwaysExtended());
-    
-    aItemVis->SetMarkingMode(IsMarkingMode());
 
     //global indentation in pixels for a list component
     aItemVis->SetIndentation(iLevelIndentation);
@@ -4716,6 +4649,8 @@ TBool CFsTreeVisualizerBase::IsItemFocused(TFsTreeItemId aItemId) const
     return isFocused;
     }
 
+// <cmail> "Base class modifications for using touch"
+
 // ---------------------------------------------------------------------------
 //  C++ constructor.
 // ---------------------------------------------------------------------------
@@ -4761,6 +4696,7 @@ CFsTreeVisualizerBase::CFsTreeVisualizerBase( CAlfControl* aOwnerControl,
     iFlags.Assign( EPopupMode, aPopUpMode );
     iFlags.Set( EExpandCollapseOnLongTap );
     }
+// </cmail>
 
 // ---------------------------------------------------------------------------
 //  Second phase constructor.
@@ -4974,6 +4910,7 @@ void CFsTreeVisualizerBase::WorldUpdatedL(const TWorld& /*aWorld*/)
         {
         UpdatePhysicsL();
         }
+    UpdateScrollBarL();
     }
 
 // ---------------------------------------------------------------------------
@@ -5019,8 +4956,8 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort, TUpdatedByPhy
     											itemId);
     			visualizer->UpdateL(iTreeData->ItemData(itemId),
     							IsItemFocused(itemId) && IsFocusShown(),
-    							iTreeData->Level(itemId), iMarkOnIcon, 
-    							iMarkOffIcon, iMenuIcon, 0);
+    							iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
+    							0);
     			}
     		}
     	CleanupStack::PopAndDestroy();
@@ -5076,7 +5013,7 @@ void CFsTreeVisualizerBase::ViewPortUpdatedL(TViewPort& aViewPort, TUpdatedByPhy
             visualizerLayout.SetSize(tpItemSize);
         	visualizer->UpdateL(iTreeData->ItemData(itemId),
                 IsItemFocused(itemId) && IsFocusShown(),
-                iTreeData->Level(itemId), iMarkOnIcon, iMarkOffIcon, iMenuIcon,
+                iTreeData->Level(itemId), iMarkIcon, iMenuIcon,
                 0);
             visualizerLayout.PropertySetIntegerL(KPropertyItemId(), itemId);
             visualizerLayout.Brushes()->AppendL(iBorderBrush,
@@ -5533,3 +5470,5 @@ TBool CFsTreeVisualizerBase::IsFocusShown()
     return ( iTouchPressed || iFocusVisible ) && iFlags.IsClear( EListPanning );
     }
 
+
+// </cmail>

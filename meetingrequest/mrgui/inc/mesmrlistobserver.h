@@ -104,6 +104,12 @@ public:
      * @return TRect, rect of the viewable area.
      */
     virtual TRect ViewableAreaRect() = 0;
+
+    /**
+     * Requests list observer to redraw given field.
+     * @param aField the field to redraw
+     */
+    virtual void RedrawField( CESMRField& aField ) = 0;
     };
 
 #endif // MESMRLISTOBSERVER_H

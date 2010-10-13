@@ -80,16 +80,6 @@ private:
         // This is final commit, no more incoming changes
         EFinal
         };
-
-     // can't close view if ChildDoActivateL()
-     enum TChildActivationState 
-         {
-         EChildActivationDeactivated,
-         EChildActivationStarted,
-         EChildActivationError,  // error during activation
-         EChildActivationExitRequired, // activation ended, exit the view
-         EChildActivationProcessed
-         };
         
 public:   // constructors and destructor
 
@@ -168,10 +158,6 @@ public: // from CFsEmailUiViewBase
     */
     void HandleDynamicVariantSwitchL( 
             CFsEmailUiViewBase::TDynamicSwitchType aType );
-    /**  
-    * to hide or show CAlfVisuals ( used for activation or deactivation )
-    */             
-    virtual void FadeOut( TBool aDirectionOut );
         
 public: // from MAlfActionObserver
     	
@@ -536,7 +522,6 @@ private: // new functions
     // Gets button from toolbar extension.
     CAknButton* Button( TInt aCmdId, 
         CAknToolbarExtension* aExtension = NULL );
-    TBool WLANConnectionActive();
 
 private:   // Constructors and destructor
 
@@ -734,8 +719,6 @@ private: // data
      * Flag indicating that adding attachment dialog is opened.
      */
     TBool iAddingAttachmentDialogOpened;
-    
-    TChildActivationState iChildActivationState;
     };
 
 /**

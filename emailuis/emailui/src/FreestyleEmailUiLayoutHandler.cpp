@@ -1101,27 +1101,6 @@ TInt CFSEmailUiLayoutHandler::SearchLookingGlassIconSize() const
     }
 
 // -----------------------------------------------------------------------------
-// CFSEmailUiLayoutHandler::SearchMarkIconSize
-// -----------------------------------------------------------------------------
-TInt CFSEmailUiLayoutHandler::SearchMarkIconSize() const
-    {
-    FUNC_LOG;
-    TRect rect;
-    TRect iconRowParent(0,0,0,0);
-    TInt size;
-    
-    CFsLayoutManager::LayoutMetricsRect(
-        iconRowParent,
-        CFsLayoutManager::EFsLmListSingleDycRowPaneG1,
-        rect,
-        2);
-    
-    size = rect.iBr.iY - rect.iTl.iY; 
-    
-    return size;
-    }
-
-// -----------------------------------------------------------------------------
 // CFSEmailUiLayoutHandler::statusPaneIconSize
 // -----------------------------------------------------------------------------
 TSize CFSEmailUiLayoutHandler::statusPaneIconSize() const

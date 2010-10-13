@@ -12,10 +12,14 @@
 * Contributors:
 *
 *  Description : A visualizer for data items with plain text.
-*  Version     : %version: tr1sido#18 %
+*  Version     : %version: tr1sido#17 %
 *
 */
 
+
+//<cmail> removed __FS_ALFRED_SUPPORT flag
+//#include <fsconfig.h>
+//</cmail> removed __FS_ALFRED_SUPPORT flag
 #include "emailtrace.h"
 #include <AknsUtils.h>
 #include <touchlogicalfeedback.h>
@@ -26,7 +30,7 @@
 #include "fslayoutmanager.h"
 #include "fstextstylemanager.h"
 #include "fsmarqueeclet.h"
-
+// <cmail> SF
 #include <alf/alfanchorlayout.h>
 #include <alf/alfimagevisual.h>
 #include <alf/alfviewportlayout.h>
@@ -34,8 +38,10 @@
 #include <alf/alfimage.h>
 #include <alf/alfenv.h>
 #include <alf/alfcontrol.h>
+
 #include <alf/alfevent.h>
 #include <alf/alfmappingfunctions.h>
+// </cmail>
 
 // ======== MEMBER FUNCTIONS ========
 
@@ -266,7 +272,7 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
     
     CFsLayoutManager::TFsLayoutMetrics
         mainIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG1,
-        markIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG1,
+        markIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG4,
         menuIconMetrics = CFsLayoutManager::EFsLmListSingleDycRowPaneG3,
         sizeMetrics     = CFsLayoutManager::EFsLmListSingleDycRowPane,
         exSizeMetrics   = CFsLayoutManager::EFsLmListSingleFsDycPane,
@@ -337,7 +343,7 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
 
         if (aData->IsIconSet())
             {
-            if ( iFlags & KFsTreeListMarkingMode )
+            if (iFlags & KFsTreeListItemMarked)
                 {
                 if ((iFlags & KFsTreeListItemHasMenu)
                         && (iFlags & KFsTreeListItemFocused))
@@ -396,12 +402,12 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
                     {
                     //mainIcon + markIcon
                     mainIconMetrics =
-                        CFsLayoutManager::EFsLmListSingleDycRowPaneG2;
-                    mainIconVariety = 2;
-                    markIconMetrics =
                         CFsLayoutManager::EFsLmListSingleDycRowPaneG1;
-                    markIconVariety = 2;
-                    firstLineTextParentVariety = 2;
+                    mainIconVariety = 4;
+                    markIconMetrics =
+                        CFsLayoutManager::EFsLmListSingleDycRowPaneG4;
+                    markIconVariety = 3;
+                    firstLineTextParentVariety = 4;
                     if (firstLineTextFields==1)
                         {
                         firstLineTextMetrics[0] =
@@ -412,10 +418,10 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
                         {
                         firstLineTextMetrics[0] =
                             CFsLayoutManager::EFsLmListSingleDycRowTextPaneT1;
-                        firstLineTextVarieties[0] = 11;
+                        firstLineTextVarieties[0] = 13;
                         firstLineTextMetrics[1] =
                             CFsLayoutManager::EFsLmListSingleDycRowTextPaneT2;
-                        firstLineTextVarieties[1] = 2;
+                        firstLineTextVarieties[1] = 4;
                         }
                     }
                 }
@@ -646,8 +652,10 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
                 secondLineTextVariety = 8;
                 }
             }
+        //<cmail> ???
         thirdLineTextMetrics = CFsLayoutManager::EFsLmListSingleDycRowTextPaneT1;
         thirdLineTextVariety = 4;
+        //</cmail>
         }
     else
         {
@@ -1358,50 +1366,51 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
             }
         }
 
-    if ( iFlags & KFsTreeListMarkingMode && iIconMark )
-        {       
-
-        TRect iconRowParent = currentSize;        
-        if (markIconRow > 0)
+    if ( IsMarked() && iIconMarked )
+        {
+        if (iIconMarked)
             {
-            CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, iconRowParent, markIconRow, markIconRow);
+            TRect iconRowParent = currentSize;
+            if (markIconRow > 0)
+                {
+                CFsLayoutManager::LayoutMetricsRect(currentSize, CFsLayoutManager::EFsLmListSingleDycRowPane, iconRowParent, markIconRow, markIconRow);
+                }
+            CFsLayoutManager::LayoutMetricsRect(
+                    iconRowParent,
+                    markIconMetrics,
+                    rect,
+                    markIconVariety);
+            tpMarkIconTl.SetTarget(TAlfRealPoint(rect.iTl));
+            tpMarkIconBr.SetTarget(TAlfRealPoint(rect.iBr));
+
+            TInt iconMarkedVisIndex =
+                                 iLayout->FindVisual(iIconMarked);
+            if ( iconMarkedVisIndex != KErrNotFound )
+                {
+                tpMarkIconTl.SetStyle(EAlfTimedValueStyleSineWave);
+                iLayout->SetAnchor(EAlfAnchorTopLeft,
+                    iconMarkedVisIndex,
+                    EAlfAnchorOriginLeft,EAlfAnchorOriginTop,
+                    EAlfAnchorMetricAbsolute,EAlfAnchorMetricAbsolute,
+                    tpMarkIconTl );
+                tpMarkIconBr.SetStyle(EAlfTimedValueStyleSineWave);
+                iLayout->SetAnchor(EAlfAnchorBottomRight,
+                    iconMarkedVisIndex,
+                    EAlfAnchorOriginLeft,EAlfAnchorOriginTop,
+                    EAlfAnchorMetricAbsolute,EAlfAnchorMetricAbsolute,
+                    tpMarkIconBr );
+                }
             }
-        CFsLayoutManager::LayoutMetricsRect(
-            iconRowParent,
-            markIconMetrics,
-            rect,
-            markIconVariety);
-
-        tpMarkIconTl.SetTarget(TAlfRealPoint(rect.iTl));			
-        tpMarkIconBr.SetTarget(TAlfRealPoint(rect.iBr));
-
-        TInt iconMarkedVisIndex = iLayout->FindVisual(iIconMark);
-
-        if ( iconMarkedVisIndex != KErrNotFound )
-            {
-            tpMarkIconTl.SetStyle(EAlfTimedValueStyleSineWave);
-            iLayout->SetAnchor(EAlfAnchorTopLeft,
-                iconMarkedVisIndex,
-                EAlfAnchorOriginLeft,EAlfAnchorOriginTop,
-                EAlfAnchorMetricAbsolute,EAlfAnchorMetricAbsolute,
-                tpMarkIconTl );
-            tpMarkIconBr.SetStyle(EAlfTimedValueStyleSineWave);
-            iLayout->SetAnchor(EAlfAnchorBottomRight,
-                iconMarkedVisIndex,
-                EAlfAnchorOriginLeft,EAlfAnchorOriginTop,
-                EAlfAnchorMetricAbsolute,EAlfAnchorMetricAbsolute,
-                tpMarkIconBr );
- 	        opacity.SetValueNow(1.0f);
-            iIconMark->SetOpacity(opacity);							
-            }
+        opacity.SetValueNow(1.0f);
+        iIconMarked->SetOpacity(opacity);
         }
     else
         {
-        if (iIconMark)
-            {
-            opacity.SetValueNow(0.0f);
-            iIconMark->SetOpacity(opacity);
-            }
+        if (iIconMarked)
+        	{
+        	opacity.SetValueNow(0.0f);
+        	iIconMarked->SetOpacity(opacity);
+        	}
         }
 
     if ( iPreviewPaneTextVisual )
@@ -1441,6 +1450,7 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateLayout(
 
         }
     iLayout->UpdateChildrenLayout();
+    // </cmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -1496,16 +1506,17 @@ void CFsTreePlainTwoLineItemVisualizer::ShowL( CAlfLayout& aParentLayout,
             iSecondaryTextVisual->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 
-        if (!iIconMark)
+        if (!iIconMarked)
             {
-            iIconMark = CAlfImageVisual::AddNewL( iOwnerControl, iLayout );
-            iIconMark->SetScaleMode( CAlfImageVisual::EScaleFit );
-            iIconMark->SetFlag( EAlfVisualFlagIgnorePointer );
+            iIconMarked = CAlfImageVisual::AddNewL( iOwnerControl, iLayout );
+            iIconMarked->SetScaleMode( CAlfImageVisual::EScaleFit );
+            iIconMarked->SetFlag( EAlfVisualFlagIgnorePointer );
             }
 
         if (!iIconMenu)
             {
-            iIconMenu = CAlfImageVisual::AddNewL(iOwnerControl, iLayout);
+            iIconMenu =
+                        CAlfImageVisual::AddNewL(iOwnerControl, iLayout);
             iIconMenu->SetScaleMode( CAlfImageVisual::EScaleFit );
             iIconMenu->SetFlag( EAlfVisualFlagIgnorePointer );
             }
@@ -1553,8 +1564,7 @@ void CFsTreePlainTwoLineItemVisualizer::ShowL( CAlfLayout& aParentLayout,
 void CFsTreePlainTwoLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                                           TBool aFocused,
                                           const TUint aLevel,
-                                          CAlfTexture*& aMarkOnIcon,
-                                          CAlfTexture*& aMarkOffIcon,                                          
+                                          CAlfTexture*& aMarkIcon,
                                           CAlfTexture*& aMenuIcon,
                                           const TUint aTimeout,
                                           TBool aUpdateData)
@@ -1736,15 +1746,10 @@ void CFsTreePlainTwoLineItemVisualizer::UpdateL( const MFsTreeItemData& aData,
                 iDateTimeTextVisual->SetTextStyle( styleId );
                 }
 
-            if ( IsMarked() && iIconMark && aMarkOnIcon )
+            if ( IsMarked() && iIconMarked && aMarkIcon )
                 {
-                iIconMark->SetScaleMode( CAlfImageVisual::EScaleFit );
-                iIconMark->SetImage( *aMarkOnIcon );
-                }
-            else if ( !IsMarked() && iIconMark && aMarkOffIcon )
-                {
-                iIconMark->SetScaleMode( CAlfImageVisual::EScaleFit );
-                iIconMark->SetImage( *aMarkOffIcon );
+                iIconMarked->SetScaleMode( CAlfImageVisual::EScaleFit );
+                iIconMarked->SetImage( *aMarkIcon );
                 }
 
             //menu icon - visible only when item is focused

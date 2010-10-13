@@ -55,6 +55,12 @@
                         <property class="0x2001F413:CMailWidget/key_setup_brand_icon_4"/>
                     </image>
                 </box>
+                <box id="setup_brand_5" class="setup_brand_container">
+                    <image id="setup_brand_5_id" sizeaware="true">
+                        <configuration name="content_type" value="ct_setup_brand_icon_5"/>
+                        <property class="0x2001F413:CMailWidget/key_setup_brand_icon_5"/>
+                    </image>
+                </box>                
             </box>
         </box>
 

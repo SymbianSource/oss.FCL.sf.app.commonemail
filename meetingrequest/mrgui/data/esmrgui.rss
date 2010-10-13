@@ -262,7 +262,7 @@ RESOURCE MENU_PANE r_mr_viewer_menu
         MENU_ITEM
             {
             command = EESMRCmdRemoveFromCalendar;
-            txt = qtn_meet_req_options_remove_from_cal;
+            txt = qtn_meet_req_options_delete_event;
             },
         MENU_ITEM
             {
@@ -1523,7 +1523,7 @@ RESOURCE TBUF r_qtn_meet_req_recurring_yearly
     }
 RESOURCE TBUF r_qtn_meet_req_remove_appointment_query
     {
-    buf = qtn_meet_req_remove_appointment_query;
+    buf = qtn_meet_req_delete_query;
     }
 RESOURCE TBUF r_qtn_meet_req_repeat_until
     {
@@ -1559,7 +1559,7 @@ RESOURCE TBUF r_qtn_meet_req_response_decline
     }
 RESOURCE TBUF r_qtn_meet_req_options_remove_from_cal
     {
-    buf = qtn_meet_req_options_remove_from_cal;
+    buf = qtn_meet_req_options_delete_event;
     }
 RESOURCE TBUF r_qtn_meet_req_response_occurs_past
     {
@@ -1803,12 +1803,21 @@ RESOURCE TBUF r_qtn_calendar_opt_delete_entry
     }
 RESOURCE TBUF r_meet_req_conflict_text_format
     {
-    buf = "%0U[20]\n%1U[20]\n%2U\n%3U"; // qtn_meet_req_conflict_text_format
+    buf = "%0U[20]\n%1U[20]\n%2U\n%3U\n%4U"; // qtn_meet_req_conflict_text_format
     }
 RESOURCE TBUF r_meet_req_conflict_location_format
     {
     buf = "(%U)"; // qtn_meet_req_location_parenthesis
     }
+RESOURCE TBUF r_meet_req_conflict_otherconflict_format
+    {
+    buf = qtn_meet_req_conflict_otherconflict_format;     
+    }
+RESOURCE TBUF r_meet_req_conflict_otherconflict_singular_format
+    {
+    buf = qtn_meet_req_conflict_otherconflict_singular_format; 
+    }
+    
 
 // Viewer context menu bar
 RESOURCE MENU_BAR r_mr_viewer_context_menu

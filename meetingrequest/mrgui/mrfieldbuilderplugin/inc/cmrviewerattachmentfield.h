@@ -126,6 +126,9 @@ private: //data
     CDesCArrayFlat* iRemoteAttUris;
     /// Own: Remote attachment info
     CCalRemoteAttachmentInfo* iAttachmentInfo;
+    //Not own. temporary to remember link during saving all attachments process 
+    //Kinetic scrolling used during SaveAllAttachmens caused that focus has been lost 
+    const CESMRRichTextLink* iSelectedLink;
     };
 
 #endif  // CMRATTACHMENTSFIELD_H

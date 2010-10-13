@@ -1,5 +1,5 @@
 /*
-* Copyright (c) 2007 - 2010 Nokia Corporation and/or its subsidiary(-ies).
+* Copyright (c) 2007 Nokia Corporation and/or its subsidiary(-ies).
 * All rights reserved.
 * This component and the accompanying materials are made available
 * under the terms of "Eclipse Public License v1.0"
@@ -89,10 +89,6 @@
 #include "cfsccontactactionmenu.h"
 //</cmail>
 #include <layoutmetadata.cdl.h>         // for Layout_Meta_Data
-#include <aknnavilabel.h>
-#include <AknPriv.hrh>
-#include "freestyleemailcenrepkeys.h"
-#include <centralrepository.h>
 
 // INTERNAL INCLUDE FILES
 #include "FreestyleEmailUiContactHandler.h"
@@ -158,7 +154,6 @@ TInt DelayedViewLoaderCallBackL( TAny* aObject )
 const TUint KConnectionStatusIconRotationInterval = 100;
 const TUint KFakeSyncAnimStopTimerInterval = 3000; // 3 secs
 const TInt KConnectionStatusIconRotationAmount = 18;
-const TInt KFullCircleInDegrees = 360;
 // Length of the drive letter descriptor (e.g. "c:")
 const TInt KDriveDescLength = 2;
 
@@ -749,7 +744,7 @@ CFreestyleEmailUiAppUi::~CFreestyleEmailUiAppUi()
     // Destruction must be done here as other Tls data depends on it.
     CFSEmailDownloadInfoMediator::Destroy();
 
-    delete iNaviDecorator;
+    delete iNaviDecorator2MailViewer;
 
     delete iConnectionStatusIconAnimTimer;
     delete iFakeSyncAnimStopTimer;
@@ -892,19 +887,12 @@ void CFreestyleEmailUiAppUi::ViewActivatedExternallyL( TUid aViewId )
         return;
         }
 
-    if( aViewId == MailListId )
-        {
-        // notify Eik that SplitInput was disabled when entering the list form homescreen
-        CEikAppUi::HandleResourceChangeL( KAknSplitInputDisabled );    
-        }
-
     // Do nothing if the externally activated view was already active
     if ( iCurrentActiveView->Id() != aViewId )
         {
         // this function removes setting view from view stack so 
         // it cannot be active any more
         iSettingsViewActive = EFalse;
-        
         iPreviousActiveView = iCurrentActiveView;
 
         // Check if the view is in the history stack. In that case, we don't
@@ -1359,6 +1347,7 @@ void CFreestyleEmailUiAppUi::HandleWsEventL(const TWsEvent &aEvent, CCoeControl*
         {
         iLastWsEventType = EEventKey;
         }
+    
 	TInt key = aEvent.Key()->iScanCode;
     // <cmail>
     // to disable voice commands during creating new mail message
@@ -1504,15 +1493,6 @@ void CFreestyleEmailUiAppUi::HandleResourceChangeL( TInt aType )
     // </cmail>
     CAknAppUi::HandleResourceChangeL( aType );
 
-    if ( aType == KAknSplitInputEnabled || aType == KAknSplitInputDisabled ) 
-        { 
-        StatusPane()->MakeVisible( aType == KAknSplitInputDisabled );       
-        if ( iCurrentActiveView != NULL )
-            {
-            iCurrentActiveView->HandleStatusPaneSizeChange(); 
-            } 
-        }
-
     // Refresh mode is changed to manual to avoid any flickering during
     // resource change handling in list views. Trap any leaves so that we set
     // the automatic refresh mode back on even in case of error.
@@ -1542,8 +1522,7 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
     //    CAlfEnv::Static()->NotifySkinChangedL();
     //    }
 
-    if( aType == KEikDynamicLayoutVariantSwitch
-        || aType == KAknSplitInputEnabled || aType == KAknSplitInputDisabled )
+    if ( aType == KEikDynamicLayoutVariantSwitch )
     	{
         // Changing layout for status pane (just in case it is not switched
         // correctly), fix for HMNN-82BAGR error
@@ -1570,7 +1549,7 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
         {
 
 	  	TRect screenRect;
-        screenRect = ClientRect();
+	 	AknLayoutUtils::LayoutMetricsRect( AknLayoutUtils::EMainPane, screenRect );
   		StatusPane()->DrawNow();
         if(iEnv)
             {
@@ -1588,8 +1567,6 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
             case KAknsMessageSkinChange:
                 type = CFsEmailUiViewBase::ESkinChanged;
                 break;
-            case KAknSplitInputEnabled:  // fall though
-            case KAknSplitInputDisabled: // fall though
             case KEikDynamicLayoutVariantSwitch:
                 type = CFsEmailUiViewBase::EScreenLayoutChanged;
                 break;
@@ -1608,7 +1585,8 @@ void CFreestyleEmailUiAppUi::DoHandleResourceChangeL( TInt aType )
                 {
                 iPendingLayoutSwitch = ETrue;
                 }
-            if ( iCurrentActiveView && !iSettingsViewActive && !iMRViewer )
+
+            if ( iCurrentActiveView && !iSettingsViewActive )
                 {
                 iCurrentActiveView->HandleDynamicVariantSwitchL( type );
                 }
@@ -2592,7 +2570,7 @@ void CFreestyleEmailUiAppUi::HideTitlePaneConnectionStatus()
 		if ( iConnectionIconBitmap )
             {
             TSize iconSize = LayoutHandler()->statusPaneIconSize();
-            AknIconUtils::SetSizeAndRotation(iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved, iConnectionStatusIconAngle);
+            AknIconUtils::SetSize( iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved );
             }
 		titlePane->SetSmallPicture( iConnectionIconBitmap, iConnectionIconMask, iConnectionIconBitmap && iConnectionIconMask);
 		}
@@ -2702,7 +2680,7 @@ void CFreestyleEmailUiAppUi::UpdateTitlePaneConnectionStatus(
 			if ( iConnectionIconBitmap )
 				{
                 TSize iconSize( LayoutHandler()->statusPaneIconSize() );
-                AknIconUtils::SetSizeAndRotation(iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved, iConnectionStatusIconAngle);
+				AknIconUtils::SetSize( iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved );
 				}
 			titlePane->SetSmallPicture( iConnectionIconBitmap, iConnectionIconMask, iConnectionIconMask && iConnectionIconBitmap );
 			if (startTimer)
@@ -3034,6 +3012,7 @@ TInt CFreestyleEmailUiAppUi::LastSeenWsEventType()
     {
     return iLastWsEventType;
     }
+
 // CFreestyleEmailUiAppUi::RunFakeSyncAnimL
 // -----------------------------------------------------------------------------
 void CFreestyleEmailUiAppUi::RunFakeSyncAnimL()
@@ -3063,15 +3042,13 @@ void CFreestyleEmailUiAppUi::RunFakeSyncAnimL()
                         iConnectionIconMask );
                     if ( iConnectionIconBitmap && iConnectionIconMask )
                         {
-                        AknIconUtils::SetSizeAndRotation(
-                            iConnectionIconBitmap,
-                            LayoutHandler()->statusPaneIconSize(),
-                            EAspectRatioNotPreserved,
-                            iConnectionStatusIconAngle );
-
-                        titlePane->SetSmallPicture(
-                            iConnectionIconBitmap,
-                            iConnectionIconMask,
+                        AknIconUtils::SetSize( 
+                            iConnectionIconBitmap, 
+                            LayoutHandler()->statusPaneIconSize(), 
+                            EAspectRatioNotPreserved );
+                        titlePane->SetSmallPicture( 
+                            iConnectionIconBitmap, 
+                            iConnectionIconMask, 
                             ETrue );
                         iConnectionStatusIconAnimTimer->Start(
                             KConnectionStatusIconRotationInterval );
@@ -3083,6 +3060,60 @@ void CFreestyleEmailUiAppUi::RunFakeSyncAnimL()
                 }
             }
         }
+    }
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+void CFreestyleEmailUiAppUi::ConstructNaviPaneL()
+    {
+    FUNC_LOG;
+
+    CAknNavigationControlContainer* naviPaneContainer =
+        static_cast<CAknNavigationControlContainer*>(
+        StatusPane()->ControlL( TUid::Uid( EEikStatusPaneUidNavi ) ) );
+
+    // Following navipane is for mailviewer view
+    if ( !iNaviDecorator2MailViewer )
+        {
+        // Constructing a decorator with own decorated control,
+        // which is (currently an empty) container.
+        CFreestyleEmailUiNaviPaneControlContainer2MailViewer* c =
+            CFreestyleEmailUiNaviPaneControlContainer2MailViewer::NewL();
+        c->SetContainerWindowL( *naviPaneContainer );
+        iNaviDecorator2MailViewer = CAknNavigationDecorator::NewL(
+            naviPaneContainer,
+            c,
+            CAknNavigationDecorator::ENotSpecified );
+
+        // In order to get navi arrows visible, they must be set visible AND not dimmed...
+        iNaviDecorator2MailViewer->SetContainerWindowL( *naviPaneContainer );
+        iNaviDecorator2MailViewer->MakeScrollButtonVisible( ETrue );
+        iNaviDecorator2MailViewer->SetScrollButtonDimmed( CAknNavigationDecorator::ELeftButton, EFalse );
+        iNaviDecorator2MailViewer->SetScrollButtonDimmed( CAknNavigationDecorator::ERightButton, EFalse );
+
+        iNaviDecorator2MailViewer->SetComponentsToInheritVisibility( ETrue );
+        naviPaneContainer->PushL( *iNaviDecorator2MailViewer );
+        }
+    }
+
+// -----------------------------------------------------------------------------
+//
+// -----------------------------------------------------------------------------
+CAknNavigationDecorator* CFreestyleEmailUiAppUi::NaviDecoratorL(  const TUid aViewId  )
+    {
+    FUNC_LOG;
+    CAknNavigationDecorator* decorator( NULL );
+    // Depending on who's asking, return proper navipane instance
+    if ( aViewId.iUid == MailViewerId.iUid )
+        {
+        if ( !iNaviDecorator2MailViewer )
+            {
+            ConstructNaviPaneL();
+            }
+        decorator = iNaviDecorator2MailViewer;
+        }
+    return decorator;
     }
 
 void CFreestyleEmailUiAppUi::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTimer )
@@ -3103,7 +3134,6 @@ void CFreestyleEmailUiAppUi::TimerEventL( CFSEmailUiGenericTimer* aTriggeredTime
 
                 TSize iconSize = LayoutHandler()->statusPaneIconSize();
                 iConnectionStatusIconAngle += KConnectionStatusIconRotationAmount;
-                iConnectionStatusIconAngle %= KFullCircleInDegrees;
                 AknIconUtils::SetSizeAndRotation(iConnectionIconBitmap, iconSize, EAspectRatioNotPreserved, iConnectionStatusIconAngle);
                 titlePane->DrawNow();
                 iConnectionStatusIconAnimTimer->Start(KConnectionStatusIconRotationInterval);
@@ -3175,35 +3205,7 @@ void CFreestyleEmailUiAppUi::PropertyChangedL( TInt aValue )
 		}
 	}
 
-void CFreestyleEmailUiAppUi::SetNaviPaneTextL( const TDesC& aText )
-    {
-    if (aText.Length())
-        {
-        CAknNavigationControlContainer* np =
-                static_cast<CAknNavigationControlContainer*>(
-                        StatusPane()->ControlL( TUid::Uid( EEikStatusPaneUidNavi ) ) );
-    
-        if (!iNaviDecorator)
-            {
-            iNaviDecorator = np->CreateNavigationLabelL( KNullDesC() );
-            np->PushL( *iNaviDecorator );
-            }
-        CAknNaviLabel* naviLabel = static_cast<CAknNaviLabel*>( iNaviDecorator->DecoratedControl() );
-        if( naviLabel )
-            {
-            naviLabel->SetTextL( aText );
-            iNaviDecorator->DrawDeferred();
-            }
-        }
-    else
-        {
-        if (iNaviDecorator)
-            {
-            delete iNaviDecorator;
-            iNaviDecorator = NULL;
-            }
-        }
-    }
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //

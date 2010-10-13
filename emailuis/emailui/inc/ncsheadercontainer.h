@@ -27,19 +27,21 @@
 #include "ncsaddressinputfield.h"
 #include "ncsfieldsizeobserver.h"
 #include "ncsconstants.h"
-#include "ncspopuplistbox.h"
+
+#include "ncsattachmentfield.h"
 
 class CFSMailBox;
-class CNcsAttachmentField;
 class CNcsEmailAddressObject;
+class CNcsPopupListBox;
 class CNcsSubjectField;
 class CAknPhysics;
 
 /**
 *  CNcsHeaderContainer
 */
-class CNcsHeaderContainer : public CCoeControl, public MNcsAddressPopupList,
-    public MNcsPopupListBoxObserver
+class CNcsHeaderContainer : public CCoeControl,
+    public MNcsAddressPopupList,
+    public MNcsAttachmentFieldObserver
     {
 
 public:
@@ -73,37 +75,27 @@ public:
 private: // constructor/destructor
 
     /**
-     * CNcsHeaderContainer
-     * C++ constructor.
-     * @param aParent Parent control.
-     * @param aMailBox reference to current mailbox item
-     */
-    CNcsHeaderContainer( CCoeControl& aParent, CFSMailBox& aMailBox, CAknPhysics* aPhysics );
-
-    /**
-     * ConstructL
-     * 2nd phase constructor.
-     */
-    void ConstructL( TInt aFlags );
+    * CNcsHeaderContainer
+    * C++ constructor.
+    * @param aParent Parent control.
+    * @param aMailBox reference to current mailbox item
+    */
+	CNcsHeaderContainer( CCoeControl& aParent, CFSMailBox& aMailBox, CAknPhysics* aPhysics );
+	
+	/**
+	* ConstructL
+	* 2nd phase constructor.
+	*/
+	void ConstructL( TInt aFlags );
 
 public: // function members
-
-    /**
-     * From MNcsPopupListBoxObserver.
-     */
-    TBool PopupVisibilityChangingL( TBool aVisible );
-
-    /**
-     * From MNcsPopupListBoxObserver.
-     */
-    void PopupItemSelectedL();
-
-    /**
-     * GetToFieldAddressesL
-     * Get addresses in TO-field.
-     * @return Array of addresses.
-     */
-    const RPointerArray<CNcsEmailAddressObject>& GetToFieldAddressesL( 
+	
+	/**
+	* GetToFieldAddressesL
+	* Get addresses in TO-field.
+	* @return Array of addresses.
+	*/
+	const RPointerArray<CNcsEmailAddressObject>& GetToFieldAddressesL( 
         TBool aParseNow = ETrue );
 
 	/**
@@ -233,7 +225,7 @@ public: // function members
 	
     void SetAttachmentLabelTextsLD( CDesCArray* aAttachmentNames, 
                                     CDesCArray* aAttachmentSizes );
-    TInt FocusedAttachmentLabelIndex();
+    TInt FocusedAttachmentLabelIndex() const;
     void ShowAttachmentLabelL();
 	void HideAttachmentLabel();
 
@@ -316,10 +308,12 @@ public: // function members
 	void SelectAllBccFieldTextL();
 
 	void SelectAllSubjectFieldTextL();
-	
-	void FocusToField();
 
-	void FocusAttachmentField();
+    void FocusToField();
+
+    void FocusAttachmentField();
+
+    void SetFocusToBottom( TDrawNow aDrawNow = ENoDrawNow );
 
     void SetPriority( TMsgPriority aPriority );
 
@@ -357,17 +351,18 @@ public: // function members
     TBool IsAddressInputField( const CCoeControl* aControl ) const;
 
     TBool IsRemoteSearchInprogress() const;
+    
+    /**
+     * Shows/hides cursor.
+     * 
+     * @param aShow ETrue - shows, EFalse - hides cursor.
+     */
+    void ShowCursor( TBool aShow, TDrawNow aDrawNow = ENoDrawNow );
 
     void DoScroll();
-    void DoScrollFocusToTop();
-
+    
     void SetPhysicsEmulationOngoing( TBool aPhysOngoing );
     
-    virtual void HandleResourceChange( TInt aType );
-
-    // Set origin for header's top position.
-    void SetOrigin( TPoint& aPoint );
-
 private: // Function members
 
 	void FocusChanged(TDrawNow aDrawNow);
@@ -377,8 +372,6 @@ private: // Function members
 	CCoeControl* FindFocused() const;
 
 	void Draw( const TRect& aRect ) const;
-
-	void DrawAttachmentFocusNow();
 
 	TKeyResponse ChangeFocusL( const TKeyEvent& aKeyEvent );
 
@@ -412,6 +405,18 @@ private: // Function members
 
     void CommitFieldL( CCoeControl* aField );
 
+private:  //From MNcsAttachmentFieldObserver
+    /**
+     * AttachmentOpenL
+     * Handles attachment open event from iAttachmentField
+     */
+    void AttachmentOpenL();
+
+    /**
+     * AttachmentRemoveL
+     * Handles attachment remove event from iAttachmentField
+     */
+    void AttachmentRemoveL();
 private:  //From MAknLongTapDetectorCallBack
     
     void HandleLongTapEventL( const TPoint& aPenEventLocation, 
@@ -419,47 +424,47 @@ private:  //From MAknLongTapDetectorCallBack
     
 private: // Data members
 
-    // Parent window.
+    /*
+    * Parent window
+    * Not Own
+    */
     CCoeControl& iParent;
 
     MNcsFieldSizeObserver& iFieldSizeObserver;
     
     CAknLongTapDetector*      iLongTapDetector;
-
+	
     CEikButtonGroupContainer* iMenuBar;
-
+    
     CNcsAddressInputField* iToField;
+
     CNcsAddressInputField* iCcField;
+
     CNcsAddressInputField* iBccField;
 
     CNcsSubjectField* iSubjectField;
 
     CNcsAttachmentField* iAttachmentField;
 
-    // The attachments count
+	// The attachments count
     TInt iAttachmentCount;
 
-    // Popup for resently used email addressses. Own.
-    CNcsPopupListBox* iAacListBox;
+	// Address popup data members
+	CNcsPopupListBox* iAacListBox;
 
-    CFSMailBox& iMailBox;
-
+	CFSMailBox& iMailBox;
+	
     //flag which disables changes of MSK label if any popup dialog is open
     TBool iSwitchChangeMskOff;
 
     TBool iLongTapEventConsumed;
     TBool iRALInProgress;
-
+    
     // Currently focused control
     CCoeControl* iFocused;
 
     // panning related
     CAknPhysics* iPhysics;
-
-    // Header containers default top left position.
-    TPoint iOrigin;
-
-    TBool iSplitScreenVKBEnabled;
     };
 
 

@@ -1794,7 +1794,7 @@ void CFSEmailUiFolderListVisualiser::AppendSortListItemsL()
 		    	   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
 				   iSortIconArray[ ESortListSenderDescIcon ] : 
 				   iSortIconArray[ ESortListSenderAscIcon ] : 
-				   iSortIconArray[ ESortListSenderAscIcon ];
+				   iSortIconArray[ ESortListSenderDescIcon ];
 			itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_RECIPIENT, KFsTreeRootID, icon, EFalse );
 			iModel->AppendL( itemId, EFSMailSortByRecipient );
 			}
@@ -1806,7 +1806,7 @@ void CFSEmailUiFolderListVisualiser::AppendSortListItemsL()
 		    	   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
 				   iSortIconArray[ ESortListSenderDescIcon ] : 
 				   iSortIconArray[ ESortListSenderAscIcon ] : 
-				   iSortIconArray[ ESortListSenderAscIcon ];
+				   iSortIconArray[ ESortListSenderDescIcon ];
 			itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_SENDER, KFsTreeRootID, icon, EFalse );
 			iModel->AppendL( itemId, EFSMailSortBySender );
 			}
@@ -1817,7 +1817,7 @@ void CFSEmailUiFolderListVisualiser::AppendSortListItemsL()
 		   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
 		   iSortIconArray[ ESortListSubjectDescIcon ] : 
 		   iSortIconArray[ ESortListSubjectAscIcon ] : 
-		   iSortIconArray[ ESortListSubjectAscIcon ];
+		   iSortIconArray[ ESortListSubjectDescIcon ];
 	
 	itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_SUBJECT, KFsTreeRootID, icon, EFalse );
 	iModel->AppendL( itemId, EFSMailSortBySubject );
@@ -1851,7 +1851,7 @@ void CFSEmailUiFolderListVisualiser::AppendSortListItemsL()
 			   iCurrentSortCriteria.iOrder == EFSMailAscending ? 
 			   iSortIconArray[ ESortListUnreadDescIcon ] : 
 			   iSortIconArray[ ESortListUnreadAscIcon ] : 
-			   iSortIconArray[ ESortListUnreadAscIcon ];
+			   iSortIconArray[ ESortListUnreadDescIcon ];
 		
 		itemId = AppendItemToListFromResourceL( R_FREESTYLE_EMAIL_UI_SORT_BY_UNREAD, KFsTreeRootID, icon, EFalse );
 		iModel->AppendL( itemId, EFSMailSortByUnread );

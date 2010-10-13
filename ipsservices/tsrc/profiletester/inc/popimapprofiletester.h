@@ -41,26 +41,29 @@
 #include "mfsmailrequestobserver.h"
 #include "mfsmailboxsearchobserver.h"
 
-// CONSTANTS
+//#define
 #define KIPSSosImap4PluginUid      0x2000e53f
 #define KIPSSosPop3PluginUid       0x2000e53e
+#define DELANDNULL( a ) { if( a ) { delete a; a = NULL; } }
 
+//const
 const TUint KTenSecondsTime(10);
 const TUint KHalfMinuteTime(30);
 const TUint KOneMinuteTime(60);
+const TUint KMidBufLen(128);
+const TUint KMaxBufLen(256); 
 
-// MACROS
-#define TEST_CLASS_VERSION_MAJOR 0
-#define TEST_CLASS_VERSION_MINOR 0
-#define TEST_CLASS_VERSION_BUILD 0
-#define DELANDNULL( a ) { if( a ) { delete a; a = NULL; } }
+//typeof
+typedef TBuf<KMaxBufLen> TFolderName;
 
+//class declaration
 class CPopImapProfileTester;
 class CTimeoutTimer;
 class CFSMailClient;
 class CFSMailBox;
 class CActiveSchedulerWait;
 
+//enum
 enum TWaitingState
     {
     EWaitingNothing = 0,
@@ -97,21 +100,21 @@ public:
     TInt iIncomingPort;
     TInt iOutgoingPort;
 
-    TBuf<10> iAccountType;
-    TBuf<50> iEmailAddress;
-    TBuf<50> iUserName;
-    TBuf<100> iPassWord;
-    TBuf<50> iIncomingServer;
-    TBuf<50> iOutgoingServer;
-    TBuf<20> iMailboxName;
+    TBuf<KMidBufLen> iAccountType;
+    TBuf<KMaxBufLen> iEmailAddress;
+    TBuf<KMaxBufLen> iUserName;
+    TBuf<KMaxBufLen> iPassWord;
+    TBuf<KMaxBufLen> iIncomingServer;
+    TBuf<KMaxBufLen> iOutgoingServer;
+    TBuf<KMaxBufLen> iMailboxName;
 
     /****
      * Using the default value
      */
-    TBuf<5> iWizardAccountType;
-    TBuf<2> iOperatorOutgoingServer;
+    TBuf<KMidBufLen> iWizardAccountType;
+    TBuf<KMidBufLen> iOperatorOutgoingServer;
     TBool iHideUserNameInSetting;
-    TBuf<10> iAccessPoint;
+    TBuf<KMidBufLen> iAccessPoint;
     };
 
 NONSHARABLE_CLASS(CPopImapProfileTester) : public CScriptBase,
@@ -133,10 +136,6 @@ public:
      * Destructor.
      */
     virtual ~CPopImapProfileTester();
-
-public:
-    // New functions
-
 
 public:
     // Functions from base classes
@@ -164,16 +163,8 @@ public:
     //from MTimeoutObserver
     void TimeoutNotify();
 
-protected:
-    // New functions
-
-
-protected:
-    // Functions from base classes
-
-
 private:
-
+   
     /**
      * C++ default constructor.
      */
@@ -237,10 +228,10 @@ private:
             TFSMailSortField aSort, TUint aCount);
 
     TInt WaitForEvent(TFSMailEvent aWaitedEvent, TAny *aEventParam1 = NULL,
-            TAny *aEventParam2 = NULL, TInt aTimeout = 60);
+            TAny *aEventParam2 = NULL, TInt aTimeout = KOneMinuteTime);
 
     TInt WaitForResponse(TFSProgress::TFSProgressStatus aWaitedResponse,
-            TInt aTimeout = 60);
+            TInt aTimeout = KOneMinuteTime);
 
     void OpComplete();
 
@@ -272,14 +263,10 @@ private:
     TBool ParseEventParams(TAny *aEventParam1, TAny *aEventParam2);
 
     CFSMailFolder* FindFolder(const TDesC& aFolderName);
-
-public:
-    // Data
-
-
-protected:
-    // Data
-
+    
+    void LogNewEntriesCount(TDes& aLog,TAny* aParam);
+    
+    void LogFolderName(TDes& aLog,TAny* aParam);
 
 private:
     // Data
@@ -307,17 +294,6 @@ private:
     //checking status of searching
     TBool iSearchOngoing;
     TInt iSearchMatches;
-
-public:
-    // Friend classes
-
-protected:
-    // Friend classes
-
-private:
-    // Friend classes
-
-
     };
 
 #endif      // POPIMAPPROFILETESTER_H
