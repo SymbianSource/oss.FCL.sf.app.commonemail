@@ -208,6 +208,8 @@ TContainerId CContainerStoreAccountTable::FindAccountL( TInt32 aOwnerId, const T
 	
 	TContainerId mbId = KMsgStoreInvalidId;
 	
+	//this is checked right below using AtEnd()
+    //coverity[check_return]
 	iTable.FirstL();
 	
 	while( !iTable.AtEnd() )
@@ -225,6 +227,8 @@ TContainerId CContainerStoreAccountTable::FindAccountL( TInt32 aOwnerId, const T
 				}
 			}
 		
+		//this is checked right using AtEnd() in loop condition
+        //coverity[check_return]
 		iTable.NextL();
 		}
 	
@@ -300,6 +304,8 @@ void CContainerStoreAccountTable::AccountsL( TDes8& aAccountsBuf )
 	CAccountsSerializer* serializer = new (ELeave) CAccountsSerializer();
 	CleanupStack::PushL( serializer );
 
+	//this is checked right below using AtEnd()
+	//coverity[check_return]
 	iTable.FirstL();
 	
 	while( !iTable.AtEnd() )
@@ -319,6 +325,8 @@ void CContainerStoreAccountTable::AccountsL( TDes8& aAccountsBuf )
 		
 		serializer->AddAccountL( ownerId, name16 );
 		
+		//this is checked using AtEnd() in the loop condition
+        //coverity[check_return]
 		iTable.NextL();
 		}
 	

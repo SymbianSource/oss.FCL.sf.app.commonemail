@@ -48,9 +48,9 @@ NmApiMessage::~NmApiMessage()
 
 NmApiMessage& NmApiMessage::operator=(const NmApiMessage &other)
 {
-    if (this == &other)
+    if (this == &other) {
         return *this;
-    
+    }
     d = other.d;
 
     return *this;

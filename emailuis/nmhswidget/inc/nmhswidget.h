@@ -19,6 +19,7 @@
 #define NMHSWIDGET_H
 
 #include <hbwidget.h>
+#include <hbeffect.h>
 #include "nmcommon.h"
 
 class NmHsWidgetEmailEngine;
@@ -32,6 +33,7 @@ class HbDocumentLoader;
 class HbListView;
 class NmHsWidgetListModel;
 class QModelIndex;
+class QTimer;
 
 
 class NmHsWidget : public HbWidget
@@ -55,7 +57,6 @@ public slots:
     void onShow();
     void onHide();
     //engine
-    void updateMailData();
     void onEngineException(const int& exc);
     //properties
     void setAccountId(const QString &text);
@@ -67,8 +68,10 @@ public slots:
     //user actions
     void handleExpandCollapseEvent();
     
+    void handleMessagesAddedToModel();
     void openMessage(const QModelIndex& index);
-
+    void scrollListToStart();
+    void updateLayout();
 signals: 
     void finished();
     void setPreferences(const QStringList &names);
@@ -81,10 +84,12 @@ private:
     void removeNoMailsLabelFromLayout();
     void addEmailRowsToLayout();
     void removeEmailRowsFromLayout();
-    void updateLayout(const int visibleCount);
     void toggleExpansionState();  
     void createMailRowsList();
 protected:
+    bool event( QEvent *event );
+private slots:
+    void toggleExpansion(const HbEffect::EffectStatus &status);
     
 private:
     //UI components
@@ -105,7 +110,7 @@ private:
     bool mIsExpanded;                       //true when widget expanded, false when collapsed  
     HbListView* mListView;                  //list view for messages 
     NmHsWidgetListModel* mListModel;        //list model for mListView
-    
+    QTimer *mListActivityTimer;             //Timer for delaying activities after list scrolling           
 public:    
     friend class TestNmHsWidget;     
 };

@@ -309,5 +309,6 @@ EXPORTS
 	_ZThn4_NK21CBaseMrRecurrenceRule19RecurrenceStartTimeEv @ 308 NONAME
 	_ZThn4_NK21CBaseMrRecurrenceRule20RecurrentDaysofMonthEv @ 309 NONAME
 	_ZThn4_NK21CBaseMrRecurrenceRule4TypeEv @ 310 NONAME
-        _ZNK11CBasePlugin2IdEv @ 311 NONAME
+	_ZNK11CBasePlugin2IdEv @ 311 NONAME
+	_ZN11CBasePlugin7CancelLEii @ 312 NONAME
 

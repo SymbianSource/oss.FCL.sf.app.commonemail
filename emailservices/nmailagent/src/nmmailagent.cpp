@@ -310,8 +310,10 @@ bool NmMailAgent::updateUnreadCount(const NmId &mailboxId, NmMailboxInfo &mailbo
 
         // get list of messages in inbox
         QList<NmMessageEnvelope*> messageList;
-        plugin->listMessages(mailboxId, inboxId, messageList);
-
+        int err = plugin->listMessages(mailboxId, inboxId, messageList);
+        if (err != KErrNone) {
+            return false;
+        }
         QList<NmId> newMessageIdList;
 
         int unreadCount(0);
@@ -425,7 +427,7 @@ bool NmMailAgent::updateMailboxState(const NmId &mailboxId)
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
     bool shown = false;
     
-    if( mailboxInfo->mActive && 
+    if( mailboxInfo && mailboxInfo->mActive && 
         (mailboxInfo->mNewUnreadMailIdList.count() > 0 ||
          mailboxInfo->mOutboxMails>0)) {
         shown = true;
@@ -450,8 +452,8 @@ bool NmMailAgent::updateMailboxState(const NmId &mailboxId,
 
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
     bool changed = false;
-    if (mailboxInfo->mActive != active ||
-        refreshAlways) {
+    if (mailboxInfo && (mailboxInfo->mActive != active ||
+        refreshAlways) ) {
 
         // store the new state to permanent storage
         storeMailboxActive(mailboxId, active);
@@ -588,62 +590,64 @@ void NmMailAgent::handleMessageCreatedEvent(const NmId &folderId, const QList<Nm
     // Check the new messages to make the indicator appear earlier
     NmMailboxInfo *mailboxInfo = getMailboxInfo(mailboxId);
 
-    // Inbox folder ID may be still unknown
-    if (mailboxInfo->mInboxFolderId.id() == 0) {
-        NmDataPluginInterface *plugin =
-            mPluginFactory->interfaceInstance(mailboxId);
-
-        if (plugin) {
-            mailboxInfo->mInboxFolderId =
-                plugin->getStandardFolderId(mailboxId, NmFolderInbox);
-        }
-    }
-
-    if (folderId == mailboxInfo->mInboxFolderId) {
-        mailboxInfo->mInboxCreatedMessages += messageIds.count();
-
-        foreach (NmId messageId, messageIds) {
-            bool messageUnread = false;
-            mailboxInfo->mMailIdList.append(messageId);
-
-            // double check that the message ID is really new
-            bool newMessage = true;
-            if (mailboxInfo->mNewUnreadMailIdList.indexOf(messageId)>=0) {
-                newMessage = false;
+    if(mailboxInfo){
+        // Inbox folder ID may be still unknown
+        if (mailboxInfo->mInboxFolderId.id() == 0) {
+            NmDataPluginInterface *plugin =
+                mPluginFactory->interfaceInstance(mailboxId);
+    
+            if (plugin) {
+                mailboxInfo->mInboxFolderId =
+                    plugin->getStandardFolderId(mailboxId, NmFolderInbox);
             }
-
-            // If it is a new message, update the mailbox status
-            if (newMessage) {
-                if (getMessageUnreadInfo(folderId, messageId, mailboxId, messageUnread)) {
-                    if (messageUnread) {
-                        mailboxInfo->mNewUnreadMailIdList.append(messageId);
-                        NM_COMMENT(QString(" new unread messages: count=%1").
-                            arg(mailboxInfo->mNewUnreadMailIdList.count()));
-
-                        if (!mUnreadIndicatorActive) {
-                            // make the "@" appear immediatelly
-                            updateUnreadIndicator(true);
+        }
+    
+        if (folderId == mailboxInfo->mInboxFolderId) {
+            mailboxInfo->mInboxCreatedMessages += messageIds.count();
+    
+            foreach (NmId messageId, messageIds) {
+                bool messageUnread = false;
+                mailboxInfo->mMailIdList.append(messageId);
+    
+                // double check that the message ID is really new
+                bool newMessage = true;
+                if (mailboxInfo->mNewUnreadMailIdList.indexOf(messageId)>=0) {
+                    newMessage = false;
+                }
+    
+                // If it is a new message, update the mailbox status
+                if (newMessage) {
+                    if (getMessageUnreadInfo(folderId, messageId, mailboxId, messageUnread)) {
+                        if (messageUnread) {
+                            mailboxInfo->mNewUnreadMailIdList.append(messageId);
+                            NM_COMMENT(QString(" new unread messages: count=%1").
+                                arg(mailboxInfo->mNewUnreadMailIdList.count()));
+    
+                            if (!mUnreadIndicatorActive) {
+                                // make the "@" appear immediatelly
+                                updateUnreadIndicator(true);
+                            }
+                            updateMailboxState(mailboxId, true, false);
+    
+                            // Play the tone as well
+                            playAlertTone();
                         }
-                        updateMailboxState(mailboxId, true, false);
-
-                        // Play the tone as well
-                        playAlertTone();
                     }
                 }
             }
         }
-    }
-
-    // When created a new mail in the outbox, we are in sending state
-    if (mailboxInfo->mOutboxFolderId == folderId) {
-        // The first mail created in the outbox
-        if (mailboxInfo->mOutboxMails <= 0) {
-            NM_COMMENT("NmMailAgent: first mail in outbox");
+    
+        // When created a new mail in the outbox, we are in sending state
+        if (mailboxInfo->mOutboxFolderId == folderId) {
+            // The first mail created in the outbox
+            if (mailboxInfo->mOutboxMails <= 0) {
+                NM_COMMENT("NmMailAgent: first mail in outbox");
+            }
+            mailboxInfo->mOutboxMails += messageIds.count();
+    
+            updateMailboxState(mailboxId,true,true);
+            updateSendIndicator();
         }
-        mailboxInfo->mOutboxMails += messageIds.count();
-
-        updateMailboxState(mailboxId,true,true);
-        updateSendIndicator();
     }
 }
 

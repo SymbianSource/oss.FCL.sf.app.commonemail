@@ -79,6 +79,7 @@ CEmailMessageContent::~CEmailMessageContent()
     iPluginData.ReleaseInstance();
     delete iPart;
     delete iBuf;
+    delete iFetchObserver;
     }
 
 // ---------------------------------------------------------------------------

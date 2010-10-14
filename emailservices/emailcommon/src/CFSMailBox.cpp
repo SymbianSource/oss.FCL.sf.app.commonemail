@@ -127,7 +127,8 @@ EXPORT_C void CFSMailBox::GoOfflineL()
 // CFSMailBox::RefreshNowL
 // -----------------------------------------------------------------------------
 EXPORT_C TInt CFSMailBox::RefreshNowL(
-    MFSMailRequestObserver& aOperationObserver )
+    MFSMailRequestObserver& aOperationObserver,
+    TBool aSilentConnection /*=EFalse*/ )
     {
     NM_FUNCTION;
 
@@ -139,7 +140,8 @@ EXPORT_C TInt CFSMailBox::RefreshNowL(
         request = iRequestHandler->InitAsyncRequestL( GetId().PluginId(),
                                                         aOperationObserver );
         MFSMailRequestObserver* observer = request.iObserver;
-        TRAPD(err,plugin->RefreshNowL( GetId(), *observer, request.iRequestId));
+        TRAPD(err,plugin->RefreshNowL( 
+            GetId(), *observer, request.iRequestId, aSilentConnection ));
         if(err != KErrNone)
             {
             iRequestHandler->CompleteRequest(request.iRequestId);
@@ -152,7 +154,7 @@ EXPORT_C TInt CFSMailBox::RefreshNowL(
 // -----------------------------------------------------------------------------
 // CFSMailBox::RefreshNowL
 // -----------------------------------------------------------------------------
-EXPORT_C TInt CFSMailBox::RefreshNowL( )
+EXPORT_C TInt CFSMailBox::RefreshNowL( TBool aSilentConnection /*=EFalse*/)
     {
     NM_FUNCTION;
 
@@ -165,7 +167,8 @@ EXPORT_C TInt CFSMailBox::RefreshNowL( )
         request = iRequestHandler->InitAsyncRequestL( GetId().PluginId(), *observer );
 
         observer = request.iObserver;
-        TRAPD(err,plugin->RefreshNowL( GetId(), *observer, request.iRequestId));
+        TRAPD(err,plugin->RefreshNowL( 
+            GetId(), *observer, request.iRequestId, aSilentConnection ));
         if(err != KErrNone)
             {
             iRequestHandler->CompleteRequest(request.iRequestId);

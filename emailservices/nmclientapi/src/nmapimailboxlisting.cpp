@@ -19,7 +19,6 @@
 
 namespace EmailClientApi
 {
-
 /*!
    \class Class for creating list of all mailboxes
  */
@@ -33,7 +32,6 @@ NmApiMailboxListing::NmApiMailboxListing(QObject *parent) :
     NM_FUNCTION;
     
     mNmApiMailboxListingPrivate = new NmApiMailboxListingPrivate(this);
-    mNmApiMailboxListingPrivate->mIsRunning = false;
 }
 
 /*!
@@ -42,10 +40,6 @@ NmApiMailboxListing::NmApiMailboxListing(QObject *parent) :
 NmApiMailboxListing::~NmApiMailboxListing()
 {
     NM_FUNCTION;
-    
-    if (mNmApiMailboxListingPrivate->mIsRunning) {
-        mNmApiMailboxListingPrivate->releaseEngine();
-    }
 }
 
 /*! 
@@ -58,29 +52,10 @@ NmApiMailboxListing::~NmApiMailboxListing()
     \return Return true if results were avaible
     \param mailboxes List of mailboxes to filled. On start is cleared. 
  */
-bool NmApiMailboxListing::getMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxes)
+bool NmApiMailboxListing::getMailboxes(QList<NmApiMailbox> &mailboxes)
 {
     NM_FUNCTION;
-    
-    mailboxes.clear();
-
-    bool result = false;
-
-    if (!mNmApiMailboxListingPrivate->mIsRunning) {
-        result = false;
-    }
-    else
-        if (mNmApiMailboxListingPrivate->mMailboxes.isEmpty()) {
-            result = false;
-        }
-        else {
-            mailboxes = mNmApiMailboxListingPrivate->mMailboxes;
-
-            mNmApiMailboxListingPrivate->mMailboxes.clear();
-
-            result = true;
-        }
-    return result;
+    return mNmApiMailboxListingPrivate->mailboxes(mailboxes);
 }
 
 /*!
@@ -101,28 +76,11 @@ bool NmApiMailboxListing::getMailboxes(QList<EmailClientApi::NmApiMailbox> &mail
 bool NmApiMailboxListing::start()
 {
     NM_FUNCTION;
-    
-    bool result = false;
-    if (mNmApiMailboxListingPrivate->mIsRunning) {
-        result = true;
-    }
-    else
-        if (!mNmApiMailboxListingPrivate->initializeEngine()) {
-            QMetaObject::invokeMethod(this, "mailboxesListed", Qt::QueuedConnection, Q_ARG(qint32,
-                (qint32) MailboxListingFailed));
-            result = false;
-        }
-        else {
-            qint32 mailboxCount = mNmApiMailboxListingPrivate->grabMailboxes();
+    qint32 mailboxCount = mNmApiMailboxListingPrivate->listMailboxes();
+    QMetaObject::invokeMethod(this, "mailboxesListed", Qt::QueuedConnection,
+        Q_ARG(qint32, mailboxCount));
 
-            mNmApiMailboxListingPrivate->mIsRunning = true;
-
-            QMetaObject::invokeMethod(this, "mailboxesListed", Qt::QueuedConnection, Q_ARG(qint32,
-                mailboxCount));
-
-            result = true;
-        }
-    return result;
+    return true;
 }
 
 /*!
@@ -136,14 +94,8 @@ void NmApiMailboxListing::cancel()
 {
     NM_FUNCTION;
     
-    if (mNmApiMailboxListingPrivate->mIsRunning) {
-
-        mNmApiMailboxListingPrivate->mIsRunning = false;
-        mNmApiMailboxListingPrivate->releaseEngine();
-        mNmApiMailboxListingPrivate->mMailboxes.clear();
-
-        QMetaObject::invokeMethod(this, "canceled", Qt::QueuedConnection);
-    }
+    mNmApiMailboxListingPrivate->cancel();
+    emit canceled();
 }
 
 /*!
@@ -154,9 +106,8 @@ void NmApiMailboxListing::cancel()
 bool NmApiMailboxListing::isRunning() const
 {
     NM_FUNCTION;
-    
-    return mNmApiMailboxListingPrivate->mIsRunning;
+    return mNmApiMailboxListingPrivate->isRunning();
+}
 }
 
-}
 

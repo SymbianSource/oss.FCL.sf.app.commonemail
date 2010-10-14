@@ -40,9 +40,10 @@ public:
     virtual ~NmImapClientPlugin();
     void getActions( const NmActionRequest &request,
         QList<NmAction*> &actionList);
+    void launchSettings(const NmId &mailboxId);
 
 private slots:
-    void settings();
+    void settings(const NmId &mailboxId=0);
     void switchToStandardFolderInbox();
     void switchToStandardFolderOutbox();
     void switchToStandardFolderDrafts();

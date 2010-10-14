@@ -29,6 +29,7 @@
 // <qmail> priority parameter has been removed
 // <qmail> MFSMailRequestObserver& changed it to pointer
 // <qmail> aSignallingAllowed parameter has been removed
+// <qmail> silent connection parameter added
 CIpsPlgImap4ConnectOp* CIpsPlgImap4ConnectOp::NewL(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -38,7 +39,8 @@ CIpsPlgImap4ConnectOp* CIpsPlgImap4ConnectOp::NewL(
     MFSMailRequestObserver* aFSOperationObserver,
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler,
-    TBool aDoPlainConnect )
+    TBool aDoPlainConnect,
+    TBool aSilentConnection)
     {
     FUNC_LOG;
     CIpsPlgImap4ConnectOp* self = new (ELeave) CIpsPlgImap4ConnectOp(
@@ -50,7 +52,8 @@ CIpsPlgImap4ConnectOp* CIpsPlgImap4ConnectOp::NewL(
         aFSOperationObserver,
         aFSRequestId,
         aDoPlainConnect,
-        aEventHandler );
+        aEventHandler,
+        aSilentConnection);
         
     CleanupStack::PushL( self );
     self->ConstructL();
@@ -64,6 +67,7 @@ CIpsPlgImap4ConnectOp* CIpsPlgImap4ConnectOp::NewL(
 // <qmail> priority parameter has been removed
 // <qmail> MFSMailRequestObserver& changed it to pointer
 // <qmail> aSignallingAllowed parameter has been removed
+// <qmail> silent connection parameter added
 CIpsPlgImap4ConnectOp::CIpsPlgImap4ConnectOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -73,7 +77,8 @@ CIpsPlgImap4ConnectOp::CIpsPlgImap4ConnectOp(
     MFSMailRequestObserver* aFSOperationObserver,
     TInt aFSRequestId,
     TBool aDoPlainConnect,
-    CIpsPlgEventHandler* aEventHandler)
+    CIpsPlgEventHandler* aEventHandler,
+    TBool aSilentConnection)
     :
     CIpsPlgOnlineOperation(
 	    aMsvSession,
@@ -86,7 +91,8 @@ CIpsPlgImap4ConnectOp::CIpsPlgImap4ConnectOp(
     iSelection( NULL ),
     iDoPlainConnect( aDoPlainConnect ),
     iEventHandler( aEventHandler ),
-    iIsSyncStartedSignaled( EFalse )
+    iIsSyncStartedSignaled( EFalse ),
+    iSilentConnection( aSilentConnection )
     {
     FUNC_LOG;
     iService = aService;
@@ -341,6 +347,8 @@ void CIpsPlgImap4ConnectOp::DoConnectOpL()
         TBuf8<1> parameter;
         NM_COMMENT("CIpsPlgImap4ConnectOp: do plain connect");
         // connect and synchronise starts background sync or idle
+        // select connection type based on iSilentConnection
+        // NOTE: Cannot be implemented yet, because MTM support is not released yet
         iSubOperation = iBaseMtm->InvokeAsyncFunctionL(
             KIMAP4MTMConnect, *iSelection, parameter, iStatus);
         }
@@ -358,6 +366,8 @@ void CIpsPlgImap4ConnectOp::DoConnectOpL()
         // the used command requires an observer to be given even though we're not using it
         NM_COMMENT("CIpsPlgImap4ConnectOp: connect and sync");
         TPckg<MMsvImapConnectionObserver*> parameter( NULL );
+        // select connection type based on iSilentConnection
+        // NOTE: Cannot be implemented yet, because MTM support is not released yet
         iSubOperation = iBaseMtm->InvokeAsyncFunctionL(
             KIMAP4MTMConnectAndSyncCompleteAfterFullSync, 
             *iSelection, parameter, iStatus );

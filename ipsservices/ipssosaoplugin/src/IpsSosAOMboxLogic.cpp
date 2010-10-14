@@ -329,7 +329,11 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
             case EEventStartSync:
                 NM_COMMENT("CIpsSosAOMBoxLogic: event: EEventStartSync");
                 if ( iState == EStateWaitSyncStart )
-                    {         
+                    {
+                    if (iTimer->IsActive()) 
+                        {
+                        iTimer->Cancel();
+                        }
                     iError = KErrNone;
                     iAgent->StartSyncL();
                     iState = EStateSyncOngoing;

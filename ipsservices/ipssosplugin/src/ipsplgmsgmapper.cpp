@@ -307,10 +307,8 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     TBool modified ( EFalse );
     TBool unread( aEmlEntry.Unread() );
 
-// <qmail>
-    if ( LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) ||
-         LogicalXor( unread, msgFlags & EFSMsgFlag_Read_Locally ))
-// </qmail>
+    if ( !LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) ||
+         !LogicalXor( unread, msgFlags & EFSMsgFlag_Read_Locally ))
         {
         aEmlEntry.SetUnread( !unread );
         modified = ETrue;
@@ -349,7 +347,7 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     // EFSMsgFlag_Multiple: no counterpart in Symbian message
 
     // EFSMsgFlag_CalendarMsg
-    if( ( aEmlEntry.iMtm == KSenduiMtmSmtpUid ) && ( msgFlags & EFSMsgFlag_CalendarMsg ) )
+    if( ( aEmlEntry.iMtm == KUidMsgTypeSMTP ) && ( msgFlags & EFSMsgFlag_CalendarMsg ) )
         {
         if( !aEmlEntry.ICalendar() )
             {
@@ -375,7 +373,7 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     // EFSMsgFlag_Answered
 
     // IMAP flags
-    if ( aEmlEntry.iMtm == KSenduiMtmImap4Uid )
+    if ( aEmlEntry.iMtm == KUidMsgTypeIMAP4 )
         {
             // EFSMsgFlag_FollowUp
         if ( LogicalXor( aEmlEntry.FlaggedIMAP4Flag(),
@@ -546,8 +544,8 @@ void CIpsPlgMsgMapper::SetEnvelopeL(
             {
             addr = CFSMailAddress::NewLC();
             ConvertAddressL( toRecs[i], *addr );
-            aMsg.AppendToRecipient( addr );
             CleanupStack::Pop( addr );
+            aMsg.AppendToRecipient( addr );
             }
 
         const CDesCArray& ccRecs = header->CcRecipients();
@@ -556,8 +554,8 @@ void CIpsPlgMsgMapper::SetEnvelopeL(
             {
             addr = CFSMailAddress::NewLC();
             ConvertAddressL( ccRecs[i], *addr );
-            aMsg.AppendCCRecipient( addr );
             CleanupStack::Pop( addr );
+            aMsg.AppendCCRecipient( addr );
             }
 
         const CDesCArray& bccRecs = header->BccRecipients();
@@ -566,8 +564,8 @@ void CIpsPlgMsgMapper::SetEnvelopeL(
             {
             addr = CFSMailAddress::NewLC();
             ConvertAddressL( bccRecs[i], *addr );
-            aMsg.AppendBCCRecipient( addr );
             CleanupStack::Pop( addr );
+            aMsg.AppendBCCRecipient( addr );
             }
 
         CleanupStack::PopAndDestroy( header );
@@ -674,7 +672,7 @@ void CIpsPlgMsgMapper::SetFlags(
 
 // <cmail>
     //only for incomplete POP3 messages
-    if ( aEntry.iMtm.iUid == KSenduiMtmPop3UidValue &&
+    if ( aEntry.iMtm == KUidMsgTypePOP3 &&
             ( !aEntry.Complete() || aEntry.PartialDownloaded () ) )
         {
         TRAP_IGNORE( AttaCheckForIncompleteMsgL( aEntry, aMsg ) );
@@ -759,7 +757,7 @@ void CIpsPlgMsgMapper::SetFlags(
     // but this should be tested
 
     // Additional logic for IMAP4 messages
-    if ( aEntry.iMtm == KSenduiMtmImap4Uid )
+    if ( aEntry.iMtm == KUidMsgTypeIMAP4 )
         {
         if ( aEntry.FlaggedIMAP4Flag() )
             {
@@ -782,7 +780,7 @@ void CIpsPlgMsgMapper::SetFetchStateL(
     CFSMailMessagePart& aMessage )
     {
     FUNC_LOG;
-    if ( aEntry.iMtm.iUid == KSenduiMtmPop3UidValue && 
+    if ( aEntry.iMtm == KUidMsgTypePOP3 && 
             aEntry.Id() != aMsgMainId &&
             !aIsAtta )
         {
@@ -1222,7 +1220,7 @@ CFSMailMessagePart* CIpsPlgMsgMapper::ConvertBodyEntry2MessagePartL(
 
                 CleanupStack::PopAndDestroy( cEntry );
                 }
-            else if ( aEntry.iMtm == KSenduiMtmPop3Uid &&
+            else if ( aEntry.iMtm == KUidMsgTypePOP3 &&
                     iSession.GetEntry( aEntry.Parent(), dummy, parent )
                     == KErrNone && parent.PartialDownloaded() )
                 {

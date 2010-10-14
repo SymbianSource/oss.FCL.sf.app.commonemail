@@ -43,7 +43,7 @@ public:
     /*!
         Copy constructor for NmApiMailbox 
      */
-   NmApiMailbox(const NmApiMailbox &nmApiMailbox);
+    NmApiMailbox(const NmApiMailbox &nmApiMailbox);
     
     /*!
        destructor for NmApiMailbox

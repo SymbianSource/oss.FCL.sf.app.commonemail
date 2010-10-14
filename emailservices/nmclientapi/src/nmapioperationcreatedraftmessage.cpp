@@ -16,8 +16,8 @@
  */
 
 #include "nmapiheaders.h"
-
-
+namespace EmailClientApi
+{
 /*!
     Class constructor.
 */
@@ -87,7 +87,7 @@ void NmApiOperationCreateDraftMessage::RequestResponseL(TFSProgress aEvent,
         if (status == TFSProgress::EFSStatus_RequestComplete && aEvent.iParam) {
             CFSMailMessage *fsMessage = static_cast<CFSMailMessage*>(aEvent.iParam);
             NmMessage *nmmessage = fsMessage->GetNmMessage();
-            EmailClientApi::NmApiMessage apimessage = NmToApiConverter::NmMessage2NmApiMessage(*nmmessage);
+            NmApiMessage apimessage = NmToApiConverter::NmMessage2NmApiMessage(*nmmessage);
             QVariant qmessage;
             qmessage.setValue(apimessage);
             mStatus = Succeeded;
@@ -108,5 +108,6 @@ void NmApiOperationCreateDraftMessage::RequestResponseL(TFSProgress aEvent,
             emit operationComplete(NmApiGeneralError);
         }
     }
+}
 }
 

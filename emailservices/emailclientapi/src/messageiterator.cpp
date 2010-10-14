@@ -259,7 +259,9 @@ MEmailMessage* CMessageIterator::ReadFromChunkL()
 void CMessageIterator::AddToCacheL( CFSMailMessage* aFsMsg )
     {
     CEmailMessage* message = CEmailMessage::NewL( iPluginData, aFsMsg, EAPIOwns );
+    CleanupStack::PushL(message);
     iMessageArray.AppendL( message );
+    CleanupStack::Pop(message);
     }
 
 // -----------------------------------------------------------------------------

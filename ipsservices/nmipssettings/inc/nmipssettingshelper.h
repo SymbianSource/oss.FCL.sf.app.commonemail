@@ -38,7 +38,7 @@ class CpSettingFormItemData;
 class NmIpsSettingsManagerBase;
 class NmId;
 class CmApplSettingsUi;
-
+class NmIpsSettingsDeleteMailboxOp;
 
 // Constant for User Defined sync profile (EmailProfileOffsetUD)
 // \sa ipssettingkeys.h - Currently used sync profile
@@ -117,14 +117,14 @@ private slots:
     void receivingWeekdaysModified();
     void startTimeModified(QTime time);
     void endTimeModified(QTime time);
-    void handleMailboxDelete(HbAction *action);
     void handleMailboxDeleteUpdate(HbAction *action);
     void handleUserDefinedIncomingPortInput(HbAction *action);
     void handleUserDefinedFolderPathInput(HbAction *action);
     void handleUserDefinedOutgoingPortInput(HbAction *action);
     void handleConnectionSelected(uint status);
     void refreshPeriodModified(int index);
-
+    void deleteOpComplete(int result, int error);
+    
 private:
 
     enum AppLibUpdateOperation
@@ -165,6 +165,7 @@ private: // data
     bool mServerInfoDynamicItemsVisible;
     bool mAbortDynamicRSItemHandling;
     int mPrevInboxCount;
+    NmIpsSettingsDeleteMailboxOp *mDeleteOp;
 };
 
 #endif // NMIPSSETTINGSHELPER_H

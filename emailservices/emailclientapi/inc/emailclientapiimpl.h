@@ -197,8 +197,6 @@ private:
     // Mailbox ids are cached when first time listed. Related plugin uid
     // is include in the cache.
     CEmailMailboxCache* iMailboxCache;
-
-    CFSMailClient* iMailClient;
     
 };
 

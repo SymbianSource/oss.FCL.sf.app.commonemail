@@ -668,8 +668,9 @@ TInt CEmailMessage::GetAttachmentsL( REmailAttachmentArray& aAttachments )
 
         CEmailAttachment* att = CEmailAttachment::NewL( 
             iPluginData, msgContentId, attachments[i], EClientOwns );
-
+        CleanupStack::PushL(att);
         aAttachments.AppendL( att );
+        CleanupStack::Pop(att);
         }
     CleanupStack::Pop( &attachments );
     return count;

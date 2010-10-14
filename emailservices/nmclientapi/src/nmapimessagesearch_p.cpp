@@ -17,6 +17,9 @@
 
 #include "nmapiheaders.h"
 
+namespace EmailClientApi
+{
+
 /*!
     \class NmApiMessageSearchPrivate
     \brief A Qt wrapper class for MFSMailBoxSearchObserver.
@@ -115,7 +118,7 @@ void NmApiMessageSearchPrivate::MatchFoundL(CFSMailMessage *aMatchMessage)
     
     if (aMatchMessage) {
         NmMessage *nmmessage = aMatchMessage->GetNmMessage();
-        EmailClientApi::NmApiMessage message = NmToApiConverter::NmMessage2NmApiMessage(*nmmessage);
+        NmApiMessage message = NmToApiConverter::NmMessage2NmApiMessage(*nmmessage);
         emit messageFound(message);
         
         delete nmmessage;
@@ -135,7 +138,7 @@ void NmApiMessageSearchPrivate::SearchCompletedL()
 {
     NM_FUNCTION;
     mIsRunning = false;
-    emit searchComplete(EmailClientApi::NmApiNoError); 
+    emit searchComplete(NmApiNoError); 
 }
 
 
@@ -180,7 +183,7 @@ void NmApiMessageSearchPrivate::cancel()
  
  Initialize search criterias.  
  */
-bool NmApiMessageSearchPrivate::initialise(const QList<QString> &searchStrings, EmailClientApi::NmApiMailSortCriteria sortCriteria)
+bool NmApiMessageSearchPrivate::initialise(const QList<QString> &searchStrings, NmApiMailSortCriteria sortCriteria)
 {
     NM_FUNCTION;
     bool ret = false;
@@ -230,5 +233,6 @@ void NmApiMessageSearchPrivate::initialiseMailbox()
             }
         }
     }
+}
 }
 // End of file.

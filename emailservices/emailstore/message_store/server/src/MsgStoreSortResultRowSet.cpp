@@ -128,6 +128,9 @@ TBool CMsgStoreSortResultRowSet::HasMorePreviousL()
 	        hasMorePrevious = EFalse;
 	        }
 	    //move it back
+	    
+	    //no need to check here
+	    //coverity[check_return]
 	    iDbView.NextL();
 	    }    
 	return hasMorePrevious;
@@ -157,6 +160,8 @@ TBool CMsgStoreSortResultRowSet::HasMoreNextL()
 // ==========================================================================
 TMsgStoreId CMsgStoreSortResultRowSet::NextL()
 	{
+    //checked using AtEnd() below
+    //coverity[check_return]
 	iDbView.NextL();
     if ( iDbView.AtEnd() )
         {
@@ -204,13 +209,17 @@ void CMsgStoreSortResultRowSet::GotoL( TContainerId aMessageId )
         query.Append( KEqual );
         query.AppendNum( aMessageId );
         
-        iDbView.FirstL();
+        if(iDbView.FirstL()){
         
-        TInt rc = iDbView.FindL( RDbRowSet::EForwards, query );
-        if ( rc < 0 )
-            {
-            User::Leave( rc );
+            TInt rc = iDbView.FindL( RDbRowSet::EForwards, query );
+            if ( rc < 0 )
+                {
+                User::Leave( rc );
+                }
             }
+		else{
+			User::Leave(KErrNotFound);		
+			}
         }
 	}
 
@@ -423,6 +432,8 @@ void CMsgStoreSortResultRowSet::SortedIdsL( RArray<TContainerId>& aIdArray )
 	iDbView.BeginningL();
 	for ( TInt i = 0 ; i < count ; i++  )
 		{
+	    //no need to check return here
+	    //coverity[check_return]
 		iDbView.NextL();
 		aIdArray.AppendL( GetRowL() );
 		}
@@ -433,6 +444,7 @@ void CMsgStoreSortResultRowSet::SortedIdsL( RArray<TContainerId>& aIdArray )
 // ==========================================================================
 TInt CMsgStoreSortResultRowSet::IndexOfL( TContainerId aMessageId )
     {
+    TInt ret = -1;
     //have to search it from the begining
     const TUint bufSize = 200;
     TBuf<bufSize> query;
@@ -440,9 +452,10 @@ TInt CMsgStoreSortResultRowSet::IndexOfL( TContainerId aMessageId )
     query.Append( KEqual );
     query.AppendNum( aMessageId );
     
-    iDbView.FirstL();
-    
-    return iDbView.FindL( RDbRowSet::EForwards, query );
+    if(iDbView.FirstL()){
+        ret = iDbView.FindL( RDbRowSet::EForwards, query );
+    }
+    return ret;
     }
 
 // ==========================================================================

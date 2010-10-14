@@ -146,16 +146,32 @@ void NmImapClientPlugin::getActions(
 }
 
 /*!
+    Public method to access from extensionmanager to launch settings.
+    Opens mailbox settings.
+ */
+void NmImapClientPlugin::launchSettings(const NmId &mailboxId)
+{
+    NMLOG("NmImapClientPlugin::launchSettings()-->");
+    // Check if this request is for the IMAP protocol.
+    if (mailboxId.pluginId32() == this->pluginId()) {
+        settings(mailboxId);
+    }
+}
+
+/*!
     Slot connected to options menu settings NmAction.
     Opens mailbox settings.
  */
-void NmImapClientPlugin::settings()
+void NmImapClientPlugin::settings(const NmId &mailboxId)
 {
     NMLOG("NmImapClientPlugin::settings()-->");
-
-    const NmId &id = mMenuRequest.mailboxId();
-    NmMailboxMetaData *mailbox = mUiEngine->mailboxById(id);
-
+    
+    NmId id = mMenuRequest.mailboxId();
+    if (mailboxId.id()) {
+        id = mailboxId;
+    }
+    NmMailboxMetaData *mailbox = mUiEngine->mailboxById(id);    
+    
     if (mailbox) {
         if (!mSettingsViewLauncher) {
             mSettingsViewLauncher = new NmSettingsViewLauncher();

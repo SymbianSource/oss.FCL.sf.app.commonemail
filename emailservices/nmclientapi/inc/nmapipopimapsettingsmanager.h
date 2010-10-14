@@ -19,13 +19,14 @@
 #define NMAPIPOPIMAPSETTINGSMANAGER_H
 
 
-namespace EmailClientApi {
+namespace EmailClientApi 
+{
 class NmApiMailboxSettingsData;
 class NmApiPopImapSettingsManager 
 {
 public:
     NmApiPopImapSettingsManager();
-    ~NmApiPopImapSettingsManager();
+    virtual ~NmApiPopImapSettingsManager();
     bool populateDefaults(const QString &mailboxType, NmApiMailboxSettingsData &data);
 
 private:

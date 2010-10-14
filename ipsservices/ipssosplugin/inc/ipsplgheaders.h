@@ -26,8 +26,8 @@
 #include <e32def.h>
 #include <e32base.h>
 #include <e32property.h>
-
 #include <f32file.h>
+#include <sysutil.h>
 
 // <qmail> eikenv, eikrutil, coemain includes removed
 
@@ -73,9 +73,6 @@
 #include <CFSMailCommon.h>
 #include <CFSMailMessage.h>
 #include <CFSMailFolder.h>
-// sendui
-#include <SendUiConsts.h>
-#include <SenduiMtmUids.h>
 
 // <qmail> fsmailserverconst include removed
 // mfsmail

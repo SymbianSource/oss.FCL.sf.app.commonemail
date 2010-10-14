@@ -50,7 +50,7 @@ NmApiFolderListing::~NmApiFolderListing()
     It clears list of folders after be called.
     It also at start clear inputlist of NmFolder.
  */
-bool NmApiFolderListing::getFolders(QList<EmailClientApi::NmApiFolder> &folders)
+bool NmApiFolderListing::getFolders(QList<NmApiFolder> &folders)
 {
     NM_FUNCTION;
     return mFolderListing->folders(folders);

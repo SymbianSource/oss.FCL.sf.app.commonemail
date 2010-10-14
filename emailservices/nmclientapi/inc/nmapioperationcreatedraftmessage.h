@@ -25,7 +25,8 @@
 
 class CFSMailBox;
 
-using namespace EmailClientApi;
+namespace EmailClientApi
+{
 
 class NmApiOperationCreateDraftMessage : public NmApiOperation, 
                                          public MFSMailRequestObserver
@@ -34,7 +35,7 @@ class NmApiOperationCreateDraftMessage : public NmApiOperation,
 public:
     NmApiOperationCreateDraftMessage(const QVariant *initData,
                                      CFSMailBox &mailBox,
-                                     QObject *parent = 0);
+                                     QObject *parent = NULL);
     virtual ~NmApiOperationCreateDraftMessage();
 
     // from MFSMailRequestObserver
@@ -52,6 +53,6 @@ private:
     TInt mRequestId;
 
 };
-
+}
 
 #endif /* NMAPIOPERATIONCREATEDRAFTMESSAGE_H_ */

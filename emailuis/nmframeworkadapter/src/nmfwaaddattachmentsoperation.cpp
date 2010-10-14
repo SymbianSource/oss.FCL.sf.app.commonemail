@@ -46,7 +46,7 @@ NmFwaAddAttachmentsOperation::NmFwaAddAttachmentsOperation(
     for (int i=0; i<fileList.count(); ++i) {
         mFileList.append(fileList.at(i));
     }
-    mFSMessage = CFSMailMessage::NewL(message);
+    TRAP_IGNORE(mFSMessage = CFSMailMessage::NewL(message) );
     mRequestId = NmNotFoundError;
 }
 

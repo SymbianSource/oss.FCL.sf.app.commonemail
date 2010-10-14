@@ -151,9 +151,10 @@ EXPORTS
 	?paint@NmAttachmentListWidget@@UAEXPAVQPainter@@PBVQStyleOptionGraphicsItem@@PAVQWidget@@@Z @ 150 NONAME ; void NmAttachmentListWidget::paint(class QPainter *, class QStyleOptionGraphicsItem const *, class QWidget *)
 	?setHtml@NmHtmlLineEdit@@QAEXABVQString@@@Z @ 151 NONAME ; void NmHtmlLineEdit::setHtml(class QString const &)
 	?insertContactText@NmRecipientLineEdit@@AAEXABVQString@@@Z @ 152 NONAME ; void NmRecipientLineEdit::insertContactText(class QString const &)
-	?gestureEvent@NmRecipientLineEdit@@EAEXPAVQGestureEvent@@@Z @ 153 NONAME ; void NmRecipientLineEdit::gestureEvent(class QGestureEvent *)
+	?gestureEvent@NmRecipientLineEdit@@MAEXPAVQGestureEvent@@@Z @ 153 NONAME ; void NmRecipientLineEdit::gestureEvent(class QGestureEvent *)
 	?handleLongPressed@NmAttachmentListWidget@@AAEXVQPointF@@@Z @ 154 NONAME ; void NmAttachmentListWidget::handleLongPressed(class QPointF)
 	?changeEvent@NmAttachmentListWidget@@MAEXPAVQEvent@@@Z @ 155 NONAME ; void NmAttachmentListWidget::changeEvent(class QEvent *)
 	??1NmRecipientLineEdit@@UAE@XZ @ 156 NONAME ; NmRecipientLineEdit::~NmRecipientLineEdit(void)
 	?moveCursor@NmEditorTextEdit@@QAEXW4MoveOperation@QTextCursor@@W4MoveMode@3@@Z @ 157 NONAME ; void NmEditorTextEdit::moveCursor(enum QTextCursor::MoveOperation, enum QTextCursor::MoveMode)
+	?paste@NmHtmlLineEdit@@QAEXXZ @ 158 NONAME ; void NmHtmlLineEdit::paste(void)
 

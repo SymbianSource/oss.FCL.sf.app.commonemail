@@ -126,7 +126,7 @@ public:
 
     int saveMessage(const NmMessage &message);
 
-    int refreshMailbox(const NmId &mailboxId);
+    int refreshMailbox(const NmId &mailboxId, bool silentConnection=false);
 
     int goOnline(const NmId &mailboxId);
 
@@ -218,6 +218,8 @@ signals:
     void mailboxDeleted(const NmId &mailboxId);
     void matchFound(const NmId &, const NmId &);
     void searchComplete();
+    void draftSaved();
+    void draftDeleted();
 
 
 private:

@@ -46,7 +46,9 @@ public:
 public slots:
     void setPlainText(const QString &text);
     void setHtml(const QString &text);
-
+    // From HbAbstractEdit
+    void paste();
+    
 private:
     qreal mIndent;
 };

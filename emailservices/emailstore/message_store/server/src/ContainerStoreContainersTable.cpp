@@ -227,20 +227,20 @@ TContainerId CContainerStoreContainersTable::FindL( const TDesC& aSqlQuery )
 	__LOG_ENTER_SUPPRESS( "FindL" )
 	__LOG_WRITE_FORMAT1_DEBUG3( "query=%S", &aSqlQuery )
 	
-	TContainerId returnValue;
+	TContainerId returnValue = KContainerInvalidId;
 	
-	iTable.FirstL();
-	
-	if( iTable.FindL( RDbRowSet::EForwards, aSqlQuery ) == KErrNotFound )
-	    {
-	    __LOG_WRITE_INFO( "No match found" )
-	    returnValue = KContainerInvalidId;
-	    }
-	else 
-	    {
-	    iTable.GetL();
-	    returnValue = iTable.ColUint32( iIdColNum );
-	    } // end if
+	if(iTable.FirstL()){
+        if( iTable.FindL( RDbRowSet::EForwards, aSqlQuery ) == KErrNotFound )
+            {
+            __LOG_WRITE_INFO( "No match found" )
+            returnValue = KContainerInvalidId;
+            }
+        else 
+            {
+            iTable.GetL();
+            returnValue = iTable.ColUint32( iIdColNum );
+            } // end if
+	}
 	
 	return returnValue;	
 	

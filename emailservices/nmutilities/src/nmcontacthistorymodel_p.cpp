@@ -54,7 +54,7 @@ NmContactHistoryModelPrivate::~NmContactHistoryModelPrivate()
 
 /*!
     Searches contact & MRU  databases according to query parameters.
-    Emits QueryCompleted() when ready.
+    Emits queryCompleted() when ready.
 
     \param query Text to be searched
     \return none
@@ -81,8 +81,7 @@ void NmContactHistoryModelPrivate::queryDatabases(const QString& query)
 
     int spcPosition = query.indexOf(" ");
 
-    if ( spcPosition != -1 )
-    {
+    if ( spcPosition != -1 ) {
         modifiedQuery = query.left(spcPosition);
     }
 
@@ -97,22 +96,6 @@ void NmContactHistoryModelPrivate::queryDatabases(const QString& query)
 
     // Populate mPrivateItemList with contact items.
     populateListWithContactItems(cnt_ids, modifiedQuery);
-
-
-    #ifdef _DEBUG
-    
-        for (int i = 0; i < mPrivateItemList.size(); i++)
-        {
-            QSharedPointer<NmContactHistoryModelItemData> itemData = mPrivateItemList[i];
-
-            QString dbgString = itemData->mItems[0].mItemText;
-            dbgString.append(" ");
-            dbgString.append(itemData->mItems[1].mItemText);
-
-            qDebug(dbgString.toLatin1());
-        }
-        
-    #endif
 
 
     emit queryCompleted(0);
@@ -163,35 +146,29 @@ bool NmContactHistoryModelPrivate::queryMruDatabase(
     NM_FUNCTION;
     bool rVal = false;
     
-    if (mType == EmailAddressModel)
-    {
+    if (mType == EmailAddressModel) {
         bool mruListFilled = fillMruMatchList();
 
-        if (!mruListFilled)
-        {
+        if (!mruListFilled) {
             return rVal;
         }
 
         QHashIterator<QString, QString> i(mMruList);
 
-        while (i.hasNext())
-        {
+        while (i.hasNext()) {
             i.next();
 
             QString address = i.key();
             QString name = i.value();
 
-            if ((name.length() == 0) && (address.contains('@')))
-            {
+            if ((name.length() == 0) && (address.contains('@'))) {
                 name = address.left(address.indexOf("@"));
             }
 
-            if (address.contains(query, Qt::CaseInsensitive))
-            {
+            if (address.contains(query, Qt::CaseInsensitive)) {
                 mMruMatches.insert(name, address);
             }
-            else if (name.contains(query, Qt::CaseInsensitive))
-            {
+            else if (name.contains(query, Qt::CaseInsensitive)) {
                 mMruMatches.insert(name, address);
             }
         }      
@@ -217,8 +194,7 @@ void NmContactHistoryModelPrivate::populateListWithContactItems(
 
     int cntCount = cnt_ids.count();
     // Populate mPrivateItemList with contact items.
-    for ( int cntIndex = 0; cntIndex < cntCount; cntIndex++)
-    {
+    for ( int cntIndex = 0; cntIndex < cntCount; cntIndex++) {
         QContactLocalId cid = cnt_ids.at( cntIndex );
         // Fetch extended contact information from DB by ID
         QContact contact = mContactManager->contact( cid );
@@ -227,9 +203,8 @@ void NmContactHistoryModelPrivate::populateListWithContactItems(
         int numberOfEmails =  contact.details(
             QContactEmailAddress::DefinitionName).count();
 
-        if (numberOfEmails == 0)
-        {
-            continue; // Scotty, I need warp speed.
+        if (numberOfEmails == 0) {
+            continue; 
         }
 
         // Get contact name details
@@ -241,8 +216,7 @@ void NmContactHistoryModelPrivate::populateListWithContactItems(
         QString lastName = contactName.value(
             QContactName::FieldLastName);
 
-        for (int emailIndex = 0; emailIndex < numberOfEmails; emailIndex++)
-        {
+        for (int emailIndex = 0; emailIndex < numberOfEmails; emailIndex++) {
             // For Display name (ex. John Doe)
             NmContactHistoryModelSubItem itemSubItem1;
             // For Email address (ex. john.doe@company.com)
@@ -253,14 +227,12 @@ void NmContactHistoryModelPrivate::populateListWithContactItems(
             // Obey the contacts setting (first name last name order)
             itemSubItem1.mItemText = obeyContactOrder(firstName, lastName);
 
-            if( firstName.indexOf(modifiedQuery, 0, Qt::CaseInsensitive) == 0)
-            {
+            if( firstName.indexOf(modifiedQuery, 0, Qt::CaseInsensitive) == 0) {
                 itemSubItem1.mMatchingRanges.append(0);
                 itemSubItem1.mMatchingRanges.append(queryLength-1);
             }
 
-            if( lastName.indexOf(modifiedQuery, 0, Qt::CaseInsensitive) == 0)
-            {
+            if( lastName.indexOf(modifiedQuery, 0, Qt::CaseInsensitive) == 0) {
                 int indexLN = itemSubItem1.mItemText.indexOf(lastName,
                     firstName.length(),
                     Qt::CaseInsensitive );
@@ -274,15 +246,13 @@ void NmContactHistoryModelPrivate::populateListWithContactItems(
                  QContactEmailAddress::FieldEmailAddress );
 
             if (itemSubItem2.mItemText.indexOf(modifiedQuery, 0,
-                Qt::CaseInsensitive) == 0 )
-            {
+                Qt::CaseInsensitive) == 0 ) {
                 itemSubItem2.mMatchingRanges.append(0);
                 itemSubItem2.mMatchingRanges.append(queryLength-1);
             }
 
             if ((itemSubItem1.mMatchingRanges.count() != 0) ||
-                (itemSubItem2.mMatchingRanges.count() != 0) )
-            {
+                (itemSubItem2.mMatchingRanges.count() != 0) ) {
                 QSharedPointer<NmContactHistoryModelItemData> itemData
                     (new NmContactHistoryModelItemData);
 
@@ -310,8 +280,7 @@ void NmContactHistoryModelPrivate::populateListWithMruItems(
 
     QMapIterator<QString, QString> mruMatch(mMruMatches);
 
-    while (mruMatch.hasNext())
-    {
+    while (mruMatch.hasNext()) {
         mruMatch.next();
         // For Display name (ex. John Doe)
         NmContactHistoryModelSubItem itemSubItem1;
@@ -325,8 +294,7 @@ void NmContactHistoryModelPrivate::populateListWithMruItems(
         itemSubItem2.mItemText = address;
 
         // markup for first item.
-        if( name.indexOf(query, 0, Qt::CaseInsensitive) == 0)
-        {
+        if( name.indexOf(query, 0, Qt::CaseInsensitive) == 0) {
             itemSubItem1.mMatchingRanges.append(0);
             itemSubItem1.mMatchingRanges.append(query.length()-1);
         }
@@ -334,21 +302,17 @@ void NmContactHistoryModelPrivate::populateListWithMruItems(
         QRegExp rx("[,\\s]", Qt::CaseInsensitive);
         bool separatorExists = name.contains(rx);
 
-        if (separatorExists)
-        {
+        if (separatorExists) {
             int indexLN = name.indexOf(",", 0, Qt::CaseInsensitive);
 
-            if (indexLN == -1)
-            {
+            if (indexLN == -1) {
                 indexLN = name.indexOf(" ", 0, Qt::CaseInsensitive);
             }
 
-            if (indexLN > 0)
-            {
+            if (indexLN > 0) {
                 int matchPos = name.indexOf(query, indexLN, Qt::CaseInsensitive);
 
-                if (matchPos > 0)
-                {
+                if (matchPos > 0) {
                     itemSubItem1.mMatchingRanges.append(matchPos);
                     itemSubItem1.mMatchingRanges.append((matchPos+query.length())-1);
                 }
@@ -356,16 +320,14 @@ void NmContactHistoryModelPrivate::populateListWithMruItems(
         }
 
         // markup for second item.
-        if (address.indexOf(query, 0, Qt::CaseInsensitive) == 0 )
-         {
+        if (address.indexOf(query, 0, Qt::CaseInsensitive) == 0 ) {
              itemSubItem2.mMatchingRanges.append(0);
              itemSubItem2.mMatchingRanges.append(query.length()-1);
-         }
+        }
 
         // If match, add to data list.
         if ((itemSubItem1.mMatchingRanges.count() != 0) ||
-            (itemSubItem2.mMatchingRanges.count() != 0) )
-        {
+            (itemSubItem2.mMatchingRanges.count() != 0) ) {
             QSharedPointer<NmContactHistoryModelItemData> itemData
                 (new NmContactHistoryModelItemData);
 
@@ -392,8 +354,7 @@ void NmContactHistoryModelPrivate::refreshDataModel()
 
     for (int cntIndex = 0;
              cntIndex < mPrivateItemList.count();
-             cntIndex++)
-    {
+             cntIndex++) {
         // Construct modelItem to be added to list.
         NmContactHistoryModelItem modelItem;
 
@@ -405,8 +366,7 @@ void NmContactHistoryModelPrivate::refreshDataModel()
 
         for (int itemIndex = 0;
                  itemIndex < itemData->mItems.count();
-                 itemIndex++)
-        {
+                 itemIndex++) {
             QString key = itemData->mItems[itemIndex].mItemText;
             modelItem.appendSubItem(itemData->mItems[itemIndex]);
         }
@@ -453,25 +413,21 @@ int NmContactHistoryModelPrivate::privateDataCount() const
 QVariant NmContactHistoryModelPrivate::data(const QModelIndex &index, int role) const
 {
     NM_FUNCTION;
-
-    if ( mModelReady )
-    {
+    QVariant rVariant = QVariant(); 
+    
+    if ( mModelReady ) {
         if (!index.isValid() ||
             index.row() >= mModelItemList.count() ||
-            index.row() < 0)
-        {
-            return QVariant();
+            index.row() < 0) {
+            rVariant = QVariant();
         }
-        else if (role == Qt::DisplayRole)
-        {
-            QVariant v;
+        else if (role == Qt::DisplayRole) {
             NmContactHistoryModelItem i = mModelItemList.at(index.row());
-            v.setValue(i);
-            return v;
+            rVariant.setValue(i);
         }
     }
 
-    return QVariant();
+    return rVariant;
 }
 
 /*!
@@ -486,31 +442,27 @@ bool NmContactHistoryModelPrivate::fillMruMatchList()
 
     EmailMRU *mru = new EmailMRU();
     bool rVal = false;
+    int updateCount = 0;
 
-    if (mru)
-    {
-        int addressCount = mru->entryCount();
+    int addressCount = mru->entryCount();
 
-        for (int i = addressCount; i > 0; i--)
-        {
-            QString key, value; // "Email or Number" & "Display Name"
-            bool success;
+    for (int i = addressCount; i > 0; i--) {
+        QString key, value; // "Email or Number" & "Display Name"
+        bool success;
 
-            success = mru->getEntry(i, value, key);
+        success = mru->getEntry(i, value, key);
 
-            if (success)
-            {
-                mMruList.insertMulti(key, value);
-            }
+        if (success) {
+            mMruList.insertMulti(key, value);
+            updateCount++;
         }
+    }
 
-        delete mru;
+    delete mru;
+    
+    if (updateCount == addressCount) {
         rVal = true;
-    }
-    else
-    {
-        rVal = false;
-    }
+    } 
 
     return rVal;
 }
@@ -533,22 +485,21 @@ QString NmContactHistoryModelPrivate::obeyContactOrder(const QString &firstName,
 
     QString result;
 
-    switch (mNameOrder)
-    {
-        case LastNameFirstName:
-            result = lastName + " " + firstName;
+    switch (mNameOrder) {
+    case LastNameFirstName:
+        result = lastName + " " + firstName;
         break;
 
-        case LastNameCommaFirstName:
-            result = lastName + ", " + firstName;
+    case LastNameCommaFirstName:
+        result = lastName + ", " + firstName;
         break;
 
-        case FirstNameLastName:
-            result = firstName + " " + lastName;
+    case FirstNameLastName:
+        result = firstName + " " + lastName;
         break;
 
-        default:
-            result = firstName + " " + lastName;
+    default:
+        result = firstName + " " + lastName;
         break;
     }
 

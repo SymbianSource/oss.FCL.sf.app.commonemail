@@ -29,7 +29,7 @@
 "..\resources\nmhswidget.manifest"               						- "!:\private\20022F35\import\widgetregistry\2002DD15\nmhswidget.manifest",FM,"application\hs-widget-uninstall+xml",RR,RW
 
 ;nmhswidget
-"\epoc32\release\armv5\urel\nmhswidget.dll"									- "!:\sys\bin\nmhswidget.dll"
+"\epoc32\release\armv5\udeb\nmhswidget.dll"									- "!:\sys\bin\nmhswidget.dll"
 "\epoc32\data\z\resource\qt\plugins\nmhswidget.qtplugin"		- "!:\private\20022F35\import\widgetregistry\2002DD15\nmhswidget.qtplugin"
 "\epoc32\data\z\private\2002DD15\nmhswidget.xml"						- "!:\private\20022F35\import\widgetregistry\2002DD15\nmhswidget.xml"
 "..\resources\nmhswidget.manifest"               						- "!:\private\20022F35\import\widgetregistry\2002DD15\nmhswidget.manifest"
@@ -86,7 +86,7 @@
 
 
 ;nmregister
-"\epoc32\release\armv5\urel\nmregister.dll"									- "!:\sys\bin\nmregister.dll"
+"\epoc32\release\armv5\udeb\nmregister.dll"									- "!:\sys\bin\nmregister.dll"
 "\epoc32\data\z\private\2002DD16\nmregister.xml"						- "!:\private\2002DD16\import\nmregister.xml"
 "\epoc32\data\z\resource\qt\plugins\nmregister.qtplugin"		- "!:\resource\qt\plugins\nmregister.qtplugin"
 "\epoc32\data\z\resource\qt\translations\nmregister_ar.qm"	- "!:\resource\qt\translations\nmregister_ar.qm"
@@ -142,4 +142,4 @@
 
 
 ;installer
-"\epoc32\release\armv5\urel\nmregisterinstaller.exe"				- "!:\sys\bin\nmregisterinstaller.exe", FR, RB, RW
+"\epoc32\release\armv5\udeb\nmregisterinstaller.exe"				- "!:\sys\bin\nmregisterinstaller.exe", FR, RB, RW

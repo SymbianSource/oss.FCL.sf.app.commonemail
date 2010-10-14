@@ -649,13 +649,13 @@ int NmUiEngine::saveMessage(const NmMessage &message)
 /*!
     Refreshes mailbox.
 */
-int NmUiEngine::refreshMailbox(const NmId &mailboxId )
+int NmUiEngine::refreshMailbox(const NmId &mailboxId, bool silentConnection )
 {
     int ret(NmNotFoundError);
     NmDataPluginInterface *plugin =
         mPluginFactory->interfaceInstance(mailboxId);
     if (plugin) {
-        ret = plugin->refreshMailbox(mailboxId);
+        ret = plugin->refreshMailbox(mailboxId, silentConnection);
         if (NmNoError == ret) {
             enableSyncIndicator(true);
         }
@@ -1030,6 +1030,11 @@ void NmUiEngine::handleCompletedSendOperation()
 void NmUiEngine::handleCompletedRemoveDraftOperation()
 {
     // draft message deletion observing not yet implemented...
+    if(mDraftMessage) {
+        delete mDraftMessage;
+        mDraftMessage = NULL;
+    }
+    emit draftDeleted();
 }
 
 /*!
@@ -1042,6 +1047,7 @@ void NmUiEngine::handleCompletedSaveDraftOperation()
         delete mDraftMessage;
         mDraftMessage = NULL;
     }
+    emit draftSaved();
 }
 
 /*!

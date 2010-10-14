@@ -44,7 +44,7 @@ NmApiEnvelopeListingPrivate::~NmApiEnvelopeListingPrivate()
    
     Caller gets ownership of envelopes. Returns true if results were available.
  */
-bool NmApiEnvelopeListingPrivate::envelopes(QList<EmailClientApi::NmApiMessageEnvelope> &envelopes)
+bool NmApiEnvelopeListingPrivate::envelopes(QList<NmApiMessageEnvelope> &envelopes)
 {
     NM_FUNCTION;
     bool ret(mIsRunning);

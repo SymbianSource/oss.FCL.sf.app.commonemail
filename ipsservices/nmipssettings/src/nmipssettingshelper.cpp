@@ -44,6 +44,7 @@
 #include "nmipssettingsmanagerbase.h"
 #include "nmipssettingscustomitem.h"
 #include "nmipsextendedsettingsmanager.h"
+#include "nmipssettingsdeletemailboxop.h"
 
 // CONSTANTS
 
@@ -100,7 +101,8 @@ NmIpsSettingsHelper::NmIpsSettingsHelper(NmIpsSettingsManagerBase &settingsManag
   mOutgoingPortInputValidator(NULL),
   mDestinationDialog(NULL),
   mServerInfoDynamicItemsVisible(false),
-  mAbortDynamicRSItemHandling(false)
+  mAbortDynamicRSItemHandling(false),
+  mDeleteOp(NULL)
 {
     QVariant inboxValue;
     mSettingsManager.readSetting(IpsServices::ReceptionInboxSyncWindow, inboxValue);
@@ -113,6 +115,7 @@ NmIpsSettingsHelper::NmIpsSettingsHelper(NmIpsSettingsManagerBase &settingsManag
 NmIpsSettingsHelper::~NmIpsSettingsHelper()
 {
     mContentItems.clear();
+    delete mDeleteOp;
     delete mDeleteConfirmationDialog;
     delete mIncomingPortInputDialog;
     delete mIncomingPortInputValidator;
@@ -205,7 +208,7 @@ void NmIpsSettingsHelper::createOrUpdateReceivingScheduleGroupDynamicItem(
                         weekdayItemValues);
 
                     formItemData->setContentWidgetData("heading",
-                        hbTrId("txt_mailips_dialog_heading_receiving_weekdays"));
+                        hbTrId("txt_mailips_dialog_heading_receiving_days"));
 
                     formItemData->setContentWidgetData("items", weekdayItems);
 
@@ -597,55 +600,14 @@ void NmIpsSettingsHelper::replyToTextChange(const QString &text)
 */
 void NmIpsSettingsHelper::deleteButtonPress()
 {
-    if(!mDeleteConfirmationDialog) {
-        mDeleteConfirmationDialog =
-            new HbMessageBox(HbMessageBox::MessageTypeQuestion);
-        mDeleteConfirmationDialog->setText(
-            hbTrId("txt_mail_dialog_do_you_want_to_delete_the_mailbox"));
-        mDeleteConfirmationDialog->setTimeout(HbMessageBox::NoTimeout);
-        mDeleteConfirmationDialog->setStandardButtons(HbMessageBox::Yes | HbMessageBox::No);
+    if( !mDeleteOp ) {
+        mDeleteOp = new NmIpsSettingsDeleteMailboxOp( mSettingsManager );
+        connect( mDeleteOp, SIGNAL(goOffline(const NmId &)), this, SIGNAL(goOffline(const NmId &)));
+        connect( mDeleteOp, SIGNAL(operationComplete(int,int)), 
+            this, SLOT(deleteOpComplete(int,int)));
+        mDeleteOp->startOperation();
     }
-    mDeleteConfirmationDialog->open(this, SLOT(handleMailboxDelete(HbAction *)));
-}
-
-/*!
-    Deletes mailbox and displays the proper notes.
-*/
-void NmIpsSettingsHelper::handleMailboxDelete(HbAction *action)
-{
-    if (action == mDeleteConfirmationDialog->actions().at(0)) {
-        emit goOffline(mSettingsManager.mailboxId());
-        mEmitOnline = false;
-
-        QVariant mailboxName;
-        mSettingsManager.readSetting(IpsServices::MailboxName, mailboxName);
-
-        // Display the progress note. Before display the note, remove the cancel
-        // button.
-        HbProgressDialog progressNote(HbProgressDialog::WaitDialog);
-        progressNote.setText(hbTrId("txt_common_info_deleting"));
-        progressNote.removeAction(progressNote.actions().at(0));
-        progressNote.delayedShow();
-
-        if (!mSettingsManager.deleteMailbox()) {
-            // The mailbox was deleted successfully.
-
-            // Delete the mailbox also from AppLib.
-            updateAppLib(UnregisterMailbox);
-
-            // Hide the progress note and display the "mailbox deleted" dialog.
-            progressNote.close();
-
-            HbNotificationDialog *note = new HbNotificationDialog();
-            QString noteText = hbTrId("txt_mail_dialog_1_deleted").arg(mailboxName.toString());
-            note->setTitle(noteText);
-            note->setAttribute(Qt::WA_DeleteOnClose);
-            note->open(this, SLOT(handleMailboxDeleteUpdate(HbAction *)));
-        } else {
-            // Failed to delete the mailbox!
-            progressNote.close();
-        }
-    }
+    
 }
 
 /*!
@@ -654,6 +616,10 @@ void NmIpsSettingsHelper::handleMailboxDelete(HbAction *action)
 void NmIpsSettingsHelper::handleMailboxDeleteUpdate(HbAction *action)
 {
     Q_UNUSED(action);
+
+    delete mDeleteOp;
+    mDeleteOp = NULL;
+    
     // Emit the signal to update the UI.
     emit mailboxListChanged(mSettingsManager.mailboxId(),
                             NmSettings::MailboxDeleted);
@@ -678,12 +644,12 @@ void NmIpsSettingsHelper::receivingScheduleChange(int index)
     // Read receiving schedule item values and
     // make a decision based on those if item should be visible or not.
     mAbortDynamicRSItemHandling = false;
-    for (int index(0); (index < NmIpsSettingsReceivingScheduleItemCount) &&
-             !mAbortDynamicRSItemHandling; ++index) {
+    for (int i(0); (i < NmIpsSettingsReceivingScheduleItemCount) &&
+             !mAbortDynamicRSItemHandling; ++i) {
 
         // Read setting value from active profile
         QVariant setting;
-        IpsServices::SettingItem item(NmIpsSettingsReceivingScheduleItems[index]);
+        IpsServices::SettingItem item(NmIpsSettingsReceivingScheduleItems[i]);
         mSettingsManager.readSetting(item, setting);
 
         // If setting value is not valid (-1=N/A) then remove setting item.
@@ -1541,3 +1507,26 @@ void NmIpsSettingsHelper::refreshPeriodModified(int index)
 			selectedValue);
 	}
 }
+
+void NmIpsSettingsHelper::deleteOpComplete( int result, int error)
+{
+    Q_UNUSED(error);
+    if( result == DeleteMbResultSuccess ) {
+        // Show notification that mailbox has been deleted
+        QVariant mailboxName;
+        mSettingsManager.readSetting(IpsServices::MailboxName, mailboxName);
+
+        HbNotificationDialog *note = new HbNotificationDialog();
+        QString noteText = hbTrId("txt_mail_dialog_1_deleted").arg(mailboxName.toString());
+        note->setTitle(noteText);
+        note->setAttribute(Qt::WA_DeleteOnClose);
+        note->open(this, SLOT(handleMailboxDeleteUpdate(HbAction *)));
+    } else {
+        // Add error note here to be shown if delete operation has failed
+
+        // delete operation
+        delete mDeleteOp;
+        mDeleteOp = NULL;
+    }
+}
+

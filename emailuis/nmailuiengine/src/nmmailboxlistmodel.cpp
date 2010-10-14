@@ -113,6 +113,9 @@ void NmMailboxListModel::refreshModelItem(const NmId &mailboxId)
         metaData->setAddress(mailbox->address().address());
         entryItem->setItemMetaData(metaData);
     }
+    
+    delete mailbox;
+    mailbox = NULL;
 }
 
 /*!

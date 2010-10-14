@@ -24,12 +24,12 @@
 #include <CFSMailCommon.h>
 #include <nmapimessagemanager.h>
 
-class NmApiEngine;
 class CFSMailBox;
 class CFSMailPlugin;
 
 namespace EmailClientApi
 {
+class NmApiEngine;
 
 class NmApiMessageManagerPrivate : public QObject
 {

@@ -67,7 +67,7 @@ bool NmApiMailbox::operator==(const NmApiMailbox &mailbox)
 {
     NM_FUNCTION;
     
-    bool returnValue = false;
+    bool returnValue(false);
     if (d == mailbox.d) {
         returnValue = true;
     }

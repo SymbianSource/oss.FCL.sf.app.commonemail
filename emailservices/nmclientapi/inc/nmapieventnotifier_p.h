@@ -24,15 +24,15 @@
 
 class QTimer;
 
-class NmApiEngine;
-
 namespace EmailClientApi
 {
+class NmApiEngine;
+	
 class NmApiEventNotifierPrivate : public QObject
 {
     Q_OBJECT
 public:
-    NmApiEventNotifierPrivate(QObject *parent = 0);
+    NmApiEventNotifierPrivate(QObject *parent = NULL);
     virtual ~NmApiEventNotifierPrivate();
 
     void cancel();
@@ -41,7 +41,7 @@ public:
     void stop();
     void events(QList<NmApiEvent> &events);
 public slots:
-    void emailStoreEvent(const NmApiEvent &events);
+    void emailStoreEvent(const EmailClientApi::NmApiEvent event);
 
 signals:
     void timedOut();

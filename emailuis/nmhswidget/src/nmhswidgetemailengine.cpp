@@ -26,10 +26,12 @@
 #include "nmhswidgetemailengine.h"
 #include "nmdataplugininterface.h"
 #include "nmmailbox.h"
+#include "nmmessage.h"
 #include "nmfolder.h"
 #include "nmdatapluginfactory.h"
 #include "nmhswidgetconsts.h"
 #include "emailtrace.h"
+#include "nmhswidgetlistmodel.h"
 
 /*!
  Constructor
@@ -41,10 +43,9 @@ NmHsWidgetEmailEngine::NmHsWidgetEmailEngine(const NmId& monitoredMailboxId) :
     mUnreadCount(-1),
     mEmailInterface(0),
     mFactory(0),
-    mAccountEventReceivedWhenSuspended(false),
-    mMessageEventReceivedWhenSuspended(false),
+    mAccountDataNeedsUpdate(false),
+    mMessageDataNeedsUpdate(false),
     mSuspended(false),
-    mUpdateTimer(0),
     mAiwRequest(0)
 {
     NM_FUNCTION;
@@ -65,11 +66,8 @@ bool NmHsWidgetEmailEngine::initialize()
         return false;
     }
     updateData();
+    updateUnreadCount();
     updateAccount();
-
-    mUpdateTimer = new QTimer(this);
-    mUpdateTimer->setInterval(NmHsWidgetEmailEngineUpdateTimerValue);
-    connect(mUpdateTimer, SIGNAL(timeout()), this, SLOT(handleUpdateTimeout()) );
 
     return true;
 }
@@ -140,18 +138,6 @@ bool NmHsWidgetEmailEngine::constructNmPlugin()
     return true;
 }
 
-/*!
- Reset envelope list
- \post mEnvelopeList.isEmpty() == true && all contained objects are deleted
- */
-void NmHsWidgetEmailEngine::resetEnvelopeList()
-{
-    NM_FUNCTION;
-
-    while (!mEnvelopeList.isEmpty()) {
-        delete mEnvelopeList.takeFirst();
-    }
-}
 
 /*!
  Destructor
@@ -160,33 +146,12 @@ NmHsWidgetEmailEngine::~NmHsWidgetEmailEngine()
 {
     NM_FUNCTION;
 
-    resetEnvelopeList();
     if (mFactory) {
         NmDataPluginFactory::releaseInstance(mFactory);
     }
 
-    if (mUpdateTimer){
-        mUpdateTimer->stop();
-        delete mUpdateTimer;
-    }
 }
 
-/*!
- getEnvelopes() provides message envelopes as a list of stack objects
- Amount of message envelopes in the list parameter is the smallest of the following factors:
- 'KMaxNumberOfEnvelopesProvided', 'maxEnvelopeAmount', 'amount of available envelopes'.
-
- \param list list to be filled with message envelopes
- \param maxEnvelopeAmount Client side limit for amount of message envelope count.
- \return count of envelopes added to list
- */
-int NmHsWidgetEmailEngine::getEnvelopes(QList<NmMessageEnvelope*> &list, int maxEnvelopeAmount)
-{
-    NM_FUNCTION;
-    list.clear(); //Reset the parameter list to avoid side effects
-    list.append(mEnvelopeList.mid(0, maxEnvelopeAmount));
-    return list.count();
-}
 
 /*!
  UnreadCount
@@ -210,38 +175,9 @@ QString NmHsWidgetEmailEngine::accountName()
     return mAccountName;
 }
 
-/*!
- Refresh email data.
- \post mEnvelopeList is refreshed with valid content so that it has
-       valid data with maximum of KMaxNumberOfEnvelopesProvided envelopes.
 
- - emits exceptionOccured(NmEngineExcFailure) if fatal error occurs.
- - emits mailDataChanged() if new mail data is set into mEnvelopeList
- - emits unreadCountChanged(mUnreadCount), if mUnreadCount is updated
-
- \return true if everything succeeded, otherwise false
- */
-bool NmHsWidgetEmailEngine::updateData()
+bool NmHsWidgetEmailEngine::updateUnreadCount()
 {
-    NM_FUNCTION;
-    if (!mEmailInterface) {
-        NM_ERROR(1,"NmHsWidgetEmailEngine::updateData() -- Interface missing");
-        emit exceptionOccured(NmEngineExcFailure); //fatal error
-        return false; //if interface is missing there's nothing to do
-    }
-
-    //reset envelope list before retrieving new items
-    resetEnvelopeList();
-
-    //get messages from inbox
-    int msgErr = mEmailInterface->listMessages(mMailboxId, mFolderId, mEnvelopeList,
-        KMaxNumberOfEnvelopesProvided);
-    if (msgErr) {
-        //retrieval of messages failed.
-        return false;
-    }
-    //emit signal about new message data right away
-    emit mailDataChanged();
     //retrieve new unread count to mUnreadCount
     NmFolder* folder = NULL;
     int folderErr = mEmailInterface->getFolderById(mMailboxId, mFolderId, folder);
@@ -251,7 +187,7 @@ bool NmHsWidgetEmailEngine::updateData()
     }
     if (folder) {
         //If messageCount in the folder is zero we must indicate unread count to be -1
-        if (mEnvelopeList.count() == 0) {
+        if (folder->messageCount() == 0) {
             mUnreadCount = -1;
         }
         else {
@@ -271,6 +207,42 @@ bool NmHsWidgetEmailEngine::updateData()
     return true;
 }
 
+
+/*!
+ * TODO: UPDATE THIS
+ Refresh email data. 
+ \post mEnvelopeList is refreshed with valid content so that it has
+       valid data with maximum of KMaxNumberOfEnvelopesProvided envelopes.
+
+ - emits exceptionOccured(NmEngineExcFailure) if fatal error occurs.
+ - emits mailDataChanged() if new mail data is set into mEnvelopeList
+ - emits unreadCountChanged(mUnreadCount), if mUnreadCount is updated
+
+ \return true if everything succeeded, otherwise false
+ */
+bool NmHsWidgetEmailEngine::updateData()
+{
+    NM_FUNCTION;
+    if (!mEmailInterface) {
+        NM_ERROR(1,"NmHsWidgetEmailEngine::updateData() -- Interface missing");
+        emit exceptionOccured(NmEngineExcFailure); //fatal error
+        return false; //if interface is missing there's nothing to do
+    }
+
+    QList<NmMessageEnvelope*> envelopeList;
+    //get messages from inbox
+    int msgErr = mEmailInterface->listMessages(mMailboxId, mFolderId, envelopeList,
+        KMaxNumberOfEnvelopesProvided);
+    if (msgErr) {
+        //retrieval of messages failed.
+        return false;
+    }
+    //emit signal about new message data right away
+	emit mailDataRefreshed(envelopeList);
+
+    return true;
+}
+
 /*!
  handleMessageEvent slot.
  */
@@ -281,8 +253,6 @@ void NmHsWidgetEmailEngine::handleMessageEvent(
     const NmId& mailboxId)
 {
     NM_FUNCTION;
-    Q_UNUSED(event);
-    Q_UNUSED(messageIds);
 
     if (!mEmailInterface) {
         NM_ERROR(1,"NmHsWidgetEmailEngine::handleMessageEvent() -- Interface missing");
@@ -297,15 +267,69 @@ void NmHsWidgetEmailEngine::handleMessageEvent(
     }
     if ((folderId == mFolderId) && (mailboxId == mMailboxId)) {
         //Data is updated only if the engine is not suspended
+
         if (mSuspended) {
-            mMessageEventReceivedWhenSuspended = true;
+            mMessageDataNeedsUpdate = true;
+            return; //no further actions
         }
-        else {
-            //start or restart the timer. Update is started when timer expires
-            mUpdateTimer->start();
+        updateUnreadCount();        
+        switch(event){
+            case(NmMessageCreated):
+                    emit mailsReceived(getEnvelopesFromIds(messageIds));
+                    break;
+            case(NmMessageChanged):
+                    emit mailsUpdated(getEnvelopesFromIds(messageIds));
+                    break;
+            case(NmMessageDeleted):
+                    emit mailsDeleted(messageIds);
+                    break;
         }
+
     }
 }
+
+QList<NmMessageEnvelope*> NmHsWidgetEmailEngine::getEnvelopesFromIds(const QList<NmId> messageIds)
+{
+    NM_FUNCTION;
+    QList<NmMessageEnvelope*> ret;
+    foreach(NmId id, messageIds){
+        NmMessageEnvelope *msgEnvelope = NULL;
+        msgEnvelope = envelopeById(id);
+        if(msgEnvelope){
+            ret.append(msgEnvelope);
+        }
+    }
+    return ret;
+}
+
+/*!
+    Get new NmMessageEnvelope object by id \a messageId from any folder.
+    Ownership is transferred to the caller. NULL pointer is returned if
+    message id is not found.
+ */
+NmMessageEnvelope *NmHsWidgetEmailEngine::envelopeById(const NmId &messageId)
+{
+    NM_FUNCTION;
+    
+    NmMessageEnvelope *msgEnvelope(NULL);
+    NmMessage *newMessageObject(NULL);
+    int retVal(NmNotFoundError);
+    
+    retVal = mEmailInterface->getMessageById(mMailboxId, mFolderId, messageId, newMessageObject);
+    if (retVal < NmNoError || !newMessageObject) {
+        // Return null object if fetching failed
+        delete newMessageObject;
+        newMessageObject = NULL;
+        return NULL;
+    }
+
+    msgEnvelope = new NmMessageEnvelope(newMessageObject->envelope());
+
+    delete newMessageObject;
+    newMessageObject = NULL;
+    return msgEnvelope;
+}
+
 
 /*!
  handleFolderEvent slot.
@@ -321,10 +345,9 @@ void NmHsWidgetEmailEngine::handleFolderEvent( NmFolderEvent event,
     //react only if the monitored folder for monitored account is deleted
     if (event == NmFolderIsDeleted && mailboxId == mMailboxId && folderIds.contains(mFolderId) )
     {
-        resetEnvelopeList();    //cached envelopes to be cleared
+        emit mailDataCleared(); //emit mail data clearance
         mUnreadCount = 0;       //unread count to 0
         mFolderId = NmId(0);    //folder id to zero (indicates the situation where folder is not available)
-        emit mailDataChanged(); //emit data change for UI
         emit unreadCountChanged(mUnreadCount); // emit unread count change to UI
     }
 }
@@ -340,7 +363,7 @@ void NmHsWidgetEmailEngine::handleMailboxEvent(NmMailboxEvent event, const QList
         switch (event) {
             case (NmMailboxChanged): {
                 if (mSuspended) {
-                    mAccountEventReceivedWhenSuspended = true;
+                    mAccountDataNeedsUpdate = true;
                 }
                 else {
                     updateAccount();
@@ -358,17 +381,6 @@ void NmHsWidgetEmailEngine::handleMailboxEvent(NmMailboxEvent event, const QList
     }
 }
 
-/*!
- * handleUpdateTimeout slot
- */
-void NmHsWidgetEmailEngine::handleUpdateTimeout()
-{
-    NM_FUNCTION;
-    if (mUpdateTimer){
-        mUpdateTimer->stop();
-    }
-    updateData();
-}
 
 /*!
  Update Account data
@@ -396,6 +408,22 @@ bool NmHsWidgetEmailEngine::updateAccount()
     return true;
 }
 
+
+/*!
+ forceUpdate slot.
+ \post If engine is not suspended, this will force full update immediately.
+ */
+void NmHsWidgetEmailEngine::forceUpdate()
+{
+    NM_FUNCTION;
+    if(mSuspended){
+        mMessageDataNeedsUpdate = true; //this is enough to force update when activated
+    }else{
+        updateData();
+        updateUnreadCount();
+    }
+}
+
 /*!
  suspend slot.
  \post engine will not emit signals or refresh its data during suspension.
@@ -415,15 +443,17 @@ void NmHsWidgetEmailEngine::activate()
 {
     NM_FUNCTION;
     mSuspended = false;
-    if (mAccountEventReceivedWhenSuspended) {
-        mAccountEventReceivedWhenSuspended = false;
+    if (mAccountDataNeedsUpdate) {
+        mAccountDataNeedsUpdate = false;
         updateAccount();
     }
-    if (mMessageEventReceivedWhenSuspended) {
-        mMessageEventReceivedWhenSuspended = false;
+    if (mMessageDataNeedsUpdate) {
+        mMessageDataNeedsUpdate = false;
         updateData();
+        updateUnreadCount();
     }
 }
+
 
 /*!
  launchMailAppInboxView slot.

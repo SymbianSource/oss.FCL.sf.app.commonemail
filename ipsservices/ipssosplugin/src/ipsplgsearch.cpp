@@ -569,7 +569,7 @@ void CIpsPlgSearch::GetFoldersL( TSearchParams& aParams )
     FUNC_LOG;
     iActiveEntry->SetEntryL( aParams.iMailbox.Id() );
     
-    if ( iActiveEntry->Entry().iMtm == KSenduiMtmPop3Uid )
+    if ( iActiveEntry->Entry().iMtm == KUidMsgTypePOP3 )
         {
         aParams.iFolderIds.AppendL( 
             TFSMailMsgId( iPlugin.PluginId(), aParams.iMailbox.Id() ) );
@@ -1005,7 +1005,7 @@ void CIpsPlgSearch::CollectMessagesL()
             const TMsvEntry& entry = ( *iActiveEntry )[msg];
             if ( entry.iType == KUidMsvMessageEntry &&
             	 entry.iServiceId == serviceId &&
-                 ( entry.iMtm.iUid == KSenduiMtmSmtpUidValue ||
+                 ( entry.iMtm == KUidMsgTypeSMTP ||
                    entry.iMtm.iUid == iPlugin.MtmId().iUid ) )
                 {
                 iEmailMessages.AppendL( TMsgContainer( entry,

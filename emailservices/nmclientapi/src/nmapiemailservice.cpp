@@ -49,7 +49,7 @@ bool NmApiEmailService::getEnvelope(
     const quint64 mailboxId,
     const quint64 folderId,
     const quint64 envelopeId,
-    EmailClientApi::NmApiMessageEnvelope &envelope)
+    NmApiMessageEnvelope &envelope)
 {
     NM_FUNCTION;
     
@@ -65,7 +65,7 @@ bool NmApiEmailService::getEnvelope(
 bool NmApiEmailService::getFolder(
     const quint64 mailboxId,
     const quint64 folderId,
-    EmailClientApi::NmApiFolder &mailboxFolder)
+    NmApiFolder &mailboxFolder)
 {
     NM_FUNCTION;
 
@@ -81,7 +81,7 @@ bool NmApiEmailService::getFolder(
 /*!
     gets mailbox info by id (see also NmEventNotifier)
  */
-bool NmApiEmailService::getMailbox(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailboxInfo)
+bool NmApiEmailService::getMailbox(const quint64 mailboxId, NmApiMailbox &mailboxInfo)
 {
     NM_FUNCTION;
     
@@ -98,7 +98,7 @@ bool NmApiEmailService::getMessage(
     const quint64 mailboxId,
     const quint64 folderId,
     const quint64 messageId,
-    EmailClientApi::NmApiMessage &message)
+    NmApiMessage &message)
 {
     NM_FUNCTION;
     

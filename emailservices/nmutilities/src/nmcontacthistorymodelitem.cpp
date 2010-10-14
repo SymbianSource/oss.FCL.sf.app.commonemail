@@ -28,7 +28,7 @@
 */
 NmContactHistoryModelItem::NmContactHistoryModelItem()
 {
-    d = new NmContactHistoryModelItemData();
+    mItemData = new NmContactHistoryModelItemData();
 }
 
 /*!
@@ -37,7 +37,7 @@ NmContactHistoryModelItem::NmContactHistoryModelItem()
 NmContactHistoryModelItem::NmContactHistoryModelItem(
     const NmContactHistoryModelItem &other)
 {
-    d = other.d;
+    mItemData = other.mItemData;
 }
 
 /*!
@@ -52,7 +52,7 @@ NmContactHistoryModelItem::~NmContactHistoryModelItem()
 */
 unsigned int NmContactHistoryModelItem::contactId() const
 {
-    return d->mContactId;
+    return mItemData->mContactId;
 }
 
 /*!
@@ -60,7 +60,7 @@ unsigned int NmContactHistoryModelItem::contactId() const
 */
 void NmContactHistoryModelItem::setContactId(unsigned int contactId)
 {
-    d->mContactId = contactId;
+    mItemData->mContactId = contactId;
 }
 
 /*!
@@ -68,7 +68,7 @@ void NmContactHistoryModelItem::setContactId(unsigned int contactId)
 */
 int NmContactHistoryModelItem::subItemCount() const
 {
-    return d->mItems.count();
+    return mItemData->mItems.count();
 }
 
 /*!
@@ -77,9 +77,9 @@ int NmContactHistoryModelItem::subItemCount() const
 NmContactHistoryModelSubItem NmContactHistoryModelItem::subItemAt(
     int index) const
 {
-    if ( index <= d->mItems.count() )
+    if ( index <= mItemData->mItems.count() )
     {
-        return d->mItems[index];
+        return mItemData->mItems[index];
     }
     else
     {
@@ -99,11 +99,11 @@ QList<NmContactHistoryModelSubItem> NmContactHistoryModelItem::subEntries(
 {
     QList<NmContactHistoryModelSubItem> subItemList;
 
-    if (!d->mItems.isEmpty())
+    if (!mItemData->mItems.isEmpty())
     {
-        for ( int subIndex = 0; subIndex < d->mItems.count(); subIndex++)
+        for ( int subIndex = 0; subIndex < mItemData->mItems.count(); subIndex++)
         {
-            subItemList.append(d->mItems[subIndex]);
+            subItemList.append(mItemData->mItems[subIndex]);
         }
     }
 
@@ -118,7 +118,7 @@ QList<NmContactHistoryModelSubItem> NmContactHistoryModelItem::subEntries(
 void NmContactHistoryModelItem::appendSubItem(
     NmContactHistoryModelSubItem entry)
 {
-    d->mItems.append(entry);
+    mItemData->mItems.append(entry);
 }
 // --------------------------------------------------------------------------
 // End of implementation (NmContactHistoryModelItem)

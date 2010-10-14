@@ -178,3 +178,12 @@ void NmHtmlLineEdit::setIndentForLabel(const qreal indent)
     cursor.mergeBlockFormat(format);
 }
 
+/*!
+    Indention for the first row of the edit field must be set again when
+    pasting text into field.
+ */
+void NmHtmlLineEdit::paste()
+{
+    HbAbstractEdit::paste();
+    setIndentForLabel(mIndent);
+}

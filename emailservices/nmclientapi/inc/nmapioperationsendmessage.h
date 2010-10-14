@@ -33,10 +33,10 @@ class NmApiOperationSendMessage : public NmApiOperation, public MFSMailRequestOb
 {
     Q_OBJECT
 public:
-    NmApiOperationSendMessage(const NmApiMessage &message, CFSMailBox &mailBox, QObject *parent = 0);
+    NmApiOperationSendMessage(const NmApiMessage &message, CFSMailBox &mailBox, QObject *parent = NULL);
     virtual ~NmApiOperationSendMessage();
     
-    void RequestResponseL( TFSProgress aEvent, TInt aRequestId );
+    void RequestResponseL(TFSProgress aEvent, TInt aRequestId);
 
 private slots:
     void start();

@@ -128,8 +128,14 @@ QString EmailMailboxInfoPrivate::icon(const QString &identifier)
     
     QString returnValue = "";
 
-    if (identifier.length() > 0) {
-        processCenRepRecords(identifier);
+    QString domainName = identifier;
+    int delimIndex = domainName.lastIndexOf('@');
+    if(delimIndex >= 0) {
+        domainName = domainName.mid(delimIndex + 1);
+    }
+
+    if (domainName.length() > 0) {
+        processCenRepRecords(domainName);
         returnValue = mTempIcon;
     }
 

@@ -26,6 +26,11 @@
 const int KMaxNumberOfEnvelopesProvided = 99;
 //Maximum value for unread count
 const int KMaxUnreadCount = 999; 
+//Delay before scrolling message list to first item after scrolling has ended
+const int KNmHsWidgetDelayAfterScrollingEnded = 10000;
+//Time parameter used for the automatic scrolling 
+//(how long the scrolling will last)
+const int KListScrollUpTime = 500;
 
 /**************************************************
  * nmhswidget

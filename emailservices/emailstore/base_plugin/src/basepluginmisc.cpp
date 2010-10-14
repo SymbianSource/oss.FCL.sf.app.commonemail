@@ -289,24 +289,39 @@ TFSProgress CBasePlugin::StatusL( TInt /*aRequestId*/ )
 
 
 /**
- * Concrete plugins need to call the base plugin's implementation.
+ * Cancels pending requests. Concrete plugins need to call the base plugin's
+ * implementation.
+ * From CFSMailPlugin.
+ * 
  * @param aRequestId
  */
-void CBasePlugin::CancelL( TInt aRequestId )
+void CBasePlugin::CancelL( const TInt aRequestId )
+{
+    CancelL( aRequestId, KErrNone );
+}
+
+
+/**
+ * Cancels pending requests.
+ * 
+ * @param aRequestId
+ * @param aError An error code defining the reason why operation was cancelled.
+ */
+void CBasePlugin::CancelL( const TInt aRequestId, const TInt aError )
+
     {
     //find the fetch request and notify the observer.
     TInt count = iReqs.Count();
+
     for ( TInt i = 0; i < count; i++ )
     	{
     	if ( iReqs[i]->iRequestId == aRequestId )
     		{
     		CFetchRequester* request = iReqs[i];
-//<qmail>
     		TFSProgress progress = TFSProgress();
-//</qmail>
     		progress.iProgressStatus = TFSProgress::EFSStatus_RequestCancelled;
     		progress.iCounter = progress.iMaxCount = 1;
-    		progress.iError = KErrNone;
+    		progress.iError = aError;
     		request->iObserver.RequestResponseL( progress, aRequestId );
 
     		iReqs.Remove( i );
@@ -314,8 +329,9 @@ void CBasePlugin::CancelL( TInt aRequestId )
     		break;
     		}
     	}
-//<qmail>
+
     count = iDelayedOpReqs.Count();
+
     for ( TInt i = 0; i < count; i++ )
         {
         if ( iDelayedOpReqs[i]->iRequestId == aRequestId )
@@ -332,7 +348,6 @@ void CBasePlugin::CancelL( TInt aRequestId )
             break;
             }
         }
-//</qmail>
     }
 
 

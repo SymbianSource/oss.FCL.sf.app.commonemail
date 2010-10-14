@@ -19,7 +19,6 @@
 
 namespace EmailClientApi
 {
-
 /*!
     Class constructor.
 */
@@ -82,5 +81,7 @@ void NmApiAttachment::setFileName(const QString &fileName)
     NM_FUNCTION;
     d->setFileName(fileName);
 }
-
 }
+
+
+

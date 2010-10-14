@@ -21,7 +21,6 @@
 #include <nmapidef.h>
 #include <QObject>
 
-class NmApiEngine;
 
 /*!
    Client that wants to access mailboxes, messages and receive related events
@@ -30,7 +29,7 @@ class NmApiEngine;
 
 namespace EmailClientApi
 {
-
+class NmApiEngine;
 class NmApiFolder;
 class NmApiMessageEnvelope;
 class NmApiMailbox;

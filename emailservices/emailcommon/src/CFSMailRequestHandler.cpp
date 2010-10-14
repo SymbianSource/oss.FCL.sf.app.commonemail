@@ -231,9 +231,11 @@ void CFSMailRequestHandler::ConstructL(
     NM_FUNCTION;
 
     CFSMailPluginData* pluginData = new (ELeave) CFSMailPluginData;
+    CleanupStack::PushL(pluginData);
     pluginData->iPluginId = aPluginId;
     pluginData->iPlugin = aPlugin;
     iPluginList.AppendL(pluginData);
+    CleanupStack::Pop(pluginData);
     }
 
 // -----------------------------------------------------------------------------

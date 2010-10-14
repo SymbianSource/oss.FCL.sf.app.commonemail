@@ -373,7 +373,7 @@ void CIpsPlgEventHandler::SubscribeMailboxEventsL(
     AppendSettingsObserverL( aMailboxId, aKey );
     //at the moment we won't support syncstate events for IMAP alwaysonline.
     //because of imap idle. we can't extract usefull syncstate changes when it is in use.
-   /* if ( iBasePlugin.MtmId().iUid != KSenduiMtmImap4UidValue )
+   /* if ( iBasePlugin.MtmId() != KUidMsgTypeIMAP4 )
         {
         AppendSyncStateObserverL( aMailboxId );
         }*/
@@ -447,7 +447,7 @@ TBool CIpsPlgEventHandler::IsEventFromIpsSourceL( TAny* aArg1,
          ret = EFalse;
          }
 
-    if ( !ret && aEntry.iMtm.iUid == KSenduiMtmSmtpUidValue )
+    if ( !ret && aEntry.iMtm == KUidMsgTypeSMTP )
         {
         ret = ETrue;
         }
@@ -464,15 +464,15 @@ inline TFSMailMsgId CIpsPlgEventHandler::SymId2FsId(
     FUNC_LOG;
     TFSMailMsgId id;
     id.SetId( aId );
-    if ( aMtmUid == KSenduiMtmImap4UidValue )
+    if ( aMtmUid == KUidMsgTypeIMAP4.iUid )
         {
         id.SetPluginId( KIpsPlgImap4PluginUid );
         }
-    else if ( aMtmUid == KSenduiMtmPop3UidValue )
+    else if ( aMtmUid == KUidMsgTypePOP3.iUid )
         {
         id.SetPluginId( KIpsPlgPop3PluginUid );
         }
-    else if ( aMtmUid == KSenduiMtmSmtpUidValue )
+    else if ( aMtmUid == KUidMsgTypeSMTP.iUid )
         {
         // set plugin id to this plugin
         id.SetPluginId( TUid::Uid(iPluginId) );
@@ -570,10 +570,10 @@ void CIpsPlgEventHandler::IPSAccountsL()
     CMsvEntry* root = iSession->GetEntryL( KMsvRootIndexEntryIdValue );
     CleanupStack::PushL( root );
 
-    CMsvEntrySelection* pop = root->ChildrenWithMtmL( KSenduiMtmPop3Uid );
+    CMsvEntrySelection* pop = root->ChildrenWithMtmL( KUidMsgTypePOP3 );
     CleanupStack::PushL( pop );
 
-    CMsvEntrySelection* imap = root->ChildrenWithMtmL( KSenduiMtmImap4Uid );
+    CMsvEntrySelection* imap = root->ChildrenWithMtmL( KUidMsgTypeIMAP4 );
     CleanupStack::PushL( imap );
 
     TInt count = pop->Count();
@@ -729,7 +729,7 @@ void CIpsPlgEventHandler::HandleEntriesCreatedL(
 
             CleanupStack::PopAndDestroy( &array );
 
-            if( tNew.iMtm.iUid == KSenduiMtmImap4UidValue )
+            if( tNew.iMtm == KUidMsgTypeIMAP4 )
                 {
                 SetFolderIdToArrayL( tNew.Id() );
                 }
@@ -787,7 +787,7 @@ void CIpsPlgEventHandler::HandleEntriesMovedL(
 
         TFSMailMsgId mbox;
         // solve mailbox.
-        if ( tMoved.iMtm.iUid == KSenduiMtmSmtpUidValue )
+        if ( tMoved.iMtm == KUidMsgTypeSMTP )
             {
             TMsvEntry serv;
             TMsvId service;
@@ -909,7 +909,7 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
             CleanupClosePushL( array );
             TFSMailMsgId parentId( iPluginId, tEntry.Id() );
 
-            if ( tEntry.iMtm.iUid == KSenduiMtmImap4UidValue )
+            if ( tEntry.iMtm == KUidMsgTypeIMAP4 )
                 {
                 isFolderId = MatchFolderIdFound( deletedId );
                 }
@@ -949,15 +949,21 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
 
             CleanupStack::PopAndDestroy( &array );
             }
-        else if ( tEntry.iMtm.iUid == KSenduiMtmSmtpUidValue )
+        else if ( tEntry.iMtm == KUidMsgTypeSMTP )
             {
             // seems that case when deleding from draft, symbian
             // sends event that contains some child part's id of
             // correct deleted mail. So append parents id to array
             TFSMailMsgId msg;
             msg.SetId( tEntry.Id() );
+            // <qmail> In case where child is attachment do not append parent id.
             TFSMailMsgId parent;
-            parent.SetId( tEntry.Parent() );
+            if (!tEntry.Attachment())
+                {
+                parent.SetId( tEntry.Parent() );        
+                }
+            // </qmail>
+            
             if( !iSession )
                 {
                 User::Leave( KErrNotReady );
@@ -971,15 +977,25 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
             mbox.SetId( tEntry.Id() );
 
             // set plugin id to msg, parent and mbox
-            if ( tEntry.iMtm.iUid == KSenduiMtmImap4UidValue )
+            if ( tEntry.iMtm == KUidMsgTypeIMAP4 )
         		{
-        		parent.SetPluginId( KIpsPlgImap4PluginUid );
+                // <qmail>
+                if (!tEntry.Attachment())
+                    {
+                    parent.SetPluginId( KIpsPlgImap4PluginUid );
+                    }
+                // </qmail>
         		msg.SetPluginId( KIpsPlgImap4PluginUid );
         		mbox.SetPluginId( KIpsPlgImap4PluginUid );
         		}
-    		else if ( tEntry.iMtm.iUid == KSenduiMtmPop3UidValue )
+    		else if ( tEntry.iMtm == KUidMsgTypePOP3 )
         		{
-        		parent.SetPluginId( KIpsPlgPop3PluginUid );
+                // <qmail>
+                if (!tEntry.Attachment())
+                    {
+                    parent.SetPluginId( KIpsPlgPop3PluginUid );
+                    }
+                // </qmail>
         		msg.SetPluginId( KIpsPlgPop3PluginUid );
         		mbox.SetPluginId( KIpsPlgPop3PluginUid );
         		}
@@ -993,7 +1009,12 @@ void CIpsPlgEventHandler::HandleEntriesDeletedL(
             CleanupClosePushL( array );
             array.AppendL( msg );
             arg1 = &array;
-            arg2 = &parent;
+            // <qmail>
+            if (!tEntry.Attachment())
+                {
+                arg2 = &parent;
+                }
+            // </qmail>
             event = TFSEventMailDeleted;
             SendDelayedEventL(
                 event,
@@ -1071,7 +1092,7 @@ void CIpsPlgEventHandler::HandleEntriesChangedL(
         TFSMailMsgId id = SymId2FsId( *(static_cast<TMsvId*>(aArg2)), tChanged.iMtm.iUid );
         arg2 = &id;
 
-        if ( tChanged.iMtm.iUid == KSenduiMtmImap4UidValue )
+        if ( tChanged.iMtm == KUidMsgTypeIMAP4 )
             {
             TMsvEmailEntry eml( tChanged );
             TInt index = iImapFolderIds.Find(tChanged.Id());
@@ -1118,7 +1139,7 @@ void CIpsPlgEventHandler::HandleEntriesChangedL(
         {
         TFSMailMsgId mbox;
         // solve mailbox.
-        if ( tChanged.iMtm.iUid == KSenduiMtmSmtpUidValue )
+        if ( tChanged.iMtm == KUidMsgTypeSMTP )
             {
             TMsvEntry serv;
             TMsvId service;
@@ -1211,10 +1232,10 @@ void CIpsPlgEventHandler::HandleMediaChangedL(
 // ---------------------------------------------------------------------------
 TUid CIpsPlgEventHandler::MtmId() const
     {
-    TUid ret = KSenduiMtmImap4Uid;
+    TUid ret = KUidMsgTypeIMAP4;
     if ( iBasePlugin.MtmId().iUid == KIpsPlgPop3PluginUidValue )
         {
-        ret = KSenduiMtmPop3Uid;
+        ret = KUidMsgTypePOP3;
         }
     return ret;
     }
@@ -1402,8 +1423,8 @@ MFSMailEventObserver* CIpsPlgEventHandler::MailboxObserverL(
 TBool CIpsPlgEventHandler::AccountExistsL( const TMsvEntry& aEntry )
     {
     FUNC_LOG;
-    if ( !(aEntry.iMtm.iUid == KSenduiMtmImap4UidValue
-        || aEntry.iMtm.iUid == KSenduiMtmPop3UidValue) )
+    if ( !(aEntry.iMtm == KUidMsgTypeIMAP4
+        || aEntry.iMtm == KUidMsgTypePOP3) )
         {
         // check only imap and pop
         return ETrue;
@@ -1440,13 +1461,13 @@ void CIpsPlgEventHandler::FindCorrectDeletedEntryAndParentL(
         }
 
     // only pop or imap types are alloved beyond this point
-    __ASSERT_DEBUG( ( aParent.iMtm.iUid == KSenduiMtmImap4UidValue ||
-            aParent.iMtm.iUid == KSenduiMtmPop3UidValue ),
+    __ASSERT_DEBUG( ( aParent.iMtm == KUidMsgTypeIMAP4 ||
+            aParent.iMtm == KUidMsgTypePOP3 ),
         User::Panic( KIpsPlgEventHandlerPanic, KErrGeneral ) );
 
     TBool doRecursion = EFalse;
 
-    if ( aParent.iMtm.iUid == KSenduiMtmImap4UidValue )
+    if ( aParent.iMtm == KUidMsgTypeIMAP4 )
         {
         if ( aParent.iType.iUid == KUidMsvServiceEntryValue )
             {

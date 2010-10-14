@@ -337,6 +337,7 @@ void NmMessageListView::refreshList()
                                                        mailboxId);
         }
     }
+    NM_TIMESTAMP("Message list view ready.");
 }
 
 

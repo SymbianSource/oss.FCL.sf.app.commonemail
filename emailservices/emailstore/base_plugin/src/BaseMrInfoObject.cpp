@@ -1128,7 +1128,7 @@ EXPORT_C void CBaseMrInfoProcessor::ReplyToMeetingRequestL(
         	{
         	mrInfo->SetMethod( MMRInfoObject::EMRMethodResponse );
         	}
-    
+        //ownership of mrInfo given to reply
         reply->SetMRInfo( mrInfo );
         iPlugin.SendMessageL( *reply );
     

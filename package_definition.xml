@@ -50,7 +50,7 @@
       <component id="nmipsmtms" filter="s60" name="NM IPS Client Plugin" introduced="^4" class="plugin">
        <!-- <unit bldFile="ipsservices/nmipsmtms" qt:proFile="nmipsmtms.pro"/>-->
       </component>
-      <component id="nmipssettings" filter="s60" name="NM IPS Settings" introduced="^4">
+      <component id="nmipssettings" filter="s60,test" name="NM IPS Settings" introduced="^4">
        <!-- <unit bldFile="ipsservices/nmipssettings" qt:proFile="nmipssettings.pro"/>-->
         <unit bldFile="ipsservices/nmipssettings/tsrc/tools/extendedkeygen" qt:proFile="extendedkeygenerator.pro"/>
       </component>

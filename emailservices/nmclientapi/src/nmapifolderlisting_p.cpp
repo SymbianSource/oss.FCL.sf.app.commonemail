@@ -65,9 +65,9 @@ qint32 NmApiFolderListingPrivate::listFolders()
    
     Caller gets ownership of messages. Returns true if results were available.
     It clears list of folders after be called.
-    It also at start clear inputlist of NmFolder.
+    It also at start clear inputlist of NmApiFolder.
  */
-bool NmApiFolderListingPrivate::folders(QList<EmailClientApi::NmApiFolder> &folders)
+bool NmApiFolderListingPrivate::folders(QList<NmApiFolder> &folders)
 {
     NM_FUNCTION;
     bool ret(mIsRunning);

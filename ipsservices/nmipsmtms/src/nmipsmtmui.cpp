@@ -16,7 +16,6 @@
 */
 
 #include <msvapi.h>
-#include <SendUiConsts.h>
 #include <msvuids.h>
 
 #include "nmipsmtmui.h"

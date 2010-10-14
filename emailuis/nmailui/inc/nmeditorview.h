@@ -82,6 +82,8 @@ public slots:
     void okToExitQuery(HbAction* action);
     void sendProgressDialogCancelled();
     void safeToDraft();
+    void deleteDraft();
+    void closeView();
     
 protected:
     void resizeEvent(QGraphicsSceneResizeEvent *event);

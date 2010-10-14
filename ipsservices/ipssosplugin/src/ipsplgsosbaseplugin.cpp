@@ -816,7 +816,7 @@ void CIpsPlgSosBasePlugin::CreateMessageToSendL( const TFSMailMsgId& aMailBoxId,
         aOperationObserver,
         aRequestId );
     //</qmail>
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // takes ownership of op
 
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
@@ -861,7 +861,7 @@ void CIpsPlgSosBasePlugin::CreateForwardMessageL(
         }
 
     if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) &&
-         ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
+         ( orgMsg.iMtm == KUidMsgTypeSMTP ) )
         {
         iSmtpService->ChangeServiceIdL( orgMsg );
         }
@@ -881,7 +881,7 @@ void CIpsPlgSosBasePlugin::CreateForwardMessageL(
         aOperationObserver,
         aRequestId );
     //</qmail>
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // takes ownership of op
 
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
@@ -927,7 +927,7 @@ void CIpsPlgSosBasePlugin::CreateReplyMessageL(
         }
 
     if ( ( orgMsg.Parent() == KMsvSentEntryIdValue ) &&
-         ( orgMsg.iMtm == KSenduiMtmSmtpUid ) )
+         ( orgMsg.iMtm == KUidMsgTypeSMTP ) )
         {
         iSmtpService->ChangeServiceIdL( orgMsg );
         }
@@ -953,7 +953,7 @@ void CIpsPlgSosBasePlugin::CreateReplyMessageL(
         aOperationObserver,
         aRequestId );
     //</qmail>
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // takes ownership of op
 
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
@@ -981,8 +981,8 @@ void CIpsPlgSosBasePlugin::StoreMessageL(
 
         if ( status == KErrNone )
             {
-            incoming = ( tEntry.iMtm == KSenduiMtmImap4Uid ) ||
-                ( tEntry.iMtm == KSenduiMtmPop3Uid );
+            incoming = ( tEntry.iMtm == KUidMsgTypeIMAP4 ) ||
+                ( tEntry.iMtm == KUidMsgTypePOP3 );
             }
         }
 
@@ -1036,7 +1036,7 @@ void CIpsPlgSosBasePlugin::StoreMessagesL(
                     aOperationObserver,
                     aRequestId );
 
-    watcher->SetOperation(op);
+    watcher->SetOperation(op); // takes ownership of op
     iOperations.AppendL(watcher);
     CleanupStack::Pop( 2, watcher );
     }
@@ -1138,7 +1138,7 @@ void CIpsPlgSosBasePlugin::NewChildPartFromFileL(
         aOperationObserver,
         aRequestId,
         iMsgMapper);
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // takes ownership of op
 
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
@@ -1214,7 +1214,7 @@ void CIpsPlgSosBasePlugin::RemoveChildPartL(
         aPartId,
         aOperationObserver,
         aRequestId);
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // takes ownership of op
 
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
@@ -1487,7 +1487,7 @@ void CIpsPlgSosBasePlugin::StoreMessagePartsL(
                     watcher->iStatus, *this, aMessageParts,
                     aOperationObserver, aRequestId);
 
-    watcher->SetOperation(op);
+    watcher->SetOperation(op); // takes ownership of op
     iOperations.AppendL(watcher);
     CleanupStack::Pop( 2, watcher );
     }
@@ -1688,7 +1688,7 @@ void CIpsPlgSosBasePlugin::DeleteMessagesByUidL(
     CMsvOperation* op = CIpsPlgDeleteOperation::NewL( *iSession,
         watcher->iStatus, sel );
     //</qmail>
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // takes ownership of op
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
     //<qmail>
@@ -1728,7 +1728,7 @@ void CIpsPlgSosBasePlugin::DeleteMessagesByUidL(
     CleanupStack::PushL( watcher );
     CMsvOperation* op = CIpsPlgDeleteOperation::NewL( *iSession,
         watcher->iStatus, sel, aOperationObserver, aRequestId );
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // takes ownership of op
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
     CleanupStack::Pop( sel );
@@ -1953,7 +1953,7 @@ TFSFolderType CIpsPlgSosBasePlugin::GetFolderType(
         {
         folderType = EFSInbox;
         }
-	else if( ( aEntry->Entry().iMtm == KSenduiMtmPop3Uid ) &&
+	else if( ( aEntry->Entry().iMtm == KUidMsgTypePOP3 ) &&
 	         ( aEntry->Entry().iType == KUidMsvServiceEntry ) &&
 	         ( aEntry->Entry().iServiceId == aFolderId.Id() ) )
 	    {
@@ -2156,7 +2156,7 @@ void CIpsPlgSosBasePlugin::DisconnectL(
             &aObserver,
             aRequestId );
 
-        watcher->SetOperation( op );
+        watcher->SetOperation( op ); // takes ownership of op
         CleanupStack::PopAndDestroy( sel );
         iOperations.AppendL( watcher );
         CleanupStack::Pop( watcher );
@@ -2199,7 +2199,7 @@ void CIpsPlgSosBasePlugin::EmptyOutboxL( const TFSMailMsgId& aMailBoxId )
     CIpsPlgSmtpOperation* op = CIpsPlgSmtpOperation::NewLC( *iSession, watcher->iStatus );
 // </qmail>
     op->SetEventHandler(iEventHandler);
-    watcher->SetOperation(op);
+    watcher->SetOperation(op); // takes ownership of op
     op->EmptyOutboxFromPendingMessagesL( aMailBoxId.Id() );
     iOperations.AppendL(watcher);
     CleanupStack::Pop( 2, watcher );
@@ -2399,10 +2399,10 @@ void CIpsPlgSosBasePlugin::SetMailboxName(
 TUid CIpsPlgSosBasePlugin::MtmId() const
     {
     FUNC_LOG;
-    TUid ret = KSenduiMtmImap4Uid;
+    TUid ret = KUidMsgTypeIMAP4;
     if ( iFSPluginId == KIpsPlgPop3PluginUidValue )
         {
-        ret = KSenduiMtmPop3Uid;
+        ret = KUidMsgTypePOP3;
         }
     return ret;
     }
@@ -2468,7 +2468,7 @@ void CIpsPlgSosBasePlugin::HandleActiveFolderChangeL(
     //currently, no actions unless this is inbox
     //also, if id is '0', it means inbox before first sync...it doesn't really exist yet
     if( folder.iDetails.CompareF( KIpsPlgInbox ) == 0 || folder.Id() == 0 ||
-            ( folder.iMtm == KSenduiMtmPop3Uid ) &&
+            ( folder.iMtm == KUidMsgTypePOP3 ) &&
             ( folder.iType == KUidMsvServiceEntry ) &&
             ( folder.iServiceId == aActiveFolderId.Id() ) )
         {

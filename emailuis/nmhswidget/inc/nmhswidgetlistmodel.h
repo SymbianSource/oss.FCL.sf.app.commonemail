@@ -22,6 +22,7 @@
 
 class NmMessageEnvelope;
 class NmHsWidgetListModelItem;
+class NmId;
 
 class NmHsWidgetListModel : public QStandardItemModel
 {
@@ -31,13 +32,22 @@ public:
     NmHsWidgetListModel(QObject *parent = 0);
     virtual ~NmHsWidgetListModel();
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const;
-    void refresh(QList<NmMessageEnvelope*> &mailboxList);
 
+    
 public slots:
+    void refresh(const QList<NmMessageEnvelope*> &messageEnvs);
+    void addMessages(const QList<NmMessageEnvelope*> &messageEnvs);
+    void updateMessages(const QList<NmMessageEnvelope*> &messageEnvs);
+    void removeMessages(const QList<NmId> &messageIds);
+    void removeAllMessages();
+
+signals:
+    void messagesAddedToModel(); //emitted only when single items are inserted to model
+    void modelIsEmpty(bool isEmpty);
 
 private:
     NmHsWidgetListModelItem *createMessageListModelItem(const NmMessageEnvelope* env);
-
+    int getInsertionIndex(const NmMessageEnvelope &envelope) const;
 };
 
 #endif /* NMHSWIDGETLISTMODEL_H_ */

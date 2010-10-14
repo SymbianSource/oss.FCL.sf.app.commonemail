@@ -142,7 +142,7 @@ void CIpsPlgImap4Plugin::RefreshNowL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
     TInt aRequestId,
-    const TBool /*aSilentConnection*/ )
+    const TBool aSilentConnection )
     {
     FUNC_LOG;
     
@@ -152,6 +152,7 @@ void CIpsPlgImap4Plugin::RefreshNowL(
     CleanupStack::PushL( watcher );
     
     // <qmail> priority parameter has been removed
+	// <qmail> silent connection parameter added
     CIpsPlgBaseOperation* op = CIpsPlgImap4ConnectOp::NewL(
     		*iSession,
     		watcher->iStatus, 
@@ -160,9 +161,12 @@ void CIpsPlgImap4Plugin::RefreshNowL(
           	aMailBoxId, 
           	&aOperationObserver,
           	aRequestId,
-          	iEventHandler );
+          	iEventHandler,
+          	EFalse,
+          	aSilentConnection );
     
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // watcher takes ownership,
+                                 // no PushL needed before AppendL
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
     
@@ -309,7 +313,8 @@ void CIpsPlgImap4Plugin::FetchMessagesL(
         iEventHandler, 
         EFalse ); // do not filter mail selection
     
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // watcher takes ownership,
+                                 // no PushL needed before AppendL
     CleanupStack::PopAndDestroy( sel );
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );
@@ -372,7 +377,8 @@ void CIpsPlgImap4Plugin::MoveMessagesL(
             NULL, // no observer, async not supported
             0 ); // async not supported
 
-        watcher->SetOperation( op );
+        watcher->SetOperation( op ); // watcher takes ownership,
+                                     // no PushL needed before AppendL
         CleanupStack::PopAndDestroy( sel );
         iOperations.AppendL( watcher );
         CleanupStack::Pop( watcher );
@@ -445,7 +451,8 @@ TInt CIpsPlgImap4Plugin::MoveMessagesL(
             &aOperationObserver, // async not supported
             0 ); // async not supported
 
-        watcher->SetOperation( op );
+        watcher->SetOperation( op ); // watcher takes ownership,
+                                     // no PushL needed before AppendL
         CleanupStack::PopAndDestroy( sel );
         iOperations.AppendL( watcher );
         CleanupStack::Pop( watcher );
@@ -536,7 +543,8 @@ void CIpsPlgImap4Plugin::FetchMessagePartsL(
         &aOperationObserver,
         aRequestId );
     
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // watcher takes ownership,
+                                 // no PushL needed before next line
     iOperations.AppendL( watcher );
 // <qmail>
     CleanupStack::Pop( sel );
@@ -612,7 +620,8 @@ void CIpsPlgImap4Plugin::PopulateNewMailL(
         iEventHandler,
         EFalse ); // do not block entry changed and created events
     
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // watcher takes ownership,
+                                 // no PushL needed before AppendL
     CleanupStack::PopAndDestroy( sel );
     iOperations.AppendL( watcher );
     CleanupStack::Pop( watcher );

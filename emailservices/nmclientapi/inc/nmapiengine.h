@@ -24,16 +24,14 @@
 #include "nmcommon.h"
 #include "nmapiprivateclasses.h"
 
-class NmApiDataPluginFactory;
 
 namespace EmailClientApi
 {
-
+class NmApiDataPluginFactory;
 class NmApiFolder;
 class NmApiMailbox;
 class NmApiMessageEnvelope;
 class NmApiMessage;
-}
 
 class NmApiEngine : public QObject
 {
@@ -42,30 +40,30 @@ public:
     static NmApiEngine* instance();
     static void releaseInstance(NmApiEngine *&engine);
 
-    void listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList);
+    void listMailboxes(QList<NmApiMailbox> &mailboxList);
 
-    void listFolders(const quint64 mailboxId, QList<EmailClientApi::NmApiFolder> &folderList);
+    void listFolders(const quint64 mailboxId, QList<NmApiFolder> &folderList);
     void listEnvelopes(const quint64 mailboxId, const quint64 folderId, 
-	                   QList<EmailClientApi::NmApiMessageEnvelope> &messageEnvelopeList);
+	                   QList<NmApiMessageEnvelope> &messageEnvelopeList);
 
     bool getEnvelopeById(
         const quint64 mailboxId,
         const quint64 folderId,
         const quint64 envelopeId,
-        EmailClientApi::NmApiMessageEnvelope &envelope);
+        NmApiMessageEnvelope &envelope);
 
     bool getFolderById(
         const quint64 mailboxId,
         const quint64 folderId,
-        EmailClientApi::NmApiFolder &mailboxFolder);
+        NmApiFolder &mailboxFolder);
 		
-    bool getMailboxById(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailbox);
+    bool getMailboxById(const quint64 mailboxId, NmApiMailbox &mailbox);
 
     bool getMessageById(
         const quint64 mailboxId,
         const quint64 folderId,
         const quint64 messageId,
-        EmailClientApi::NmApiMessage &message);
+        NmApiMessage &message);
     
     void startCollectingEvents();
 
@@ -77,7 +75,7 @@ public:
        
        \arg Contains info about event and related object (message or mailbox list)
      */
-    void emailStoreEvent(NmApiEvent event);
+    void emailStoreEvent(EmailClientApi::NmApiEvent event);
 
 private slots:
     void mailboxChangedArrived(NmMailboxEvent, const QList<NmId> &mailboxIds);
@@ -100,5 +98,7 @@ private:
     NmApiDataPluginFactory *mFactory;//!<Plugin factory. Is needed to get plugins for emails
     RPointerArray<CFSMailPlugin> mMailPlugins;
 };
+}
+
 
 #endif /* NMAPIENGINE_H */

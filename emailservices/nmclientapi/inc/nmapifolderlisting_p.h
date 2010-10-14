@@ -19,11 +19,10 @@
 
 #include <QObject>
 
-class NmApiEngine;
 
 namespace EmailClientApi
 {
-
+class NmApiEngine;
 class NmApiFolder;
 
 class NmApiFolderListingPrivate : public QObject
@@ -32,17 +31,17 @@ class NmApiFolderListingPrivate : public QObject
     
 public:
 
-    NmApiFolderListingPrivate(quint64 mailboxId, QObject *parent = 0);
+    NmApiFolderListingPrivate(quint64 mailboxId, QObject *parent = NULL);
     virtual ~NmApiFolderListingPrivate();
     qint32 listFolders();
-    bool folders(QList<EmailClientApi::NmApiFolder> &folders);
+    bool folders(QList<NmApiFolder> &folders);
     void cancel();
     bool isRunning() const;
 private:
 	  quint64 mMailboxId;
     NmApiEngine *mEngine;
     bool mIsRunning;
-    QList<EmailClientApi::NmApiFolder> mFolders;
+    QList<NmApiFolder> mFolders;
 };
 }
 #endif /* NMAPIFOLDERLISTINGPRIVATE_H */

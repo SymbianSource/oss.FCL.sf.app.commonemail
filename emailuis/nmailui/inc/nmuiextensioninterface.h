@@ -37,6 +37,7 @@ public:
     virtual void getActions(
             const NmActionRequest &request,
             QList<NmAction*> &actionList) = 0;
+    virtual void launchSettings(const NmId &mailboxId) = 0;
 
 };
 

@@ -67,7 +67,7 @@ bool NmApiEmailAddress::operator==(const NmApiEmailAddress &addr)
 {
     NM_FUNCTION;
     
-    bool retVal = false;
+    bool retVal(false);
     if (this->d == addr.d) {
         retVal = true;
     }

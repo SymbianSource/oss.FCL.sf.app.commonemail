@@ -26,11 +26,11 @@ DEFINES += BUILD_EMAIL_API_DLL
 INCLUDEPATH +=  inc \
                 ../../email_plat/nmail_client_api/inc \
                 ../../email_plat/nmail_settings_api/inc \
-                ../../inc
+                ../../inc \
+                $$APP_LAYER_SYSTEMINCLUDE 
 
 DEPENDPATH +=   ../../email_plat/nmail_client_api/inc \
-                ../../email_plat/nmail_settings_api/inc \
-                $$APP_LAYER_SYSTEMINCLUDE 
+                ../../email_plat/nmail_settings_api/inc 
 
 MOC_DIR = tmp
 
@@ -127,9 +127,6 @@ SOURCES += src/nmapidatapluginfactory.cpp \
            src/nmapioperationcreatedraftmessage.cpp \
            src/nmapioperationsendmessage.cpp
 
-
-
-
 symbian*: { 
     TARGET.EPOCALLOWDLLDATA = 1
     TARGET.CAPABILITY = ALL \
@@ -138,9 +135,6 @@ symbian*: {
 
     TARGET.UID2 = 0x1000008D
     TARGET.UID3 = 0x2002C366
-
-    INCLUDEPATH += $$APP_LAYER_SYSTEMINCLUDE
-
     MMP_RULES += "SYSTEMINCLUDE /epoc32/include/ecom" 
 
      LIBS += -lnmailbase \

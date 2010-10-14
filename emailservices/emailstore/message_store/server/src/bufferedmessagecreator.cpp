@@ -96,7 +96,9 @@ CBufferedMessageCreator* CBufferedMessageCreator::NewL(
 
     ContainerDescriptor* part = new (ELeave) ContainerDescriptor(
         aParams, aProperties );
+    CleanupStack::PushL( part );
     iContainers.AppendL( part );
+    CleanupStack::Pop( part );
     }
     
 /**

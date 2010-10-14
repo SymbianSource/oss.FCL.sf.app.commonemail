@@ -46,8 +46,7 @@ NmApiMessageBody& NmApiMessageBody::operator=(const NmApiMessageBody &apiMessage
 {
     NM_FUNCTION;
     
-	if (this != &apiMessageBody) 
-	{
+	if (this != &apiMessageBody) {
 		d = apiMessageBody.d;
 	}
 	return *this;
@@ -61,8 +60,7 @@ bool NmApiMessageBody::operator==(const NmApiMessageBody &apiMessageBody)
     NM_FUNCTION;
     
     bool retVal = false;
-    if (this->d == apiMessageBody.d)
-    {
+    if (this->d == apiMessageBody.d) {
         retVal = true;
     }
     return retVal;

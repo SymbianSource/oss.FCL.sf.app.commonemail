@@ -204,16 +204,19 @@ TContainerId CContainerStoreGeneralTable::AssignNextIdL()
 	{
 	// Read and increment the next folder ID from the general table.
 	
-  	iTable.FirstL();
-	PrepareRowForUpdateLC();
-	
-	TContainerId id = iTable.ColUint32( iNextIdColNum );
-
-	iTable.SetColL( iNextIdColNum, id+1 );
-
-	PutRowUpdatesL();
-	
-	//iTable.FirstL();
+  	TContainerId id=0;
+  	
+  	if(iTable.FirstL()){
+        PrepareRowForUpdateLC();
+        
+        id = iTable.ColUint32( iNextIdColNum );
+    
+        iTable.SetColL( iNextIdColNum, id+1 );
+    
+        PutRowUpdatesL();
+        
+        //iTable.FirstL();
+  	}
 	
 	return id;
 	} // end AssignNextIdL
@@ -223,10 +226,13 @@ TContainerId CContainerStoreGeneralTable::AssignNextIdL()
 // ==========================================================================
 TBool CContainerStoreGeneralTable::IsEncryptionOnL()
 {
-	iTable.FirstL();
-  	iTable.GetL();
-
-  	return iTable.ColUint8( iEncryptionFlagColNum );
+    TBool ret = EFalse;
+    
+	if(iTable.FirstL()){
+	    iTable.GetL();
+	    ret = iTable.ColUint8( iEncryptionFlagColNum );
+	}
+  	return ret;
 }
 
 // ==========================================================================
@@ -237,12 +243,13 @@ void CContainerStoreGeneralTable::SetEncryptionFlagL( TBool aNewFlag )
 	TBool curFlag = IsEncryptionOnL();
 	if ( curFlag != aNewFlag )
 	{
-		iTable.FirstL();
-		PrepareRowForUpdateLC();
+		if(iTable.FirstL()){
+		    PrepareRowForUpdateLC();
 	
-		iTable.SetColL( iEncryptionFlagColNum, aNewFlag );
+		    iTable.SetColL( iEncryptionFlagColNum, aNewFlag );
 	
-		PutRowUpdatesL();
+		    PutRowUpdatesL();
+		}
 		
 		//iTable.FirstL();
 	}
@@ -253,9 +260,12 @@ void CContainerStoreGeneralTable::SetEncryptionFlagL( TBool aNewFlag )
 // ==========================================================================
 TBool CContainerStoreGeneralTable::AuthenticationDataPresentL()
 {
-  	iTable.FirstL();
-  	iTable.GetL();
-  	TInt authenticationDataLength = iTable.ColLength( iAuthenticationDataColNum );
+    TInt authenticationDataLength = 0;
+    
+  	if(iTable.FirstL()){
+  	    iTable.GetL();
+  	    authenticationDataLength = iTable.ColLength( iAuthenticationDataColNum );
+  	}
 
     return ( authenticationDataLength > 0 );    
 } // end AuthenticationDataPresentL
@@ -265,12 +275,13 @@ TBool CContainerStoreGeneralTable::AuthenticationDataPresentL()
 // ==========================================================================
 void CContainerStoreGeneralTable::SetAuthenticationDataL( const TDesC8& aBuffer )
 {
-  	iTable.FirstL();  	
-	PrepareRowForUpdateLC();
+  	if(iTable.FirstL()){  	
+  	    PrepareRowForUpdateLC();
     
-	iTable.SetColL( iAuthenticationDataColNum, aBuffer );
+  	    iTable.SetColL( iAuthenticationDataColNum, aBuffer );
 
-	PutRowUpdatesL();
+  	    PutRowUpdatesL();
+  	}
 	
 	//iTable.FirstL();
 } // end SetAuthenticationDataL
@@ -280,10 +291,10 @@ void CContainerStoreGeneralTable::SetAuthenticationDataL( const TDesC8& aBuffer 
 // ==========================================================================
 void CContainerStoreGeneralTable::GetAuthenticationDataL( RBuf8& aBuffer )
 {
-  	iTable.FirstL();
-  	iTable.GetL();
-    
-    aBuffer.CreateL( iTable.ColDes8( iAuthenticationDataColNum ) );
+  	if(iTable.FirstL()){
+        iTable.GetL();        
+        aBuffer.CreateL( iTable.ColDes8( iAuthenticationDataColNum ) );
+  	}
 } // end GetAuthenticationDataL
 		
 // ==========================================================================
@@ -291,10 +302,12 @@ void CContainerStoreGeneralTable::GetAuthenticationDataL( RBuf8& aBuffer )
 // ==========================================================================
 TEncryptionState CContainerStoreGeneralTable::EncryptionStateL()
 {
-	iTable.FirstL();
-	iTable.GetL();
+    TEncryptionState encryptionState = EMsgStoreESIdle;
 
-    TEncryptionState encryptionState = static_cast<TEncryptionState>(iTable.ColUint8( iEncryptionStateColNum ));
+	if(iTable.FirstL()){
+	    iTable.GetL();
+	    encryptionState = static_cast<TEncryptionState>(iTable.ColUint8( iEncryptionStateColNum ));
+	}
     return encryptionState;
     
 } // end EncryptionStateL
@@ -304,12 +317,13 @@ TEncryptionState CContainerStoreGeneralTable::EncryptionStateL()
 // ==========================================================================
 void CContainerStoreGeneralTable::SetEncryptionStateL( TEncryptionState aEncryptionState )
 {
-	iTable.FirstL();  	
-	PrepareRowForUpdateLC();
+	if(iTable.FirstL()){
+	    PrepareRowForUpdateLC();
     
-	iTable.SetColL( iEncryptionStateColNum, static_cast<TUint8>(aEncryptionState) );
+	    iTable.SetColL( iEncryptionStateColNum, static_cast<TUint8>(aEncryptionState) );
 
-	PutRowUpdatesL();
+	    PutRowUpdatesL();
+	}
 	
 	//iTable.FirstL();
 } // end SetEncryptionStateL
@@ -319,10 +333,12 @@ void CContainerStoreGeneralTable::SetEncryptionStateL( TEncryptionState aEncrypt
 // ==========================================================================
 TBool CContainerStoreGeneralTable::IsAuthenticateRequiredL()
 {
-    iTable.FirstL();
-    iTable.GetL();
-
-    return iTable.ColUint8( iAuthenticationRequiredColNum );
+    TBool ret = EFalse;
+    if(iTable.FirstL()){
+        iTable.GetL();
+        ret = iTable.ColUint8( iAuthenticationRequiredColNum );
+    }
+    return ret;
 }
 
 // ==========================================================================
@@ -330,12 +346,13 @@ TBool CContainerStoreGeneralTable::IsAuthenticateRequiredL()
 // ==========================================================================
 void CContainerStoreGeneralTable::SetAuthenticationRequiredL( TBool aFlag )
     {
-    iTable.FirstL();    
-    PrepareRowForUpdateLC();
+    if(iTable.FirstL()){
+        PrepareRowForUpdateLC();
     
-    iTable.SetColL( iAuthenticationRequiredColNum, static_cast<TUint8>(aFlag) );
+        iTable.SetColL( iAuthenticationRequiredColNum, static_cast<TUint8>(aFlag) );
 
-    PutRowUpdatesL();
+        PutRowUpdatesL();
+    }
     
     //iTable.FirstL();
     }
@@ -345,10 +362,14 @@ void CContainerStoreGeneralTable::SetAuthenticationRequiredL( TBool aFlag )
 // ==========================================================================
 TUint CContainerStoreGeneralTable::MaxMruCountL()
     {
-    iTable.FirstL();
-    iTable.GetL();
-
-    return iTable.ColUint( iMaxMruCountColNum );
+    TUint ret = 0;
+    
+    if(iTable.FirstL()){
+        iTable.GetL();
+        ret = iTable.ColUint( iMaxMruCountColNum );
+    }
+    
+    return ret; 
     }
 
 // ==========================================================================
@@ -356,32 +377,37 @@ TUint CContainerStoreGeneralTable::MaxMruCountL()
 // ==========================================================================
 void CContainerStoreGeneralTable::SetMaxMruCountL( TUint aCount )
     {
-    iTable.FirstL();    
-    PrepareRowForUpdateLC();
+    if(iTable.FirstL()){    
+        PrepareRowForUpdateLC();
     
-    iTable.SetColL( iMaxMruCountColNum, aCount );
+        iTable.SetColL( iMaxMruCountColNum, aCount );
 
-    PutRowUpdatesL();
+        PutRowUpdatesL();
     
-    //iTable.FirstL();
+        //iTable.FirstL();
+        }
     }
 
 TUint CContainerStoreGeneralTable::CurMruNumberL()
     {
-    iTable.FirstL();
-    iTable.GetL();
+    int ret = 0;
+    if(iTable.FirstL()){
+        iTable.GetL();
+        ret = iTable.ColUint( iCurMruNumberColNum );
+    }
 
-    return iTable.ColUint( iCurMruNumberColNum );
+    return ret;
     }
 
 void CContainerStoreGeneralTable::SetCurMruNumberL( TUint aNum )
     {
-    iTable.FirstL();    
-    PrepareRowForUpdateLC();
+    if(iTable.FirstL()){
+        PrepareRowForUpdateLC();
     
-    iTable.SetColL( iCurMruNumberColNum, aNum );
+        iTable.SetColL( iCurMruNumberColNum, aNum );
 
-    PutRowUpdatesL();
+        PutRowUpdatesL();
+    }
     
     //iTable.FirstL();
     }

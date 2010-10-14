@@ -43,9 +43,9 @@ public:
     bool forwarded;
     bool replied;
 
-    QList<EmailClientApi::NmApiEmailAddress> toRecipients;
-    QList<EmailClientApi::NmApiEmailAddress> ccRecipients;
-    QList<EmailClientApi::NmApiEmailAddress> bccRecipients;
+    QList<NmApiEmailAddress> toRecipients;
+    QList<NmApiEmailAddress> ccRecipients;
+    QList<NmApiEmailAddress> bccRecipients;
 
     quint64 id;
     quint64 parentFolder;

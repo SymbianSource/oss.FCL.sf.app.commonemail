@@ -31,7 +31,7 @@ class NmContactHistoryModelItemData : public QSharedData
 public:
 
 NmContactHistoryModelItemData() :
-    mContactId(0xDEAD)
+    mContactId(0)
 {
 
 }
@@ -94,6 +94,8 @@ private:
     NmContactHistoryModelType mType;
     QList<NmContactHistoryModelItem> mModelItemList;
     QList< QSharedPointer<NmContactHistoryModelItemData> > mPrivateItemList;
+    
+    
     QContactManager *mContactManager;
     QHash<QString, QString> mMruList;
     QMap<QString, QString> mMruMatches;

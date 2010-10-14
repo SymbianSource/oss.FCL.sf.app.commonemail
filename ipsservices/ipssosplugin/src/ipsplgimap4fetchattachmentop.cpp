@@ -308,7 +308,9 @@ const TDesC8& CIpsPlgImap4FetchAttachmentOp::ProgressL()
 void CIpsPlgImap4FetchAttachmentOp::ReportProgressL()
     {
     FUNC_LOG;
+        
     TInt error = KErrNone;
+
     TFSProgress fsProgress = { TFSProgress::EFSStatus_Waiting, 0, 0, KErrNone };
     if ( iSubOperation && iState == EStateFetching )
         {
@@ -337,6 +339,20 @@ void CIpsPlgImap4FetchAttachmentOp::ReportProgressL()
         User::Leave( error );
         }
 
+    TInt fileSize( 0 );
+    
+    if ( fsProgress.iMaxCount - fsProgress.iCounter > 0 )
+        {
+        fileSize = fsProgress.iMaxCount - fsProgress.iCounter;
+        }
+
+    if ( EnoughDiskSpaceOnCurrentDrive( fileSize ) == EFalse )
+        {
+        // Not enough space on the disk for the attachment!
+        error = KErrDiskFull;
+        fsProgress.iError = error;
+        }
+
 // <qmail>
     // signal observer if it exists
     if ( iFSOperationObserver )
@@ -344,6 +360,11 @@ void CIpsPlgImap4FetchAttachmentOp::ReportProgressL()
         iFSOperationObserver->RequestResponseL( fsProgress, iFSRequestId );
         }
 // </qmail>
+    
+    if ( error == KErrDiskFull )
+        {
+        Cancel();
+        }
     }
 
 // ----------------------------------------------------------------------------

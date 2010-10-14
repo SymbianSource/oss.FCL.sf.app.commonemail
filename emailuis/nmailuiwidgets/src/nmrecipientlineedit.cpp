@@ -380,8 +380,6 @@ void NmRecipientLineEdit::gestureEvent(QGestureEvent* event)
     HbLineEdit::gestureEvent(event);
 
     if (HbTapGesture *tap = qobject_cast<HbTapGesture*>(event->gesture(Qt::TapGesture))) {
-        //capturing gesture position, and map to local co-ordinates.
-        QPointF pos = mapFromScene(tap->scenePosition());
 
         switch (tap->state()) {
         case Qt::GestureFinished:
@@ -407,23 +405,21 @@ void NmRecipientLineEdit::handleTap()
     int currentPos = cursorPosition();
     QString txt = text();
 
-    QString leftTxt = txt.left(currentPos+2);
+    QString leftTxt = txt.left(currentPos+2); //recipient items delimeter takes 2 characters
     int previousSemicolonIndex = leftTxt.lastIndexOf(NmRecipientLineEditSemicolon,currentPos);
     if ((currentPos>0) &&
        (currentPos==previousSemicolonIndex || currentPos==previousSemicolonIndex+1)) {
+        //do we really need this? currentPos==previousSemicolonIndex 
         //pressed just on seperator
         setCursorPosition(previousSemicolonIndex+2);
     }
-    else
-    {
+    else {
         // pressed in middle of an address
-        setCursorPosition(currentPos);
         if (textCursor().charFormat().fontUnderline()) {
             // This entry is a "contact"
-            setHighlight(currentPos);
+            setHighlight(currentPos); 
         }
     }
-    update();
 }
 
 /*!
@@ -508,15 +504,14 @@ void NmRecipientLineEdit::handleTextChanged(const QString &text)
     //if there is no text, hide popup already
     if (document()->isEmpty()) {
         hideAutofillPopup();
+        return; //no need to continue
     }
 
-    if (mContactHistoryModel) {
-        int startPos(-1), length(-1);
-        currentTextPart(startPos, length);
-        QString t = text.mid(startPos, length);
-        if (t.length()) {
-            mContactHistoryModel->query(t);
-        }
+    int startPos(-1), length(-1);
+    currentTextPart(startPos, length);
+    QString t = text.mid(startPos, length);
+    if (t.length()) {
+        mContactHistoryModel->query(t);
     }
 }
 
@@ -590,11 +585,11 @@ void NmRecipientLineEdit::getChosenAddressFromModel(const QModelIndex &modelInde
     if (item.subItemCount()) {
         QList<NmContactHistoryModelSubItem> itemlist = item.subEntries();
         if (itemlist.count() == 2) {
-            address.setDisplayName(itemlist[0].mItemText);
-            address.setAddress(itemlist[1].mItemText);
+            address.setDisplayName(itemlist[0].mItemText.trimmed());
+            address.setAddress(itemlist[1].mItemText.trimmed());
         } else if (itemlist.count() == 1) {
             // only emailaddress found (no display name)
-            address.setAddress(itemlist[0].mItemText);
+            address.setAddress(itemlist[0].mItemText.trimmed());
         }
     }
 }
@@ -753,8 +748,8 @@ void NmRecipientLineEdit::setHighlight(int currentPos)
     else {
         deselect();
     }
-
-    update();
+    
+    
 }
 
 /*!

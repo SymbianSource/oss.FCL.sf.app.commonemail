@@ -9,7 +9,7 @@
     <description>Send interface</description>
     <customproperty key="txt_aiw_action_text">Attach to new email</customproperty>
     <customproperty key="aiw_action_text_file">mail</customproperty>
-    <customproperty key="aiw_action_text">txt_mail_shareui_send_as_mail</customproperty>
+    <customproperty key="aiw_action_text">txt_share_dblist_email</customproperty>
     <customproperty key="aiw_action_icon">qtg_large_email</customproperty>
   </interface>
   <interface>

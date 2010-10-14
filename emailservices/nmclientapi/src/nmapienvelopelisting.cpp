@@ -81,7 +81,7 @@ void NmApiEnvelopeListing::cancel()
     Before calling start should be called, otherwise will return empty list.
     It also clears inputlist of NmMessageEnvelope.
  */
-bool NmApiEnvelopeListing::getEnvelopes(QList<EmailClientApi::NmApiMessageEnvelope> &envelopes)
+bool NmApiEnvelopeListing::getEnvelopes(QList<NmApiMessageEnvelope> &envelopes)
 {
     NM_FUNCTION;
     return mListingPrivate->envelopes(envelopes);

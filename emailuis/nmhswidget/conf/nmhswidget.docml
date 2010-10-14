@@ -19,8 +19,6 @@
                     <sizepolicy horizontalPolicy="Expanding" horizontalStretch="0" verticalPolicy="Expanding" verticalStretch="0"/>
                     <sizehint height="expr(3*9.75un)" type="PREFERRED" width="46un"/>
                     <fontspec name="fontSpec" role="Secondary" textheight="var(hb-param-text-height-secondary)"/>
-                    <enums name="horizontalScrollBarPolicy" value="ScrollBarAlwaysOff"/>
-                    <enums name="verticalScrollBarPolicy" value="ScrollBarAlwaysOff"/>
                     <bool name="longPressEnabled" value="FALSE"/>
                     <enums name="clampingStyle" value="BounceBackClamping"/>
                     <real name="rotation" value="0"/>

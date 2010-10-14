@@ -96,6 +96,7 @@ QPointer<NmApiOperation> NmApiMessageManagerPrivate::sendMessage(const NmApiMess
  */
 QPointer<NmApiOperation> NmApiMessageManagerPrivate::saveMessage(const NmApiMessage &message)
 {
+    Q_UNUSED(message);
     return NULL;
 }
 

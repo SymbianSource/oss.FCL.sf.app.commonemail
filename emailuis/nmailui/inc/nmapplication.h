@@ -101,7 +101,6 @@ private:
     bool mForegroundService;
     NmUiEffects *mEffects;                  // Owned
     NmAttachmentManager *mAttaManager;      // Owned
-    NmSettingsViewLauncher* mSettingsViewLauncher; // Owned
     bool mViewReady;
     NmId mLastOperationMailbox;
     HbMessageBox *mQueryDialog;             // Owned

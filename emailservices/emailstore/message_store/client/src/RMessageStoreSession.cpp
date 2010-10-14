@@ -450,7 +450,9 @@ void RMessageStoreSession::AccountsL( RPointerArray<CMsgStoreAccount>& aAccounts
 	for ( int i = 0 ; i < count ; i++ )
 		{
 		CMsgStoreAccount* account = CMsgStoreAccount::NewL( ownerIds[i], *(names[i]) );
+		CleanupStack::PushL( account );
 		aAccounts.AppendL( account );
+		CleanupStack::Pop( account );
 		}
 	CleanupStack::PopAndDestroy( serializer );
 	CleanupStack::PopAndDestroy( &resultBuf );
@@ -1718,7 +1720,9 @@ void RMessageStoreSession::MruAddressesL( TMsgStoreId aMailBoxId, RPointerArray<
     
         //create the address object and add it to the output array
         CMsgStoreAddress *address = CMsgStoreAddress::NewL( addrDes16, nameDes16 );
-        aAddressArray.AppendL( address );            
+        CleanupStack::PushL( address );
+        aAddressArray.AppendL( address );
+        CleanupStack::Pop( address );
         } // end while          
     
     CleanupStack::PopAndDestroy( &serializedBuf );

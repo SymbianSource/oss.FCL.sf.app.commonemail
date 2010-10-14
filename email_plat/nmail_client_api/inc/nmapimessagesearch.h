@@ -23,10 +23,10 @@
 #include <nmapicommon.h>
 #include <nmapimessage.h>
 
-class NmApiMessageSearchPrivate;
 
 namespace EmailClientApi 
 {
+class NmApiMessageSearchPrivate;
 
 class NMAPI_EXPORT NmApiMessageSearch : public NmApiMessageTask
 {
@@ -38,7 +38,7 @@ public:
     
     bool isRunning() const;
 
-    bool initialise(const QList<QString> &searchStrings, EmailClientApi::NmApiMailSortCriteria sortCriteria);
+    bool initialise(const QList<QString> &searchStrings, NmApiMailSortCriteria sortCriteria);
 
 public slots: 
 

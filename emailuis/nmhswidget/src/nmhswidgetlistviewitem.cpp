@@ -22,6 +22,7 @@
 #include <hbframebackground.h>
 #include <hbextendedlocale.h>
 #include <hbcolorscheme.h>
+#include <hbevent.h>
 #include <nmmessageenvelope.h>
 #include <nmicons.h>
 #include <hbstringutil.h>
@@ -161,14 +162,21 @@ void NmHsWidgetListViewItem::setContentsToMessageItem(const NmMessageEnvelope &e
     QDateTime localTime = envelope.sentTime().addSecs(locale.universalTimeOffset());
     QDate sentLocalDate = localTime.date();
     QDate currentdate = QDate::currentDate();
+    QString timeString;
     if (sentLocalDate == currentdate) {
         QString shortTimeSpec = r_qtn_time_usual;
         QTime time = localTime.time();
-        mTime->setText(HbStringUtil::convertDigits(locale.format(time, shortTimeSpec)));
+        timeString = HbStringUtil::convertDigits(locale.format(time, shortTimeSpec));
     } else {
         QString shortDateSpec = r_qtn_date_without_year;
-        mTime->setText(HbStringUtil::convertDigits(locale.format(sentLocalDate, shortDateSpec)));
+        timeString = HbStringUtil::convertDigits(locale.format(sentLocalDate, shortDateSpec));
     }
+    //shrink/expand the date field, so that sender field is as large as possible
+    QFontMetrics fm(mTime->font());
+    qreal textWidth = fm.width(timeString);
+    mTime->setMaximumWidth(textWidth);
+    mTime->setText(timeString);
+    
     // Subject.
     QString subjectText = envelope.subject();
     if (subjectText.length()) {
@@ -184,6 +192,7 @@ void NmHsWidgetListViewItem::setContentsToMessageItem(const NmMessageEnvelope &e
     //make sure icons are not shown yet
     for (int i = 0; i < mStatusIcons.count(); i++) {
         mStatusIcons.at(i)->hide();
+        mStatusIcons.at(i)->setPreferredWidth(0); //Do not consume space!
     }
     
     // Priority icon is added to list first thus it is always shown most right.
@@ -209,6 +218,7 @@ void NmHsWidgetListViewItem::setContentsToMessageItem(const NmMessageEnvelope &e
     for (int count = 0; count < iconList.count(); count++) {
         mStatusIcons.at(count)->setIcon(iconList.at(count));
         mStatusIcons.at(count)->show();
+        mStatusIcons.at(count)->setMinimumWidth(mStatusIcons.at(count)->maximumWidth());
     }
     
     // Message read status.
@@ -254,7 +264,7 @@ bool NmHsWidgetListViewItem::canSetModelIndex(const QModelIndex &index) const
 void  NmHsWidgetListViewItem::setFontsUnread()
 {
     NM_FUNCTION;
-    static QColor colorRole = HbColorScheme::color("qtc_list_item_title_normal");
+    QColor colorRole = HbColorScheme::color("qtc_hs_list_item_title_normal");
     HbFontSpec fontSpec(HbFontSpec::Primary);
     setFonts(colorRole, fontSpec);
 }
@@ -265,7 +275,7 @@ void  NmHsWidgetListViewItem::setFontsUnread()
 void  NmHsWidgetListViewItem::setFontsRead()
 {
     NM_FUNCTION;
-    static QColor colorRole = HbColorScheme::color("qtc_list_item_content_normal");
+    QColor colorRole = HbColorScheme::color("qtc_hs_list_item_content_normal");
     HbFontSpec fontSpec(HbFontSpec::Secondary);
     setFonts(colorRole, fontSpec);
 }
@@ -302,12 +312,12 @@ void  NmHsWidgetListViewItem::setFonts(const QColor &colorRole,
         
         mSender->setFontSpec(fontSpec);
         mSender->setTextColor(colorRole);
+        
+        fontSpec.setTextHeight(mSecondarySize);
 
         mSubject->setFontSpec(fontSpec);
         mSubject->setTextColor(colorRole);
-
-        fontSpec.setTextHeight(mSecondarySize);
-
+        
         mTime->setFontSpec(fontSpec);        
         mTime->setTextColor(colorRole);
     }
@@ -330,4 +340,26 @@ QString NmHsWidgetListViewItem::cleanupDisplayName( const QString &displayName )
     }
 
     return displayName.mid(firstPos, lastPos - firstPos + 1);
+}
+
+
+/*!
+    Handle font color changes in the case of theme change
+ */ 
+bool NmHsWidgetListViewItem::event(QEvent *event)
+{    
+    NM_FUNCTION;
+
+    bool ret = HbListViewItem::event(event);    
+    if (event && event->type() == HbEvent::ThemeChanged) {
+        NmMessageEnvelope *envelope =
+               modelIndex().data(Qt::DisplayRole).value<NmMessageEnvelope*>();
+        if (envelope && !envelope->isRead()) {
+            setFontsUnread();
+        }
+        else if (envelope) {
+            setFontsRead();
+        }
+    }
+    return ret;
 }

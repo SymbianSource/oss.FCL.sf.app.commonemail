@@ -669,7 +669,9 @@ void CMsgStoreInMemorySortRowSet::DeleteAllRowsL()
 void CMsgStoreInMemorySortRowSet::AddRowL( TContainerId aMessageId, TInt64 aDate, TInt32 aValue )
     {
     CIntegerRow* row = new(ELeave) CIntegerRow( aMessageId, aDate, aValue );    
+    CleanupStack::PushL( row );
     InsertInOrderL( row );
+    CleanupStack::Pop( row );
     
     TInt64 groupValue = GetGroupValue( *row );
     UpdateGroupListL( groupValue );

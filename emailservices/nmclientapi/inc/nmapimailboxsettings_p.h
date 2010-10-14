@@ -23,19 +23,19 @@
 #include <nmapimailboxsettings.h>
 #include <nmoperation.h>
 
-class NmApiDataPluginFactory;
 class NmOperation;
 
 namespace EmailClientApi
 {
+class NmApiDataPluginFactory;
 class NmApiMailboxSettingsData;
 
 class NmApiMailboxSettingsPrivate : public QObject
 {
     Q_OBJECT
 public:
-    NmApiMailboxSettingsPrivate(QObject *parent = 0);
-    ~NmApiMailboxSettingsPrivate();
+    NmApiMailboxSettingsPrivate(QObject *parent = NULL);
+    virtual ~NmApiMailboxSettingsPrivate();
 
     bool listMailboxIds(QList<quint64> &idList);
     QString getMailboxType(quint64 mailboxId);

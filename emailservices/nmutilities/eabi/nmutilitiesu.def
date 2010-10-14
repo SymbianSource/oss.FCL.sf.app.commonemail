@@ -45,10 +45,10 @@ EXPORTS
 	_ZN25NmContactHistoryModelItemD2Ev @ 44 NONAME
 	_ZN8EmailMRU10entryIndexEi @ 45 NONAME
 	_ZN8EmailMRU10readCenRepEi @ 46 NONAME
-	_ZN8EmailMRU10writeEntryEi7QStringS0_ @ 47 NONAME
-	_ZN8EmailMRU11updateEntryEi7QString @ 48 NONAME
-	_ZN8EmailMRU11writeCenRepEi7QString @ 49 NONAME
-	_ZN8EmailMRU16searchForAddressE7QString @ 50 NONAME
+	_ZN8EmailMRU10writeEntryEiRK7QStringS2_ @ 47 NONAME
+	_ZN8EmailMRU11updateEntryEiRK7QString @ 48 NONAME
+	_ZN8EmailMRU11writeCenRepEiRK7QString @ 49 NONAME
+	_ZN8EmailMRU16searchForAddressERK7QString @ 50 NONAME
 	_ZN8EmailMRU17getNextEntryIndexEv @ 51 NONAME
 	_ZN8EmailMRU19nameKeyByEntryIndexEi @ 52 NONAME
 	_ZN8EmailMRU22addressKeyByEntryIndexEi @ 53 NONAME
@@ -56,7 +56,7 @@ EXPORTS
 	_ZN8EmailMRU8getEntryEiR7QStringS1_ @ 55 NONAME
 	_ZN8EmailMRU9moveEntryEii @ 56 NONAME
 	_ZN8EmailMRU9nameOrderEv @ 57 NONAME
-	_ZN8EmailMRU9updateMRUE7QStringS0_ @ 58 NONAME
+	_ZN8EmailMRU9updateMRUERK7QStringS2_ @ 58 NONAME
 	_ZN8EmailMRUC1Ev @ 59 NONAME
 	_ZN8EmailMRUC2Ev @ 60 NONAME
 	_ZN8EmailMRUD0Ev @ 61 NONAME

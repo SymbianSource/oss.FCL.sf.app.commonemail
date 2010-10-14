@@ -68,7 +68,7 @@ bool NmApiFolder::operator==(const NmApiFolder &folder)
 {
     NM_FUNCTION;
     
-    bool returnValue = false;
+    bool returnValue(false);
     if (d == folder.d) {
         returnValue = true;
     }
@@ -98,7 +98,7 @@ QString NmApiFolder::name() const
 /*!
    getter for foldertype
  */
-EmailClientApi::NmApiEmailFolderType NmApiFolder::folderType() const
+NmApiEmailFolderType NmApiFolder::folderType() const
 {
     NM_FUNCTION;
     
@@ -128,7 +128,7 @@ void NmApiFolder::setId(quint64 id)
 /*!
    setter for foldertype
  */
-void NmApiFolder::setFolderType(EmailClientApi::NmApiEmailFolderType folderType)
+void NmApiFolder::setFolderType(NmApiEmailFolderType folderType)
 {
     NM_FUNCTION;
     

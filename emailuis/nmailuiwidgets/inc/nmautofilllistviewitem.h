@@ -35,7 +35,7 @@ public:
 public: // from HbListViewItem
     HbListViewItem *createItem();
     void updateChildItems();
-    bool canSetModelIndex(const QModelIndex &index);
+    bool canSetModelIndex(const QModelIndex &index) const;
 
 private:
     QString setHtmlUnderLine(const NmContactHistoryModelSubItem &subItem);

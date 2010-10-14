@@ -461,7 +461,9 @@ void CContainerStoreMruAddressTable::AddMailboxL( TContainerId aMailboxId )
         }
     
     CMruAddressList* list = new(ELeave) CMruAddressList( aMailboxId );
+    CleanupStack::PushL( list );
     iAddressLists.AppendL( list );
+    CleanupStack::Pop( list );
     
     __LOG_EXIT
     }
@@ -619,7 +621,9 @@ void CContainerStoreMruAddressTable::InitializeAddressListsL( RArray<TContainerI
         {
         TContainerId mailboxId = aMailboxIds[i];
         CMruAddressList* list = new(ELeave) CMruAddressList( mailboxId );
+        CleanupStack::PushL( list );
         iAddressLists.AppendL( list );
+        CleanupStack::Pop( list );
         
         const TUint bufSize = 100;
         TBuf<bufSize> sqlString;

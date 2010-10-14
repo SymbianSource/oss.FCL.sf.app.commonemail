@@ -25,7 +25,7 @@ NmApiMessageSearch::NmApiMessageSearch(QObject *parent, quint64 mailboxId) :
 {
     NM_FUNCTION;
     d = new NmApiMessageSearchPrivate(mailboxId, this);
-    qRegisterMetaType<NmApiMessage> ("EmailClientApi::NmApiMessage");
+    qRegisterMetaType<EmailClientApi::NmApiMessage>("EmailClientApi::NmApiMessage");
     connect(d, SIGNAL(messageFound(EmailClientApi::NmApiMessage&)), this, SIGNAL(messageFound(EmailClientApi::NmApiMessage&)));
     connect(d, SIGNAL(searchComplete(int)), this, SIGNAL(searchComplete(int)));
     connect(d, SIGNAL(canceled()), this, SIGNAL(canceled()));

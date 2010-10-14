@@ -261,7 +261,7 @@ TBool CIpsPlgMsgIterator::NextL(
         const TMsvEmailEntry& entry( 
             iFolderEntry->ChildDataL( aMessageEntries->At(i) ) );
         if ( ( EDisconnectedDeleteOperation != entry.DisconnectedOperation() ) &&
-        	(( entry.iMtm != KSenduiMtmImap4Uid )  || !entry.DeletedIMAP4Flag() ) &&
+        	(( entry.iMtm != KUidMsgTypeIMAP4 )  || !entry.DeletedIMAP4Flag() ) &&
         	 ( entry.iType == KUidMsvMessageEntry ) )
             {
             fsMsg = iMsgMapper->GetMailMessageL( iMailboxId, entry, 
@@ -301,7 +301,7 @@ TBool CIpsPlgMsgIterator::PreviousL(
         const TMsvEmailEntry& entry( 
             iFolderEntry->ChildDataL( aMessageEntries->At(i) ) );
         if ( ( EDisconnectedDeleteOperation != entry.DisconnectedOperation() ) &&
-        	(( entry.iMtm != KSenduiMtmImap4Uid )  || !entry.DeletedIMAP4Flag() ) &&	
+        	(( entry.iMtm != KUidMsgTypeIMAP4 )  || !entry.DeletedIMAP4Flag() ) &&	
    	 		 ( entry.iType == KUidMsvMessageEntry ) )
             {
             fsMsg = iMsgMapper->GetMailMessageL( iMailboxId, entry, 

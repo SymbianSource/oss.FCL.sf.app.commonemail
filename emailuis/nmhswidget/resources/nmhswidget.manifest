@@ -2,6 +2,6 @@
 <hswidgetmanifest>
     <uri>nmhswidget</uri>
     <title>nmhswidget</title>
-    <hidden>false</hidden>
+    <hidden>true</hidden>
     <servicexml>nmhswidget.xml</servicexml>
 </hswidgetmanifest>

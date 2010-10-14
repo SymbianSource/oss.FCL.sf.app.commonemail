@@ -390,8 +390,10 @@ class BASEPLUGIN_EXPORT CBasePlugin :
          virtual TFSProgress StatusL(
             TInt aRequestId );
 
-         virtual void CancelL(
-            TInt aRequestId );
+         virtual void CancelL( const TInt aRequestId );
+         
+         virtual void CancelL( const TInt aRequestId,
+                               const TInt aError );
 
          virtual void SubscribeMailboxEventsL(
             const TFSMailMsgId& aMailboxId,

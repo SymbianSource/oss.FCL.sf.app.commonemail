@@ -187,19 +187,19 @@ bool NmApiSettingsManagerPrivate::readCenRepSettings(NmApiMailboxSettingsData &d
     if (!activeProfileSetting.isNull()) {
         switch (activeProfileSetting.toInt()) {
             case IpsServices::EmailSyncProfileKeepUpToDate:
-                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetKUTD);
+                data.setValue(ReceptionActiveProfile, EmailProfileOffsetKUTD);
                 break;
             case IpsServices::EmailSyncProfileSaveEnergy:
-                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetSE);
+                data.setValue(ReceptionActiveProfile, EmailProfileOffsetSE);
                 break;
             case IpsServices::EmailSyncProfileManualFetch:
-                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetMF);
+                data.setValue(ReceptionActiveProfile, EmailProfileOffsetMF);
                 break;
             case IpsServices::EmailSyncProfileUserDefined:
-                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetUD);
+                data.setValue(ReceptionActiveProfile, EmailProfileOffsetUD);
                 break;
             default:
-                data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetKUTD);
+                data.setValue(ReceptionActiveProfile, EmailProfileOffsetKUTD);
                 break;
         }
     }
@@ -341,6 +341,7 @@ void NmApiSettingsManagerPrivate::fillPopSettingDataL(const NmApiMailboxSettings
 void NmApiSettingsManagerPrivate::fillSmtpSettingDataL(const NmApiMailboxSettingsData &data, 
         const QVariant settingValue, const int key)
 {    
+    Q_UNUSED(data);
     switch (key) {
        case EmailAddress:
            mSmtpSettings->SetEmailAddressL(StringToS60TPtrC(settingValue.toString()));
@@ -421,13 +422,13 @@ bool NmApiSettingsManagerPrivate::writeSettingToCenRep(
     
     if (data.getValue(ReceptionActiveProfile, settingValue) && !settingValue.isNull()) {
         QVariant profileOffset = 0;
-        if(settingValue.toString() == EmailClientApi::EmailProfileOffsetKUTD) {
+        if(settingValue.toString() == EmailProfileOffsetKUTD) {
             profileOffset = 0;
-        } else if(settingValue.toString() == EmailClientApi::EmailProfileOffsetSE){
+        } else if(settingValue.toString() == EmailProfileOffsetSE){
             profileOffset = 1;
-        } else if (settingValue.toString() == EmailClientApi::EmailProfileOffsetMF){
+        } else if (settingValue.toString() == EmailProfileOffsetMF){
             profileOffset = 2;
-        } else if (settingValue.toString() == EmailClientApi::EmailProfileOffsetUD) {
+        } else if (settingValue.toString() == EmailProfileOffsetUD) {
             profileOffset = 3;
         }
         ret = writeToCenRep(IpsServices::EmailKeyReceptionActiveProfile, profileOffset);

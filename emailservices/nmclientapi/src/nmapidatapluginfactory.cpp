@@ -17,8 +17,8 @@
 
 #include "nmapiheaders.h"
 
-
-
+namespace EmailClientApi
+{
 /*!
  \class NmApiDataPluginFactory
  \brief The NmApiDataPluginFactory class creates NmDataPlugin instance.
@@ -138,3 +138,5 @@ QObject *NmApiDataPluginFactory::plugin()
     }
     return mPlugin;
 }
+}
+

@@ -17,6 +17,9 @@
 
 #include "nmapiheaders.h"
 
+
+namespace EmailClientApi
+{
 NmApiEngine *NmApiEngine::mInstance = NULL;
 quint32 NmApiEngine::mReferenceCount = 0;
 
@@ -216,10 +219,10 @@ void NmApiEngine::releaseInstance(NmApiEngine *&instance)
 /*!
       It get all mailboxes from email store
       
-      \sa EmailClientApi::NmMailbox
+      \sa NmMailbox
       \param mailboxList List of mailboxes to be filled.
  */
-void NmApiEngine::listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList)
+void NmApiEngine::listMailboxes(QList<NmApiMailbox> &mailboxList)
 {
     NM_FUNCTION;
     
@@ -246,11 +249,11 @@ void NmApiEngine::listMailboxes(QList<EmailClientApi::NmApiMailbox> &mailboxList
 /*!
       It get all folders from email store for given mailbox
       
-      \sa EmailClientApi::NmApiFolder
+      \sa NmApiFolder
       \param mailboxId Mailbox id from where folders should be returned
       \param folderList  of folders to be filled.
  */
-void NmApiEngine::listFolders(const quint64 mailboxId, QList<EmailClientApi::NmApiFolder> &folderList)
+void NmApiEngine::listFolders(const quint64 mailboxId, QList<NmApiFolder> &folderList)
 {
     NM_FUNCTION;
     
@@ -270,13 +273,13 @@ void NmApiEngine::listFolders(const quint64 mailboxId, QList<EmailClientApi::NmA
 /*!
       It get all envelopes from email store for given mailbox and folder
       
-      \sa EmailClientApi::NmApiMessageEnvelope
+      \sa NmApiMessageEnvelope
       \param mailboxId Mailbox id from where envelope should be returned
       \param folderId Folder id from where envelope should be returned
       \param messageEnvelopeList List of envelopes to be filled.
  */
 void NmApiEngine::listEnvelopes(const quint64 mailboxId, const quint64 folderId, 
-                    QList<EmailClientApi::NmApiMessageEnvelope> &messageEnvelopeList)
+                    QList<NmApiMessageEnvelope> &messageEnvelopeList)
 {
     NM_FUNCTION;
     
@@ -289,7 +292,7 @@ void NmApiEngine::listEnvelopes(const quint64 mailboxId, const quint64 folderId,
     while (!messages.isEmpty()) {
         NmMessage* message = messages.takeFirst();
             
-        EmailClientApi::NmApiMessageEnvelope nmEnvelope =
+        NmApiMessageEnvelope nmEnvelope =
             NmToApiConverter::NmMessageEnvelope2NmApiMessageEnvelope(message->envelope());
         
         NmMessagePart *plainTextPart = message->plainTextBodyPart();
@@ -322,7 +325,7 @@ bool NmApiEngine::getEnvelopeById(
     const quint64 mailboxId,
     const quint64 folderId,
     const quint64 envelopeId,
-    EmailClientApi::NmApiMessageEnvelope &envelope)
+    NmApiMessageEnvelope &envelope)
 {
     NM_FUNCTION;
     
@@ -367,7 +370,7 @@ bool NmApiEngine::getEnvelopeById(
 bool NmApiEngine::getFolderById(
     const quint64 mailboxId,
     const quint64 folderId,
-    EmailClientApi::NmApiFolder &mailboxFolder)
+    NmApiFolder &mailboxFolder)
 {
     NM_FUNCTION;
 
@@ -389,7 +392,7 @@ bool NmApiEngine::getFolderById(
     }
     if (fsFolder) {
         NmFolder *nmFolder = fsFolder->GetNmFolder();
-        EmailClientApi::NmApiFolder apiFolder = NmToApiConverter::NmFolder2NmApiFolder(*nmFolder);
+        NmApiFolder apiFolder = NmToApiConverter::NmFolder2NmApiFolder(*nmFolder);
         mailboxFolder = apiFolder;
         found = true;
         delete nmFolder;
@@ -412,7 +415,7 @@ bool NmApiEngine::getMessageById(
     const quint64 mailboxId,
     const quint64 folderId,
     const quint64 messageId,
-    EmailClientApi::NmApiMessage &message)
+    NmApiMessage &message)
 {
     NM_FUNCTION;
     
@@ -438,7 +441,7 @@ bool NmApiEngine::getMessageById(
     }
     if (fsMessage) {
         NmMessage *nmMessage = fsMessage->GetNmMessage();
-        EmailClientApi::NmApiMessage apiMessage = NmToApiConverter::NmMessage2NmApiMessage(*nmMessage);
+        NmApiMessage apiMessage = NmToApiConverter::NmMessage2NmApiMessage(*nmMessage);
         message = apiMessage;
         found = true;
         delete nmMessage;
@@ -456,7 +459,7 @@ bool NmApiEngine::getMessageById(
    
    \return Return true if it will find any envelope
  */
-bool NmApiEngine::getMailboxById(const quint64 mailboxId, EmailClientApi::NmApiMailbox &mailbox)
+bool NmApiEngine::getMailboxById(const quint64 mailboxId, NmApiMailbox &mailbox)
 {
     NM_FUNCTION;
     
@@ -537,5 +540,6 @@ void NmApiEngine::listMailPluginsL()
         }
     }
     CleanupStack::Pop(&implInfo);
+}
 }
 

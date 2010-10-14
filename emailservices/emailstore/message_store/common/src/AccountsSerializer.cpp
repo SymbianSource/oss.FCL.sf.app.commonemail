@@ -46,7 +46,9 @@ CAccountsSerializer::~CAccountsSerializer()
 void CAccountsSerializer::AddAccountL( TInt32 aOwnerId, const TDesC& aName )
 	{
 	HBufC* nameCopy = aName.AllocL();
+	CleanupStack::PushL( nameCopy );
 	iNameBufArray.AppendL( nameCopy );
+	CleanupStack::Pop( nameCopy );
 	iOwnerIdArray.AppendL( aOwnerId );
 	iCount++;
 	}

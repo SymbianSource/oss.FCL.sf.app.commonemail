@@ -30,7 +30,6 @@
 #include <miutset.h>
 #include <impcmtm.h>
 #include <msvapi.h>
-#include <SendUiConsts.h>
 #include <msvids.h>
 #include <msvuids.h>
 #include <cmmanager.h>

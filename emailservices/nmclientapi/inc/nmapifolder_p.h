@@ -38,7 +38,7 @@ public:
 
     quint64 id;
     QString name;
-    EmailClientApi::NmApiEmailFolderType folderType;
+    NmApiEmailFolderType folderType;
     quint64 parentId;
     QList<quint64> childFolderIds;
 };

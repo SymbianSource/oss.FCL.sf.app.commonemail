@@ -15,8 +15,8 @@
 *
 */
 
-
-#include "ipsplgmsgmapper.h"    // for Lint
+//we won't care about pc-lint error here. 
+//including msgmapper header (lint would require this) here would create include recursion
 
 // -----------------------------------------------------------------------------
 // -----------------------------------------------------------------------------

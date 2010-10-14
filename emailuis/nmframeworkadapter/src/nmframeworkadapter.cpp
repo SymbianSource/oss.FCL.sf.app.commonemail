@@ -342,8 +342,8 @@ void NmFrameworkAdapter::getMessagesFromFolderL(
     NM_TIMESTAMP("ListMessagesL in getMessagesFromFolderL start");   
 
     // Get the message list from the backend.
-    MFSMailIterator* iterator(NULL);
-    iterator = folder->ListMessagesL(details, sorting);
+    CFSMailIterator* iterator(NULL);
+    iterator = static_cast<CFSMailIterator*>(folder->ListMessagesL(details, sorting));
     
     NM_TIMESTAMP("ListMessagesL in getMessagesFromFolderL end");
 
@@ -541,7 +541,7 @@ void NmFrameworkAdapter::listMessagesL(
         CleanupStack::PushL(folder);
         // First prepare all the parameters
         // select message details to be listed
-        TFSMailDetails details(EFSMsgDataEnvelope);
+        TFSMailDetails details(EFSMsgDataStructure);
 
         // set sorting criteria
         TFSMailSortCriteria criteria;
@@ -578,13 +578,16 @@ void NmFrameworkAdapter::listMessagesL(
                 NmMessage* newMessage(NULL);
                 newMessage = messages[i]->GetNmMessage();
                 if (newMessage) {
-					//Add content of message
+                    CleanupStack::PushL(newMessage);                    
+                    //Add content of message
+                    childrenToNmMessagePartL(messages[i], newMessage);                
                     NmMessagePart *plainTextPart = newMessage->plainTextBodyPart();
                     if (plainTextPart) {
                         contentToMessagePart(mailboxId, folderId, newMessage->envelope().messageId(),
                                              *plainTextPart);
                     }
                     messageList.append(newMessage);
+                    CleanupStack::Pop(newMessage);
                 }
             }
 
@@ -960,13 +963,13 @@ void NmFrameworkAdapter::resetCache(const NmId &mailboxId)
     \param mailboxId Id of the mailbox.
     \return Async request id or error code.
  */
-int NmFrameworkAdapter::refreshMailbox(NmId mailboxId)
+int NmFrameworkAdapter::refreshMailbox(NmId mailboxId, bool silentConnection)
 {
     NM_FUNCTION;
 
     resetCache(mailboxId);
 
-    TRAPD(err, RefreshMailboxL(mailboxId)); // return value not used
+    TRAPD(err, RefreshMailboxL(mailboxId, silentConnection)); // return value not used
     return (err == KErrNone) ? NmNoError : NmGeneralError;
 }
 
@@ -1616,9 +1619,10 @@ CFSMailMessage* NmFrameworkAdapter::mailMessageFromEnvelopeL(
     NM_FUNCTION;
 
     NmMessage* nmMessage = new(ELeave) NmMessage( envelope );
+    CleanupStack::PushL(nmMessage);
     CFSMailMessage* message = CFSMailMessage::NewL( *nmMessage );
-    delete nmMessage;
-    nmMessage = NULL;
+    CleanupStack::PopAndDestroy(nmMessage);
+    
     return message;
 }
 
@@ -1653,7 +1657,7 @@ void NmFrameworkAdapter::childrenToNmMessagePartL(
 /*!
    Leaving Refresh function
  */
-int NmFrameworkAdapter::RefreshMailboxL(NmId mailboxId)
+int NmFrameworkAdapter::RefreshMailboxL(NmId mailboxId, bool silentConnection)
 {
     NM_FUNCTION;
 
@@ -1662,7 +1666,7 @@ int NmFrameworkAdapter::RefreshMailboxL(NmId mailboxId)
     currentMailbox = mFSfw->GetMailBoxByUidL(mailboxId);
     if(currentMailbox) {
         CleanupStack::PushL(currentMailbox);
-        result = currentMailbox->RefreshNowL();
+        result = currentMailbox->RefreshNowL(silentConnection);
         CleanupStack::PopAndDestroy(currentMailbox);
     }
     return result;

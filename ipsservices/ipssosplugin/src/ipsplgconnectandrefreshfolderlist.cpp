@@ -88,7 +88,7 @@ CIpsPlgConnectAndRefreshFolderList::CIpsPlgConnectAndRefreshFolderList(
 void CIpsPlgConnectAndRefreshFolderList::ConstructL()
     {
     FUNC_LOG;
-    BaseConstructL( KSenduiMtmImap4Uid );
+    BaseConstructL( KUidMsgTypeIMAP4 );
     iState = EStartConnect;
     DoRunL();
     }

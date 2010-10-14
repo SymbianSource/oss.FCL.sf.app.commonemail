@@ -63,7 +63,7 @@ public:
 
     virtual ~EmailMRU();
 
-    bool updateMRU(QString displayName, QString emailAddress);
+    bool updateMRU(const QString &displayName, const QString &emailAddress);
 
     quint32 entryCount() const;
 
@@ -77,11 +77,11 @@ private:
 
     quint32 getNextEntryIndex();
 
-    bool writeCenRep(qint32 index, QString value);
+    bool writeCenRep(qint32 index, const QString &value);
 
     QString readCenRep(qint32 index);
 
-    qint32 searchForAddress(QString address);
+    qint32 searchForAddress(const QString &address);
 
     static qint32 entryIndex(qint32 crKey);
 
@@ -91,9 +91,9 @@ private:
 
     void moveEntry(qint32 oldEntryIndex, qint32 newEntryIndex);
 
-    bool writeEntry(qint32 entryIndex, QString displayName, QString emailAddress);
+    bool writeEntry(qint32 entryIndex, const QString &displayName, const QString &emailAddress);
 
-    bool updateEntry(qint32 entryIndex, QString newDisplayName);
+    bool updateEntry(qint32 entryIndex, const QString &newDisplayName);
 
 private:
 

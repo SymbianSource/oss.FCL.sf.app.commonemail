@@ -65,7 +65,7 @@ EmailMRU::~EmailMRU()
     \param emailAddress
     \return success, was the update operation successful
  */
-bool EmailMRU::updateMRU(QString displayName, QString emailAddress)
+bool EmailMRU::updateMRU(const QString &displayName, const QString &emailAddress)
 {
     NM_FUNCTION;
 
@@ -141,7 +141,7 @@ void EmailMRU::reset()
     \param value what to write
     \return success, whether write operation succeeded
  */
-bool EmailMRU::writeCenRep(qint32 index, QString value)
+bool EmailMRU::writeCenRep(qint32 index, const QString &value)
 {
     NM_FUNCTION;
 
@@ -200,6 +200,7 @@ qint32 EmailMRU::entryIndex(qint32 crKey)
         entryIndex = crKey/2;
     }
     else {
+        // If not divisible with 2, minus 1 to get correct entry index. 
         entryIndex = (crKey-1)/2;
     }
 
@@ -231,7 +232,7 @@ qint32 EmailMRU::nameKeyByEntryIndex(qint32 entryIndex)
     \param address to search
     \return entry index of found address, zero if not found
  */
-qint32 EmailMRU::searchForAddress(QString address)
+qint32 EmailMRU::searchForAddress(const QString &address)
 {
     NM_FUNCTION;
 
@@ -275,7 +276,7 @@ void EmailMRU::moveEntry(qint32 oldEntryIndex, qint32 newEntryIndex)
     \param newDisplayName
     \return success was update operation successfull
  */
-bool EmailMRU::updateEntry(qint32 entryIndex, QString newDisplayName)
+bool EmailMRU::updateEntry(qint32 entryIndex, const QString &newDisplayName)
 {
     NM_FUNCTION;
 
@@ -286,12 +287,17 @@ bool EmailMRU::updateEntry(qint32 entryIndex, QString newDisplayName)
     // until we go past the newest entry
     for (qint32 i = entryIndex, j = 0; i != mLatestIndex;) {
         j = i+1;
-        if (j > emailAddressHistorySize) j = 1;
+        
+        if (j > emailAddressHistorySize) {
+            j = 1;
+        }
 
         moveEntry(j, i);
-
         i++;
-        if (i > emailAddressHistorySize) i = 1;
+        
+        if (i > emailAddressHistorySize) {
+            i = 1;
+        }
     }
 
     // Write the updated entry as the newest entry
@@ -305,7 +311,8 @@ bool EmailMRU::updateEntry(qint32 entryIndex, QString newDisplayName)
     \param emailAddress
     \return success was update operation successfull
  */
-bool EmailMRU::writeEntry(qint32 entryIndex, QString displayName, QString emailAddress)
+bool EmailMRU::writeEntry(qint32 entryIndex, const QString &displayName, 
+                                             const QString &emailAddress)
 {
     NM_FUNCTION;
 

@@ -63,11 +63,11 @@ void CIpsSosAOSettingsHandler::ConstructL( TMsvId aMailboxId )
 TInt CIpsSosAOSettingsHandler::GetFSPluginId() const
     {
     TInt pluginId = 0;
-    if ( iEntry.iMtm.iUid == KSenduiMtmImap4UidValue )
+    if ( iEntry.iMtm == KUidMsgTypeIMAP4 )
         {
         pluginId = IPSSOSIMAP4PLUGIN_IMPLEMENTATION_UID;
         }
-    else if ( iEntry.iMtm.iUid == KSenduiMtmPop3UidValue )
+    else if ( iEntry.iMtm == KUidMsgTypePOP3 )
         {
         pluginId = IPSSOSPOP3PLUGIN_IMPLEMENTATION_UID;
         }

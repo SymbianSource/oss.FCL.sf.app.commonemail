@@ -153,7 +153,10 @@ bool NmMessageEnvelope::operator==(const NmMessageEnvelope &envelope) const
         && sentTime() == envelope.sentTime()
         && flags() == envelope.flags()
         && mailboxId() == envelope.mailboxId()
-        && folderId() == envelope.folderId()) {
+        && folderId() == envelope.folderId()
+        && toRecipients() == envelope.toRecipients()
+        && ccRecipients() == envelope.ccRecipients()
+        && bccRecipients() == envelope.bccRecipients()) {
         ret = true;
     }
     return ret;

@@ -77,6 +77,7 @@
 #include <CFSMailBox.h>
 #include <MFSMailBoxSearchObserver.h>
 #include <MFSMailIterator.h>
+#include <CFSMailIterator.h>
 
 
 

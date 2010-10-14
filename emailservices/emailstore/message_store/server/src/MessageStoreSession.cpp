@@ -1081,7 +1081,9 @@ void CMessageStoreSession::MatchFound( TContainerId aMessageId, TContainerId aFo
 void CMessageStoreSession::DoMatchFoundL( TContainerId aMessageId, TContainerId aFolderId, const TDesC8& aPropertyBuf )
     {
     CSearchResult* result = CSearchResult::NewL( aMessageId, aFolderId, aPropertyBuf );
+    CleanupStack::PushL( result );
     iMatchMessages.AppendL( result );
+    CleanupStack::Pop( result );
 
     SendMatchesToClient();
     } // end MatchFound

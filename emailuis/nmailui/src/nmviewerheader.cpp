@@ -229,7 +229,7 @@ void NmViewerHeader::setHeaderData()
                 envelope.sentTime().addSecs(locale.universalTimeOffset());
             QTime time = localTime.time();
             QDate sentLocalDate = localTime.date();
-            QString shortDateSpec = r_qtn_date_without_year;
+            QString shortDateSpec = r_qtn_date_usual;
             QString shortTimeSpec = r_qtn_time_usual;
             QString text = locale.format(sentLocalDate, shortDateSpec);
             text += " ";

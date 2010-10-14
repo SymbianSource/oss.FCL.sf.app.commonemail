@@ -242,7 +242,6 @@ void CEmailClientApi::ConstructL()
             count = 0;
             }
         }
-    iMailClient =  CFSMailClient::NewL();
     CleanupStack::PopAndDestroy( &implInfoArray );
     User::LeaveIfError( err );    
     }

@@ -17,70 +17,74 @@
 
 #include "nmapiheaders.h"
 
-
 namespace EmailClientApi
 {
-NmApiMailboxListingPrivate::NmApiMailboxListingPrivate(QObject *parent) :
-    QObject(parent), mNmApiEngine(NULL)
+NmApiMailboxListingPrivate::NmApiMailboxListingPrivate(QObject *parent) 
+:QObject(parent), 
+mEngine(NULL), 
+mIsRunning(false)
 {
     NM_FUNCTION;
+    mEngine = NmApiEngine::instance();
 }
 
 NmApiMailboxListingPrivate::~NmApiMailboxListingPrivate()
 {
     NM_FUNCTION;
+    NmApiEngine::releaseInstance(mEngine);
 }
 
 /*!
-   \brief It initialize engine for email operations. 
-   
-   When use initializeEngine need to remember release it.
-   It return value if initialization go good.
-   \sa releaseEngine 
-   \return Return true if engine is good initilialized.
+   \brief Get mailboxes from engine.    
+   \return Count of mailboxes 
  */
-bool NmApiMailboxListingPrivate::initializeEngine()
+qint32 NmApiMailboxListingPrivate::listMailboxes()
 {
     NM_FUNCTION;
-    
-    if (!mNmApiEngine) {
-        mNmApiEngine = NmApiEngine::instance();
-    }
-
-    return mNmApiEngine ? true : false;
-}
-
-/*!
-   \brief It release engine for email operations.
-   
-   \sa initializeEngine
- */
-void NmApiMailboxListingPrivate::releaseEngine()
-{
-    NM_FUNCTION;
-    
-    NmApiEngine::releaseInstance(mNmApiEngine);
-}
-
-/*!
-   \brief It grab mailboxes from engine. 
-   
-   When it start grabing, it release all old.
-   Because it uses NmApiMailbox with sharedData we don't need care about release memory.
-   
-   \return Count of mailboxes or "-1" if there is no engine
- */
-qint32 NmApiMailboxListingPrivate::grabMailboxes()
-{
-    NM_FUNCTION;
-    
-    if (!mNmApiEngine) {
-        return -1;
-    }
-    
+    mIsRunning = true;
     mMailboxes.clear();
-
-    mNmApiEngine->listMailboxes(mMailboxes);
+    mEngine->listMailboxes(mMailboxes);
     return mMailboxes.count();
+}
+
+/*! 
+   \brief Returns results after mailboxesListed signal is received.
+   
+    Caller gets ownership of mailboxes. Returns true if results were available.
+    It clears list of mailboxes (in private members) after be called.
+    It also at start clear inputlist of NmApiMailbox.
+    
+    \return Return true if results were avaible
+    \param mailboxes List of mailboxes to filled. On start is cleared. 
+ */
+bool NmApiMailboxListingPrivate::mailboxes(QList<NmApiMailbox> &mailboxes)
+{
+    mailboxes.clear();
+
+
+    bool ret(mIsRunning);
+    mailboxes.clear();
+    while (!mMailboxes.isEmpty()) {
+        mailboxes << mMailboxes.takeFirst();
+    }
+    mIsRunning = false;
+    return ret;
+}
+/*!
+   \brief Return info if listing is running
+ */
+bool NmApiMailboxListingPrivate::isRunning() const
+{
+    NM_FUNCTION;
+    return mIsRunning;
+}
+
+/*!
+   \brief Clears list of mailboxes.
+ */
+void NmApiMailboxListingPrivate::cancel() 
+{
+    mIsRunning = false;
+    mMailboxes.clear();
 }
 }

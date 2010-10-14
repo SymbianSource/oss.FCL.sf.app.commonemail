@@ -26,6 +26,19 @@
     \sa NmOperation
  */
 
+void ResetAndDestroyArray( TAny* aAny )
+    {
+    RPointerArray<CFSMailMessagePart>* ptrArray =
+            reinterpret_cast<RPointerArray<CFSMailMessagePart>*> (aAny);
+    ptrArray->ResetAndDestroy();
+    }
+
+void CleanupResetAndDestroyPushL( RPointerArray<CFSMailMessagePart>& aArray )
+    {
+    TCleanupItem item( &ResetAndDestroyArray, &aArray );
+    CleanupStack::PushL( item );
+    }
+
 /*!
     Constructor
     
@@ -81,12 +94,12 @@ void NmFwaRemoveAttachmentOperation::doRunAsyncOperationL()
     NM_FUNCTION;
     
     CFSMailMessage *msg = NULL;
-
     msg = CFSMailMessage::NewL(mMessage);
+    CleanupStack::PushL( msg );
     
     // Get attachment list from the message
     RPointerArray<CFSMailMessagePart> attachments;
-    attachments.Reset();
+    CleanupResetAndDestroyPushL( attachments );
     msg->AttachmentListL(attachments);
         
     // Search through all attachments from message and remove attachment
@@ -99,9 +112,8 @@ void NmFwaRemoveAttachmentOperation::doRunAsyncOperationL()
             break;
         }
     }
-    attachments.ResetAndDestroy();   
-    delete msg;
-    msg = NULL;
+    
+    CleanupStack::PopAndDestroy( 2, msg ); // attachments, msg
     // if attachment is not found, request to plugin is not made
     // and the operation should be completed here
     if (!found) {

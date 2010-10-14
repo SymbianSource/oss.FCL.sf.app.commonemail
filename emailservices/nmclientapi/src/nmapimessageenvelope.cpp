@@ -17,8 +17,6 @@
 
 #include "nmapiheaders.h"
 
-
-
 namespace EmailClientApi
 {
 
@@ -177,7 +175,7 @@ QString NmApiMessageEnvelope::sender() const
 /*!
    getter for to recipients
  */
-void NmApiMessageEnvelope::getToRecipients(QList<EmailClientApi::NmApiEmailAddress> &toRecipients)
+void NmApiMessageEnvelope::getToRecipients(QList<NmApiEmailAddress> &toRecipients)
 {
     NM_FUNCTION;
     
@@ -187,7 +185,7 @@ void NmApiMessageEnvelope::getToRecipients(QList<EmailClientApi::NmApiEmailAddre
 /*!
    getter for cc recipients
  */
-void NmApiMessageEnvelope::getCcRecipients(QList<EmailClientApi::NmApiEmailAddress> &ccRecipients)
+void NmApiMessageEnvelope::getCcRecipients(QList<NmApiEmailAddress> &ccRecipients)
 {
     NM_FUNCTION;
     
@@ -197,7 +195,7 @@ void NmApiMessageEnvelope::getCcRecipients(QList<EmailClientApi::NmApiEmailAddre
 /*!
    getter for bcc recipients
  */
-void NmApiMessageEnvelope::getBccRecipients(QList<EmailClientApi::NmApiEmailAddress> &bccRecipients)
+void NmApiMessageEnvelope::getBccRecipients(QList<NmApiEmailAddress> &bccRecipients)
 {
     NM_FUNCTION;
     
@@ -267,7 +265,7 @@ QString NmApiMessageEnvelope::contentType() const
 /*!
    getter for plaintext body
  */
-void NmApiMessageEnvelope::getPlainTextBody(EmailClientApi::NmApiMessageBody &body)
+void NmApiMessageEnvelope::getPlainTextBody(NmApiMessageBody &body)
 {
     NM_FUNCTION;
     
@@ -330,7 +328,7 @@ void NmApiMessageEnvelope::setSender(const QString &sender)
    setter for to recipients 
  */
 void NmApiMessageEnvelope::setToRecipients(
-    const QList<EmailClientApi::NmApiEmailAddress> &toRecipients)
+    const QList<NmApiEmailAddress> &toRecipients)
 {
     NM_FUNCTION;
     
@@ -341,7 +339,7 @@ void NmApiMessageEnvelope::setToRecipients(
    setter for cc recipients 
  */
 void NmApiMessageEnvelope::setCcRecipients(
-    const QList<EmailClientApi::NmApiEmailAddress> &ccRecipients)
+    const QList<NmApiEmailAddress> &ccRecipients)
 {
     NM_FUNCTION;
     
@@ -352,7 +350,7 @@ void NmApiMessageEnvelope::setCcRecipients(
    setter for bcc recipients 
  */
 void NmApiMessageEnvelope::setBccRecipients(
-    const QList<EmailClientApi::NmApiEmailAddress> &bccRecipients)
+    const QList<NmApiEmailAddress> &bccRecipients)
 {
     NM_FUNCTION;
     

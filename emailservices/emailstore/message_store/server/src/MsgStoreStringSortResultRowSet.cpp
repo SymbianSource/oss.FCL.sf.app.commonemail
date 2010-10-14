@@ -889,9 +889,10 @@ void CMsgStoreStringSortResultRowSet::DeleteAllRowsL()
 void CMsgStoreStringSortResultRowSet::AddRowL( TContainerId aMessageId, const TDesC& aString, TInt64 aDate )
     {
     CStringRow* row = CStringRow::NewL( aMessageId, aDate, aString );
+    CleanupStack::PushL( row );
     row->SetGroupId( iCurGroupId++ );
     InsertInOrderL( row );
-    
+    CleanupStack::Pop( row );
     //we need to find out where is the newly added row, if it is the first or 
     //the last element in the sorted array, than it's position MAY NOT be accurate, 
     //because we DON'T have the entire table in memory, in this case, we have to either

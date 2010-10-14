@@ -189,7 +189,7 @@ void CIpsPlgOnlineOperation::InvokeClientMtmAsyncFunctionL(
     const TDesC8& aParams )
     {
     FUNC_LOG;
-    
+        
     TMsvEntry tEntry;
     TMsvId service;
     if ( aSel.Count() )
@@ -241,6 +241,29 @@ void CIpsPlgOnlineOperation::SignalFSObserver( TInt aStatus )
         // </qmail>
         }
     }
+
+
+// ----------------------------------------------------------------------------
+// CIpsPlgOnlineOperation::EnoughDiskSpaceOnCurrentDrive()
+// Returns true if there is enough space on the disk for a file with given
+// file size.
+// ----------------------------------------------------------------------------
+//
+TBool CIpsPlgOnlineOperation::EnoughDiskSpaceOnCurrentDrive(
+        const TInt aFileSize ) const
+    {
+    TDriveUnit driveUnit;
+    TRAP_IGNORE( driveUnit = iMsvSession.CurrentDriveL() );
+    RFs rfs( iMsvSession.FileSession() );
+    
+    TBool belowCriticalLevel( EFalse );
+    
+    TRAP_IGNORE( belowCriticalLevel =
+        SysUtil::DiskSpaceBelowCriticalLevelL( &rfs, aFileSize, driveUnit ) );
+
+    return !belowCriticalLevel;
+    }
+
 
 // <qmail> removed IpsOpType()
 

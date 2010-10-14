@@ -659,11 +659,12 @@ void NmMessageListModel::updateMessageEnvelope(const NmId &mailboxId,
         if (changed(*item->envelopePtr(), *newEnvelope)) {
             // function takes envelope ownership 
             item->setEnvelope(newEnvelope);
-        } else {
-            delete newEnvelope;
-            newEnvelope = NULL;
-        }
+            return;
+        }   
     }
+    
+    delete newEnvelope;
+    newEnvelope = NULL;
 }
 
 /*!

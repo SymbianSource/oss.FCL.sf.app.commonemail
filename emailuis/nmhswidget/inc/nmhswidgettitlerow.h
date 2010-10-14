@@ -19,6 +19,7 @@
 #define NMHSWIDGETTITLEROW_H_
 
 #include <hbwidget.h>
+#include <hbeffect.h>
 
 //FORWARD DECLARATIONS:
 class HbLabel;
@@ -44,12 +45,14 @@ private:
     bool loadDocML(HbDocumentLoader &loader);
     bool setupGraphics();
     void updateData();
-    void setHighlighedFontsColor( bool pressed );
-    void showHighlight( bool pressed );
+    void setFontsColor();
     
 public slots: 
     void updateAccountName(const QString& accountName );
     void updateUnreadCount(const int& unreadCount );
+    
+private slots:
+    void hideHighlight(const HbEffect::EffectStatus &status);
 
 signals:
     void expandCollapseButtonPressed();

@@ -84,6 +84,20 @@ void NmUiExtensionManager::getActions(
         interface->getActions(menuRequest, actionList);
     }
 }
+
+/*!
+    Calls all extensions
+ */
+void NmUiExtensionManager::launchSettings(const NmId &mailboxId)
+{
+    NM_FUNCTION;
+    
+    for (int i = 0; i < mExtensions.count(); i++) {
+        NmUiExtensionInterface *interface = mExtensions[i];
+        interface->launchSettings(mailboxId);
+    }
+}
+
 /*!
     Loads plug-ins which implements NmUiExtensionInterface and are registered
     to <code>/resource/qt/plugins/nmail/uiext</code> folder.

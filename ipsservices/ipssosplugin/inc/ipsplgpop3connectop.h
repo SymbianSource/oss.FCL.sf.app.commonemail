@@ -46,11 +46,13 @@ public:
 	    * @param aEventHandler event handler for sending sync events
 	    * @param aSignallingAllowed for asynchronous request response message
 	    * @param aFetchWillFollow used when connection must be kept open
+	    * @param aSilentConnection set if silent connection is used
 	    * @return new instance of the class
 	    */
 		// <qmail> MFSMailRequestObserver& changed to pointer
 		// <qmail> aSignallingAllowed parameter added
         // <qmail> aFetchWillFollow parameter added
+        // <qmail> aSilentConnection parameter added
         static CIpsPlgPop3ConnectOp* NewL(
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus,
@@ -62,7 +64,8 @@ public:
             TInt aFSRequestId,
             CIpsPlgEventHandler* aEventHandler,
             TBool aSignallingAllowed=ETrue,
-            TBool aFetchWillFollow=EFalse );
+            TBool aFetchWillFollow=EFalse,
+            TBool aSilentConnection=EFalse);
 
         /**
         *
@@ -118,6 +121,7 @@ public:
 		// <qmail> MFSMailRequestObserver& changed to pointer
 		// <qmail> aSignallingAllowed parameter added
         // <qmail> aFetchWillFollow parameter added
+        // <qmail> aSilentConnection parameter added
         CIpsPlgPop3ConnectOp(
             CMsvSession& aMsvSession,
             TRequestStatus& aObserverRequestStatus,
@@ -129,7 +133,8 @@ public:
             TInt aFSRequestId,
             CIpsPlgEventHandler* aEventHandler,
             TBool aSignallingAllowed,
-            TBool aFetchWillFollow );
+            TBool aFetchWillFollow,
+            TBool aSilentConnection);
 
         /**
         *
@@ -179,6 +184,8 @@ public:
 	    // <qmail> iAlreadyConnected removed
         // <qmail>
         TBool                                           iFetchWillFollow;
+        // whether silent connection is requested or not
+        TBool                                           iSilentConnection;
         // </qmail>
     };
 

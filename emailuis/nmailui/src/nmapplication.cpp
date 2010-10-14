@@ -21,6 +21,7 @@
 static const QString NmSendServiceName = "nmail.com.nokia.symbian.IFileShare";
 static const QString NmActivityName = "EmailInboxView";
 static const int NmErrorNoteDelay = 300000;
+static const qreal NmMinusNinetyDegrees = -90;
 
 /*!
     \class NmApplication
@@ -44,7 +45,6 @@ NmApplication::NmApplication(int &argc, char *argv[], Hb::ApplicationFlags flags
   mForegroundService(false),
   mEffects(NULL),
   mAttaManager(NULL),
-  mSettingsViewLauncher(NULL),
   mViewReady(false),
   mQueryDialog(NULL),
   mBackButtonPressed(false),
@@ -167,7 +167,6 @@ NmApplication::~NmApplication()
     delete mEffects;
     delete mMainWindow;
     delete mAttaManager;
-    delete mSettingsViewLauncher;
     delete mActivityStorage;
     delete mActivation;
 }
@@ -253,16 +252,16 @@ void NmApplication::createMainWindow()
 void NmApplication::viewReady()
 {
     mViewReady = true;
-
+    
     if (mViewStack && !mViewStack->isEmpty()) {
     	NmBaseView *currentView = mViewStack->top();
 
         if (currentView) {
             currentView->viewReady();
-            emit applicationReady();
         }
     NM_TIMESTAMP("Application view ready.");
     }
+    emit applicationReady();
 }
 
 
@@ -564,7 +563,7 @@ void NmApplication::enterNmUiView(NmUiStartParam *startParam)
         	(!startParam->service() || mActiveViewId!=NmUiViewMessageEditor)) {
             
             //startParam pointer is tested before usage below
-            //coverity[deref_arg]
+            //coverity[freed_arg]
             mViewStack->top()->reloadViewContents(startParam);
         }
         else {
@@ -809,16 +808,8 @@ void NmApplication::launchSettings(HbAction* action)
 {
     // Check whether yes button was pressed.
     if (mQueryDialog&& action == mQueryDialog->actions().at(0)) {
-        // Create settingslauncher if doesn't exist.
-        if(!mSettingsViewLauncher) {
-            mSettingsViewLauncher = new NmSettingsViewLauncher();
-            }
-        // Mailboxname required.
-        NmMailboxMetaData *mailboxMetaData = mUiEngine->mailboxById(mLastOperationMailbox); // No ownership.
-        if( mailboxMetaData ) {
-            // Launch.
-            mSettingsViewLauncher->launchSettingsView(mLastOperationMailbox, mailboxMetaData->name());
-        }
+        // Launch.
+        mExtensionManager->launchSettings(mCurrentMailboxId);
     }
 }
 
@@ -861,7 +852,14 @@ void NmApplication::updateActivity()
             TsTaskSettings tasksettings;
             tasksettings.setVisibility(false);
             QVariantHash metadata;
-            metadata.insert(ActivityScreenshotKeyword, QPixmap::grabWidget(mainWindow(), mainWindow()->rect()));
+            QPixmap screenshot = QPixmap::grabWidget(mainWindow(), mainWindow()->rect());
+            // Landscape needs to be rotated 90 degrees counter-clockwise
+            if (mainWindow()->orientation() == Qt::Horizontal) {
+                QMatrix mat;
+                mat.rotate(NmMinusNinetyDegrees);
+                screenshot = screenshot.transformed(mat);
+            }
+            metadata.insert(ActivityScreenshotKeyword, screenshot);
             metadata.insert(ActivityApplicationName, meta->name());
             metadata.insert(ActivityVisibility, true);
             ok = mActivityStorage->saveActivity(NmActivityName, QVariant(), metadata);

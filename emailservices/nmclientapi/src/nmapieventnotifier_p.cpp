@@ -30,6 +30,7 @@ NmApiEventNotifierPrivate::NmApiEventNotifierPrivate(QObject *parent) :
     NM_FUNCTION;
     mEmitSignals = new QTimer(this);
     mEmitSignals->setInterval(IntervalEmitingSignals);
+    mEmitSignals->setSingleShot(true);
     connect(mEmitSignals, SIGNAL(timeout()), this, SIGNAL(
         timedOut()));
     mEngine = NmApiEngine::instance();
@@ -69,14 +70,13 @@ bool NmApiEventNotifierPrivate::start()
     }
     else {
         qRegisterMetaType<QList<quint64> > ("QList<quint64>");
-        qRegisterMetaType<NmApiEvent> ("NmApiEvent");
+        qRegisterMetaType<EmailClientApi::NmApiEvent> ("EmailClientApi::NmApiEvent");
 
-        connect(mEngine, SIGNAL(emailStoreEvent(NmApiEvent)), this,
-                SLOT(emailStoreEvent(NmApiEvent)));
+        connect(mEngine, SIGNAL(emailStoreEvent(EmailClientApi::NmApiEvent)), this,
+                SLOT(emailStoreEvent(EmailClientApi::NmApiEvent)));
             
         mEngine->startCollectingEvents();
             
-        mEmitSignals->start();
         mIsRunning = true;
         result = true;
     }
@@ -89,8 +89,8 @@ void NmApiEventNotifierPrivate::stop()
 {
     mIsRunning = false;
     mEmitSignals->stop();
-    disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiEvent)), this,
-            SLOT(emailStoreEvent(NmApiEvent)));
+    disconnect(mEngine, SIGNAL(emailStoreEvent(EmailClientApi::NmApiEvent)), this,
+            SLOT(emailStoreEvent(EmailClientApi::NmApiEvent)));
 }
 
 /*!
@@ -110,10 +110,13 @@ void NmApiEventNotifierPrivate::events(QList<NmApiEvent> &events)
    \sa NmApiEvent
    \param events It contains full info about object and it event.
  */
-void NmApiEventNotifierPrivate::emailStoreEvent(const NmApiEvent &events)
+void NmApiEventNotifierPrivate::emailStoreEvent(const EmailClientApi::NmApiEvent event)
 {
     NM_FUNCTION;
-    mBufferOfEvents << events;
+    mBufferOfEvents << event;
+    if (!mEmitSignals->isActive()) {
+        mEmitSignals->start();
+    }
 }
 
 void NmApiEventNotifierPrivate::cancel()
@@ -127,8 +130,8 @@ void NmApiEventNotifierPrivate::cancel()
     mIsRunning = false;
     mEmitSignals->stop();
 
-    disconnect(mEngine, SIGNAL(emailStoreEvent(NmApiEvent)), this,
-            SLOT(emailStoreEvent(NmApiEvent)));
+    disconnect(mEngine, SIGNAL(emailStoreEvent(EmailClientApi::NmApiEvent)), this,
+            SLOT(emailStoreEvent(EmailClientApi::NmApiEvent)));
 
     mBufferOfEvents.clear();
 }

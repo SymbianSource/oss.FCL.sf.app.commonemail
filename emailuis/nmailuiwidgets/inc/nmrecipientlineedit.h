@@ -48,6 +48,7 @@ public slots:
 protected:	// from HbLineEdit
     void keyPressEvent(QKeyEvent *event);
     void inputMethodEvent(QInputMethodEvent *event);
+    void gestureEvent(QGestureEvent* event);
 
 private:
     void generateEmailAddressList();
@@ -58,7 +59,6 @@ private:
     void currentTextPart(int& startIndex, int& length);
     void getChosenAddressFromModel(const QModelIndex &modelIndex, NmAddress &address);
     void setHighlight(int currentPos);
-    void gestureEvent(QGestureEvent* event);
     void handleTap();
     void insertContactText(const QString &text);
     void keyPressEventSemicolon(QKeyEvent *event);

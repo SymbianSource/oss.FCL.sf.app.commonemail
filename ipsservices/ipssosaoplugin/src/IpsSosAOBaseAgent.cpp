@@ -32,19 +32,19 @@ CIpsSosAOBaseAgent* CIpsSosAOBaseAgent::CreateAgentL(
     aSession.GetEntry( aServiceId, service, tentry );
     
     CIpsSosAOBaseAgent* self = NULL;
-    if ( tentry.iMtm.iUid == KSenduiMtmImap4UidValue )
+    if ( tentry.iMtm == KUidMsgTypeIMAP4 )
         {
         CIpsSosAOImapAgent* imap = CIpsSosAOImapAgent::NewL( 
                 aSession,  aOpResponse, aServiceId );
         self = static_cast<CIpsSosAOBaseAgent*>(imap);
-        self->iMtmType = KSenduiMtmImap4Uid;
+        self->iMtmType = KUidMsgTypeIMAP4;
         }
-    else if ( tentry.iMtm.iUid == KSenduiMtmPop3UidValue )
+    else if ( tentry.iMtm == KUidMsgTypePOP3 )
         {
         CIpsSosAOPopAgent* pop = CIpsSosAOPopAgent::NewL( 
                 aSession,  aOpResponse, aServiceId );
         self = static_cast<CIpsSosAOBaseAgent*>(pop);
-        self->iMtmType = KSenduiMtmPop3Uid;
+        self->iMtmType = KUidMsgTypePOP3;
         }
     else
         {
@@ -136,7 +136,7 @@ void CIpsSosAOBaseAgent::SetPropertyEvent(
 TBool CIpsSosAOBaseAgent::IsTypeImap4() const
     {
     FUNC_LOG;
-    if ( iMtmType.iUid == KSenduiMtmImap4UidValue )
+    if ( iMtmType == KUidMsgTypeIMAP4 )
         {
         return ETrue;
         }
@@ -149,11 +149,11 @@ TInt CIpsSosAOBaseAgent::GetFSPluginId() const
     {
     FUNC_LOG;
     TInt pluginId = 0;
-    if ( iMtmType.iUid == KSenduiMtmImap4UidValue )
+    if ( iMtmType == KUidMsgTypeIMAP4 )
         {
         pluginId = IPSSOSIMAP4PLUGIN_IMPLEMENTATION_UID;
         }
-    else if ( iMtmType.iUid == KSenduiMtmPop3UidValue )
+    else if ( iMtmType == KUidMsgTypePOP3 )
         {
         pluginId = IPSSOSPOP3PLUGIN_IMPLEMENTATION_UID;
         }

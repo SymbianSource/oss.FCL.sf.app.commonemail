@@ -27,9 +27,8 @@ class NmDataPluginInterface;
 class QPluginLoader;
 class QTimer;
 class XQAiwRequest;
+class NmHsWidgetListModel;
 
-//Three seconds
-const int NmHsWidgetEmailEngineUpdateTimerValue = 3000;
 
 enum NmHsWidgetEmailEngineExceptionCode
     {
@@ -42,11 +41,10 @@ class NmHsWidgetEmailEngine : public QObject
     Q_OBJECT
     
 public:
-    NmHsWidgetEmailEngine( const NmId& monitoredMailboxId );
+    NmHsWidgetEmailEngine( const NmId& monitoredMailboxId);
     bool initialize(); 
     ~NmHsWidgetEmailEngine();
 
-    int getEnvelopes(QList<NmMessageEnvelope*> &list, int maxEnvelopeAmount);
     int unreadCount();
     QString accountName();
     void deleteAiwRequest();
@@ -69,38 +67,49 @@ public slots:
     //Activity control
     void suspend();
     void activate();
+    void forceUpdate();
+
     void launchMailAppInboxView();
     void launchMailAppMailViewer(const NmId &messageId);
-    void handleUpdateTimeout();
     
     void aiwRequestOk(const QVariant& result);
     void aiwRequestError(int errorCode, const QString& errorMessage);
     
 signals:
-    void mailDataChanged();    
+    //all mail data was refreshed (list contains all items)
+    void mailDataRefreshed(const QList<NmMessageEnvelope*>&);   
+    //all mail data was cleared
+    void mailDataCleared();
+    //new mails received (list contains the only items)
+    void mailsReceived(const QList<NmMessageEnvelope*>&);
+    //mail items updated (list contains changed items)
+    void mailsUpdated(const QList<NmMessageEnvelope*>&);
+    //mails deleted (list contains the id's of the deleted items)
+    void mailsDeleted(const QList<NmId>&);
+    
     void accountNameChanged(const QString& accountName);
     void unreadCountChanged(const int& unreadCount);
     void exceptionOccured(const int& err);
-    
+
 private:
     bool constructNmPlugin();
     bool updateData(); 
+    bool updateUnreadCount();
     bool updateAccount();
-    void resetEnvelopeList();
+    QList<NmMessageEnvelope*> getEnvelopesFromIds(const QList<NmId> messageIds);
+    NmMessageEnvelope* envelopeById(const NmId &messageId);
     
 private:
     NmId mMailboxId;
     NmId mFolderId;
     QString mAccountName;
     int mUnreadCount;
-    QList<NmMessageEnvelope*> mEnvelopeList;
     NmDataPluginInterface *mEmailInterface;
     NmDataPluginFactory* mFactory;
     //suspension variables
-    bool mAccountEventReceivedWhenSuspended;
-    bool mMessageEventReceivedWhenSuspended;
+    bool mAccountDataNeedsUpdate;
+    bool mMessageDataNeedsUpdate;
     bool mSuspended; 
-    QTimer* mUpdateTimer;
     XQAiwRequest* mAiwRequest;
     };
 

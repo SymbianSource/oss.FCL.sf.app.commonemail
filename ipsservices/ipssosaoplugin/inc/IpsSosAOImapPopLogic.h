@@ -143,7 +143,10 @@ private:
      * Takes care of reacting to entries created type of events
      */
     void handleEntriesCreatedL(const TAny* aArg1);
-
+    /**
+     * Takes care of reacting to created type of events
+     */
+    void handleEntriesChangedL(const TAny* aArg1, TAny* aArg2);
     /**
      * Takes the first entryId from the given selection and 
      * instantiates a TMsvEntry for that entry.

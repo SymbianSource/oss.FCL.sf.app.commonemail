@@ -38,6 +38,7 @@ public:
     void getActions(
         const NmActionRequest &menuRequest,
         QList<NmAction*> &actionList);
+    void launchSettings(const NmId &mailboxId);
 
 private:
     void loadExtensionPlugins();

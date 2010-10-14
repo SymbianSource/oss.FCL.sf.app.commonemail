@@ -184,7 +184,9 @@ TInt CEmailFolder::GetSubfoldersL( RFolderArray& aSubfolders ) const
         const TEntryId id = fsfolder->GetFolderId().Id();
         const TFolderId folderId( id, iFolderId.iMailboxId.iId );
         MEmailFolder* folder = CEmailFolder::NewL( iPluginData, folderId, folders[i] );
+        CleanupStack::PushL(folder);
         aSubfolders.AppendL( folder );
+        CleanupStack::Pop(folder);
         }
     CleanupStack::Pop( &folders );
     folders.Close();

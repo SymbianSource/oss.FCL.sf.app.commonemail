@@ -14,7 +14,7 @@ EXPORTS
 	_ZN10NmUiEngine14folderTypeByIdE4NmIdS0_ @ 13 NONAME
 	_ZN10NmUiEngine14mailboxDeletedERK4NmId @ 14 NONAME
 	_ZN10NmUiEngine14messageDeletedERK4NmIdS2_S2_ @ 15 NONAME
-	_ZN10NmUiEngine14refreshMailboxERK4NmId @ 16 NONAME
+	_ZN10NmUiEngine14refreshMailboxERK4NmIdb @ 16 NONAME
 	_ZN10NmUiEngine14searchCompleteEv @ 17 NONAME
 	_ZN10NmUiEngine14syncStateEventE11NmSyncStateRK4NmId @ 18 NONAME
 	_ZN10NmUiEngine15connectionEventE14NmConnectStateRK4NmId @ 19 NONAME
@@ -325,4 +325,6 @@ EXPORTS
 	_ZN10NmUiEngine24handleFolderDeletedEventERK5QListI4NmIdERKS1_ @ 324 NONAME
 	_ZN18NmMessageListModel24handleFolderDeletedEventERK4NmIdS2_ @ 325 NONAME
 	_ZN10NmUiEngine22createMessageListModelEPP18NmMessageListModelRK4NmIdS5_ @ 326 NONAME
+	_ZN10NmUiEngine10draftSavedEv @ 327 NONAME
+	_ZN10NmUiEngine12draftDeletedEv @ 328 NONAME
 

@@ -34,7 +34,7 @@ NmContactHistoryModel::NmContactHistoryModel(
 {
     NM_FUNCTION;
     d_ptr = new NmContactHistoryModelPrivate(modelType);
-
+    
     QObject::connect(d_ptr, SIGNAL(queryCompleted(int)), this,
         SLOT(handleQueryCompleted(int)));
 }
@@ -71,8 +71,7 @@ void NmContactHistoryModel::handleQueryCompleted(int err)
 
     int lastUpdateIndex = (d_ptr->privateDataCount())-1;
 
-    if (lastUpdateIndex != -1)
-    {
+    if (lastUpdateIndex != -1) {
         // Notify views that we are about to change model data.
         beginInsertRows(QModelIndex(),0,lastUpdateIndex);
         d_ptr->refreshDataModel();
@@ -81,10 +80,14 @@ void NmContactHistoryModel::handleQueryCompleted(int err)
         // Emit dataChanged();
         bool validIndex = hasIndex ( lastUpdateIndex, 0 );
 
-        if (validIndex)
-        {
+        if (validIndex) {
             emit dataChanged(index(0,0), index(lastUpdateIndex,0));
         }
+           
+    }
+    else if (lastUpdateIndex == -1) {
+        beginResetModel();       
+        endResetModel();
     }
 
     emit modelCompleted(err);

@@ -32,6 +32,7 @@ const TInt KPopulateAlgorithmRowLength( 75 );
 // <qmail> MFSMailRequestObserver& changed to pointer
 // <qmail> aSignallingAllowed parameter added
 // <qmail> aFetchWillFollow parameter added
+// <qmail> Silent connection parameter added
 CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
     CMsvSession& aMsvSession,                           
     TRequestStatus& aObserverRequestStatus,
@@ -43,7 +44,8 @@ CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler,
     TBool aSignallingAllowed,
-    TBool aFetchWillFollow )
+    TBool aFetchWillFollow,
+    TBool aSilentConnection)
     {
     FUNC_LOG;
     CIpsPlgPop3ConnectOp* op = new(ELeave) CIpsPlgPop3ConnectOp(
@@ -57,7 +59,8 @@ CIpsPlgPop3ConnectOp* CIpsPlgPop3ConnectOp::NewL(
         aFSRequestId,
         aEventHandler,
         aSignallingAllowed,
-        aFetchWillFollow );
+        aFetchWillFollow,
+        aSilentConnection);
 
     CleanupStack::PushL( op );
     op->ConstructL();
@@ -259,6 +262,7 @@ TFSProgress CIpsPlgPop3ConnectOp::GetFSProgressL() const
 // <qmail> aSignallingAllowed parameter added
 // <qmail> aFetchWillFollow parameter added
 // <qmail> iAlreadyConnected removed
+// <qmail> Silent connection parameter added
 CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
     CMsvSession& aMsvSession,
     TRequestStatus& aObserverRequestStatus,
@@ -270,7 +274,8 @@ CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
     TInt aFSRequestId,
     CIpsPlgEventHandler* aEventHandler,
     TBool aSignallingAllowed,
-    TBool aFetchWillFollow )
+    TBool aFetchWillFollow,
+    TBool aSilentConnection )
     :
     CIpsPlgOnlineOperation(
         aMsvSession,
@@ -283,7 +288,8 @@ CIpsPlgPop3ConnectOp::CIpsPlgPop3ConnectOp(
     iState( EIdle ),
     iForcePopulate( aForcePopulate ),
     iEventHandler( aEventHandler ),
-    iFetchWillFollow( aFetchWillFollow )
+    iFetchWillFollow( aFetchWillFollow ),
+    iSilentConnection( aSilentConnection )
     {
     iService = aServiceId; 
     }
@@ -337,6 +343,9 @@ void CIpsPlgPop3ConnectOp::DoConnectL()
     FUNC_LOG;
     // <qmail> unnecessary: iStatus = KRequestPending;
     NM_COMMENT("CIpsPlgPop3ConnectOp: connecting");
+    
+    // select connection type based on iSilentConnection
+    // NOTE: Cannot be implemented yet, because MTM support is not released yet
     InvokeClientMtmAsyncFunctionL( KPOP3MTMConnect, iService ); // <qmail> 1 param removed
     SetActive();
 

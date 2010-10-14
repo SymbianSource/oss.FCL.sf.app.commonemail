@@ -19,25 +19,27 @@
 #define NMAPIMESSAGESEARCHPRIVATE_H_
 
 #include <MFSMailBoxSearchObserver.h>
-#include <CFSMailBox.h>
 #include <nmapicommon.h>
 #include <nmapimessage.h>
 
-class NmApiEngine;
+
 class CFSMailBox;
+namespace EmailClientApi
+{
+class NmApiEngine;
 
 class NmApiMessageSearchPrivate : public QObject,
-                                    public MFSMailBoxSearchObserver
+                                  public MFSMailBoxSearchObserver
 {
     Q_OBJECT
 
 public:
     
-    NmApiMessageSearchPrivate(const quint64 mailboxId, QObject *parent = 0);
+    NmApiMessageSearchPrivate(const quint64 mailboxId, QObject *parent = NULL);
 
-    ~NmApiMessageSearchPrivate();
+    virtual ~NmApiMessageSearchPrivate();
 
-    bool initialise(const QList<QString> &searchStrings, EmailClientApi::NmApiMailSortCriteria sortCriteria);
+    bool initialise(const QList<QString> &searchStrings, NmApiMailSortCriteria sortCriteria);
     
     bool isRunning() const;
     
@@ -75,5 +77,6 @@ private:
     NmApiEngine *mEngine;
     
 };
+}
 
 #endif /* NMAPIMESSAGESEARCHPRIVATE_H_ */

@@ -18,10 +18,11 @@
 #ifndef NMAPIPRIVATECLASSES_H
 #define NMAPIPRIVATECLASSES_H
 
-#include <nmapidef.h>
 #include <QList>
 #include <QMetaType>
 
+namespace EmailClientApi
+{
 /*!
    Enum for internal info about changes in emial store
  */
@@ -55,6 +56,6 @@ struct NmApiEvent
     quint64 folderId;
 
 };
-Q_DECLARE_METATYPE(NmApiEvent)
-
+} // namespace
+Q_DECLARE_METATYPE(EmailClientApi::NmApiEvent)
 #endif /* NMAPIPRIVATECLASSES_H */

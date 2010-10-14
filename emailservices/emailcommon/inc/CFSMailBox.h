@@ -125,9 +125,11 @@ NONSHARABLE_CLASS ( CFSMailBox ) : public CFSMailBoxBase
      *
      * @return asynchronous request id
 	 */
-     IMPORT_C TInt RefreshNowL( MFSMailRequestObserver& aOperationObserver );
+     IMPORT_C TInt RefreshNowL( 
+         MFSMailRequestObserver& aOperationObserver,
+         TBool aSilentConnection = EFalse );
 
-     IMPORT_C TInt RefreshNowL( );
+     IMPORT_C TInt RefreshNowL( TBool aSilentConnection = EFalse );
 
     /**
      * creates into this mailbox new draft email

@@ -58,4 +58,5 @@ private:
 
 Q_DECLARE_METATYPE(EmailClientApi::NmApiMessage)
 
+
 #endif /* NMAPIMESSAGE_H_ */

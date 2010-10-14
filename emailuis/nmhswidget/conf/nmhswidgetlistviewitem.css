@@ -23,22 +23,24 @@ NmHsWidgetListViewItem::time {
 }
 
 NmHsWidgetListViewItem::subject {
-  fixed-height: var(hb-param-text-height-secondary);
-  text-height: var(hb-param-text-height-secondary);
+  min-height:  var(hb-param-text-height-secondary);
+  text-height: var(hb-param-text-height-tiny);
   text-align: left;
-  text-wrap-mode: no-wrap;
+  text-line-count-min:1;
+  text-line-count-max:3;
+  text-wrap-mode:word-wrap;
 }
 
 NmHsWidgetListViewItem::icon1 {
   alignment: right;
-  fixed-height: var(hb-param-graphic-size-secondary);
-  fixed-width: var(hb-param-graphic-size-secondary);
+  max-height: var(hb-param-graphic-size-secondary);
+  max-width: var(hb-param-graphic-size-secondary);
 }
 
 NmHsWidgetListViewItem::icon2 {
   alignment: right;
-  fixed-height: var(hb-param-graphic-size-secondary);
-  fixed-width: var(hb-param-graphic-size-secondary);
+  max-height: var(hb-param-graphic-size-secondary);
+  max-width: var(hb-param-graphic-size-secondary);
 }
 
 NmHsWidgetListViewItem::separator {

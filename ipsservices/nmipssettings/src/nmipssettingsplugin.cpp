@@ -589,7 +589,7 @@ void NmIpsSettingsPlugin::initServerInfoItems(HbDataFormModelItem &item)
         int folderPathItemIndex = mSettingsHelper->getCorrectFolderPathComboBoxIndex();
         folderPathItem->setContentWidgetData(NmIpsSettingsCurrentIndex, folderPathItemIndex);
 
-		mForm->addConnection(folderPathItem, SIGNAL(itemSelected(int)),
+		mForm->addConnection(folderPathItem, SIGNAL(currentIndexChanged(int)),
 							 mSettingsHelper, SLOT(folderPathChange(int)));
 
         item.appendChild(folderPathItem);

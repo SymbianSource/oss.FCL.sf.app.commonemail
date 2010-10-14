@@ -25,11 +25,11 @@
 
 class QObject;
 
-class NmApiEngine;
 
 // list messages in particular folder.
 namespace EmailClientApi
 {
+class NmApiEngine;
 class NmApiEnvelopeListingPrivate;
 class NmApiMessageEnvelope;
 

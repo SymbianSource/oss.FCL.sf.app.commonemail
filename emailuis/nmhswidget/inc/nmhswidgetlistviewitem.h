@@ -47,6 +47,7 @@ private:
     void setContentsToMessageItem(const NmMessageEnvelope &envelope);
     void setFontsRead();
     void setFontsUnread();
+    bool event( QEvent *event );
  
 private:
     HbIconItem *mSeparator;   // Owned

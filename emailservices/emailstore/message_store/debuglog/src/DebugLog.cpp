@@ -402,7 +402,7 @@ EXPORT_C void RDebugLog::WriteFormat( const TDesC8& aFuncName8,
                                       TRefByValue< const TDesC16 > aFmt, 
                                       ... ) const
     {
-    // coverity[UNINIT]
+    //coverity[var_decl]
 	VA_LIST list; 
 	VA_START(list,aFmt);
 
@@ -446,7 +446,7 @@ EXPORT_C void RDebugLog::WriteFormat( const TDesC8& aFuncName8,
                                       TRefByValue< const TDesC8 > aFmt, 
                                       ... ) const
     {
-    // coverity[UNINIT]
+    //coverity[var_decl]
 	VA_LIST list; 
 	VA_START(list,aFmt);
 

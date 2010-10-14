@@ -151,15 +151,31 @@ void NmPopClientPlugin::getActions(
 }
 
 /*!
+    Public method to access from extensionmanager to launch settings.
+    Opens mailbox settings.
+ */
+void NmPopClientPlugin::launchSettings(const NmId &mailboxId)
+{
+    NMLOG("NmPopClientPlugin::launchSettings()-->");
+    // Check if this request is for the POP protocol.
+    if (mailboxId.pluginId32() == this->pluginId()) {
+        settings(mailboxId);             
+    }
+}
+
+/*!
     Slot connected to options menu settings NmAction.
     Opens mailbox settings.
  */
-void NmPopClientPlugin::settings()
+void NmPopClientPlugin::settings(const NmId &mailboxId)
 {
     NMLOG("NmPopClientPlugin::settings()-->");
 
-    const NmId &id = mMenuRequest.mailboxId();
-    NmMailboxMetaData *mailbox = mUiEngine->mailboxById(id);
+    NmId id = mMenuRequest.mailboxId();
+    if (mailboxId.id()) {
+        id = mailboxId;
+    }
+    NmMailboxMetaData *mailbox = mUiEngine->mailboxById(id);  
 
     if (mailbox) {
         if (!mSettingsViewLauncher) {
@@ -181,7 +197,6 @@ void NmPopClientPlugin::settings()
                 SIGNAL(goOffline(const NmId &)),
                 this, SLOT(goOffline(const NmId &)));
         }
-
         handleRequest(NmActionResponseCommandSettings, mMenuRequest);
         mSettingsViewLauncher->launchSettingsView(id, mailbox->name());
     }

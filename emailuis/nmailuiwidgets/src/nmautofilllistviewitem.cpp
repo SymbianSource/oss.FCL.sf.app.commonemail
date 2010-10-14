@@ -122,7 +122,7 @@ void NmAutoFillListViewItem::updateChildItems()
     \param index The model index. 
     \return always true. 
 */
-bool NmAutoFillListViewItem::canSetModelIndex(const QModelIndex &index)
+bool NmAutoFillListViewItem::canSetModelIndex(const QModelIndex &index) const
 {
     NM_FUNCTION;
     

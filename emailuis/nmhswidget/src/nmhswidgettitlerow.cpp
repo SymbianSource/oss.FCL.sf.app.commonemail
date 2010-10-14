@@ -103,6 +103,10 @@ bool NmHsWidgetTitleRow::setupUI(HbDocumentLoader &loader)
     if(!loadDocML(loader) || !setupGraphics()){
         return false;
     }
+    
+    HbEffect::add(mBackgroundLayoutItem, "listviewitem_press", "pressed");
+    HbEffect::add(mBackgroundLayoutItem, "listviewitem_release", "released");
+    
     return true;
     }
 
@@ -154,14 +158,13 @@ bool NmHsWidgetTitleRow::setupGraphics()
     
     HbFrameDrawer* backgroundFrameDrawer = 0;
     QT_TRY{
-        //pressed background
-        backgroundFrameDrawer = new HbFrameDrawer("qtg_fr_hsitems_pressed", HbFrameDrawer::NinePieces);
+        //default background
+        backgroundFrameDrawer = new HbFrameDrawer(KNmHsWidgetBackgroundImage, HbFrameDrawer::NinePieces);
         mBackgroundLayoutItem = new HbFrameItem( backgroundFrameDrawer );
         mContainer->setBackgroundItem( mBackgroundLayoutItem );
-		mBackgroundLayoutItem->hide();
         
         //set fonts color
-		setHighlighedFontsColor(false);
+		setFontsColor();
 		
 		//to get gestures
 		setGeometry(mContainer->childrenBoundingRect());
@@ -242,44 +245,33 @@ void NmHsWidgetTitleRow::updateData()
         mUnreadCountLabel->setMaximumWidth(textWidth);
     }
     else {
+        //set empty string as nothing to show
+        mUnreadCountLabel->setPlainText(QString());
         mUnreadCountLabel->setMaximumWidth(0);
     }
 }
 
 /*!
     sets fonts color.
-    /param bool pressed indicates if row is pressed down or not
 */
-void NmHsWidgetTitleRow::setHighlighedFontsColor( bool pressed )
+void NmHsWidgetTitleRow::setFontsColor()
     {
     NM_FUNCTION;
-    QColor newFontColor;
-    
-    if(pressed){
-        newFontColor = HbColorScheme::color("qtc_hs_list_item_pressed");
-    }
-    else{
-        newFontColor = HbColorScheme::color("qtc_hs_list_item_title_normal");
-    }
+    QColor newFontColor = HbColorScheme::color("qtc_hs_list_item_title_normal");
  
     mMailboxInfo->setTextColor(newFontColor);
     mUnreadCountLabel->setTextColor(newFontColor);
     }
 
 /*!
-    change background pressed state
-    /param bool show if true then shown, false hide
+    hide background
 */
-void NmHsWidgetTitleRow::showHighlight( bool show )
+void NmHsWidgetTitleRow::hideHighlight(const HbEffect::EffectStatus &status)
     {
-    NM_FUNCTION;;
-    
-    if(show){
-        mBackgroundLayoutItem->show();
-    }
-    else{
-        mBackgroundLayoutItem->hide();
-    }
+    NM_FUNCTION;
+
+    Q_UNUSED(status);
+    mBackgroundLayoutItem->frameDrawer().setFrameGraphicsName(KNmHsWidgetBackgroundImage);
     }
 
 /*
@@ -313,16 +305,14 @@ void NmHsWidgetTitleRow::gestureEvent(QGestureEvent *event)
     if (inArea) {    
         switch (gesture->state()) {
             case Qt::GestureStarted:
-                setHighlighedFontsColor(true);
-                showHighlight(true);
+                HbEffect::start( mBackgroundLayoutItem, "pressed");
+                mBackgroundLayoutItem->frameDrawer().setFrameGraphicsName("qtg_fr_hsitems_pressed");
             break;
             case Qt::GestureCanceled:
-                setHighlighedFontsColor(false);
-                showHighlight(false);
+                HbEffect::start( mBackgroundLayoutItem, "released", this, "hideHighlight");
             break;
             case Qt::GestureFinished:
-                setHighlighedFontsColor(false);
-                showHighlight(false);
+                HbEffect::start( mBackgroundLayoutItem, "released", this, "hideHighlight");
                 if (gesture->tapStyleHint() == HbTapGesture::Tap) {
                     HbInstantFeedback::play(HbFeedback::BasicItem);
                     emit mailboxLaunchTriggered();
@@ -342,7 +332,7 @@ bool NmHsWidgetTitleRow::event( QEvent *event )
     NM_FUNCTION;
     QEvent::Type eventType = event->type();
     if( eventType == HbEvent::ThemeChanged ){
-        setHighlighedFontsColor(false);
+        setFontsColor();
         return true;
     }
     return HbWidget::event(event);

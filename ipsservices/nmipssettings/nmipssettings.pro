@@ -49,7 +49,8 @@ HEADERS += inc/nmipssettingsplugin.h \
            inc/nmipssettingscustomitem.h \
            inc/nmipssettingslabeledcombobox.h \
            inc/nmipssettingstimeeditor.h \
-           inc/nmipssettingsmultiselectionitem.h
+           inc/nmipssettingsmultiselectionitem.h \
+           inc/nmipssettingsdeletemailboxop.h
 
 SOURCES += src/nmipssettingsplugin.cpp \
            src/nmipssettingshelper.cpp \
@@ -61,7 +62,8 @@ SOURCES += src/nmipssettingsplugin.cpp \
            src/nmipssettingscustomitem.cpp \
            src/nmipssettingslabeledcombobox.cpp \
            src/nmipssettingstimeeditor.cpp \
-           src/nmipssettingsmultiselectionitem.cpp
+           src/nmipssettingsmultiselectionitem.cpp \
+           src/nmipssettingsdeletemailboxop.cpp
 
 symbian: { 
     TARGET.EPOCALLOWDLLDATA = 1
@@ -76,6 +78,7 @@ symbian: {
     LIBS += -llibc
     LIBS += -lcmapplsettingsui
     LIBS += -lAlwaysOnlineManagerClient
+    LIBS += -lmsgs
     
     CONFIG += mobility
     MOBILITY += bearer serviceframework

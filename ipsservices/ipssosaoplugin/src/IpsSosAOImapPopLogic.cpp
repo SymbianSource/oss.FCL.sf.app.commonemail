@@ -219,38 +219,20 @@ void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
             break;
         case MMsvSessionObserver::EMsvEntriesChanged:
             {
-            TMsvId parent = (*(TMsvId*) (aArg2));
-            //we check that parent is the root. if not, it cannot be an 
-            //event from service, thus can't be from connection change..
-            if ( parent == KMsvRootIndexEntryId )
-                {
-                const CMsvEntrySelection* selection = 
-                    static_cast<CMsvEntrySelection*>( aArg1 );
-                
-                TMsvEntry tEntry;
-                TMsvId service;
-                if ( selection->Count() )
-                    {
-                    iSession.GetEntry( selection->At(0), service, tEntry );
-                    }
-                
-                if ( !tEntry.Connected() )
-                    {
-                    SendCommandToSpecificMailboxL( 
-                            tEntry.Id(), 
-                            CIpsSosAOMBoxLogic::ECommandClearDoNotDisconnect );
-                    }
-                }
+            handleEntriesChangedL(aArg1, aArg2);
             }
             break;
         case MMsvSessionObserver::EMsvEntriesDeleted:
             {
-            TMsvId parent = (*(TMsvId*) (aArg2));
-            //we check that parent is the root. if not, it cannot be an 
-            //event indicating deleted mailbox entry
-            if ( parent == KMsvRootIndexEntryId )
+            if (aArg2) 
                 {
-                RemoveOrphanLogicsL();
+                TMsvId parent = (*(TMsvId*) (aArg2));
+                //we check that parent is the root. if not, it cannot be an 
+                //event indicating deleted mailbox entry
+                if ( parent == KMsvRootIndexEntryId )
+                    {
+                    RemoveOrphanLogicsL();
+                    }
                 }
             }
             break;
@@ -356,12 +338,12 @@ void CIpsSosAOImapPopLogic::RefreshMailboxListL( )
     CMsvEntry* cEntry = iSession.GetEntryL( KMsvRootIndexEntryId );
     CleanupStack::PushL( cEntry );
     
-    CMsvEntrySelection* childEntries = cEntry->ChildrenWithMtmL( KSenduiMtmPop3Uid );
+    CMsvEntrySelection* childEntries = cEntry->ChildrenWithMtmL( KUidMsgTypePOP3 );
     CleanupStack::PushL( childEntries );
     UpdateLogicArrayL( *childEntries );
     CleanupStack::PopAndDestroy( childEntries );
     
-    childEntries = cEntry->ChildrenWithMtmL( KSenduiMtmImap4Uid );
+    childEntries = cEntry->ChildrenWithMtmL( KUidMsgTypeIMAP4 );
     CleanupStack::PushL( childEntries );
     UpdateLogicArrayL( *childEntries );
     CleanupStack::PopAndDestroy( childEntries );
@@ -491,10 +473,10 @@ void CIpsSosAOImapPopLogic::RemoveOrphanLogicsL()
     CMsvEntry* cEntry = iSession.GetEntryL( KMsvRootIndexEntryId );
     CleanupStack::PushL( cEntry );
     
-    CMsvEntrySelection* popEntries = cEntry->ChildrenWithMtmL( KSenduiMtmPop3Uid );
+    CMsvEntrySelection* popEntries = cEntry->ChildrenWithMtmL( KUidMsgTypePOP3 );
     CleanupStack::PushL( popEntries );
     
-    CMsvEntrySelection* imapEntries = cEntry->ChildrenWithMtmL( KSenduiMtmImap4Uid );
+    CMsvEntrySelection* imapEntries = cEntry->ChildrenWithMtmL( KUidMsgTypeIMAP4 );
     CleanupStack::PushL( imapEntries );
         
         
@@ -517,20 +499,46 @@ void CIpsSosAOImapPopLogic::RemoveOrphanLogicsL()
 void CIpsSosAOImapPopLogic::handleEntriesCreatedL(const TAny* aArg1)
     {
     FUNC_LOG;
-    TMsvEntry entry;
-    getFirstEntryFromSelectionL(static_cast<const CMsvEntrySelection*>(aArg1), entry);
-
-    if( entry.iMtm==KSenduiMtmImap4Uid || entry.iMtm==KSenduiMtmPop3Uid)
+    if (aArg1)
         {
-        // handling imap4 or pop3 entry
-        if(entry.iType.iUid==KUidMsvServiceEntryValue)
+        TMsvEntry entry;
+        getFirstEntryFromSelectionL(static_cast<const CMsvEntrySelection*>(aArg1), entry);
+    
+        if( entry.iMtm == KUidMsgTypeIMAP4 || entry.iMtm == KUidMsgTypePOP3 )
             {
-            // new mailbox has been created, starting sync for it
-            User::After(KMailboxCreatedTimeout); // sleep for 0.5 sec; guarantees that mailbox is fully set up, and message server ready to serve it
-            RefreshMailboxListL();
-            SendCommandToSpecificMailboxL( entry.Id(), CIpsSosAOMBoxLogic::ECommandStart );
-            SendCommandToSpecificMailboxL( entry.Id(), CIpsSosAOMBoxLogic::ECommandStartSync );
+            // handling imap4 or pop3 entry
+            if ( entry.iType.iUid == KUidMsvServiceEntryValue )
+                {
+                // new mailbox has been created, starting sync for it
+                User::After(KMailboxCreatedTimeout); // sleep for 0.5 sec; guarantees that mailbox is fully set up, and message server ready to serve it
+                RefreshMailboxListL();
+                SendCommandToSpecificMailboxL( entry.Id(), CIpsSosAOMBoxLogic::ECommandStart );
+                SendCommandToSpecificMailboxL( entry.Id(), CIpsSosAOMBoxLogic::ECommandStartSync );
+                }
             }
+        }
+    }
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+void CIpsSosAOImapPopLogic::handleEntriesChangedL(const TAny* aArg1, TAny* aArg2)
+    {
+    if (aArg1 && aArg2) 
+        {
+        TMsvId parent = (*(TMsvId*) (aArg2));
+        //we check that parent is the root. if not, it cannot be an 
+        //event from service, thus can't be from connection change..
+        if ( parent == KMsvRootIndexEntryId )
+            {
+            TMsvEntry entry;
+            getFirstEntryFromSelectionL(static_cast<const CMsvEntrySelection*>(aArg1), entry);
+            if ( !entry.Connected() )
+                {
+                SendCommandToSpecificMailboxL( 
+                        entry.Id(), 
+                        CIpsSosAOMBoxLogic::ECommandClearDoNotDisconnect );
+                }
+            } 
         }
     }
 

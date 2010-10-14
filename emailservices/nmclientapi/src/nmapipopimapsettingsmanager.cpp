@@ -25,8 +25,8 @@ static const unsigned int DefaultPopPortSsl = 995;
 static const unsigned int DefaultImapPortSsl = 993;
 static const unsigned int DefaultSmtpPortSsl = 465;
 
-using namespace EmailClientApi;
-
+namespace EmailClientApi
+{
 NmApiPopImapSettingsManager::NmApiPopImapSettingsManager()
 {
     NM_FUNCTION;
@@ -283,7 +283,7 @@ void NmApiPopImapSettingsManager::populateCenrepDefaults(NmApiMailboxSettingsDat
     NM_FUNCTION;
     data.setValue(DownloadPictures, int(0));
     data.setValue(MessageDivider, int(0));
-    data.setValue(ReceptionActiveProfile, EmailClientApi::EmailProfileOffsetSE);
+    data.setValue(ReceptionActiveProfile, EmailProfileOffsetSE);
     data.setValue(ReceptionUserDefinedProfile, int(0));	// 0, because default profile is save energy
     data.setValue(ReceptionInboxSyncWindow, IpsServices::DefaultValueSaveEnergyInboxSyncWindow);
     data.setValue(ReceptionGenericSyncWindowInMessages, int(0)); // all messages
@@ -294,3 +294,5 @@ void NmApiPopImapSettingsManager::populateCenrepDefaults(NmApiMailboxSettingsDat
     data.setValue(ReceptionRefreshPeriodDayTime, IpsServices::DefaultValueSaveEnergyReceptionRefreshPeriodDayTime);
     data.setValue(UserNameHidden, int(0));
 }
+}
+

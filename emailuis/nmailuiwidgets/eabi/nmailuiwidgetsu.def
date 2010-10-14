@@ -186,4 +186,5 @@ EXPORTS
 	_ZThn8_N22NmAttachmentListWidgetD0Ev @ 185 NONAME
 	_ZThn8_N22NmAttachmentListWidgetD1Ev @ 186 NONAME
 	_ZN16NmEditorTextEdit10moveCursorEN11QTextCursor13MoveOperationENS0_8MoveModeE @ 187 NONAME
+	_ZN14NmHtmlLineEdit5pasteEv @ 188 NONAME
 

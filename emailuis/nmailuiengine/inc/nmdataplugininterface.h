@@ -120,7 +120,7 @@ public:
         const NmId &mailbox,
         NmFolderType folderType ) = 0;
     
-    virtual int refreshMailbox(NmId mailboxId) = 0;
+    virtual int refreshMailbox(NmId mailboxId, bool silentConnection) = 0;
     
     virtual int goOnline(const NmId &mailboxId) = 0;
     

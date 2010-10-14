@@ -50,11 +50,13 @@ public:
     * back aFSOperationObserver
     * @param aEventHandler used for signalling synchronisation statuses
     * @param aDoPlainConnect whether just connect to mailbox, or synch messages also
+    * @param aSilentConnection set if silent connection is used
     * @return CIpsPlgImap4ConnectionOp* self pointer
     */
     // <qmail> priority parameter has been removed
 	// <qmail> MFSMailRequestObserver& changed it to pointer
 	// <qmail> aSignallingAllowed parameter has been removed
+	// <qmail> silent connection parameter added
     static CIpsPlgImap4ConnectOp* NewL(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -64,7 +66,8 @@ public:
         MFSMailRequestObserver* aFSOperationObserver,
         TInt aFSRequestId,
         CIpsPlgEventHandler* aEventHandler,
-        TBool aDoPlainConnect=EFalse );
+        TBool aDoPlainConnect=EFalse,
+        TBool aSilentConnection=EFalse);
         
     // <qmail> make destructor virtual
     virtual ~CIpsPlgImap4ConnectOp();
@@ -129,6 +132,7 @@ private:
 	// <qmail> priority parameter has been removed
 	// <qmail> MFSMailRequestObserver& changed it to pointer
 	// <qmail> aSignallingAllowed parameter has been removed
+    // <qmail> aSilentConnection parameter added
     CIpsPlgImap4ConnectOp(
         CMsvSession& aMsvSession,
         TRequestStatus& aObserverRequestStatus,
@@ -138,7 +142,8 @@ private:
         MFSMailRequestObserver* aFSOperationObserver,
         TInt aFSRequestId,
         TBool aDoPlainConnect,
-        CIpsPlgEventHandler* aEventHandler );
+        CIpsPlgEventHandler* aEventHandler,
+        TBool aSilentConnection );
 
     void ConstructL();
     
@@ -196,6 +201,10 @@ private: //Data
     CIpsPlgEventHandler*                iEventHandler; // not owned
     // prevents signalling sync started for more than once
     TBool                               iIsSyncStartedSignaled;
+    // <qmail>
+	// whether silent connection is requested or not
+    TBool                               iSilentConnection;
+    // </qmail>
 	
 	// <qmail> iAlreadyConnected removed
     };

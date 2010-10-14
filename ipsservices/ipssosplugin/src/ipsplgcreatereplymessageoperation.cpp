@@ -139,10 +139,9 @@ void CIpsPlgCreateReplyMessageOperation::RunL()
         for( TInt i = 0; i < toRecipientCount; i++ )
             {
             emailAddr = header->ToRecipients()[i].AllocLC();
-            fsAddr = CFSMailAddress::NewLC();
+            fsAddr = CFSMailAddress::NewL();
             fsAddr->SetEmailAddress( *emailAddr ); // Copy created
             newMessage->AppendToRecipient( fsAddr ); // No copy
-            CleanupStack::Pop( fsAddr ); // fsAddr belong now to fsMsg
             CleanupStack::PopAndDestroy( emailAddr ); // emailAddr not used
             }
 
@@ -238,6 +237,7 @@ void CIpsPlgCreateReplyMessageOperation::RecipientsCallToOrderL(
                     }
                 }
            
+            CleanupStack::Pop( fsAddr ); // fsAddr belong now to fsMsg
             if( present )
                 {
                 aNewMessage->AppendToRecipient( fsAddr ); // No copy
@@ -247,7 +247,6 @@ void CIpsPlgCreateReplyMessageOperation::RecipientsCallToOrderL(
                 aNewMessage->AppendCCRecipient( fsAddr ); // No copy
                 }
            
-            CleanupStack::Pop( fsAddr ); // fsAddr belong now to fsMsg
             CleanupStack::PopAndDestroy( emailAddr ); // emailAddr not used
             }
         CleanupStack::PopAndDestroy( tmpHeader );
@@ -258,10 +257,9 @@ void CIpsPlgCreateReplyMessageOperation::RecipientsCallToOrderL(
     for( TInt i = 0; i < aHeader->BccRecipients().Count(); i++ )
         {
         emailAddr = aHeader->BccRecipients()[i].AllocLC();
-        fsAddr = CFSMailAddress::NewLC();
+        fsAddr = CFSMailAddress::NewL();
         fsAddr->SetEmailAddress( *emailAddr ); // Copy created
         aNewMessage->AppendBCCRecipient( fsAddr ); // No copy
-        CleanupStack::Pop( fsAddr ); // fsAddr belong now to fsMsg
         CleanupStack::PopAndDestroy( emailAddr ); // emailAddr not used
         }
     }

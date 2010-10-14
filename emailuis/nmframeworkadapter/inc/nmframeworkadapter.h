@@ -122,7 +122,7 @@ public:
             const NmId& mailbox,
             NmFolderType folderType );
 
-    int refreshMailbox(NmId mailboxId);
+    int refreshMailbox(NmId mailboxId, bool silentConnection);
 
     int goOnline(const NmId& mailboxId);
     
@@ -283,7 +283,7 @@ private:
 
     void resetCache(const NmId &mailboxId);
 
-    int RefreshMailboxL(NmId mailboxId);
+    int RefreshMailboxL(NmId mailboxId, bool silentConnection);
     
     int GoOnlineL(const NmId &mailboxId);
 

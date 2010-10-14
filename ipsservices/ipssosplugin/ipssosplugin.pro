@@ -169,6 +169,7 @@ symbian*: {
     -lfsfwcommonlib \
     -lbafl \
     -lcentralrepository \
+    -lsysutil \ 
     -lCommonEngine \
     -lcharconv \
     -lConnMon \

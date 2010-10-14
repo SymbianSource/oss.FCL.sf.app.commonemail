@@ -339,9 +339,10 @@ void CContainerStoreUtils::CreateIndexL( const TDesC& aName, const TDesC& aTable
 // ==========================================================================
 void CContainerStoreUtils::OpenTableL( RDbTable& aTable, const TDesC& aTableName )
     {
+    iTables.ReserveL( iTables.Count() + 1 ); // pre-allocate space
     User::LeaveIfError( aTable.Open( iDatabase, aTableName ) );
     
-    iTables.AppendL( &aTable );
+    iTables.Append( &aTable ); // cannot fail because space is pre-allocated
     
     } // end OpenTableL
 

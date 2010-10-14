@@ -239,7 +239,7 @@ EXPORTS
 	?tr@NmStoreEnvelopesOperation@@SA?AVQString@@PBD0H@Z @ 238 NONAME ; class QString NmStoreEnvelopesOperation::tr(char const *, char const *, int)
 	?listMailboxes@NmDataManager@@QAEXAAV?$QList@PAVNmMailbox@@@@@Z @ 239 NONAME ; void NmDataManager::listMailboxes(class QList<class NmMailbox *> &)
 	?message@NmUiEngine@@QAEPAVNmMessage@@ABVNmId@@00@Z @ 240 NONAME ; class NmMessage * NmUiEngine::message(class NmId const &, class NmId const &, class NmId const &)
-	?refreshMailbox@NmUiEngine@@QAEHABVNmId@@@Z @ 241 NONAME ; int NmUiEngine::refreshMailbox(class NmId const &)
+	?refreshMailbox@NmUiEngine@@QAEHABVNmId@@_N@Z @ 241 NONAME ; int NmUiEngine::refreshMailbox(class NmId const &, bool)
 	?trUtf8@NmUiEngine@@SA?AVQString@@PBD0@Z @ 242 NONAME ; class QString NmUiEngine::trUtf8(char const *, char const *)
 	?contentToMessagePart@NmUiEngine@@QAEHABVNmId@@00AAVNmMessagePart@@@Z @ 243 NONAME ; int NmUiEngine::contentToMessagePart(class NmId const &, class NmId const &, class NmId const &, class NmMessagePart &)
 	?removeItem@NmMessageListModel@@AAEXHAAVNmMessageListModelItem@@@Z @ 244 NONAME ; void NmMessageListModel::removeItem(int, class NmMessageListModelItem &)
@@ -318,4 +318,6 @@ EXPORTS
 	?handleFolderDeletedEvent@NmMessageListModel@@QAEXABVNmId@@0@Z @ 317 NONAME ; void NmMessageListModel::handleFolderDeletedEvent(class NmId const &, class NmId const &)
 	?handleFolderDeletedEvent@NmUiEngine@@AAEXABV?$QList@VNmId@@@@ABVNmId@@@Z @ 318 NONAME ; void NmUiEngine::handleFolderDeletedEvent(class QList<class NmId> const &, class NmId const &)
 	?createMessageListModel@NmUiEngine@@AAEXPAPAVNmMessageListModel@@ABVNmId@@1@Z @ 319 NONAME ; void NmUiEngine::createMessageListModel(class NmMessageListModel * *, class NmId const &, class NmId const &)
+	?draftDeleted@NmUiEngine@@IAEXXZ @ 320 NONAME ; void NmUiEngine::draftDeleted(void)
+	?draftSaved@NmUiEngine@@IAEXXZ @ 321 NONAME ; void NmUiEngine::draftSaved(void)
 

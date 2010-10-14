@@ -17,6 +17,7 @@
 #include <QtGui>
 #include <QTranslator>
 #include <QGraphicsLinearLayout>
+#include <QTimer>
 #include <hbcolorscheme.h>
 #include <hbdocumentloader.h>
 #include <hbframedrawer.h>
@@ -25,6 +26,8 @@
 #include <hbstyleloader.h>
 #include <hblistview.h>
 #include <hbdeviceprofile.h>
+#include <hbevent.h>
+
 #include "nmcommon.h"
 #include "nmmessageenvelope.h"
 #include "nmhswidget.h"
@@ -54,7 +57,8 @@ NmHsWidget::NmHsWidget(QGraphicsItem *parent, Qt::WindowFlags flags)
       mDateObserver(0),
       mIsExpanded(false),
       mListView(0),
-	  mListModel(0)
+	  mListModel(0),
+	  mListActivityTimer(0)
 {
     NM_FUNCTION;
 }
@@ -77,6 +81,12 @@ NmHsWidget::~NmHsWidget()
 
     delete mDateObserver;
     mDateObserver = NULL;
+     
+    if (mListActivityTimer){
+        mListActivityTimer->stop();
+        delete mListActivityTimer;
+        mListActivityTimer = NULL;
+    }
 }
 
 /*!
@@ -223,7 +233,11 @@ void NmHsWidget::setupUi()
     HbFrameItem* backgroundLayoutItem = new HbFrameItem(mBackgroundFrameDrawer);
     //set to NULL to indicate that ownership transferred
     mBackgroundFrameDrawer = NULL;
-    mWidgetContainer->setBackgroundItem(backgroundLayoutItem);
+    mContentContainer->setBackgroundItem(backgroundLayoutItem);
+	
+	HbEffect::add(mContentContainer, "combo_disappear_up", "collapse");
+    HbEffect::add(mContentContainer, "combo_appear_down", "expand");
+    
 }
 
 /*!
@@ -232,13 +246,27 @@ void NmHsWidget::setupUi()
 void NmHsWidget::createMailRowsList()
 {
 	  NM_FUNCTION;
-    connect(mListView, SIGNAL(activated(const QModelIndex&)), this,
-        SLOT(openMessage(const QModelIndex&)));
 
+    //construct list model
+    mListModel = new NmHsWidgetListModel(); 
+    
+	//Connect item activation (click) to message view launching
+	connect(mListView, SIGNAL(activated(const QModelIndex&)), this,
+        SLOT(openMessage(const QModelIndex&)));
+        
+    //When new mails arrive, scroll list to the start
+    connect(mListModel, SIGNAL( messagesAddedToModel() ), 
+        this, SLOT( handleMessagesAddedToModel() ));
+    
+    //connect item removal signal to update layout, so that nomailslabel & listview visibility
+    //can be determined
+    connect(mListModel, SIGNAL( modelIsEmpty(bool) ), 
+            this, SLOT( updateLayout() ));
+    
     // Set the list widget properties.
+    mListView->setItemRecycling(false);  //This should be changed in future
     NmHsWidgetListViewItem *prototype = new NmHsWidgetListViewItem(mListView);
     mListView->setItemPrototype(prototype);
-    mListModel = new NmHsWidgetListModel();
     mListView->setModel(mListModel);  
 }
 
@@ -252,7 +280,6 @@ void NmHsWidget::onInitialize()
     NM_FUNCTION;
     
     QT_TRY {
-    
 	    HbStyleLoader::registerFilePath(":/layout/nmhswidgetlistviewitem.widgetml");
 	    HbStyleLoader::registerFilePath(":/layout/nmhswidgetlistviewitem.css");
 	    
@@ -279,8 +306,21 @@ void NmHsWidget::onInitialize()
 				
         setupUi();
 
+        //Crete list for mail items
+        createMailRowsList();        
+
         //Engine construction is 2 phased. 
         mEngine = new NmHsWidgetEmailEngine(mAccountId);
+        connect(mEngine,    SIGNAL( mailDataRefreshed(const QList<NmMessageEnvelope*>&) ), 
+                mListModel, SLOT  ( refresh          (const QList<NmMessageEnvelope*>&) ));
+        connect(mEngine,    SIGNAL( mailDataCleared() ), 
+                mListModel, SLOT  ( removeAllMessages() ));
+        connect(mEngine,    SIGNAL( mailsReceived (const QList<NmMessageEnvelope*>&) ), 
+                mListModel, SLOT  ( addMessages   (const QList<NmMessageEnvelope*>&) ));
+        connect(mEngine,    SIGNAL( mailsUpdated  (const QList<NmMessageEnvelope*>&) ), 
+                mListModel, SLOT  ( updateMessages(const QList<NmMessageEnvelope*>&) ));
+        connect(mEngine,    SIGNAL( mailsDeleted  (const QList<NmId>&)), 
+                mListModel, SLOT  ( removeMessages(const QList<NmId>&) ));
         //Client must connect to exception signals before calling the initialize function
         //because we don't want to miss any signals.
         connect(mEngine, SIGNAL( exceptionOccured(const int&) ), this,
@@ -298,17 +338,23 @@ void NmHsWidget::onInitialize()
         //create observer for date/time change events
         mDateObserver = new NmHsWidgetDateTimeObserver();
 
-      	//Crete list for mail items
-        createMailRowsList();
-
-        updateMailData();
+        //Create timer for delaying events after list scrolling is ended
+        mListActivityTimer = new QTimer(this);
+        mListActivityTimer->setInterval(KNmHsWidgetDelayAfterScrollingEnded);
+        connect(mListActivityTimer, SIGNAL(timeout()), this, SLOT(scrollListToStart()) );
+        //Connect scrolling ended to scrolling timer activation
+        //so that after timeout the list will be scrolled to first item
+        connect(mListView, SIGNAL( scrollingEnded() ), 
+                mListActivityTimer, SLOT( start() ));
+        
+        //if timer is running, stop it right away when new activity happens
+        connect(mListView, SIGNAL( scrollingStarted() ), 
+                mListActivityTimer, SLOT( stop() ));
+        
         mTitleRow->updateUnreadCount(mEngine->unreadCount());
         mTitleRow->setAccountIcon(mAccountIconName);
         mTitleRow->setExpandCollapseIcon(mIsExpanded);
-
-        //Get signals about changes in mail data
-        connect(mEngine, SIGNAL( mailDataChanged() ), this, SLOT( updateMailData() ));
-
+       
         //Get Signals about changes in unread count
         connect(mEngine, SIGNAL( unreadCountChanged(const int&) )
                 ,mTitleRow, SLOT( updateUnreadCount(const int&) ) );
@@ -327,7 +373,8 @@ void NmHsWidget::onInitialize()
 	    
 	    //Get date/time events from date observer
 	    connect(mDateObserver, SIGNAL(dateTimeChanged())
-	            , this, SLOT(updateMailData()));
+	            , mEngine, SLOT(forceUpdate()));
+	    
 	    setMinimumSize(mTitleRow->minimumWidth(), 
 	            mEmptySpaceContainer->minimumHeight() + mTitleRow->minimumHeight());
     }
@@ -349,25 +396,6 @@ void NmHsWidget::onUninitialize()
     HbStyleLoader::unregisterFilePath(":/layout/nmhswidgetlistviewitem.css");
 }
 
-/*!
- updateMailData slot
- */
-void NmHsWidget::updateMailData()
-{
-    NM_FUNCTION;
-    QT_TRY {
-        QList<NmMessageEnvelope*> envelopes; 
-        int count = 0;
-        if (mIsExpanded) {
-            count = mEngine->getEnvelopes(envelopes, KMaxNumberOfMailsShown);
-        }
-        mListModel->refresh( envelopes );
-        updateLayout(count);
-    }QT_CATCH(...) {
-           NM_ERROR(1,"NmHsWidget::updateMailData fail @ catch");
-           emit error();
-    }
-}
 
 /*!
  Sets monitored account id from given string
@@ -423,7 +451,13 @@ QString NmHsWidget::accountIconName() const
 void NmHsWidget::handleExpandCollapseEvent()
 {
     NM_FUNCTION;
-    toggleExpansionState();
+    if(mIsExpanded){
+        HbEffect::start( mContentContainer, "collapse", this, "toggleExpansion");
+    }
+    else{
+        toggleExpansionState();
+        HbEffect::start( mContentContainer, "expand");
+    }
 }
 
 /*!
@@ -442,7 +476,7 @@ void NmHsWidget::toggleExpansionState()
     emit setPreferences(propertiesList);
 
     //handle state change drawing
-    updateMailData();
+    updateLayout();
 
     mTitleRow->setExpandCollapseIcon(mIsExpanded);
 }
@@ -486,10 +520,10 @@ QString NmHsWidget::widgetStateProperty()
  than zero, layout will contain titlerow and KMaxNumberOfMailsShown times
  emailrow(s)
  */
-void NmHsWidget::updateLayout(const int mailCount)
+void NmHsWidget::updateLayout()
 {
     NM_FUNCTION;
-    
+    int mailCount = mListModel->rowCount();
 	//collapsed size
     qreal totalHeight = mEmptySpaceContainer->preferredHeight() + mTitleRow->containerHeight();
     
@@ -583,12 +617,48 @@ void NmHsWidget::removeEmailRowsFromLayout()
  */
 void NmHsWidget::openMessage(const QModelIndex& index)
 {
-     QVariant var = mListModel->data(index,Qt::DisplayRole);
-     if(!var.isNull()){
-         NmMessageEnvelope *envelope = var.value<NmMessageEnvelope*>();
-         mEngine->launchMailAppMailViewer(envelope->messageId());
-     }
+    NM_FUNCTION;
+    QVariant var = mListModel->data(index,Qt::DisplayRole);
+    if(!var.isNull()){
+        NmMessageEnvelope *envelope = var.value<NmMessageEnvelope*>();
+        mEngine->launchMailAppMailViewer(envelope->messageId());
+    }
+}
 
+/*!
+ handleMessagesAddedToModel slo
+ Slot is called when new messages is added to model. This function should scroll 
+ the list right away to the first item, unless there is user activity ongoing or
+ the scrolling timer is active
+ */
+void NmHsWidget::handleMessagesAddedToModel()
+{
+    NM_FUNCTION;
+    if(mListActivityTimer->isActive() || mListView->isScrolling()){
+        //No need to scroll right away as user is active and we don't want to interupt it
+        //or the scrolling event will occur within KNmHsWidgetDelayAfterScrollingEnded msecs.
+        return; 
+    }else{
+        //if the list is idle, scroll to the first item
+        scrollListToStart();
+    }
+}
+
+/*!
+ scrollListToStart slot - Scrolls the mListView to the beginning of the list with
+ KListScrollUpTime as a time to do it.
+ */
+void NmHsWidget::scrollListToStart()
+{
+    NM_FUNCTION;
+    QModelIndex index = (mListModel->item(0,0))->index();
+    //next line will fail if item recycling is enabled!!
+    QPointF pos = (mListView->itemByIndex(index))->pos();
+    if(mListView->contentWidget()->pos() != pos){
+        //dont move if already there. Otherwise new scrolling events are emitted
+        mListView->scrollContentsTo(pos, KListScrollUpTime);
+    }
+    mListActivityTimer->stop(); //stop the timer
 }
 
 /*!
@@ -609,4 +679,33 @@ void NmHsWidget::onEngineException(const int& exc)
         default:
             break;
     }
+}
+
+/*!
+    toggleExpansion
+*/
+void NmHsWidget::toggleExpansion(const HbEffect::EffectStatus &status)
+    {
+    NM_FUNCTION;
+
+    Q_UNUSED(status);
+    
+    toggleExpansionState();
+    }
+
+
+/*
+ * NmHsWidget::event()
+ */
+bool NmHsWidget::event( QEvent *event )
+{
+    NM_FUNCTION;
+    QEvent::Type eventType = event->type();
+    if( eventType == HbEvent::ThemeChanged ){
+        QColor newFontColor;
+        newFontColor = HbColorScheme::color("qtc_hs_list_item_content_normal");
+        mNoMailsLabel->setTextColor(newFontColor);
+        return true;
+    }
+    return HbWidget::event(event);
 }

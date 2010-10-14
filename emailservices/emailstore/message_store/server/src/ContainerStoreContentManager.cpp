@@ -325,9 +325,10 @@ void CContainerStoreContentManager::CopyContentL( TContainerId aOldId, TContaine
 	
 	if( result == KErrNone )
 	    {
-    	TInt fileSize;
+    	CleanupClosePushL( file );
+        TInt fileSize;
     	User::LeaveIfError( file.Size( fileSize ) );
-    	file.Close();
+    	CleanupStack::PopAndDestroy( &file );
     	
     	iUtils.LeaveIfLowDiskSpaceL( fileSize );
     	

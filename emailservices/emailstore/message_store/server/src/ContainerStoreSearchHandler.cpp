@@ -466,7 +466,9 @@ void CContainerStoreSearchHandler::CreateSearchPatternL( RPointerArray<HBufC>&  
         __LOG_WRITE_FORMAT1_INFO( "search string =%S", &searchStringPtr );
         
         HBufC* pattern = HBufC::NewL( searchString->Length() + 2 );
+        CleanupStack::PushL( pattern );
         aSearchPatterns.AppendL( pattern );
+        CleanupStack::Pop( pattern );
         TPtr seartStringPrt( pattern->Des() );
         
         //we are using MatchC(), so we need to add * to the start and end of the search pattern

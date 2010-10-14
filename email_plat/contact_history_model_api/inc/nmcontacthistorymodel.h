@@ -70,7 +70,7 @@ public:
 
 private:
      //
-    QSharedDataPointer<NmContactHistoryModelItemData> d;
+    QSharedDataPointer<NmContactHistoryModelItemData> mItemData;
 };
 Q_DECLARE_METATYPE(NmContactHistoryModelItem)
 
@@ -120,7 +120,6 @@ signals:
 
 public slots:
 
-    // TODO: query could keep previous query in order to check if results will only get narrowed (a char is appended)
     void query(const QString &query);
 
 private slots:

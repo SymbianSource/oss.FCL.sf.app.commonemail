@@ -139,7 +139,18 @@ protected: // From CActive
     * @param aStatus completion status of the operation
     */
     void SignalFSObserver( TInt aStatus );
-        
+
+    /**
+     * Checks whether the currently used drive has enough space for a file with
+     * the given size.
+     * 
+     * @param fileSize The file size in bytes.
+     * @return ETrue if a file with the given file size fits on the currently
+     *         used drive, EFalse otherwise.
+     */
+    TBool EnoughDiskSpaceOnCurrentDrive( const TInt aFileSize ) const;
+
+
 protected:
         // mailbox specific activity timer
         CIpsPlgTimerOperation*  iActivityTimer;

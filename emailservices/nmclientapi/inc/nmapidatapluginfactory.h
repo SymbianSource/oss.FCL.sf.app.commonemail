@@ -20,13 +20,15 @@
 
 #include <QList>
 
-class NmDataPluginInterface;
+class NmId;
 class QDir;
 class QPluginLoader;
 class QObject;
+class NmDataPluginInterface;
 
 
-class NmId;
+namespace EmailClientApi
+{
 
 /*!
  \class NmApiDataPluginFactory
@@ -52,5 +54,6 @@ private:
     static QObject *mPlugin;
     static QPluginLoader *mPluginLoader;
 };
+}
 
 #endif /* NMAPIDATAPLUGINFACTORY_H */

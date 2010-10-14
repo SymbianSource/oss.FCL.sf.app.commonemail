@@ -109,7 +109,7 @@ EXPORTS
 	?ChildPartL@CFSMailMessagePart@@QAEPAV1@VTFSMailMsgId@@@Z @ 108 NONAME ; class CFSMailMessagePart * CFSMailMessagePart::ChildPartL(class TFSMailMsgId)
 	?GetId@CFSMailBoxBase@@QBE?AVTFSMailMsgId@@XZ @ 109 NONAME ; class TFSMailMsgId CFSMailBoxBase::GetId(void) const
 	?PreviousL@CFSMailIterator@@UAEHVTFSMailMsgId@@IAAV?$RPointerArray@VCFSMailMessage@@@@@Z @ 110 NONAME ; int CFSMailIterator::PreviousL(class TFSMailMsgId, unsigned int, class RPointerArray<class CFSMailMessage> &)
-	?RefreshNowL@CFSMailBox@@QAEHXZ @ 111 NONAME ; int CFSMailBox::RefreshNowL(void)
+	?RefreshNowL@CFSMailBox@@QAEHH@Z @ 111 NONAME ; int CFSMailBox::RefreshNowL(int)
 	?ContentDispositionParameters@CFSMailMessagePart@@QAEAAVCDesC16Array@@XZ @ 112 NONAME ; class CDesC16Array & CFSMailMessagePart::ContentDispositionParameters(void)
 	?ListFolders@CFSMailBox@@QAEAAV?$RPointerArray@VCFSMailFolder@@@@XZ @ 113 NONAME ; class RPointerArray<class CFSMailFolder> & CFSMailBox::ListFolders(void)
 	??1CFSMailMessage@@UAE@XZ @ 114 NONAME ; CFSMailMessage::~CFSMailMessage(void)
@@ -209,7 +209,7 @@ EXPORTS
 	?GetMessageId@CFSMailMessageBase@@QBE?AVTFSMailMsgId@@XZ @ 208 NONAME ; class TFSMailMsgId CFSMailMessageBase::GetMessageId(void) const
 	?GetSubject@CFSMailMessageBase@@QBEAAVTDesC16@@XZ @ 209 NONAME ; class TDesC16 & CFSMailMessageBase::GetSubject(void) const
 	?NewL@CFSMailIterator@@SAPAV1@AAVMFSMailIterator@@PAVCFSMailRequestHandler@@@Z @ 210 NONAME ; class CFSMailIterator * CFSMailIterator::NewL(class MFSMailIterator &, class CFSMailRequestHandler *)
-	?RefreshNowL@CFSMailBox@@QAEHAAVMFSMailRequestObserver@@@Z @ 211 NONAME ; int CFSMailBox::RefreshNowL(class MFSMailRequestObserver &)
+	?RefreshNowL@CFSMailBox@@QAEHAAVMFSMailRequestObserver@@H@Z @ 211 NONAME ; int CFSMailBox::RefreshNowL(class MFSMailRequestObserver &, int)
 	?Extension@TEmailExtensions@@QBEPAVCEmailExtension@@H@Z @ 212 NONAME ; class CEmailExtension * TEmailExtensions::Extension(int) const
 	??1CFSMailRequestHandler@@UAE@XZ @ 213 NONAME ; CFSMailRequestHandler::~CFSMailRequestHandler(void)
 	?DecRef@CEmailExtension@@QAEIXZ @ 214 NONAME ; unsigned int CEmailExtension::DecRef(void)

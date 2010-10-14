@@ -140,7 +140,7 @@ void CIpsPlgPop3Plugin::RefreshNowL(
     const TFSMailMsgId& aMailBoxId,
     MFSMailRequestObserver& aOperationObserver,
     TInt aRequestId,
-    const TBool /*aSilentConnection*/ )
+    const TBool aSilentConnection )
     {
     FUNC_LOG;
     TMsvId service = aMailBoxId.Id();
@@ -181,9 +181,14 @@ void CIpsPlgPop3Plugin::RefreshNowL(
         aMailBoxId, 
         &aOperationObserver,
         aRequestId,
-        iEventHandler );
+        iEventHandler,
+// <qmail> silent connection parameter added
+        ETrue,
+        EFalse,
+        aSilentConnection );
+// </qmail>    
     
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // watcher takes ownership, no PushL needed
     CleanupStack::PopAndDestroy( sel ); // >>> sel
     
     iOperations.AppendL( watcher );
@@ -349,7 +354,7 @@ void CIpsPlgPop3Plugin::FetchMessagesL(
         aRequestId,
         iEventHandler );
     
-    watcher->SetOperation( op );
+    watcher->SetOperation( op ); // watcher takes ownership, no PushL needed
 	// <qmail> change PopAndDestroy to Pop
     CleanupStack::Pop( sel );
     CleanupStack::Pop( watcher );

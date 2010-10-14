@@ -436,7 +436,7 @@ void CIpsPlgSmtpOperation::ConstructSmtpMtmL()
     if ( !iSmtpMtm )
         {
         iSmtpMtm = static_cast<CSmtpClientMtm*>(
-            iMtmRegistry->NewMtmL( KSenduiMtmSmtpUid ) );
+            iMtmRegistry->NewMtmL( KUidMsgTypeSMTP ) );
         }
     }
     
