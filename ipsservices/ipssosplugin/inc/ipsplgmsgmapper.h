@@ -26,6 +26,7 @@ class CFSMailMessage;
 class CFSMailMessagePart;
 class CFSMailAddress;
 class CIpsPlgSosBasePlugin;
+class TMessageInfo;
 
 /**
  *  
@@ -127,7 +128,8 @@ public:
         const CFSMailMessage& aMessage );
     
     /**
-     * Change message flags and return msvoperation if flags is modified
+     * Add request for change message flag to queue. To finish change it is
+     * needed to call UpdateNextMessageFlagAsyncL.  
      *
      * @param aEntryId     Identifier of the message
      * @param aMessagePart The message part containing the new flag values
@@ -136,10 +138,24 @@ public:
      *                        if there is no need to update flags
      * @since FS 2.0
      */
-    CMsvOperation* UpdateMessageFlagsAsyncL( 
+    TInt UpdateMessageFlagsAsyncL( 
         TMsvId aEntryId,
-        const CFSMailMessage& aMessage,
-        TRequestStatus& aStatus );
+        const CFSMailMessage& aMessage );
+    
+    /**
+     * Make one of operation which were put to queue by UpdateMessageFlagsAsyncL
+     *   
+     * @return CMsvOperation* operation pointer or NULL
+     *                        if there is no need to update flags
+     * @since FS 2.0
+     */
+    CMsvOperation* UpdateNextMessageFlagAsyncL( TRequestStatus& aStatus, TInt& aIndex );
+    
+    /**
+     * Remove last message flag update from queue
+     * @since FS 2.0
+     */
+    void UpdateNextMessageFlagFinished( TInt aIndex );
     
     /**
      * Updatest the message flags to FS message
@@ -370,9 +386,8 @@ private:
     /**
      * Returns False if TMsvEntry is not changed
      */
-    TBool ChangeTEntryFlagsL( 
-        TMsvEmailEntry& aEmlEntry,
-        const CFSMailMessage& aMessage );
+    TBool ChangeTEntryFlagsL( TMsvEmailEntry& aEmlEntry, const CFSMailMessage& aMessage );
+    TBool ChangeTEntryFlagsL( TMsvEmailEntry& aEmlEntry, TInt aMsgFlags );
     
     /**
      * Changes CMsvEntry Attachment flag to correspond real situation
@@ -386,7 +401,17 @@ private:
     
     CIpsPlgSosBasePlugin& iPlugin;
     
+    RArray<TMessageInfo> iFlagChangedMessagerArray;
     };
+
+class TMessageInfo
+    {
+public:
+    TMessageInfo( TMsvId aId, TInt aFlags );
+    TMsvId iId;
+    TInt iFlags;
+    };
+
     
 #include "ipsplgmsgmapper.inl"    
 

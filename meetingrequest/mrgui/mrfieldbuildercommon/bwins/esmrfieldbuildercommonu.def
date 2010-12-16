@@ -122,4 +122,6 @@ EXPORTS
 	?RecordField@CESMRField@@QAEXXZ @ 121 NONAME ; void CESMRField::RecordField(void)
 	?Draw@CESMRField@@UBEXABVTRect@@@Z @ 122 NONAME ; void CESMRField::Draw(class TRect const &) const
 	?MoveToScreen@CESMRField@@QAEXH@Z @ 123 NONAME ; void CESMRField::MoveToScreen(int)
+	?RecordEnabled@CESMRField@@MAEHXZ @ 124 NONAME ; int CESMRField::RecordEnabled(void)
+	?HandleResourceChange@CESMRField@@MAEXH@Z @ 125 NONAME ; void CESMRField::HandleResourceChange(int)
 

@@ -75,6 +75,8 @@ private:
 	void ResetExtAccountWithSameId( const TDesC& aContentId, CRepository* aCenRep );
     void ResetNatAccountWithSameId( const TDesC& aContentId, CRepository* aCenRep );
 
+    void GetIconFileNameAndPathL();
+    
 private: // from MObjectProvider
 	TTypeUid::Ptr MopSupplyObject(TTypeUid aId);
 
@@ -88,6 +90,7 @@ private:
 	CArrayFixFlat<TFSMailMsgId>*           iAccountIds;
 	CEmailWidgetSettingsMailboxes*         iMailboxes;
 	CEikonEnv*                             iEnv;
+	TFileName                              iIconFilePath;
 	};
 
 class CEmailWidgetSettingsListView : public CAknView, public MEikListBoxObserver

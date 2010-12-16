@@ -143,9 +143,9 @@ NONSHARABLE_CLASS( CMRListPane ) :
          * after list pane construction.
          */
         void ReActivateL();
-        
+
         /**
-         * Records drawing commands of the visible fields 
+         * Records drawing commands of the visible fields
          */
         void RecordFields();
 
@@ -164,6 +164,7 @@ NONSHARABLE_CLASS( CMRListPane ) :
         CCoeControl* ComponentControl( TInt aIndex) const;
         void HandlePointerEventL( const TPointerEvent &aPointerEvent );
         void ActivateL();
+        void Draw( const TRect& aRect ) const;
 
     private: // From MMRPhysicsObserver
         void PhysicsEmulationEnded();
@@ -226,6 +227,10 @@ NONSHARABLE_CLASS( CMRListPane ) :
         TBool iPointerEventInProgress;
         /// Own: Flag to determine if position is being changed
         TBool iPositionChanged;
+        /// Own: Color stripe rect
+        TRect iStripeRect;
+        /// Own: Stripe color
+        TRgb iStripeColor;
         /// Own: Updated field container position
         TPoint iUpdatedPanePoint;
     };

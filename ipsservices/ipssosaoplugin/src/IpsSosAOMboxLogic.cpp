@@ -153,7 +153,7 @@ void CIpsSosAOMBoxLogic::SendCommandL( TInt aCommand )
             CalculateToNextIntervalL();
             break;
         case ECommandCancelDoNotDiconnect:
-            if ( iAgent->GetState() != CIpsSosAOBaseAgent::EStateCompleted ||
+            if ( iAgent->GetState() != CIpsSosAOBaseAgent::EStateCompleted &&
                     iAgent->GetState() != CIpsSosAOBaseAgent::EStateIdle  )
                 {
                 iAgent->CancelAllAndDoNotDisconnect();
@@ -281,10 +281,12 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
     if ( event == EEventStart && iState == EStateError && 
             CanConnectIfRoamingL() )
         {
+        INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: EEventStart" );
         event = EEventNop;
         iAgent->LoadSettingsL();
         iTimer->Cancel();
         iTimer->After( KIpsSosAOStartDelaySeconds );
+        INFO( "CIpsSosAOMBoxLogic switching state: EStateWaitSyncStart" );
         iState = EStateWaitSyncStart;
         }
     
@@ -298,17 +300,26 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
         switch ( event )
             {
             case EEventTimerFired:
+                INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: EEventTimerFired" );
                 event = HandleTimerFiredL();
               break;
             case EEventStartSync:
+                INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: EEventStartSync" );
                 if ( iState == EStateWaitSyncStart )
-                    {         
+                    {
+                    if (iTimer->IsActive()) 
+                        {
+                        iTimer->Cancel();
+                        }
+                    iTimer->After(KIpsSosAOSyncWatchdogTime);
                     iError = KErrNone;
                     iAgent->StartSyncL();
+                    INFO( "CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing" );
                     iState = EStateSyncOngoing;
                     }
                 else if ( iState == EStateIdleAndWaitCommands )
                     {
+                    INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: state was EStateIdleAndWaitCommands" );
                     // start sync command in idle state is currently 
                     // received when emn arrives, checking scheduling 
                     // if user have selected week days / hours in setting
@@ -319,6 +330,7 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                         scheduler->SecondsToNextMark( seconds );
                     if ( type == EAOCConnectAfter )
                         {
+                        INFO( "CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart" );
                         iState = EStateWaitSyncStart;
                         iTimer->After( seconds );
                         //<cmail>
@@ -327,8 +339,14 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                         }
                     else
                         {
+                        if (iTimer->IsActive()) 
+                            {
+                            iTimer->Cancel();
+                            }
+                        iTimer->After(KIpsSosAOSyncWatchdogTime);
                         iError = KErrNone;
                         iAgent->StartSyncL();
+                        INFO( "CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing" );
                         iState = EStateSyncOngoing;
                         }
                     CleanupStack::PopAndDestroy( scheduler );
@@ -337,6 +355,7 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                 event = EEventNop;
                 break;
             case EEventFetchMessages:
+                INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: EEventFetchMessages" );
                 if ( ( iState == EStateWaitSyncStart || 
                        iState == EStateIdleAndWaitCommands ) &&
                         iFetchMsgArray.Count() > 0 )
@@ -344,6 +363,7 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                     iError = KErrNone;
                     iAgent->StartFetchMessagesL( iFetchMsgArray );
                     iFetchMsgArray.Reset();
+                    INFO( "CIpsSosAOMBoxLogic: switching state: EStateFetchOngoing" );
                     iState = EStateFetchOngoing;
                     }
                 else 
@@ -354,32 +374,36 @@ void CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL(
                 event = EEventNop;
                 break;
             case EEventOperationCompleted:
+                INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: EEventOperationCompleted" );
                 event = HandleOperationCompletionL();
                 break;
             case EEventSuspendOperations:
+                INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: EEventSuspendOperations" );
                 SuspendOperations();
+                INFO( "CIpsSosAOMBoxLogic: switching state: EStateSuspended" );
                 iState = EStateSuspended;
                 event = EEventNop;
                 break;
             case EEventContinueOperations:
+                INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: EEventContinueOperations" );
                 if ( iState == EStateSuspended )
                     {
                     iTimer->After( KIpsSosAOContinueWaitTime );
                     }
-                else
-                    {
-                    event = EEventNop;
-                    }
+                event = EEventNop;
                 // ignore if in other states
                 break;
             case EEventStopAndRemoveOps:
+                INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: EEventStopAndRemoveOps" );
                 // notify deletion
                 iAgent->CancelAllAndDisconnectL();
                 iTimer->Cancel();
+                INFO( "CIpsSosAOMBoxLogic: switching state: EStateError" );
                 iState = EStateError;
                 event = EEventNop;
                 break;
             case EEventStart:
+                INFO( "CIpsSosAOMBoxLogic::HandleEventAndSwitchStateL: EEventStart" );
             default:
                 // ignore other events
                 event = EEventNop;
@@ -419,9 +443,11 @@ TInt CIpsSosAOMBoxLogic::GetCurrentError() const
 TInt CIpsSosAOMBoxLogic::HandleTimerFiredL()
     {
     FUNC_LOG;
+    INFO( "CIpsSosAOMBoxLogic::HandleTimerFiredL" );
     // panic if we are in wrong state;
     __ASSERT_DEBUG( ( iState == EStateWaitSyncStart || 
-            iState == EStateSuspended ), 
+            iState == EStateSuspended ||
+            iState == EStateSyncOngoing), 
             User::Panic( KIpsSosAOPanicLit, KErrGeneral) );
     
     // handle emn
@@ -433,13 +459,20 @@ TInt CIpsSosAOMBoxLogic::HandleTimerFiredL()
           agentState == CIpsSosAOBaseAgent::EStatePopulateOnHold ) )
         {
         iAgent->ContinueHoldOperations();
+        INFO( "CIpsSosAOMBoxLogic: switching state: EStateSyncOngoing" );
         iState = EStateSyncOngoing;
         }
     else if ( iState == EStateSuspended && 
             agentState == CIpsSosAOBaseAgent::EStateFetchOnHold )
         {
         iAgent->ContinueHoldOperations();
+        INFO( "CIpsSosAOMBoxLogic: switching state: EStateFetchOngoing" );
         iState = EStateFetchOngoing;
+        }
+    else if ( iState == EStateSyncOngoing ) 
+        {
+        iAgent->CancelAllAndDisconnectL();
+        event = CheckSchedulingAndSwitchStateL();
         }
     else
         {
@@ -459,6 +492,7 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
     TInt event = EEventNop;
     if ( iState == EStateSyncOngoing )
         {
+        iTimer->Cancel();
         if ( !( iError == KErrNone || iError == KErrCancel ) )
             {
             ++iErrorCounter;
@@ -481,6 +515,7 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
             iExtendedSettings->SetEmnReceivedButNotSyncedFlag( EFalse );
             iDataApi->SaveExtendedSettingsL(
                 *iExtendedSettings );
+            INFO( "CIpsSosAOMBoxLogic: switching state: EStateError" );
             iState = EStateError;
             iErrorCounter = 0;
             }
@@ -491,14 +526,16 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
             TIpsSetDataAoStates state = iExtendedSettings->AlwaysOnlineState();
             if ( state == EMailAoOff )
                 {
+                INFO( "CIpsSosAOMBoxLogic: switching state: EStateIdleAndWaitCommands" );
                 iState = EStateIdleAndWaitCommands;
                 }
             else
                 {
                 if( !iTimer->IsActive() )
                     {
-                iTimer->After( KIpsSosAOReTryInterval );
+                    iTimer->After( KIpsSosAOReTryInterval );
                     }
+                INFO( "CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart" );
                 iState = EStateWaitSyncStart;
                 }
             }
@@ -515,6 +552,7 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
             {
             // no errors
             // update successfull sync time to settings
+            INFO( "CIpsSosAOMBoxLogic::HandleOperationCompletionL" );
             SaveSuccessfulSyncTimeL();
             // and adjust timer to sync interval
             CalculateToNextIntervalL();
@@ -525,6 +563,7 @@ TInt CIpsSosAOMBoxLogic::HandleOperationCompletionL()
         iError = KErrNone;
         if ( iTimer->IsActive() )
             {
+            INFO( "CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart" );
             iState = EStateWaitSyncStart;
             }
         else
@@ -545,13 +584,15 @@ void CIpsSosAOMBoxLogic::SuspendOperations()
         {
         iAgent->HoldOperations();
         }
-    iState = EStateSuspended;
+
     // set suspend watchdog, if clien not continue this
     // ensure ao logic to continue
-    if ( !iTimer->IsActive() )
+    if ( !iTimer->IsActive() || iState == EStateSyncOngoing || iState == EStateFetchOngoing)
         {
         iTimer->After( KIpsSosAOSuspendWatchdogTime );
         }
+    INFO( "CIpsSosAOMBoxLogic: switching state: EStateSuspended" );
+    iState = EStateSuspended;
     }
 
 // ----------------------------------------------------------------------------
@@ -572,6 +613,7 @@ TBool CIpsSosAOMBoxLogic::IsErrorFatalL( TInt aError )
             && !info.iUpdateSuccessfulWithCurSettings
             && iErrorCounter >= KIpsSosAOMaxReTryTimes )
         {
+        INFO( "CIpsSosAOMBoxLogic::IsErrorFatalL - FATAL ERROR" );
         ret = ETrue;
         }
     return ret;
@@ -594,6 +636,7 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
         TAOInfo info = iExtendedSettings->LastUpdateInfo();
         if ( !info.iUpdateSuccessfulWithCurSettings )
             {
+            INFO( "CIpsSosAOMBoxLogic: switching state: EEventStartSync" );
             event = EEventStartSync;
             }
         else 
@@ -608,11 +651,13 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
                     secsFromLastSync.Int() < interval ) )
                 {
                 // adjust timer to correct sync time
-                iTimer->After(interval - secsFromLastSync.Int());        
+                iTimer->After(interval - secsFromLastSync.Int());
+                INFO( "CIpsSosAOMBoxLogic: switching state: EEventStartSync" );
                 iState = EStateWaitSyncStart;
                 }
             else
                 {
+                INFO( "CIpsSosAOMBoxLogic: switching state: EEventStartSync" );
                 event = EEventStartSync;
                 }
             }
@@ -620,6 +665,7 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
     else if ( secondsToConnect.Int() == KErrNotFound )
         {
         // means that ao is not on (but emn is)
+        INFO( "CIpsSosAOMBoxLogic: switching state: EStateIdleAndWaitCommands" );
         iState = EStateIdleAndWaitCommands;
         if ( iExtendedSettings->EmnReceivedButNotSyncedFlag() )
             {
@@ -630,6 +676,7 @@ CIpsSosAOMBoxLogic::TMBoxLogicEvent
     else
         {
         iTimer->After( secondsToConnect );
+        INFO( "CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart" );
         iState = EStateWaitSyncStart;
         }
     
@@ -655,15 +702,18 @@ void CIpsSosAOMBoxLogic::CalculateToNextIntervalL()
         // settings
         iTimer->After( 
                 iExtendedSettings->InboxRefreshTime() * KAOSecondsInMinute );
+        INFO( "CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart" );
         iState = EStateWaitSyncStart;
         }
     else if ( interval.Int() > 0 )
         {
         iTimer->After( interval );
+        INFO( "CIpsSosAOMBoxLogic: switching state: EStateWaitSyncStart" );
         iState = EStateWaitSyncStart;
         }
     else 
         {
+        INFO( "CIpsSosAOMBoxLogic: switching state: EStateIdleAndWaitCommands" );
         iState = EStateIdleAndWaitCommands;
         }
     

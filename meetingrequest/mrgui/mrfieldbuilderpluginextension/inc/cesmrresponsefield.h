@@ -24,6 +24,7 @@
 
 #include "cesmrfield.h"
 #include "resmrpluginextensionstatic.h"
+#include "cesmrlistquery.h"
 
 // FORWARD DECLARATIONS
 class CLayoutManager;
@@ -60,13 +61,14 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
         void FocusChanged( TDrawNow aDrawNow );
         TSize MinimumSize();
 
-    public: // From CESMRField
+    protected: // From CESMRField
         void InitializeL();
         void InternalizeL( MESMRCalEntry& aEntry );
         TBool ExecuteGenericCommandL( TInt aCommand );
         void SetOutlineFocusL( TBool aFocus );
         TBool HandleSingletapEventL( const TPoint& aPosition );
         void HandleLongtapEventL( const TPoint& aPosition );
+        TBool HandleRawPointerEventL( const TPointerEvent& aPointerEvent );
 
     public: // New methods
         /**
@@ -94,6 +96,14 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
         void ConstructL();
         void HandleCancelledEventItemsL( MESMRCalEntry& aEntry );
         TBool HandleTapEventL( const TPoint& aPosition );
+        TInt ShowQueryL( const CESMRListQuery::TESMRListQueryType aType ) const;
+        /**
+         * Judge if the MR could be remove from calendar, two precondition:
+         * 1. Sync feature is enable
+         * 2. The MR exist in calendar database
+         * @return ETrue if two precondition are meet
+         */
+        TBool AllowedRemoveMrFromCalL();
 
     private:
         /// Own: Conflict popup
@@ -122,7 +132,10 @@ NONSHARABLE_CLASS( CESMRResponseField ) : public CESMRField
         /// To avoid the same event be handled by
         /// HandleSingletapEventL() when HandleLongtapEventL().
         TBool iLongTapEventConsumed;
-
+        /// Record response item index, to which a pointer event occured to
+        TInt iResponseItemIndex;
+        /// Not own, Ref to MR
+        MESMRCalEntry* iEntry;
     };
 
 

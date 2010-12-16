@@ -67,6 +67,16 @@ CIpsPlgPop3ConnectOp::~CIpsPlgPop3ConnectOp()
     iState = EIdle;
     }
 
+void CIpsPlgPop3ConnectOp::ReleaseOperationL()
+    {
+    if ( IsActive() )
+        {
+        Cancel();
+        }
+    DoDisconnectL();
+    iState = EFinalize;
+    }
+
 // ----------------------------------------------------------------------------
 // CIpsPlgPop3ConnectOp::ProgressL()
 // ----------------------------------------------------------------------------
@@ -187,6 +197,10 @@ void CIpsPlgPop3ConnectOp::DoRunL()
         CIpsPlgSyncStateHandler::SaveSuccessfulSyncTimeL(
                 iMsvSession, iService );
         CompleteObserver( err ); 
+        }
+    else if ( iState == EFinalize )
+        {
+        User::Leave( KErrAbort );
         }
     else
         {
@@ -327,7 +341,10 @@ void CIpsPlgPop3ConnectOp::ConstructL()
         }
     else
         {
-        iPopulateLimit = KMaxTInt;
+        //GMail cannot support the TOP xx 2147483647
+        //the max line for GMail is 99999999
+        //Change the KMaxTInt to KIpsSetDataMaxLines
+        iPopulateLimit = KIpsSetDataMaxLines;
         }
     
     CleanupStack::PopAndDestroy( 2, settings );
@@ -509,6 +526,14 @@ void CIpsPlgPop3ConnectOp::CredientialsSetL( TInt aEvent )
         CompleteThis();
         }
     }
+
+void CIpsPlgPop3ConnectOp::DoDisconnectL()
+    {
+    FUNC_LOG;
+    SetActive();
+    InvokeClientMtmAsyncFunctionL( KPOP3MTMDisconnect, iService, iService );
+    }
+
 //EOF
 
 

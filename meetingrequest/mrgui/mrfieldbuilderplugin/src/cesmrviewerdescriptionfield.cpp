@@ -103,7 +103,7 @@ void CESMRViewerDescriptionField::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
     iDisableRedraw = ETrue;
-    
+
     TPtrC text = aEntry.Entry().DescriptionL ( );
     if( text.Length() == 0 )
         {
@@ -121,6 +121,7 @@ void CESMRViewerDescriptionField::InternalizeL( MESMRCalEntry& aEntry )
         iRichTextViewer->SetMargins( KMargin );
         iRichTextViewer->ApplyLayoutChangesL();
         }
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------
@@ -207,6 +208,8 @@ void CESMRViewerDescriptionField::SizeChanged()
     iRichTextViewer->SetRect(
             TRect( viewerRect.iTl,
                     TSize( viewerRect.Width(), iSize.iHeight ) ) );
+    // Update text view rect
+    iRichTextViewer->PositionChanged();
 
     if ( iRichTextViewer->Size().iWidth != richTextViewerWidth )
         {
@@ -262,11 +265,6 @@ TBool CESMRViewerDescriptionField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
         iObserver->ControlSizeChanged ( this );
         }
 
-    if ( !iOutlineFocus )
-        {
-        RecordField();
-        }
-    
     return iDisableRedraw;
     }
 
@@ -299,7 +297,6 @@ CESMRViewerDescriptionField::CESMRViewerDescriptionField( )
     {
     FUNC_LOG;
     SetFieldId( EESMRFieldDescription );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -314,6 +311,7 @@ void CESMRViewerDescriptionField::ConstructL( )
     CESMRField::ConstructL( iRichTextViewer ); // ownership transferred
     iRichTextViewer->SetParent( this );
     iRichTextViewer->SetLinkObserver( this );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -374,9 +372,8 @@ TBool CESMRViewerDescriptionField::ExecuteGenericCommandL( TInt aCommand )
 void CESMRViewerDescriptionField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
-    CESMRField::SetOutlineFocusL ( aFocus );
 
-    iRichTextViewer->SetFocus( aFocus );
+    CESMRField::SetOutlineFocusL ( aFocus );
 
     if ( FeaturesL().FeatureSupported(
             CESMRFeatureSettings::EESMRUIMnFwIntegration ) )

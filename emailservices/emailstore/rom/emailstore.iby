@@ -40,9 +40,6 @@ file=ABI_DIR\BUILD_DIR\DebugLog.dll                   SHARED_LIB_DIR\DebugLog.dl
 file=ABI_DIR\BUILD_DIR\ImsPointSecMonitor.dll         SHARED_LIB_DIR\ImsPointSecMonitor.dll
 ECOM_PLUGIN( RfsMsgStorePlugin.dll, RfsMsgStorePlugin.rsc )
 
-//the stub sis.
-data=DATAZ_\system\install\emailstore_stub.sis        system\install\emailstore_stub.sis
-
 //#endif //FF_EMAIL_FRAMEWORK 
 
 #endif //_EMAILSTORE_IBY_

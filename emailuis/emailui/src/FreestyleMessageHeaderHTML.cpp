@@ -37,7 +37,7 @@ _LIT( KRtl, "rtl" );
 _LIT( KLtr, "ltr" );
 
 const TInt KMaxRecipientsShown( 10 );
-const TInt KFreestyleMessageHeaderHTMLRightMarginInPx( 10 );
+const TInt KHeaderHTMLRightMarginInPx( 10 );
 
 _LIT8( KTableRowBegin, "<tr>" );
 _LIT8( KTableRowEnd, "</tr>\n" );
@@ -52,69 +52,62 @@ _LIT( KEmpty, "" );
 // Define this to allow theme colorin for the header
 #define __USE_THEME_COLOR_FOR_HEADER    
 
-EXPORT_C CFreestyleMessageHeaderHTML* CFreestyleMessageHeaderHTML::NewL( CFSMailMessage& aMailMessage, 
-                                                                         RWriteStream& aWriteStream,
-                                                                         TInt aVisibleWidth,
-                                                                         TInt aScrollPosition,
-                                                                         const TBool aAutoLoadImages,
-                                                                         const TBitFlags& aFlags 
-                                                                         )
+CFreestyleMessageHeaderHTML* CFreestyleMessageHeaderHTML::NewL(
+        CFSMailMessage& aMailMessage, RWriteStream& aWriteStream,
+        TInt aVisibleWidth, TInt aScrollPosition, TBool aAutoLoadImages,
+        const TBitFlags& aFlags )
     {
-    CFreestyleMessageHeaderHTML* self = new (ELeave) CFreestyleMessageHeaderHTML( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags);
+    CFreestyleMessageHeaderHTML* self = 
+        new (ELeave) CFreestyleMessageHeaderHTML( aMailMessage, aWriteStream,
+            aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags );
     self->ConstructL();
     return self;
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage, 
-                                                    RWriteStream& aWriteStream, 
-                                                    TInt aVisibleWidth,
-                                                    TInt aScrollPosition,
-                                                    const TBool aAutoLoadImages,
-                                                    const TBitFlags& aFlags )
+void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage,
+        RWriteStream& aWriteStream, TInt aVisibleWidth, TInt aScrollPosition,
+        TBool aAutoLoadImages, const TBitFlags& aFlags )
     {
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, aWriteStream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags);
+    CFreestyleMessageHeaderHTML* headerHtml = 
+        CFreestyleMessageHeaderHTML::NewL( aMailMessage, aWriteStream,
+            aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags );
     CleanupStack::PushL( headerHtml );
     headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage, 
-                                                    RFile& aFile, 
-                                                    TInt aVisibleWidth,
-                                                    TInt aScrollPosition,
-                                                    const TBool aAutoLoadImages,
-                                                    const TBitFlags& aFlags )
+void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage,
+        RFile& aFile, TInt aVisibleWidth, TInt aScrollPosition,
+        TBool aAutoLoadImages, const TBitFlags& aFlags )
     {
     RFileWriteStream fwstream;
     fwstream.Attach( aFile, 0 );
     CleanupClosePushL( fwstream );
-    
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags );
+
+    CFreestyleMessageHeaderHTML* headerHtml =
+        CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream,
+            aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags );
     CleanupStack::PushL( headerHtml );
     headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
-    
     CleanupStack::PopAndDestroy( &fwstream );
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage, 
-                                                    RFs& aFs, 
-                                                    const TPath& aFilePath, 
-                                                    TInt aVisibleWidth,
-                                                    TInt aScrollPosition,
-                                                    const TBool aAutoLoadImages,
-                                                    const TBitFlags& aFlags )
+void CFreestyleMessageHeaderHTML::ExportL( CFSMailMessage& aMailMessage,
+        RFs& aFs, const TPath& aFilePath, TInt aVisibleWidth,
+        TInt aScrollPosition, TBool aAutoLoadImages, const TBitFlags& aFlags )
     {
     RFileWriteStream fwstream;
     User::LeaveIfError( fwstream.Replace( aFs, aFilePath, EFileStreamText | EFileWrite) );
     CleanupClosePushL( fwstream );
-    
-    CFreestyleMessageHeaderHTML* headerHtml = CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream, aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags);
+
+    CFreestyleMessageHeaderHTML* headerHtml =
+        CFreestyleMessageHeaderHTML::NewL( aMailMessage, fwstream,
+            aVisibleWidth, aScrollPosition, aAutoLoadImages, aFlags );
     CleanupStack::PushL( headerHtml );
     headerHtml->ExportL();
     CleanupStack::PopAndDestroy( headerHtml );
-
-    CleanupStack::PopAndDestroy( &fwstream );    
+    CleanupStack::PopAndDestroy( &fwstream );
     }
 
 CFreestyleMessageHeaderHTML::~CFreestyleMessageHeaderHTML()
@@ -122,15 +115,13 @@ CFreestyleMessageHeaderHTML::~CFreestyleMessageHeaderHTML()
     iAttachments.ResetAndDestroy();
     }
 
-CFreestyleMessageHeaderHTML::CFreestyleMessageHeaderHTML( CFSMailMessage& aMailMessage,  
-                                                          RWriteStream& aWriteStream,
-                                                          TInt aVisibleWidth,
-                                                          TInt aScrollPosition,
-                                                          const TBool aAutoLoadImages,
-                                                          const TBitFlags& aFlags )
+CFreestyleMessageHeaderHTML::CFreestyleMessageHeaderHTML( 
+        CFSMailMessage& aMailMessage, RWriteStream& aWriteStream,
+        TInt aVisibleWidth, TInt aScrollPosition, TBool aAutoLoadImages,
+        const TBitFlags& aFlags )
     : iMailMessage( aMailMessage ),
     iWriteStream( aWriteStream ),
-    iVisibleWidth( aVisibleWidth - KFreestyleMessageHeaderHTMLRightMarginInPx ),
+    iVisibleWidth( aVisibleWidth - KHeaderHTMLRightMarginInPx ),
     iScrollPosition( aScrollPosition ),
     iExportFlags( aFlags )
     {
@@ -151,37 +142,60 @@ void CFreestyleMessageHeaderHTML::ConstructL()
         }
     }
 
-EXPORT_C void CFreestyleMessageHeaderHTML::ExportL() const
+void CFreestyleMessageHeaderHTML::ExportL() const
     {
     ExportBodyStyleL();
-    ExportHTMLBodyStartL();
+    ExportHtmlStartL();
+    ExportHeadL();
+    ExportBodyStartL();
     ExportHeaderTablesL();
-    ExportHTMLBodyEndL();    
+    ExportBodyEndL();
+    ExportHtmlEndL();
     }
 
-void CFreestyleMessageHeaderHTML::ExportHTMLBodyStartL() const
+void CFreestyleMessageHeaderHTML::ExportHtmlStartL() const
     {
-    _LIT( KHtmlBodyStart, "<html dir=\"%S\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Email Header</title>\n<script language=\"javascript\" src=\"header.js\"></script>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"header.css\"/>\n</head>\n<body onLoad = \"init(%d)\">\n" );
-    //_LIT( KHtmlBodyStart, "<html dir=\"%S\" xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<title>Email Header</title>\n<script language=\"javascript\" src=\"header.js\"></script>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"header%d.css\"/>\n</head>\n<body onLoad = \"init(%d)\">\n" );
+    _LIT( KHtmlStart, "<html dir=\"%S\" xmlns=\"http://www.w3.org/1999/xhtml\">\n" );
     const TPtrC direction(  iExportFlags.IsSet( EMirroredLayout ) ? KRtl() : KLtr() );
-    HBufC* formatBuffer = HBufC::NewLC( KHtmlBodyStart().Length() + direction.Length() + 16 );
-    formatBuffer->Des().Format( KHtmlBodyStart(), &direction, iScrollPosition );
-    //formatBuffer->Des().Format( KHtmlBodyStart(), &direction, Math::Random() % 2, iScrollPosition );
+    HBufC* formatBuffer = HBufC::NewLC( KHtmlStart().Length() + direction.Length() );
+    formatBuffer->Des().Format( KHtmlStart(), &direction );
     HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
     CleanupStack::PushL( utf );
     iWriteStream.WriteL( *utf );
-    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf    
+    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf
     iWriteStream.CommitL();
     }
 
-void CFreestyleMessageHeaderHTML::ExportInnerTableBeginWithRowBeginL( const TDesC& aTableName, const TInt aColSpan, 
+void CFreestyleMessageHeaderHTML::ExportHeadL() const
+    {
+    _LIT( KHead, "<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n<title>Email Header</title>\n<script language=\"javascript\" src=\"header.js\"></script>\n<link rel=\"stylesheet\" type=\"text/css\" href=\"header.css\"/>\n</head>\n");
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( KHead() );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( utf );
+    iWriteStream.CommitL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportBodyStartL() const
+    {
+    _LIT( KBodyStart, "<body onload=\"init(%d)\" onresize=\"handleResize()\">\n" );
+    HBufC* formatBuffer = HBufC::NewLC( KBodyStart().Length() + 16 );
+    formatBuffer->Des().Format( KBodyStart(), iScrollPosition );
+    HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
+    CleanupStack::PushL( utf );
+    iWriteStream.WriteL( *utf );
+    CleanupStack::PopAndDestroy( 2 ); // formatBuffer, utf
+    iWriteStream.CommitL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportInnerTableBeginWithRowBeginL( 
+        const TDesC& aTableName, const TInt aColSpan, 
         const TBool aVisible, const TBitFlags& aFlags ) const
     {
     iWriteStream.WriteL( KTableRowBegin() );
     ExportTableVisibilityParameterL( aTableName, aVisible );
     ExportInnerTableBeginL( aTableName, aColSpan, aFlags );
     }
-
 
 void CFreestyleMessageHeaderHTML::ExportInnerTableBeginL( const TDesC& aTableName, const TInt aColSpan, 
         const TBitFlags& aFlags ) const
@@ -208,7 +222,7 @@ void CFreestyleMessageHeaderHTML::ExportTableVisibilityParameterL( const TDesC& 
     {   
     _LIT( KTrue, "true" );
     _LIT( KFalse, "false" );
-    _LIT( KVisibilityParameter, "<script type=\"text/javascript\">var is_%S_visible=%S;</script>" );
+    _LIT( KVisibilityParameter, "<script type=\"text/javascript\">var is_%S_visible=%S;</script>\n" );
     const TPtrC visible( aVisible ? KTrue() : KFalse() );
     HBufC* formatBuffer = HBufC::NewLC( KVisibilityParameter().Length() + aTableName.Length() + visible.Length() );
     formatBuffer->Des().Format( KVisibilityParameter(), &aTableName, &visible );
@@ -728,50 +742,48 @@ HBufC* CFreestyleMessageHeaderHTML::CreateLinksLC( const TDesC& aText, const TIn
     return result;
     }
 
-void CFreestyleMessageHeaderHTML::ExportHTMLBodyEndL() const
+void CFreestyleMessageHeaderHTML::ExportBodyEndL() const
     {
-    iWriteStream.WriteL( _L8("</body>\n</html>\n") );
+    iWriteStream.WriteL( _L8("</body>\n") );
+    iWriteStream.CommitL();
+    }
+
+void CFreestyleMessageHeaderHTML::ExportHtmlEndL() const
+    {
+    iWriteStream.WriteL( _L8("</html>\n") );
     iWriteStream.CommitL();
     }
 
 void CFreestyleMessageHeaderHTML::ExportDisplayImagesTableL() const
     {
     _LIT( KDisplayImagesLeftToRight,
-            "<script language=\"javascript\">var g_autoLoadImages = %d;</script><table style=\"display: none\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\">%S</td><td align=\"right\"><button value=\"submit\" class=\"submitBtn\" onClick=\"displayImagesButtonPressed()\"><span><span class=\"buttonText\">%S</span></span></button></td></tr></table>" );
+            "<script language=\"javascript\">var g_autoLoadImages = %d;</script>\n<table id=\"displayImagesTable\" width=\"%dpx\">\n<tr><td align=\"right\"><button value=\"submit\" class=\"submitBtn\" onClick=\"displayImagesButtonPressed()\"><span><span class=\"buttonText\">%S</span></span></button></td></tr>\n</table>\n" );
     
     _LIT( KDisplayImagesRightToLeft,
-            "<script language=\"javascript\">var g_autoLoadImages = %d;</script><table style=\"display: none\" id=\"displayImagesTable\" width=\"%dpx\"><tr><td align=\"left\"><button value=\"submit\" class=\"submitBtn\" onClick=\"displayImagesButtonPressed()\"><span><span class=\"buttonText\">%S</span></span></button></td><td align=\"right\">%S</td></tr></table>" );
+            "<script language=\"javascript\">var g_autoLoadImages = %d;</script>\n<table id=\"displayImagesTable\" width=\"%dpx\">\n<tr><td align=\"left\"><button value=\"submit\" class=\"submitBtn\" onClick=\"displayImagesButtonPressed()\"><span><span class=\"buttonText\">%S</span></span></button></td></tr>\n</table>\n" );
 
     if ( iExportFlags.IsClear( EAutoLoadImages ) )
         {
-        _LIT(KDescription, "");
-        HBufC* description = KDescription().AllocLC(); //StringLoader::LoadLC(R_FREESTYLE_EMAIL_UI_IMAGES_ARE_NOT_DISPLAYED);
-        HBufC* button = StringLoader::LoadLC(R_FREESTYLE_EMAIL_UI_DISPLAY_IMAGES);
+        HBufC* button = StringLoader::LoadLC( R_FREESTYLE_EMAIL_UI_DISPLAY_IMAGES );
         HBufC* formatBuffer = NULL;
         if ( iExportFlags.IsSet( EMirroredLayout ) )
             {
-            formatBuffer = HBufC::NewLC(KDisplayImagesRightToLeft().Length() + description->Length() + button->Length() + 8);
-            formatBuffer->Des().Format(
-                    KDisplayImagesRightToLeft(),
-                    EFalse,
-                    iVisibleWidth,
-                    button,
-                    description);
+            formatBuffer = HBufC::NewLC( KDisplayImagesRightToLeft().Length()
+                + button->Length() + 8 );
+            formatBuffer->Des().Format( KDisplayImagesRightToLeft(),
+                EFalse, iVisibleWidth, button );
             }
         else
             {
-            formatBuffer = HBufC::NewLC(KDisplayImagesLeftToRight().Length() + description->Length() + button->Length() + 8);
-            formatBuffer->Des().Format(
-                    KDisplayImagesLeftToRight(),
-                    EFalse,
-                    iVisibleWidth,
-                    description,
-                    button);
+            formatBuffer = HBufC::NewLC( KDisplayImagesLeftToRight().Length()
+                + button->Length() + 8 );
+            formatBuffer->Des().Format( KDisplayImagesLeftToRight(),
+                EFalse, iVisibleWidth, button );
             }
         HBufC8* utf = CnvUtfConverter::ConvertFromUnicodeToUtf8L( *formatBuffer );
         CleanupStack::PushL( utf );
         iWriteStream.WriteL( *utf );
-        CleanupStack::PopAndDestroy( 4 ); // description, button, formatBuffer, utf
+        CleanupStack::PopAndDestroy( 3 ); // button, formatBuffer, utf
         iWriteStream.CommitL();
         }
     }
@@ -808,4 +820,3 @@ void CFreestyleMessageHeaderHTML::ExportBodyStyleL() const
     iWriteStream.CommitL();
     }
 
-                                

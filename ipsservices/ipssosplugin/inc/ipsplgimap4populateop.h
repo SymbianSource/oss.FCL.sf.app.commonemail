@@ -178,8 +178,7 @@ class CIpsPlgImap4PopulateOp :
             {
             EStateIdle,
             EStateConnecting,
-            EStateFetching,
-            EStateInfoEntryChange
+            EStateFetchAndCheckConnectionChange
             };
 
    
@@ -194,6 +193,7 @@ class CIpsPlgImap4PopulateOp :
         TPckgBuf<TImap4SyncProgress>      iSyncProgress;
         TMsvId                            iParent;
         TFetchState                       iState;
+        TBool                             iSyncStartedSignaled;
         
     };
 

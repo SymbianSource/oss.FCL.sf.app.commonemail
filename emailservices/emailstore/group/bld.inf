@@ -27,7 +27,6 @@ PRJ_EXPORTS
 ../inc/emailstorepskeys.h              |../../../inc/emailstorepskeys.h
 ../inc/emailstoreuids.hrh              |../../../inc/emailstoreuids.hrh
 ../rom/emailstore.iby                  CORE_APP_LAYER_IBY_EXPORT_PATH(emailstore.iby)
-../sis/emailstore_stub.sis             /epoc32/data/z/system/install/emailstore_stub.sis
 
 PRJ_MMPFILES
 

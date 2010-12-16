@@ -22,6 +22,7 @@
 #include "cmrfieldcontainer.h"
 #include "cmrlistpanephysics.h"
 #include "nmrlayoutmanager.h"
+#include "cesmrcaldbmgr.h"
 
 #include <eikscrlb.h>
 #include <AknUtils.h>
@@ -56,6 +57,20 @@ TInt IndexByFieldId( const MESMRFieldStorage& aFactory,
 
     return index;
     }
+
+TRect ScreenRect( const CESMRField& aField )
+    {
+    // Calculate actual screen rect for field.
+    // If field does not have focus, it has been layouted off screen
+    TPoint pos( aField.Position() );
+    if ( !aField.HasOutlineFocus() )
+        {
+        pos.iX = aField.Parent()->Position().iX;
+        }
+
+    return TRect( pos, aField.Size() );
+    }
+
 }
 
 //----- MEMBER FUNCTIONS ----
@@ -118,7 +133,10 @@ void CMRListPane::ConstructL( const CCoeControl& aParent )
     {
     FUNC_LOG;
     CCoeControl::SetComponentsToInheritVisibility( ETrue );
-    SetContainerWindowL( aParent );
+
+    // Make list pane window owning.
+    // This will ensure that fields are not drawn outside list pane.
+    CreateWindowL( &aParent );
 
     iLongtapDetector = CAknLongTapDetector::NewL( this );
     iLongtapDetector->SetLongTapDelay( KLongTapDelay );
@@ -157,6 +175,9 @@ void CMRListPane::InternalizeL( MESMRCalEntry& aEntry )
     FUNC_LOG;
 
     iFactory.InternalizeL( aEntry );
+
+    // Set stripe information
+    iStripeColor = aEntry.GetDBMgr().GetCurCalendarColor();
 
     // Record visible fields
     RecordFields();
@@ -298,6 +319,13 @@ void CMRListPane::SizeChanged()
         return;
         }
 
+    // Layout color stripe. It is logically inside list pane area
+    TAknLayoutRect stripeLayoutRect =
+            NMRLayoutManager::GetLayoutRect( Rect(),
+                    NMRLayoutManager::EMRLayoutStripe );
+    iStripeRect = stripeLayoutRect.Rect();
+
+    // Layout field container
     TSize containerSize( iFieldContainer->MinimumSize() );
     iFieldContainer->SetSize( containerSize );
 
@@ -372,12 +400,13 @@ void CMRListPane::HandleLongTapEventL(
     // Long tap functionality may vary between fields
     // ==> Command field to execute action related to long tap
     TInt count( iFactory.Count() );
+
     for ( TInt i = 0; i < count; ++i )
         {
         CESMRField* field = iFactory.Field( i );
 
         if ( field->IsVisible()
-             && field->Rect().Contains( aPenEventLocation ) )
+             && ScreenRect( *field ).Contains( aPenEventLocation ) )
             {
             field->LongtapDetectedL( aPenEventLocation );
             iLongTapEventInProgess = ETrue;
@@ -396,7 +425,7 @@ void CMRListPane::DoUpdateScrollBar( TInt aFocusPosition )
     // Set this lispane's size as scroll bar's window size
     iScrollModel.SetWindowSize( iSize.iHeight );
     // Set fieldcontainer's height as scrolbar's scroll span
-    iScrollModel.SetScrollSpan( iFieldContainer->MinimumSize().iHeight );
+    iScrollModel.SetScrollSpan( iFieldContainer->Size().iHeight );
 
     // Update scrollbar focus position.
     if( aFocusPosition == KErrNotFound )
@@ -693,11 +722,36 @@ void CMRListPane::ActivateL()
     // initialized with new values also.
 
     CCoeControl::ActivateL();
-    iFieldContainer->SetPosition( Position() );
 
     // Physics:
     iPhysics->InitPhysics();
     }
+
+// ---------------------------------------------------------------------------
+// CMRListPane::Draw
+// Draws the color stripe
+// ---------------------------------------------------------------------------
+//
+void CMRListPane::Draw( const TRect& /*aRect*/ ) const
+    {
+    FUNC_LOG;
+
+    CWindowGc& gc = SystemGc();
+
+    // Draw color stripe
+    TInt stripeWidth( iStripeRect.Width() );
+    CGraphicsContext::TBrushStyle brushStyle =
+            CGraphicsContext::ESolidBrush;
+    TBool drawLines( EFalse );
+
+    gc.SetBrushStyle( brushStyle );
+    gc.SetBrushColor( iStripeColor );
+    gc.SetPenColor( iStripeColor );
+    gc.DrawRect( iStripeRect );
+
+    gc.Reset();
+    }
+
 
 // ---------------------------------------------------------------------------
 // CMRListPane::PhysicsEmulationEnded
@@ -825,27 +879,22 @@ void CMRListPane::SetFocusAfterPointerEventL(
 void CMRListPane::UpdateClickedField( const TPointerEvent &aPointerEvent )
     {
     FUNC_LOG;
-    TInt fieldCount( iFactory.Count() );
 
-    for( TInt i = 0; i < fieldCount; ++i )
+    if ( aPointerEvent.iType == TPointerEvent::EButton1Down )
         {
-        CESMRField* field = iFactory.Field( i );
+        iClickedField = NULL;
 
-        // Calculate actual screen rect for field.
-        // If field does not have focus, it is layouted off screen
-        TPoint pos( field->Position() );
-        if ( !field->HasOutlineFocus() )
-            {
-            pos.iX = field->Parent()->Position().iX;
-            }
-        TRect rect( pos, field->Size() );
+        TInt fieldCount( iFactory.Count() );
 
-        if( rect.Contains( aPointerEvent.iPosition )
-            && field->IsVisible() )
+        for( TInt i = 0; i < fieldCount; ++i )
             {
-            if( aPointerEvent.iType == TPointerEvent::EButton1Down )
+            CESMRField* field = iFactory.Field( i );
+
+            if( ScreenRect( *field ).Contains( aPointerEvent.iPosition )
+                && field->IsVisible() )
                 {
                 iClickedField = field;
+                break;
                 }
             }
         }

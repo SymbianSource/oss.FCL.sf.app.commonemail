@@ -104,6 +104,7 @@ void CESMRViewerAlarmDateField::InternalizeL( MESMRCalEntry& aEntry )
         CCoeControl::MakeVisible(EFalse);
         iObserver->HideControl( EESMRFieldAlarmDate );
         }
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------

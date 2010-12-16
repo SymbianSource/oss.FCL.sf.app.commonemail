@@ -68,7 +68,6 @@ CESMRViewerPriorityField::CESMRViewerPriorityField()
     {
     FUNC_LOG;
     SetFieldId( EESMRFieldPriority );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -82,12 +81,14 @@ void CESMRViewerPriorityField::ConstructL()
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapPriorityNormal, this );
-    
+
     HBufC* priorityText = StringLoader::LoadLC(
                         R_QTN_CALENDAR_MEETING_OPT_PRIORITY_NORMAL,
-                        iEikonEnv );
+                        iCoeEnv );
     iLabel->SetTextL( *priorityText );
     CleanupStack::PopAndDestroy( priorityText );
+
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -154,18 +155,20 @@ void CESMRViewerPriorityField::InternalizeL( MESMRCalEntry& aEntry )
     // if not changed, the default set in ConstructL will be used:
     if ( resourceId != KErrNotFound )
         {
-        priorityText = StringLoader::LoadLC( resourceId,
-                                             iEikonEnv );
+        priorityText = StringLoader::LoadLC(
+                resourceId,
+                iCoeEnv );
         iLabel->SetTextL( *priorityText );
         CleanupStack::PopAndDestroy( priorityText );
 
         delete iIcon;
         iIcon = NULL;
         iIcon = CMRImage::NewL( bitmapId, this );
-        
+
         // This needs to be called so icon will be redrawn
         SizeChanged();
         }
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------

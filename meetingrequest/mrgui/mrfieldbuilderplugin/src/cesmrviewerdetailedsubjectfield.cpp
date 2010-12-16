@@ -41,27 +41,34 @@ namespace { // codescanner::namespace
  * @param aEntry Reference to calendar entry.
  */
 void AddForwardPrefixToEntryL(
-        CCalEntry& aEntry )
+        CCalEntry& aEntry,
+        CCoeEnv* aEnv )
     {
     TPtrC summary( aEntry.SummaryL() );
 
     // loading 'FW:' prefix from resource
-    HBufC* fwPrefix =
-            StringLoader::LoadLC(
-                    R_QTN_MEET_REQ_PLAIN_TEXT_FORWARDED );
+    HBufC* fwPrefix = StringLoader::LoadLC(
+            R_QTN_MEET_REQ_PLAIN_TEXT_FORWARDED,
+            aEnv );
 
-    HBufC* subjectBuffer = HBufC::NewLC(
-                    fwPrefix->Length() + summary.Length() );
-    TPtr subject( subjectBuffer->Des() );
+    // Check if we need to add FW prefix to summary
+    TInt pos( summary.Find( *fwPrefix ) );
+    if ( 0 != pos )
+        {
+        // summary does not contain prefix --> Adding it
+        HBufC* subjectBuffer = HBufC::NewLC(
+                        fwPrefix->Length() + summary.Length() );
+        TPtr subject( subjectBuffer->Des() );
 
-    // Construc 'Fw: <summary>'
-    subject.Copy( *fwPrefix );
-    subject.Append( summary );
+        // Construct 'Fw: <summary>'
+        subject.Copy( *fwPrefix );
+        subject.Append( summary );
 
-    aEntry.SetSummaryL( subject );
+        aEntry.SetSummaryL( subject );
 
-    CleanupStack::PopAndDestroy( subjectBuffer );
-    subjectBuffer = NULL;
+        CleanupStack::PopAndDestroy( subjectBuffer );
+        subjectBuffer = NULL;
+        }
 
     CleanupStack::PopAndDestroy( fwPrefix );
     fwPrefix = NULL;
@@ -79,7 +86,6 @@ CESMRViewerDetailedSubjectField::CESMRViewerDetailedSubjectField()
     {
     FUNC_LOG;
     SetFieldId ( EESMRFieldDetailedSubject );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -127,6 +133,7 @@ void CESMRViewerDetailedSubjectField::ConstructL()
     iRichTextViewer->SetParent( this );
     iRichTextViewer->SetLinkObserver( this );
     iCurrentPriority = EFSCalenMRPriorityNormal;
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -205,7 +212,7 @@ void CESMRViewerDetailedSubjectField::InternalizeL(
 			if( iPriorityIcon )
 				{
 				delete iPriorityIcon;
-				iPriorityIcon = NULL;			
+				iPriorityIcon = NULL;
 				}
     		iPriorityIcon = CMRImage::NewL(
     				NMRBitmapManager::EMRBitmapPriorityHigh,
@@ -218,7 +225,7 @@ void CESMRViewerDetailedSubjectField::InternalizeL(
 			if( iPriorityIcon )
 				{
 				delete iPriorityIcon;
-				iPriorityIcon = NULL;			
+				iPriorityIcon = NULL;
 				}
     		iPriorityIcon = CMRImage::NewL(
     				NMRBitmapManager::EMRBitmapPriorityLow,
@@ -236,7 +243,7 @@ void CESMRViewerDetailedSubjectField::InternalizeL(
 
         if ( mrEntry->IsForwardedL() )
             {
-            AddForwardPrefixToEntryL( entry );
+            AddForwardPrefixToEntryL( entry, iCoeEnv );
 
             if ( iTitlePaneObserver )
                 {
@@ -246,7 +253,9 @@ void CESMRViewerDetailedSubjectField::InternalizeL(
             }
         }
 
-    HBufC* unnamed = StringLoader::LoadLC( R_QTN_MEET_REQ_CONFLICT_UNNAMED );
+    HBufC* unnamed = StringLoader::LoadLC(
+            R_QTN_MEET_REQ_CONFLICT_UNNAMED,
+            iCoeEnv );
 
     TPtrC summary( entry.SummaryL() );
     HBufC* subject = summary.AllocLC();
@@ -287,7 +296,7 @@ void CESMRViewerDetailedSubjectField::InternalizeL(
                 NMRBitmapManager::EMRBitmapSubject,
                 this );
         }
-    
+
     SizeChanged();
     }
 
@@ -321,12 +330,7 @@ TBool CESMRViewerDetailedSubjectField::HandleEdwinSizeEventL(
     if ( iObserver && aEdwin == iRichTextViewer )
        {
        iObserver->ControlSizeChanged( this );
-       
-       if ( !iOutlineFocus )
-           {
-           RecordField();
-           }
-       
+
        reDraw = ETrue;
        }
 
@@ -365,11 +369,14 @@ TBool CESMRViewerDetailedSubjectField::ExecuteGenericCommandL( TInt aCommand )
     	{
     	if ( IsLocked() )
     		{
-			HandleTactileFeedbackL();
-
-    		CESMRGlobalNote::ExecuteL(
-    				CESMRGlobalNote::EESMRUnableToEdit );
-    		isUsed = ETrue;
+			const CESMRRichTextLink* link = iRichTextViewer->GetSelectedLink();
+			if ( !link )
+				{
+				HandleTactileFeedbackL();
+				CESMRGlobalNote::ExecuteL(
+						CESMRGlobalNote::EESMRUnableToEdit );
+	    		isUsed = ETrue;
+				}
     		}
     	}
     return isUsed;
@@ -383,7 +390,6 @@ void CESMRViewerDetailedSubjectField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
     CESMRField::SetOutlineFocusL ( aFocus );
-    iRichTextViewer->SetFocus( aFocus );
 
     if( aFocus )
         {
@@ -586,6 +592,8 @@ void CESMRViewerDetailedSubjectField::SizeChanged( )
     // Resize height according to actual height required by edwin.
     viewerRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
     iRichTextViewer->SetRect( viewerRect );
+    // Update text view rect
+    iRichTextViewer->PositionChanged();
 
     // Layouting focus
     TRect bgRect( viewerRect );

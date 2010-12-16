@@ -84,7 +84,7 @@ void CIpsSosAOPluginTimer::After(const TTimeIntervalSeconds& aSeconds)
     time = time + aSeconds;
     iTimer.At( iStatus, time );
     SetActive();
-    
+    INFO_1( "CIpsSosAOPluginTimer::After: next trick: %d",  aSeconds.Int());
 //<cmail> removing flags
 /*#ifdef IPSAOPLUGINTESTER_MBOXLOGICTEST   
     iTestActivationTime = time;

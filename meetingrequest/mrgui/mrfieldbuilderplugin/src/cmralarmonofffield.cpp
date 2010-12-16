@@ -56,7 +56,6 @@ CMRAlarmOnOffField::CMRAlarmOnOffField()
     iStatus = ETrue;
 
     SetFieldId ( EESMRFieldAlarmOnOff );
-    SetFocusType ( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -69,13 +68,14 @@ void CMRAlarmOnOffField::ConstructL( MESMRFieldValidator* aValidator )
     iValidator = aValidator;
     iValidator->SetAbsoluteAlarmOnOffFieldL( *this );
 
-    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAlarm );
-    iIcon->SetParent( this );
+    iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapAlarm, this );
 
-    iLabel = CMRLabel::NewL();
+    iLabel = CMRLabel::NewL( this );
     CESMRField::ConstructL( iLabel ); // ownership transfered
     iLabel->SetTextL( KNullDesC() );
-    iLabel->SetParent( this );
+
+
+    SetFocusType ( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -279,9 +279,9 @@ void CMRAlarmOnOffField::ResetFieldL()
     FUNC_LOG;
     iValidator->SetAlarmOnOffL( iStatus );
 
-    HBufC* buf = StringLoader::LoadLC( iStatus ?
-    R_QTN_MEET_REQ_ALARM_ON :
-    R_QTN_MEET_REQ_ALARM_OFF );
+    HBufC* buf = StringLoader::LoadLC(
+            iStatus ? R_QTN_MEET_REQ_ALARM_ON : R_QTN_MEET_REQ_ALARM_OFF,
+            iCoeEnv);
 
     iLabel->SetTextL( *buf );
     CleanupStack::PopAndDestroy( buf );
@@ -300,6 +300,8 @@ void CMRAlarmOnOffField::ResetFieldL()
         iObserver->HideControl ( EESMRFieldAlarmTime );
         iObserver->HideControl ( EESMRFieldAlarmDate );
         }
+
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------

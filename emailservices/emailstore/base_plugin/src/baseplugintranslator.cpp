@@ -716,8 +716,22 @@ EXPORT_C void CBasePlugin::TranslateMsgStoreMrL(
  */
 EXPORT_C void CBasePlugin::TranslateEmailFwMessageL(
     CFSMailMessagePart& aSrc,
+    CMsgStoreMessagePart& aDst )
+
+    {
+    // For now call the deprecated TranslateEmailFwMessageL().
+    // In the future, the two calls can be collapsed without the aInInbox parameter.
+    TranslateEmailFwMessageL( aSrc, aDst, EFalse );
+    }
+
+
+/**
+ *
+ */
+EXPORT_C void CBasePlugin::TranslateEmailFwMessageL(
+    CFSMailMessagePart& aSrc,
     CMsgStoreMessagePart& aDst,
-    TBool aInInbox )
+    TBool /*aInInbox*/ )
 
     {
     __LOG_ENTER( "TranslateEmailFwMessageL" )
@@ -754,26 +768,16 @@ EXPORT_C void CBasePlugin::TranslateEmailFwMessageL(
 
     CleanupStack::PopAndDestroy( &msgStoreAddress );                            //-msgStoreAddress
 
-    //received or sent, depending on the folder.
-    if ( aInInbox )
-    	{
-	    if ( aSrc.GetDate() != 0 )
-	    	{
-	        aDst.AddOrUpdatePropertyL( KMsgStorePropertyReceivedAt, aSrc.GetDate() );
-	    	}
-    	}
-    else
-    	{
-        //set the sent stamp.
-	    TTime sentTime;
-	    sentTime.UniversalTime();
-	    aDst.AddOrUpdatePropertyL( KMsgStorePropertySent, sentTime );
-	    // same date needs to be set as received date , because of sorting
-	    // feature in message store, which enable sorting only according to
-	    // received date.
-	    aDst.AddOrUpdatePropertyL( KMsgStorePropertyReceivedAt, sentTime );
-	    aSrc.SetDate( sentTime );
-    	}
+    TUint findIndex;
+    if ( aDst.FindProperty( KMsgStorePropertyReceivedAt, findIndex ) == EFalse )
+        {
+        TTime srcTime = aSrc.GetDate();
+        if ( srcTime == 0 )
+            {
+            srcTime.UniversalTime();
+            }
+        aDst.AddPropertyL( KMsgStorePropertyReceivedAt, srcTime );
+        }
     
     //to recipients.
     RPointerArray<CFSMailAddress>& toRecipients = aSrc.GetToRecipients();

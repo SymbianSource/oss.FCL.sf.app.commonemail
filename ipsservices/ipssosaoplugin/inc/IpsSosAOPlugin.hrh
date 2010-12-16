@@ -25,6 +25,7 @@ const TInt KIpsSosAOStartDelaySeconds = 60;
 const TInt KIpsSosAOReTryInterval = 60;
 const TInt KIpsSosAOMaxReTryTimes = 3;
 const TInt KIpsSosAOSuspendWatchdogTime = 300;
+const TInt KIpsSosAOSyncWatchdogTime = 840; // 14 minutes
 const TInt KIpsSosAOContinueWaitTime = 5;
 
 const TInt IpsSosAODefaultGranularity = 2;

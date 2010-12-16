@@ -1441,6 +1441,15 @@ void CESMRViewerDialog::HandlePolicyMenuL(
                                     MESMRBuilderExtension::
                                         EMRCFSRemoveFromCalendar ) )
                                 {
+                                // If Sync is enable and the mr is stored, we should show 
+                                // "Remove from calendar" when viewing a past or cancelled MR
+                                if ( mrEntry->IsOpenedFromMail() && mrEntry->IsStoredL() )
+                                    {
+                                    HBufC* removeString = 
+                                            StringLoader::LoadLC( R_QTN_MEET_REQ_OPTIONS_REMOVE_FROM_CAL );
+                                    aMenuPane->SetItemTextL( item.iCommandId, *removeString ); 
+                                    CleanupStack::PopAndDestroy(); // removeString
+                                    }
                                 aMenuPane->SetItemDimmed(
                                         item.iCommandId,
                                         EFalse );
@@ -1480,6 +1489,15 @@ void CESMRViewerDialog::HandlePolicyMenuL(
                         else if ( EESMRCmdRemoveFromCalendar == item.iCommandId &&
                         		  mrEntry->IsOpenedFromMail() )
                             {
+                            // If Sync is enable and the mr is stored, we should show 
+                            // "Remove from calendar" when viewing a past or cancelled MR
+                            if ( mrEntry->IsStoredL() )
+                                {
+                                HBufC* removeString = 
+                                        StringLoader::LoadLC( R_QTN_MEET_REQ_OPTIONS_REMOVE_FROM_CAL );
+                                aMenuPane->SetItemTextL( item.iCommandId, *removeString ); 
+                                CleanupStack::PopAndDestroy(); // removeString
+                                }
                             aMenuPane->SetItemDimmed(
                                     EESMRCmdRemoveFromCalendar,
                                     EFalse );

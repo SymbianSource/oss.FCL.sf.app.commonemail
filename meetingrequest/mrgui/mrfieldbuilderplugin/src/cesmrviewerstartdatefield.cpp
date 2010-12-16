@@ -57,7 +57,6 @@ CESMRViewerStartDateField::CESMRViewerStartDateField()
     FUNC_LOG;
 
     SetFieldId ( EESMRFieldStartDate );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -100,6 +99,8 @@ void CESMRViewerStartDateField::ConstructL()
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapDateStart, this );
+
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -124,7 +125,7 @@ void CESMRViewerStartDateField::SizeChanged()
     {
     FUNC_LOG;
 
-    TRect rect = Rect();
+    TRect rect( Rect() );
     TAknLayoutRect rowLayoutRect =
         NMRLayoutManager::GetFieldRowLayoutRect( rect, 1 );
     rect = rowLayoutRect.Rect();

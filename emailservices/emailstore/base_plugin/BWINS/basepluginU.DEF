@@ -195,4 +195,5 @@ EXPORTS
 	?CalendarFileName@CBasePlugin@@MBEABVTDesC16@@XZ @ 194 NONAME ; class TDesC16 const & CBasePlugin::CalendarFileName(void) const
 	?StartOp@CDelayedOp@@QAEXXZ @ 195 NONAME ; void CDelayedOp::StartOp(void)
 	?DeleteDelayedOpsManager@CBasePlugin@@QAEXXZ @ 196 NONAME ; void CBasePlugin::DeleteDelayedOpsManager(void)
+	?TranslateEmailFwMessageL@CBasePlugin@@MAEXAAVCFSMailMessagePart@@AAVCMsgStoreMessagePart@@@Z @ 197 NONAME ; void CBasePlugin::TranslateEmailFwMessageL(class CFSMailMessagePart &, class CMsgStoreMessagePart &)
 

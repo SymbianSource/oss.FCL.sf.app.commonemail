@@ -62,7 +62,6 @@ CESMRViewerTimeField::CESMRViewerTimeField()
     FUNC_LOG;
 
     SetFieldId( EESMRFieldMeetingTime );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -103,6 +102,8 @@ void CESMRViewerTimeField::ConstructL()
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapClock, this );
+
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -127,6 +128,8 @@ void CESMRViewerTimeField::InternalizeL( MESMRCalEntry& aEntry )
         {
         FormatTimeFieldStringL();
         }
+
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------

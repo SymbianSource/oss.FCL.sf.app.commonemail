@@ -182,6 +182,8 @@ void CMRUnifiedEditorField::InternalizeL( MESMRCalEntry& aEntry )
 
         SetIconL( aEntry );
         }
+
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------
@@ -280,7 +282,6 @@ CMRUnifiedEditorField::CMRUnifiedEditorField( ) :
     {
     FUNC_LOG;
     SetFieldId( EESMRFieldUnifiedEditor );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -299,6 +300,8 @@ void CMRUnifiedEditorField::ConstructL( )
     iIcon = CMRImage::NewL(
             NMRBitmapManager::EMRBitmapEventTypeMeeting,
             this );
+
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -311,6 +314,7 @@ void CMRUnifiedEditorField::UpdateLabelL( TInt aIndex )
     CESMRTextItem* event = iArray[ aIndex ];
     iType->SetTextL( event->TextL() );
     iType->DrawDeferred();
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------
@@ -350,12 +354,12 @@ CCoeControl* CMRUnifiedEditorField::ComponentControl( TInt aIndex ) const
         {
         case 0:
             {
-            control = iType;
+            control = iIcon;
             break;
             }
         case 1:
             {
-            control = iIcon;
+            control = iType;
             break;
             }
         case 2:

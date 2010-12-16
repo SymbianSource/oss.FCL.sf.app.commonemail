@@ -33,7 +33,10 @@ const TInt KIpsSosAOPluginCommandBufferGra = 1;
 // ----------------------------------------------------------------------------
 //
 CIpsSosAOPluginEComInterface::CIpsSosAOPluginEComInterface( ) : 
-    CAlwaysOnlineEComInterface(), 
+    CAlwaysOnlineEComInterface(),
+    iSendWatcher( NULL ),
+    iImapPopLogic( NULL ),
+    iSession( NULL ),
     iBufferedAOCommands( KIpsSosAOPluginCommandBufferGra )
     {
     FUNC_LOG;
@@ -68,10 +71,16 @@ void CIpsSosAOPluginEComInterface::ConstructL()
 void CIpsSosAOPluginEComInterface::CompleteConstructL()
     {
     FUNC_LOG;
-    iSendWatcher = CIpsSosAOSmtpSendWatcher::NewL( 
-            CActive::EPriorityStandard, *iSession );
-    iImapPopLogic = CIpsSosAOImapPopLogic::NewL( *iSession );
-    
+    if (!iSendWatcher) 
+        {
+        iSendWatcher = CIpsSosAOSmtpSendWatcher::NewL( 
+                CActive::EPriorityStandard, *iSession );
+        }
+    if (!iImapPopLogic) 
+        {
+        iImapPopLogic = CIpsSosAOImapPopLogic::NewL( *iSession );
+        }
+
     // send buffered command at this point when logic objects is created
     if ( iBufferedAOCommands.Count() > 0 )
         {
@@ -150,9 +159,10 @@ void CIpsSosAOPluginEComInterface::HandleSessionEventL(
             CompleteConstructL();
             break;
         case EMsvEntriesCreated:
-        case EMsvEntriesChanged:
-        case EMsvEntriesDeleted:
         case EMsvEntriesMoved:
+        case EMsvEntriesDeleted:
+            break;
+        case EMsvEntriesChanged:
             // send only to ImapPopLogic, because
             // SmtpLogic not need these events
             iImapPopLogic->HandleMsvSessionEventL( 

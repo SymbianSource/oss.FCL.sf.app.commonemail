@@ -66,7 +66,6 @@ CESMRViewerSyncField::CESMRViewerSyncField()
     {
     FUNC_LOG;
     SetFieldId( EESMRFieldSync );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -82,6 +81,7 @@ void CESMRViewerSyncField::ConstructL()
     iIcon = CMRImage::NewL(
             NMRBitmapManager::EMRBitmapSynchronization,
             this );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -99,20 +99,23 @@ void CESMRViewerSyncField::InternalizeL( MESMRCalEntry& aEntry )
         {
         case CCalEntry::ERestricted:
             {
-            statusHolder = StringLoader::LoadLC( R_QTN_CALENDAR_TASK_SYNC_NONE,
-                                                 iEikonEnv );
+            statusHolder = StringLoader::LoadLC(
+                    R_QTN_CALENDAR_TASK_SYNC_NONE,
+                    iCoeEnv );
             break;
             }
         case CCalEntry::EPrivate:
             {
-            statusHolder = StringLoader::LoadLC( R_QTN_CALENDAR_TASK_SYNC_PRIVATE,
-                                                 iEikonEnv );
+            statusHolder = StringLoader::LoadLC(
+                    R_QTN_CALENDAR_TASK_SYNC_PRIVATE,
+                    iCoeEnv );
             break;
             }
         case CCalEntry::EOpen:
             {
-            statusHolder = StringLoader::LoadLC( R_QTN_CALENDAR_TASK_SYNC_PUBLIC,
-                                                 iEikonEnv );
+            statusHolder = StringLoader::LoadLC(
+                    R_QTN_CALENDAR_TASK_SYNC_PUBLIC,
+                    iCoeEnv );
             break;
             }
         default: // There is no replication status set - hide field- this should never happen
@@ -126,6 +129,8 @@ void CESMRViewerSyncField::InternalizeL( MESMRCalEntry& aEntry )
         iLabel->SetTextL( *statusHolder );
         CleanupStack::PopAndDestroy( statusHolder );
         }
+
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------

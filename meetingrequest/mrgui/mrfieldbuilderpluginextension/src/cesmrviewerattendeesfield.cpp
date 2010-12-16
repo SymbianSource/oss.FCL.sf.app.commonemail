@@ -89,10 +89,12 @@ void CESMRViewerAttendeesField::ConstructL( )
     iRichTextViewer->SetParent( this );
 
     HBufC* label = StringLoader::LoadLC (iRole == CCalAttendee::EReqParticipant ?
-            R_QTN_MEET_REQ_LABEL_REQUIRED : R_QTN_MEET_REQ_LABEL_OPT );
+            R_QTN_MEET_REQ_LABEL_REQUIRED : R_QTN_MEET_REQ_LABEL_OPT,
+            iCoeEnv );
     iTitle->SetTextL ( *label );
 
     CleanupStack::PopAndDestroy( label );
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -269,6 +271,8 @@ void CESMRViewerAttendeesField::SizeChanged( )
     SetFocusRect( bgRect );
 
     iRichTextViewer->SetRect( viewerRect );
+    // Update text view rect
+    iRichTextViewer->PositionChanged();
 
     // Failures are ignored.
     TRAP_IGNORE(
@@ -415,17 +419,13 @@ TBool CESMRViewerAttendeesField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
     {
     FUNC_LOG;
     iExpandedSize = aSize;
-    
+
     if ( iObserver && iDisableRedraw )
         {
         iObserver->ControlSizeChanged ( this );
-        
-        if ( !iOutlineFocus )
-            {
-            RecordField();
-            }
+
         }
-    
+
     return iDisableRedraw;
     }
 
@@ -505,7 +505,6 @@ CESMRViewerAttendeesField::CESMRViewerAttendeesField(
     iRole( aRole)
     {
     FUNC_LOG;
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------

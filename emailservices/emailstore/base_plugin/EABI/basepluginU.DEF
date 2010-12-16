@@ -299,4 +299,5 @@ EXPORTS
 	_ZNK11CBasePlugin16CalendarFileNameEv @ 298 NONAME
 	_ZN10CDelayedOp7StartOpEv @ 299 NONAME
 	_ZN11CBasePlugin23DeleteDelayedOpsManagerEv @ 300 NONAME
+	_ZN11CBasePlugin24TranslateEmailFwMessageLER18CFSMailMessagePartR20CMsgStoreMessagePart @ 301 NONAME
 

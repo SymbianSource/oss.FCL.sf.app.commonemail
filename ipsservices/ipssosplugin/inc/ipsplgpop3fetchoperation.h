@@ -147,6 +147,8 @@ class CIpsPlgPop3FetchOperation :
         // For clear complete flag operation
         CMsvEntry* iEntry;
         TInt iEntryIndex;
+        CIpsPlgPop3ConnectOp* iConnectOp;
+        TInt iConnectionAtempsCounter;
     };
 
 

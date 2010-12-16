@@ -109,8 +109,9 @@ void CESMRViewerFromField::InternalizeL( MESMRCalEntry& aEntry )
             }
 
         // Set the topic text
-        HBufC* stringholder =
-            StringLoader::LoadLC( R_QTN_MEET_REQ_LABEL_FROM, iEikonEnv );
+        HBufC* stringholder = StringLoader::LoadLC(
+                R_QTN_MEET_REQ_LABEL_FROM,
+                iCoeEnv );
         iFieldTopic->SetTextL( *stringholder );
         CleanupStack::PopAndDestroy( stringholder );
 
@@ -165,6 +166,8 @@ void CESMRViewerFromField::SizeChanged( )
             iRichTextViewer->ApplyLayoutChangesL();
             );
     iRichTextViewer->SetRect( viewerRect );
+    // Update text view rect
+    iRichTextViewer->PositionChanged();
 
     TRect bgRect( viewerRect );
     // Move focus rect so that it's relative to field's position.
@@ -269,11 +272,7 @@ TBool CESMRViewerFromField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
     if ( iObserver )
         {
         iObserver->ControlSizeChanged ( this );
-        
-        if ( !iOutlineFocus )
-            {
-            RecordField();
-            }
+
         }
     return iDisableRedraw;
     }
@@ -285,7 +284,6 @@ TBool CESMRViewerFromField::HandleEdwinSizeEventL(CEikEdwin* /*aEdwin*/,
 CESMRViewerFromField::CESMRViewerFromField( )
     {
     FUNC_LOG;
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -304,6 +302,8 @@ void CESMRViewerFromField::ConstructL( )
     CESMRField::ConstructL( iRichTextViewer ); // ownership transferred
     iRichTextViewer->SetEdwinSizeObserver ( this );
     iRichTextViewer->SetParent( this );
+
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -335,10 +335,7 @@ void CESMRViewerFromField::SetOutlineFocusL( TBool aFocus )
     {
     FUNC_LOG;
     CESMRField::SetOutlineFocusL ( aFocus );
-    if ( iRichTextViewer )
-        {
-        iRichTextViewer->SetFocus( aFocus );
-        }
+
     if ( aFocus )
         {
         SetMiddleSoftKeyVisible( ETrue );

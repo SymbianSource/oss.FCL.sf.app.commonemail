@@ -173,6 +173,36 @@ private:
     };
 
 /**
+ * Class for managing the asynchronous creation of a network connection.
+ */
+class CFsEmailUiHtmlViewerAsyncConnection : public CActive
+    {
+public:
+    enum TState
+        {
+        EFinishConnection,
+        EResetRequested
+        };
+public:
+    CFsEmailUiHtmlViewerAsyncConnection( RConnection& aConnection );
+    ~CFsEmailUiHtmlViewerAsyncConnection();
+    
+    TInt StartConnectL( TConnPref& aConnPref );
+    void RunL();
+    void DoCancel();
+    
+    TBool CancelConnection( CBrCtlInterface* aBrCtrlInterface, TBool aReset, TBool aDisconnect );
+    
+private:
+    RConnection& iConnection;
+    TState iState;
+    TBool iRequestCancelled;
+    CActiveSchedulerWait* iWait;
+    CBrCtlInterface* iBrCtlInterface;
+    TBool iDisconnect;
+    };
+
+/**
  * Html viewer container.
  */
 class CFsEmailUiHtmlViewerContainer : public CCoeControl,
@@ -264,7 +294,8 @@ public:
     // Zoom handling
     void ZoomInL();
     void ZoomOutL();
-    TInt ZoomLevelL() const;
+    TInt NextZoomLevelL() const;
+    TInt PreviousZoomLevelL() const;
     void SetZoomLevelL( const TInt aZoomLevel );
     TInt MaxZoomLevel() const;
 
@@ -399,6 +430,9 @@ private: // data
     MTouchFeedback* iTouchFeedBack;
     TBitFlags iFlags;
     TInt iZoomLevel;
+    
+    CFsEmailUiHtmlViewerAsyncConnection* iAsyncConnector;
+
     };
 
 

@@ -1559,6 +1559,10 @@ RESOURCE TBUF r_qtn_meet_req_response_decline
     }
 RESOURCE TBUF r_qtn_meet_req_options_remove_from_cal
     {
+    buf = qtn_meet_req_options_remove_from_cal;
+    }
+RESOURCE TBUF r_qtn_meet_req_options_delete_event
+    {
     buf = qtn_meet_req_options_delete_event;
     }
 RESOURCE TBUF r_qtn_meet_req_response_occurs_past

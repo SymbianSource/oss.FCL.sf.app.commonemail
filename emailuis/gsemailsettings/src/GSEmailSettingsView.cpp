@@ -73,7 +73,7 @@ CGSEmailSettingsView* CGSEmailSettingsView::NewLC()
 // -----------------------------------------------------------------------------
 //
 EXPORT_C CGSEmailSettingsView::CGSEmailSettingsView()
-	: iResourceLoader( *iCoeEnv  )
+	: iCaptionText( NULL )
 	{
     FUNC_LOG;
 	}
@@ -86,7 +86,9 @@ EXPORT_C CGSEmailSettingsView::CGSEmailSettingsView()
 CGSEmailSettingsView::~CGSEmailSettingsView()
 	{
     FUNC_LOG;
-    iResourceLoader.Close(); 
+    
+    delete iCaptionText;
+    iCaptionText = NULL;
     }
 
 // -----------------------------------------------------------------------------
@@ -100,18 +102,27 @@ void CGSEmailSettingsView::ConstructL()
 	TFileName resFile;
 	resFile.Append( KDC_APP_RESOURCE_DIR );
 	resFile.Append( KEmailSettingsAppResourceFile );
-	RProcess process;
-	TFileName exeFileName = process.FileName();
+	// Load resource file from the same drive as where our plugin dll is loaded
+    TFileName dllFileName;
+    Dll::FileName( dllFileName );
 	TParse parse;
 	            
-	User::LeaveIfError( parse.Set( resFile, &exeFileName, NULL ) );
+	User::LeaveIfError( parse.Set( resFile, &dllFileName, NULL ) );
 	TFileName fileName( parse.FullName() );
     // Get language of resource file
     BaflUtils::NearestLanguageFile( iCoeEnv->FsSession(), fileName );
     // Open resource file
-    TRAP_IGNORE( iResourceLoader.OpenL( fileName ) ); 
+    RConeResourceLoader resourceLoader( *iCoeEnv  );
+    TRAP_IGNORE( resourceLoader.OpenL( fileName ) );
+    
+    BaseConstructL( R_EMAIL_GS_SETTING_LIST_VIEW );
+    
+    // Save caption text for later use
+    iCaptionText = StringLoader::LoadL( R_FS_EMAIL_GS_APP_SHORT_NAME  );
 
-    BaseConstructL( R_EMAIL_GS_SETTING_LIST_VIEW );	
+    // Free the resource file as we don't need it anymore. This prevents
+    // (un)installation failures even if the plugin is kept loaded.
+    resourceLoader.Close();
 	}
 
 // -----------------------------------------------------------------------------
@@ -123,10 +134,10 @@ void CGSEmailSettingsView::GetCaptionL( TDes& aCaption ) const
     {
     FUNC_LOG;
 
-    HBufC* text = StringLoader::LoadLC( R_FS_EMAIL_GS_APP_SHORT_NAME  );
-    aCaption.Copy( *text );
-    CleanupStack::PopAndDestroy( text );
-
+    if( iCaptionText )
+        {
+        aCaption.Copy( *iCaptionText );
+        }
     }
     
 // -----------------------------------------------------------------------------
@@ -162,10 +173,9 @@ void CGSEmailSettingsView::HandleSelection( const TGSSelectionTypes /*aSelection
     TInt tmp = 1;
     const TPckgBuf<TInt> pkgBuf( tmp );
     TVwsViewId pluginViewId = TVwsViewId( KFSEmailUiUid, SettingsViewId );
-    // <cmail>
+
     TRAP_IGNORE( ActivateViewL(
         pluginViewId, TUid::Uid(KOpenMailSettingsFromGS), pkgBuf ) );
-    // </cmail>
     }
 
 // ---------------------------------------------------------------------------
@@ -181,11 +191,13 @@ CGulIcon* CGSEmailSettingsView::CreateIconL( const TUid aIconType )
 	    TFileName resFile;
         resFile.Append( KDC_BITMAP_DIR );
         resFile.Append( KIconPath );
-        RProcess process;
-        TFileName exeFileName = process.FileName();
+        // Correct icon file should be in same drive as the Email application,
+        // which in turn should be same as from where our plugin dll is loaded
+        TFileName dllFileName;
+        Dll::FileName( dllFileName );
         TParse parse;
 	                    
-        User::LeaveIfError( parse.Set( resFile, &exeFileName, NULL ) );
+        User::LeaveIfError( parse.Set( resFile, &dllFileName, NULL ) );
         TFileName iconFileName( parse.FullName() );
 	    
 	    CFbsBitmap* bitmap(0);

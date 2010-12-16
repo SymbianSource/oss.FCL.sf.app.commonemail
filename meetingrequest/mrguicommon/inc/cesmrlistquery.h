@@ -63,6 +63,7 @@ NONSHARABLE_CLASS( CESMRListQuery ) : public CBase
             EESMRUnifiedEditorPopup,
             EESMRNormalResponseQuery,
             EESMRRemoveResponseQuery,
+            EESMRDeleteEventResponseQuery,
             EESMRMultiCalenQuery,
             EESMRForwardThisOccurenceOrSeriesQuery
             };

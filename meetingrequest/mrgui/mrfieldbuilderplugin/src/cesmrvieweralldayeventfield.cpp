@@ -97,7 +97,7 @@ void CESMRViewerAllDayEventField::InternalizeL( MESMRCalEntry& aEntry )
     if ( aEntry.IsAllDayEventL() )
         {
         HBufC* allDayEventText =
-            StringLoader::LoadLC( R_QTN_MEET_REQ_ALL_DAY_EVENT, iEikonEnv );
+            StringLoader::LoadLC( R_QTN_MEET_REQ_ALL_DAY_EVENT, iCoeEnv );
         iLabel->SetTextL( *allDayEventText );
         CleanupStack::PopAndDestroy( allDayEventText );
         }
@@ -106,6 +106,7 @@ void CESMRViewerAllDayEventField::InternalizeL( MESMRCalEntry& aEntry )
         // set the field as hidden:
         MakeVisible( EFalse );
         }
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------

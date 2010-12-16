@@ -132,6 +132,12 @@ private:
      */
     inline TInt GetMailboxLogicIndex( TMsvId aMailboxId );
 
+    /*
+     * Removes alwaysonline logics if their mailbox has already 
+     * been deleted.
+     */
+    void RemoveOrphanLogicsL();
+    
 private:
     
     CMsvSession&                        iSession;

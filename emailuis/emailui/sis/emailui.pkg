@@ -39,19 +39,28 @@
 "\epoc32\data\Z\private\10202BE9\2001E277.txt"                   - "c:\private\10202be9\2001E277.txt"
 "\epoc32\data\Z\private\2001E277\backup_registration.xml"        - "c:\private\2001E277\backup_registration.xml"
 
-"\epoc32\data\z\private\2001E277\HtmlFile\attachment.gif"        - "c:\private\2001E277\HtmlFile\attachment.gif"
-"\epoc32\data\z\private\2001E277\HtmlFile\email.html"            - "c:\private\2001E277\HtmlFile\email.html"
-"\epoc32\data\z\private\2001E277\HtmlFile\email_rtl.html"            - "c:\private\2001E277\HtmlFile\email_rtl.html"
-"\epoc32\data\z\private\2001E277\HtmlFile\header.js"             - "c:\private\2001E277\HtmlFile\header.js"
-"\epoc32\data\z\private\2001E277\HtmlFile\plus.gif"              - "c:\private\2001E277\HtmlFile\plus.gif"
-"\epoc32\data\z\private\2001E277\HtmlFile\minus.gif"             - "c:\private\2001E277\HtmlFile\minus.gif"
-"\epoc32\data\z\private\2001E277\HtmlFile\follow_up.png"         - "c:\private\2001E277\HtmlFile\follow_up.png"
-"\epoc32\data\z\private\2001E277\HtmlFile\follow_up_complete.png" - "c:\private\2001E277\HtmlFile\follow_up_complete.png"
-"\epoc32\data\z\private\2001E277\HtmlFile\todo_high_add.png"     - "c:\private\2001E277\HtmlFile\todo_high_add.png"
-"\epoc32\data\z\private\2001E277\HtmlFile\todo_low_add.png"      - "c:\private\2001E277\HtmlFile\todo_low_add.png"
+; HTML viewer
+"\epoc32\data\z\private\2001E277\HtmlFile\email.html"               - "c:\private\2001E277\HtmlFile\email.html"
+"\epoc32\data\z\private\2001E277\HtmlFile\email_rtl.html"           - "c:\private\2001E277\HtmlFile\email_rtl.html"
+"\epoc32\data\z\private\2001E277\HtmlFile\header.js"                - "c:\private\2001E277\HtmlFile\header.js"
+"\epoc32\data\z\private\2001E277\HtmlFile\header.css"               - "c:\private\2001E277\HtmlFile\header.css"
+"\epoc32\data\z\private\2001E277\HtmlFile\email.js"                 - "c:\private\2001E277\HtmlFile\email.js"
+"\epoc32\data\z\private\2001E277\HtmlFile\follow_up.png"            - "c:\private\2001E277\HtmlFile\follow_up.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\follow_up_complete.png"   - "c:\private\2001E277\HtmlFile\follow_up_complete.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\btn_right.png"            - "c:\private\2001E277\HtmlFile\btn_right.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\btn_left.png"             - "c:\private\2001E277\HtmlFile\btn_left.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\priority_high.png"        - "c:\private\2001E277\HtmlFile\priority_high.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\priority_low.png"         - "c:\private\2001E277\HtmlFile\priority_low.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\attachment.png"           - "c:\private\2001E277\HtmlFile\attachment.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\hidden.png"               - "c:\private\2001E277\HtmlFile\hidden.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\expand.png"               - "c:\private\2001E277\HtmlFile\expand.png"
+"\epoc32\data\z\private\2001E277\HtmlFile\collapse.png"             - "c:\private\2001E277\HtmlFile\collapse.png"
+; Install also the flag file to indicate that html-viewer related files are
+; up to date in c-drive. This way also this flag gets removed along with other
+; files when the update is uninstalled, and hence they get copied from z-drive
+; where the application is also run after uninstallation -> files stay in sync.
+"..\data\html\html.flag"                                            - "c:\private\2001E277\HtmlFile\html.flag"
 
 ; Emailuis / uicomponents
 "\epoc32\release\armv5\urel\fs_generic.dll"                      - "c:\sys\bin\fs_generic.dll"
-"\epoc32\release\armv5\urel\fsscrollbarplugin.dll"               - "c:\sys\bin\fsscrollbarplugin.dll"
-"\epoc32\data\Z\Resource\Plugins\fsscrollbarplugin.rsc"          - "c:\resource\plugins\fsscrollbarplugin.rsc"
 "\epoc32\data\Z\private\10202BE9\2001E280.txt"                   - "c:\private\10202be9\2001E280.txt"

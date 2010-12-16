@@ -67,7 +67,7 @@
 CESMRView::CESMRView( MESMRFieldStorage* aStorage,
         MESMRCalEntry& aEntry,
         MMRFocusStrategy& aFocusStrategy,
-        MESMRNaviArrowEventObserver* aObserver, 
+        MESMRNaviArrowEventObserver* aObserver,
         CMRToolbar& aToolbar )
     : iStorage( aStorage ),
       iEntry( &aEntry ),
@@ -92,7 +92,7 @@ CESMRView* CESMRView::NewL(
         MESMRNaviArrowEventObserver* aObserver )
     {
     FUNC_LOG;
-    CESMRView* self = new (ELeave) CESMRView( 
+    CESMRView* self = new (ELeave) CESMRView(
             aStorage, aEntry, aFocusStrategy, aObserver, aToolbar );
     CleanupStack::PushL( self );
     self->ConstructL( aRect );
@@ -109,6 +109,7 @@ void CESMRView::ConstructL( const TRect& aRect )
     FUNC_LOG;
     CreateWindowL();
     SetRect( aRect );
+    SetBackground( this );
     }
 
 // ---------------------------------------------------------------------------
@@ -148,6 +149,7 @@ void CESMRView::InternalizeL()
     // internalize all fields:
     iListPane->InternalizeL( *iEntry );
     iListPane->DisableSizeChange( EFalse );
+
     iListPane->SizeChanged();
     }
 
@@ -202,12 +204,12 @@ void CESMRView::ProcessEditorCommandL( TInt aCommand )
                     {
                     iControls.Remove( pos );
                     }
-                    
+
                 delete iAttachmentIndicator;
                 iAttachmentIndicator = NULL;
-                
+
                 SizeChanged();
-                }            
+                }
             }
             break;
         default://forward to fields
@@ -297,7 +299,7 @@ void CESMRView::LaunchViewerHelpL()
             {
             MESMRMeetingRequestEntry* mrEntry =
                static_cast<MESMRMeetingRequestEntry*>( iEntry );
-            
+
             if ( mrEntry->IsOpenedFromMail() )
                 {
                 if ( CFeatureDiscovery::IsFeatureSupportedL(
@@ -316,7 +318,7 @@ void CESMRView::LaunchViewerHelpL()
                 {
                 LaunchHelpL( KFSCA_HLP_VIEWER_ORGANIZER );
                 }
-            else 
+            else
                 {
                 LaunchHelpL( KFSCA_HLP_VIEWER );
                 }
@@ -563,7 +565,7 @@ void CESMRView::SetContainerWindowL( const CCoeControl& aContainer )
     iScrollBar->MakeVisible( ETrue );
 
     iControls.AppendL( iScrollBar );
-    
+
     iListPane = CMRListPane::NewL(
             *this,
             *iStorage,
@@ -572,7 +574,7 @@ void CESMRView::SetContainerWindowL( const CCoeControl& aContainer )
             *this );
 
     iControls.AppendL( iListPane );
-    
+
     iListPane->SetBackground( this );
 
     iBgContext = CAknsBasicBackgroundControlContext::NewL(
@@ -602,19 +604,19 @@ void CESMRView::SetContainerWindowL( const CCoeControl& aContainer )
                         NMRLayoutManager::GetLayoutRect( Rect(),
                                 NMRLayoutManager::EMRLayoutMRNaviArrowRight );
             TRect naviArrowRect( naviArrowRightLayoutRect.Rect() );
-            
+
             iNaviArrowLeft = CMRNaviArrow::NewL(
-                    this, 
-                    CMRNaviArrow::EMRArrowLeft, 
-            		iObserver, 
+                    this,
+                    CMRNaviArrow::EMRArrowLeft,
+            		iObserver,
             		naviArrowRect.Size()  );
-            
-            iNaviArrowRight = CMRNaviArrow::NewL( 
-                    this, 
-                    CMRNaviArrow::EMRArrowRight, 
-            		iObserver, 
+
+            iNaviArrowRight = CMRNaviArrow::NewL(
+                    this,
+                    CMRNaviArrow::EMRArrowRight,
+            		iObserver,
             		naviArrowRect.Size() );
-            
+
             iControls.AppendL( iNaviArrowLeft );
             iControls.AppendL( iNaviArrowRight );
             }
@@ -648,178 +650,85 @@ CCoeControl* CESMRView::ComponentControl( TInt aInd ) const
 void CESMRView::SizeChanged()
     {
     FUNC_LOG;
-    
+
     // If list pane is not yet constructed, no point in layouting anything
     if( !iListPane )
         {
         return;
         }
-    
+
     // Remove possible intersection with toolbar from container rect
     TRect containerRect( ContainerRect() );
-    
+
     // Now toolbar does not intersect with view, so it must not be taken
     // into account when calculating other component layouts.
-    containerRect.SetRect( TPoint( 0, 0 ), containerRect.Size() );
-    
-    // Get the rect of stripe.
-    TAknLayoutRect stripeLayoutRect =
-        NMRLayoutManager::GetLayoutRect( containerRect,
-                NMRLayoutManager::EMRLayoutStripe );
-    iStripeRect = stripeLayoutRect.Rect();
-    
-    // Layouting listpane, scroll bar and navi arrows in landscape mode
-    if( Layout_Meta_Data::IsLandscapeOrientation() )
+
+    // Layouting listpane and scroll bar
+    TAknLayoutRect listareaLayoutRect =
+            NMRLayoutManager::GetLayoutRect( containerRect,
+                    NMRLayoutManager::EMRLayoutListArea );
+    TRect listareaRect( listareaLayoutRect.Rect() );
+    iListPane->SetRect( listareaRect );
+
+    if( iScrollBar )
+       {
+       TAknLayoutRect scrollareaLayoutRect =
+           NMRLayoutManager::GetLayoutRect( containerRect,
+                   NMRLayoutManager::EMRLayoutScrollBar );
+       TRect scrollareaRect( scrollareaLayoutRect.Rect() );
+       // Scroll bar's height is always the same as listpane's height
+       scrollareaRect.SetHeight( listareaRect.Height() );
+
+       iScrollBar->SetRect( scrollareaRect );
+       }
+
+    // Layouting navi arrows
+    if(iViewMode == EESMRViewMR)
         {
-        TAknLayoutRect listareaLayoutRect =
+        // Get the rect of stripe.
+        TAknLayoutRect stripeLayoutRect =
+            NMRLayoutManager::GetLayoutRect( listareaRect,
+                    NMRLayoutManager::EMRLayoutStripe );
+        TInt width( stripeLayoutRect.Rect().Width() );
+
+        if( iNaviArrowLeft )
+            {
+            TAknLayoutRect naviArrowLeftLayoutRect =
                 NMRLayoutManager::GetLayoutRect( containerRect,
-                        NMRLayoutManager::EMRLayoutListArea );
-        TRect listareaRect( listareaLayoutRect.Rect() );
+                        NMRLayoutManager::EMRLayoutMRNaviArrowLeft );
+            TRect naviArrowLeftRect( naviArrowLeftLayoutRect.Rect() );
 
-        // List panes default rect needs to be modified due to
-        // scrollbar and calendar indication stripe
-        
-        if ( AknLayoutUtils::LayoutMirrored() )
-            {
-            // Remove stripe width from list pane width when align is R to L
-            listareaRect.iBr.iX -= iStripeRect.Width();
+            // Left arrow needs to be moved right the amount of stripe width
+            naviArrowLeftRect.Move( width, 0 );
+
+            iNaviArrowLeft->SetRect( naviArrowLeftRect );
             }
-        else
-            {
-            // Remove stripe width from list pane width when align is L to R
-            listareaRect.iTl.iX += iStripeRect.Width();
-            }
-        
-        if( iScrollBar )
-           {
-           TAknLayoutRect scrollareaLayoutRect =
-               NMRLayoutManager::GetLayoutRect( containerRect,
-                       NMRLayoutManager::EMRLayoutScrollBar );
-           TRect scrollareaRect( scrollareaLayoutRect.Rect() );
-           // Scroll bar's height is always the same as listpane's height
-           scrollareaRect.SetHeight( listareaRect.Height() );
-           
-           iScrollBar->SetRect( scrollareaRect );
-           }
 
-        iListPane->SetRect( listareaRect );
-        
-        // Make sure, that stripe height is the list pane height
-        iStripeRect.SetHeight( iListPane->Rect().Height() );
-
-        if(iViewMode == EESMRViewMR)
+        if( iNaviArrowRight )
             {
-            if( iNaviArrowLeft )
-                {
-                TAknLayoutRect naviArrowLeftLayoutRect =
+            TAknLayoutRect naviArrowRightLayoutRect =
                     NMRLayoutManager::GetLayoutRect( containerRect,
-                            NMRLayoutManager::EMRLayoutMRNaviArrowLeft );
-                TRect naviArrowLeftRect( naviArrowLeftLayoutRect.Rect() );
-    
-                // Left arrow needs to be moved right the amount of
-                // stripe width in landscape
-                naviArrowLeftRect.Move( iStripeRect.Width(), 0 );
-                
-                iNaviArrowLeft->SetRect( naviArrowLeftRect );
-                }
-    
-            if( iNaviArrowRight )
-                {
-                TAknLayoutRect naviArrowRightLayoutRect =
-                        NMRLayoutManager::GetLayoutRect( containerRect,
-                                NMRLayoutManager::EMRLayoutMRNaviArrowRight );
-                TRect naviArrowRightRect( naviArrowRightLayoutRect.Rect() );
-    
-                // Right arrow needs to be moved right the amount of
-                // stripe width in landscape
-                naviArrowRightRect.Move( iStripeRect.Width(), 0 );
+                            NMRLayoutManager::EMRLayoutMRNaviArrowRight );
+            TRect naviArrowRightRect( naviArrowRightLayoutRect.Rect() );
 
-                iNaviArrowRight->SetRect( naviArrowRightRect );
-                }
-            }
-        else
-            {
-            SetNaviArrowStatus( EFalse, EFalse );
+            // Right arrow needs to be moved right the amount of stripe width
+            naviArrowRightRect.Move( width, 0 );
+
+            iNaviArrowRight->SetRect( naviArrowRightRect );
             }
         }
-
-    // Layouting listpane, scroll bar and navi arrows in portrait mode
     else
         {
-        TAknLayoutRect listareaLayoutRect =
-               NMRLayoutManager::GetLayoutRect( containerRect,
-                       NMRLayoutManager::EMRLayoutListArea );
-        TRect listareaRect( listareaLayoutRect.Rect() );
-        
-        if ( AknLayoutUtils::LayoutMirrored() )
-            {
-            // Remove stripe width from list pane width when align is R to L
-            listareaRect.iBr.iX -= iStripeRect.Width();
-            }
-        else
-            {
-            // Remove stripe width from list pane width when align is L to R
-            listareaRect.iTl.iX += iStripeRect.Width();
-            }
-                
-        iListPane->SetRect( listareaRect );
-        
-        if( iScrollBar )
-           {
-           TAknLayoutRect scrollareaLayoutRect =
-               NMRLayoutManager::GetLayoutRect( containerRect,
-                       NMRLayoutManager::EMRLayoutScrollBar );
-           TRect scrollareaRect( scrollareaLayoutRect.Rect() );
-           // Scroll bar's height is always the same as listpane's height
-           scrollareaRect.SetHeight( iListPane->Rect().Height() );
-           iScrollBar->SetRect( scrollareaRect );
-           }
-        
-        // Make sure, that stripe height is the list pane height
-        iStripeRect.SetHeight( iListPane->Rect().Height() );
-
-        if(iViewMode == EESMRViewMR)
-            {
-            if( iNaviArrowLeft )
-                {
-                TAknLayoutRect naviArrowLeftLayoutRect =
-                    NMRLayoutManager::GetLayoutRect( containerRect,
-                            NMRLayoutManager::EMRLayoutMRNaviArrowLeft );
-                TRect naviArrowLeftRect( naviArrowLeftLayoutRect.Rect() );
-            
-                // Left arrow needs to be moved right the amount of
-                // stripe width in portrait
-                naviArrowLeftRect.Move( iStripeRect.Width(), 0 );
-                
-                iNaviArrowLeft->SetRect( naviArrowLeftRect );
-                }
-            
-            if( iNaviArrowRight )
-                {
-                TAknLayoutRect naviArrowRightLayoutRect =
-                        NMRLayoutManager::GetLayoutRect( containerRect,
-                                NMRLayoutManager::EMRLayoutMRNaviArrowRight );
-                TRect naviArrowRightRect( naviArrowRightLayoutRect.Rect() );
-            
-                // Right arrow needs to be moved right the amount of
-                // stripe width in portrait
-                naviArrowRightRect.Move( iStripeRect.Width(), 0 );
-                
-                iNaviArrowRight->SetRect( naviArrowRightRect );
-                }
-            }
-        else
-            {
-            SetNaviArrowStatus( EFalse, EFalse );
-            }
+        SetNaviArrowStatus( EFalse, EFalse );
         }
-    
+
+    // Layout attachment indicator
     if ( iAttachmentIndicator )
         {
-        iAttachmentIndicator->SetRect( 
+        iAttachmentIndicator->SetRect(
                 CalculateAttachmentIndicatorLayout() );
         }
-    
+
     if( iBgContext )
         {
         iBgContext->SetRect( containerRect );
@@ -880,47 +789,22 @@ TKeyResponse CESMRView::OfferKeyEventL(
 
 // ---------------------------------------------------------------------------
 // CESMRView::Draw
-// This Draw is called when background for title pane (iTitle) is drawn
-// ---------------------------------------------------------------------------
-//
-void CESMRView::Draw( const TRect& aRect ) const
-    {
-    FUNC_LOG;
-    CWindowGc& gc = SystemGc();
-
-    // Draw the background for iTitle using the current skin
-    MAknsSkinInstance* skin = AknsUtils::SkinInstance();
-    MAknsControlContext* cc = AknsDrawUtils::ControlContext( this );
-    AknsDrawUtils::Background( skin, cc, this, gc, aRect );
-
-    // Draw color stripe
-    MESMRCalDbMgr& DbMgr = iEntry->GetDBMgr();
-
-    TRgb stripeColor = DbMgr.GetCurCalendarColor();
-    gc.SetBrushStyle( CGraphicsContext::ESolidBrush );
-    gc.SetBrushColor( stripeColor );
-    gc.DrawRect( iStripeRect );
-
-    gc.Reset();
-    }
-
-// ---------------------------------------------------------------------------
-// CESMRView::Draw
-// This draw method draws the dialog area
+// This Draw is called when background is drawn
 // ---------------------------------------------------------------------------
 //
 void CESMRView::Draw(
-		CWindowGc& /* aGc */,
+		CWindowGc& aGc,
 		const CCoeControl& aControl,
-		const TRect& /*aRect*/) const
+		const TRect& aRect ) const
     {
     FUNC_LOG;
-    CWindowGc& gc = SystemGc();
 
     // Draw the background for aControl using the current skin
     MAknsSkinInstance* skin = AknsUtils::SkinInstance();
     MAknsControlContext* cc = AknsDrawUtils::ControlContext( this );
-    AknsDrawUtils::Background( skin, cc, &aControl, gc, aControl.Rect() );
+    TRect rect( aRect );
+    rect.Intersection( Rect() );
+    AknsDrawUtils::Background( skin, cc, &aControl, aGc, rect );
     }
 
 // ---------------------------------------------------------------------------
@@ -963,7 +847,7 @@ void CESMRView::HandleResourceChange( TInt aType )
     CCoeControl::HandleResourceChange( aType );
     TInt error = KErrNone;
     TBool record = ETrue;
-    
+
     switch ( aType )
         {
         case  KAknsMessageSkinChange:
@@ -979,7 +863,6 @@ void CESMRView::HandleResourceChange( TInt aType )
         case KEikDynamicLayoutVariantSwitch:
         case KAknLocalZoomLayoutSwitch:
             {
-            SizeChanged();
             break;
             }
         default:
@@ -994,7 +877,7 @@ void CESMRView::HandleResourceChange( TInt aType )
         record = EFalse;
         iCoeEnv->HandleError( error );
         }
-    
+
     if ( record )
         {
         iListPane->RecordFields();
@@ -1064,8 +947,8 @@ void CESMRView::DynInitMenuPaneL(
 // CESMRView::SetNaviArrowStatus
 // ---------------------------------------------------------------------------
 //
-void CESMRView::SetNaviArrowStatus( 
-        TBool aLeftArrowVisible, 
+void CESMRView::SetNaviArrowStatus(
+        TBool aLeftArrowVisible,
         TBool aRightArrowVisible )
     {
     FUNC_LOG;
@@ -1108,40 +991,40 @@ void CESMRView::ProcessEventL( const MESMRFieldEvent& aEvent )
     if ( MESMRFieldEvent::EESMRFieldChangeEvent ==  aEvent.Type() )
         {
         TInt* fieldId = static_cast< TInt* >( aEvent.Param( 0 ) );
-        
+
         if ( EESMRFieldViewerAttachments == *fieldId )
             {
             if ( !iAttachmentIndicator )
                 {
-                TRect attachmentDownloadIndicatorRect( 
+                TRect attachmentDownloadIndicatorRect(
                         CalculateAttachmentIndicatorLayout() );
-                
-                iAttachmentIndicator = CMRAttachmentIndicator::NewL( 
-                        attachmentDownloadIndicatorRect, 
+
+                iAttachmentIndicator = CMRAttachmentIndicator::NewL(
+                        attachmentDownloadIndicatorRect,
                         this );
-    
+
                 CFbsBitmap* bitMap( NULL );
                 CFbsBitmap* bitMapMask( NULL );
                 TSize size( 0,0 );
                 NMRBitmapManager::GetSkinBasedBitmapLC(
                                 NMRBitmapManager::EMRBitmapDownloadAttachment,
                                 bitMap, bitMapMask, size );
-                
+
                 CleanupStack::Pop( 2 ); // bitMap, bitMapMask
-                
-                
-                
+
+
+
                 iAttachmentIndicator->SetImage( bitMap, bitMapMask );
                 iControls.AppendL( iAttachmentIndicator );
                 }
-            
+
             MESMRFieldEventValue* value =
                     static_cast< MESMRFieldEventValue* >( aEvent.Param( 1 ) );
-            
-            iAttachmentIndicator->SetTextL( value->StringValue() );            
+
+            iAttachmentIndicator->SetTextL( value->StringValue() );
             iAttachmentIndicator->MakeVisible( ETrue );
-            
-            SizeChanged();        
+
+            SizeChanged();
             }
         }
     }
@@ -1153,13 +1036,13 @@ void CESMRView::ProcessEventL( const MESMRFieldEvent& aEvent )
 TRect CESMRView::CalculateAttachmentIndicatorLayout()
     {
     TRect containerRect( ContainerRect() );
-    
+
 
 	TAknLayoutRect naviArrowLeftLayoutRect =
 			NMRLayoutManager::GetLayoutRect( containerRect,
-					NMRLayoutManager::EMRLayoutMRNaviArrowLeft );    
+					NMRLayoutManager::EMRLayoutMRNaviArrowLeft );
 	TRect naviArrowLeftRect = naviArrowLeftLayoutRect.Rect();
-	
+
 	TAknLayoutRect naviArrowRightLayoutRect =
 			NMRLayoutManager::GetLayoutRect( containerRect,
 					NMRLayoutManager::EMRLayoutMRNaviArrowRight );
@@ -1170,46 +1053,52 @@ TRect CESMRView::CalculateAttachmentIndicatorLayout()
 		naviArrowLeftRect = naviArrowRightLayoutRect.Rect();
 		naviArrowRightRect= naviArrowLeftLayoutRect.Rect();
 		}
-	
+
+	// Get the rect of stripe.
+    TAknLayoutRect stripeLayoutRect =
+        NMRLayoutManager::GetLayoutRect( iListPane->Rect(),
+                NMRLayoutManager::EMRLayoutStripe );
+    TInt width( stripeLayoutRect.Rect().Width() );
+
     if( Layout_Meta_Data::IsLandscapeOrientation() )
-        {                
-        naviArrowLeftRect.Move( iStripeRect.Width(), 0 );
+        {
+        naviArrowLeftRect.Move( width, 0 );
 
         TInt scrollWidth( 0 );
         if( iScrollBar )
             {
             scrollWidth = iScrollBar->Rect().Width();
             }
-        
-        naviArrowRightRect.Move( scrollWidth, 0 );    
+
+        naviArrowRightRect.Move( scrollWidth, 0 );
         }
     else
         {
         // Left arrow needs to be moved right the amount of
         // stripe width in portrait
-        naviArrowLeftRect.Move( iStripeRect.Width(), 0 );
-        
-        TRect naviArrowRightRect = naviArrowRightLayoutRect.Rect();
-        
-        naviArrowRightRect.Move( iStripeRect.Width(), 0 );
-        }   
+        naviArrowLeftRect.Move( width, 0 );
 
-    // Get height for one row 
-    TAknLayoutRect rowLayout = 
-        NMRLayoutManager::GetLayoutRect( 
+        TRect naviArrowRightRect = naviArrowRightLayoutRect.Rect();
+
+        naviArrowRightRect.Move( width, 0 );
+        }
+
+    // Get height for one row
+    TAknLayoutRect rowLayout =
+        NMRLayoutManager::GetLayoutRect(
                 containerRect, NMRLayoutManager::EMRLayoutTextEditorIcon );
     TRect rowRect( rowLayout.Rect() );
-    
+
     TRect attachmentIndicatorRect;
-    
-    attachmentIndicatorRect.iTl = 
-                TPoint( naviArrowLeftRect.iBr.iX, 
-                        naviArrowLeftRect.iBr.iY - naviArrowLeftRect.Height() );    
-    
-    attachmentIndicatorRect.iBr = 
-            TPoint(  naviArrowRightRect.iTl.iX, 
+
+    attachmentIndicatorRect.iTl =
+                TPoint( naviArrowLeftRect.iBr.iX,
+                        naviArrowLeftRect.iBr.iY - naviArrowLeftRect.Height() );
+
+    attachmentIndicatorRect.iBr =
+            TPoint(  naviArrowRightRect.iTl.iX,
                     naviArrowLeftRect.iBr.iY );
-    
+
     return attachmentIndicatorRect;
     }
 
@@ -1237,7 +1126,7 @@ TRect CESMRView::ContainerRect() const
     // Now toolbar does not intersect with view, so it must not be taken
     // into account when calculating other component layouts.
     containerRect.SetRect( TPoint( 0, 0 ), containerRect.Size() );
-    
+
     return containerRect;
     }
 

@@ -21,6 +21,8 @@
 // Constants and defines
 const TInt KFetchOpPriority = CActive::EPriorityStandard;
 const TInt KIpsPlgSelectionGra = 16;
+//const TInt KIpsImap4PopulateMaxAmountFetchAtOnce = 35;
+const TInt KIpsImap4PopulateSelectionMaxCount = 3;
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -81,7 +83,8 @@ CIpsPlgImap4PopulateOp::CIpsPlgImap4PopulateOp(
     aFSRequestId),
     iPartialMailInfo(aPartialMailInfo),
     iSelection( KIpsPlgSelectionGra ),
-    iEventHandler( aEventHandler )
+    iEventHandler( aEventHandler ),
+    iSyncStartedSignaled(EFalse)
     {
     FUNC_LOG;
     iService = aService;
@@ -202,23 +205,9 @@ void CIpsPlgImap4PopulateOp::DoRunL()
             DoPopulateL();
             break;
             }
-        case EStateFetching:         
+        case EStateFetchAndCheckConnectionChange:
             {
-            if( err != KErrNone && iOperation )
-                {
-                iFetchErrorProgress = iOperation->ProgressL().AllocL();
-                iState = EStateIdle;
-                Complete();
-                }
-            else
-                {
-                
-                }
-            break;
-            }
-        case EStateInfoEntryChange:
-            {
-			TMsvEntry tentry;
+            TMsvEntry tentry;
             TMsvId service;
             iMsvSession.GetEntry( iService, service, tentry );
           
@@ -228,12 +217,13 @@ void CIpsPlgImap4PopulateOp::DoRunL()
             	}  
             else
             	{
-				iState = EStateIdle;
-				CompleteObserver( err );
+            	iState = EStateIdle;
+            	CompleteObserver( err );
             	}            
             break;
             }
         case EStateIdle:
+            iSyncStartedSignaled = EFalse;
         default:
             break;
         }
@@ -289,7 +279,7 @@ TFSProgress CIpsPlgImap4PopulateOp::GetFSProgressL() const
         case EStateConnecting:
             result.iProgressStatus = TFSProgress::EFSStatus_Connecting;
             break;
-        case EStateFetching:
+        case EStateFetchAndCheckConnectionChange:
             result.iProgressStatus = TFSProgress::EFSStatus_Connected;
             break;
         default:
@@ -339,42 +329,50 @@ void CIpsPlgImap4PopulateOp::FilterSelectionL(
     FUNC_LOG;
     iSelection.Reset();
     TMsvId messageId;
-    // NOTE: this code is taken from symbian os source IMPCMTM.CPP
-    // filter selection is in here because messages are
-    // fetched separately then we dont have to make unneccessery imap 
-    // client mtm calls
-
-    for (TInt i=0; i<aSelection.Count(); i++)
+   // bool doFetchMore = ETrue;
+    
+    for (TInt i=0; i<aSelection.Count() /*&& doFetchMore*/; i++)
         {
         messageId = (aSelection)[i];
         if ( messageId == iService )
             {
             continue;
             }
+        
         TMsvEmailEntry entry;
         TMsvId service = KMsvNullIndexEntryId;          
         User::LeaveIfError(iMsvSession.GetEntry(messageId, service, entry));
         
-        TBool isComplete = !(   ( entry.Complete() && entry.PartialDownloaded() ) 
-                             || ( !entry.Complete() && ( !entry.BodyTextComplete() 
-                             || ( iPartialMailInfo.iGetMailBodyParts == EGetImap4EmailBodyTextAndAttachments ) ) 
-                                  && !entry.PartialDownloaded() ) );
-
-        TBool isMsgEntry = entry.iType == KUidMsvMessageEntry;
-        TBool isSizeUnderMax = entry.iSize <= iPartialMailInfo.iMaxEmailSize;
-        TBool isParentComp = entry.Parent() == 
-            iPartialMailInfo.iDestinationFolder && isComplete;
+        if (!entry.Complete())
+            {
+            if (iPartialMailInfo.iGetMailBodyParts == EGetImap4EmailBodyAlternativeText
+                    && iPartialMailInfo.iTotalSizeLimit == KMaxTInt)
+                {
+                if (!entry.BodyTextComplete())
+                    {
+                    INFO( "CIpsPlgImap4PopulateOp::FilterSelectionL: added to body text fetch" );
+                    iSelection.AppendL(messageId); 
+                    }
+                }
+            else if (iPartialMailInfo.iGetMailBodyParts == EGetImap4EmailBodyTextAndAttachments)
+                {
+                INFO( "CIpsPlgImap4PopulateOp::FilterSelectionL: added to all content fetch" );
+                iSelection.AppendL(messageId); 
+                }
+            else
+                {
+                if (!entry.BodyTextComplete() && !entry.PartialDownloaded()) 
+                    {
+                    INFO( "CIpsPlgImap4PopulateOp::FilterSelectionL: partial download" );
+                    iSelection.AppendL(messageId); 
+                    }
+                }
+            }
         
-        if( IsPartialPopulate( )
-              && !isComplete
-              && entry.iType == KUidMsvMessageEntry )
+        /*if (iSelection.Count() >= KIpsImap4PopulateMaxAmountFetchAtOnce)
             {
-            iSelection.AppendL(messageId); 
-            }
-        else if ( isMsgEntry && isSizeUnderMax && !isParentComp )
-            {
-            iSelection.AppendL(messageId);
-            }
+            doFetchMore = EFalse;
+            }*/
         }
     }
 
@@ -386,7 +384,7 @@ TBool CIpsPlgImap4PopulateOp::IsPartialPopulate( )
     // NOTE: this code is taken from symbian os source IMPCMTM.CPP
     // code is modified to this class purpose 
     
-    TBool isPartialPopulate = EFalse;
+    /*TBool isPartialPopulate = EFalse;
     if(iPartialMailInfo.iPartialMailOptions == ENoSizeLimits &&
        iPartialMailInfo.iTotalSizeLimit == KMaxTInt &&
        iPartialMailInfo.iBodyTextSizeLimit == KMaxTInt && 
@@ -404,7 +402,8 @@ TBool CIpsPlgImap4PopulateOp::IsPartialPopulate( )
         isPartialPopulate = ETrue;
         }
 
-    return isPartialPopulate;
+    return isPartialPopulate;*/
+    return EFalse;
     }
 
 // ----------------------------------------------------------------------------
@@ -414,20 +413,30 @@ void CIpsPlgImap4PopulateOp::DoPopulateL( )
     FUNC_LOG;
     if ( iSelection.Count() > 0 )
         {
-        TMsvEmailEntry tEntry;
-        TMsvId dummy;
         TInt lastIndex = iSelection.Count()-1;
-        User::LeaveIfError( iMsvSession.GetEntry(
-                iSelection[lastIndex], dummy, tEntry ) );
-        
-        iState = EStateFetching;
-
         iTempSelection->Reset();
         iTempSelection->AppendL( iService );
-        iTempSelection->AppendL( iSelection[lastIndex] );
-        iSelection.Remove(lastIndex);
         
-        
+        if (iSelection.Count() >= KIpsImap4PopulateSelectionMaxCount)
+            {
+            TInt i = KIpsImap4PopulateSelectionMaxCount;
+            while (i > 0)
+                {
+                iTempSelection->AppendL(iSelection[lastIndex]);
+                iSelection.Remove(lastIndex);
+                lastIndex--;
+                i--;
+                }
+            }
+        else
+            {
+            while (iSelection.Count() > 0)
+                {
+                iTempSelection->AppendL(iSelection[lastIndex]);
+                iSelection.Remove(lastIndex);
+                lastIndex--;
+                }
+            }
         iStatus = KRequestPending;
     
         // Filters are not used when performing 'fetch'
@@ -437,13 +446,14 @@ void CIpsPlgImap4PopulateOp::DoPopulateL( )
         iOperation = iBaseMtm->InvokeAsyncFunctionL(
                 KIMAP4MTMPopulateMailSelectionWhenAlreadyConnected, 
                 *iTempSelection, param, this->iStatus);
-        iState = EStateInfoEntryChange;
+        iState = EStateFetchAndCheckConnectionChange;
         SetActive();
         
-        if ( iEventHandler )
+        if ( iEventHandler && !iSyncStartedSignaled )
               {
               iEventHandler->SetNewPropertyEvent( 
                       iService, KIpsSosEmailSyncStarted, KErrNone );
+              iSyncStartedSignaled = ETrue;
               } 
         }
     else
@@ -455,6 +465,7 @@ void CIpsPlgImap4PopulateOp::DoPopulateL( )
             {
             iEventHandler->SetNewPropertyEvent( 
                 iService, KIpsSosEmailSyncCompleted, KErrNone );
+            iSyncStartedSignaled = EFalse;
             }               
         }
     }

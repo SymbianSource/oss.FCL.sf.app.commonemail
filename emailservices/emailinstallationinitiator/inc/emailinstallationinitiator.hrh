@@ -24,6 +24,7 @@
 /** Email Installation Initiator UID
  */
 #define KEmailInstallationInitiatorUidAsTInt 0x20026FF4
+#define KEmailUnInstallationInitiatorUidAsTInt 0x20031D8B
 
 
 #endif // EMAILINSTALLATIONINITIATOR_HRH

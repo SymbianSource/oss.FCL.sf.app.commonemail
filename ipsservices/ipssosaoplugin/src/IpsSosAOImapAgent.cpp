@@ -127,17 +127,28 @@ void CIpsSosAOImapAgent::HandleImapConnectionEvent(
     switch ( aConnectionEvent )
         {
         case EConnectingToServer:
+            INFO( "CIpsSosAOImapAgent::HandleImapConnectionEvent EConnectingToServer" );
             break;
         case ESynchronisingFolderList:
+            INFO( "CIpsSosAOImapAgent::HandleImapConnectionEvent ESynchronisingFolderList" );
+            SignalSyncStarted( iServiceId );
+            break;
         case ESynchronisingInbox:
+            INFO( "CIpsSosAOImapAgent::HandleImapConnectionEvent ESynchronisingInbox" );
+            SignalSyncStarted( iServiceId );
+            break;
         case ESynchronisingFolders:
+            INFO( "CIpsSosAOImapAgent::HandleImapConnectionEvent ESynchronisingFolders" );
             SignalSyncStarted( iServiceId );
             break;
         case ESynchronisationComplete:
+            INFO( "CIpsSosAOImapAgent::HandleImapConnectionEvent ESynchronisationComplete" );
             break;
         case EDisconnecting:
+            INFO( "CIpsSosAOImapAgent::HandleImapConnectionEvent EDisconnecting" );
             break;
         case EConnectionCompleted:
+            INFO( "CIpsSosAOImapAgent::HandleImapConnectionEvent EConnectionCompleted" );
         default:
             break;
         }
@@ -164,6 +175,8 @@ void CIpsSosAOImapAgent::RunL()
         if (  iOngoingOp->iStatus.Int() != KErrNone )
             {
             iError = iOngoingOp->iStatus.Int();
+            INFO( "CIpsSosAOImapAgent::RunL operation completed with error" );
+            INFO_1( "CIpsSosAOImapAgent::RunL error: %d" , iError);
             SignalSyncCompleted( iServiceId, iError );
             CancelAllAndDisconnectL();
             }
@@ -174,28 +187,36 @@ void CIpsSosAOImapAgent::RunL()
     switch( iState )
          {
          case EStateConnectAndSync:
+             INFO( "CIpsSosAOImapAgent::RunL EStateConnectAndSync" );
              iState = EStateRefreshFolderArray;
              SetActiveAndCompleteThis();
              break;
          case EStateConnectAndSyncOnHold:
+             INFO( "CIpsSosAOImapAgent::RunL EStateConnectAndSyncOnHold" );
              StartSyncL();
              break;
          case EStateRefreshFolderArray:
+             INFO( "CIpsSosAOImapAgent::RunL EStateRefreshFolderArray" );
              iDataApi->GetSubscribedImapFoldersL( iServiceId , iFoldersArray );
              iState = EStatePopulateAll;
              SetActiveAndCompleteThis();
              break;
          case EStatePopulateAll:
+             INFO( "CIpsSosAOImapAgent::RunL EStatePopulateAll" );
              PopulateAllL();
              break;
          case EStatePopulateOnHold:
+             INFO( "CIpsSosAOImapAgent::RunL EStatePopulateOnHold" );
              PopulateAllL();
              break;
          case EStateFetchOngoing:
+             INFO( "CIpsSosAOImapAgent::RunL EStateFetchOngoing" );
              break;
          case EStateFetchOnHold:
+             INFO( "CIpsSosAOImapAgent::RunL EStateFetchOnHold" );
              break;
          case EStateDisconnect:
+             INFO( "CIpsSosAOImapAgent::RunL EStateDisconnect" );
              if ( !iDoNotDisconnect )
                  {
                  CancelAllAndDisconnectL();
@@ -207,6 +228,7 @@ void CIpsSosAOImapAgent::RunL()
                  }
              break;
          case EStateCompleted:
+             INFO( "CIpsSosAOImapAgent::RunL EStateCompleted" );
              TRAP_IGNORE( iOpResponse.OperationCompletedL( iError ) );
              SignalSyncCompleted( iServiceId, iError );
              iError = KErrNone;
@@ -214,6 +236,7 @@ void CIpsSosAOImapAgent::RunL()
              iState = EStateIdle;
              break;
          case EStateIdle:
+             INFO( "CIpsSosAOImapAgent::RunL EStateIdle" );
              break;
          default:
          break;
@@ -319,12 +342,17 @@ void CIpsSosAOImapAgent::StartSyncL()
     LoadSettingsL( );
     if ( !IsConnected() )
         {
+        if ( IsActive() )
+            {
+            Cancel();
+            }
         TPckg<MMsvImapConnectionObserver*> parameter(this);
         // connect and synchronise starts background sync or idle
         CMsvEntrySelection* sel = new ( ELeave ) CMsvEntrySelection();
         CleanupStack::PushL( sel );
         sel->AppendL( iServiceId );
         iImapClientMtm->SwitchCurrentEntryL( iServiceId );
+        iStatus = KRequestPending;
         iOngoingOp = iImapClientMtm->InvokeAsyncFunctionL(
                 KIMAP4MTMConnectAndSyncCompleteAfterFullSync, 
                 *sel, parameter, iStatus);
@@ -357,6 +385,13 @@ void CIpsSosAOImapAgent::StartFetchMessagesL(
 void CIpsSosAOImapAgent::CancelAllAndDisconnectL()
     {
     FUNC_LOG;
+    // if we are already idle state, do nothing,
+    // completing in idle state might cause unvanted events to ui
+    bool isConnected = IsConnected();
+    if ( !isConnected && iState == EStateIdle) 
+        {
+        return;
+        }
     iDoNotDisconnect = EFalse;
     iState = EStateCompleted;
     iFoldersArray.Reset();
@@ -366,7 +401,7 @@ void CIpsSosAOImapAgent::CancelAllAndDisconnectL()
         Cancel();
         }
 
-    if ( IsConnected() )
+    if ( isConnected )
         {
         TBuf8<1> dummy;
         CMsvEntrySelection* sel = new ( ELeave ) CMsvEntrySelection();
@@ -397,8 +432,14 @@ void CIpsSosAOImapAgent::CancelAllAndDisconnectL()
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CIpsSosAOImapAgent::CancelAllAndDoNotDisconnect()
-    {
+    {    
     FUNC_LOG;
+    // if we are already idle state, do nothing,
+    // completing in idle state might cause unvanted events to ui
+    if (iState == EStateIdle) 
+        {
+        return;
+        }
     iDoNotDisconnect = ETrue;
     if ( IsActive() )
         {
@@ -469,55 +510,47 @@ void CIpsSosAOImapAgent::PopulateAllL()
     FUNC_LOG;
     TImImap4GetPartialMailInfo info;
     CIpsSetDataApi::ConstructImapPartialFetchInfo( info, *iImapSettings );
+    TBool syncStarting = EFalse;
     
     if ( !IsConnected() )
         {
         SignalSyncCompleted( iServiceId, iError );
         CancelAllAndDisconnectL();
         }
-    else if ( iFoldersArray.Count() > 0 && info.iTotalSizeLimit 
+    if ( iFoldersArray.Count() > 0 && info.iTotalSizeLimit 
             != KIpsSetDataHeadersOnly )
          {
-
-         // only inbox is set, do we have to populate other folders also
-         TMsvId id = iFoldersArray[0];
-         CMsvEntry* cEntry = iSession.GetEntryL( id );
+         CMsvEntry* cEntry = iSession.GetEntryL( iServiceId );
          CleanupStack::PushL( cEntry );
-         CMsvEntrySelection* sel = cEntry->ChildrenWithTypeL( 
-                 KUidMsvMessageEntry ); 
-         CleanupStack::PushL( sel );
-         
-         info.iDestinationFolder = iFoldersArray[0];
-         
-         CIpsPlgTimerOperation* dummy = NULL;
-         iImapClientMtm->SwitchCurrentEntryL( iServiceId );
-         TFSMailMsgId mbox( KIpsPlgImap4PluginUidValue, iServiceId );
-         iStatus = KRequestPending;
-         iOngoingOp = CIpsPlgImap4PopulateOp::NewL(
-                 iSession,
-                 this->iStatus,
-                 CActive::EPriorityLow,
-                 iServiceId,
-                 *dummy,
-                 info,
-                 *sel,
-                 mbox,
-                 *this,
-                 0,
-                 NULL );
-         
-         iFoldersArray.Remove( 0 );
-         SetActive();
-         iState = EStatePopulateAll;
+         CMsvEntrySelection* childrenSelection = cEntry->ChildrenL();
+         CleanupStack::PushL( childrenSelection );
+         if ( childrenSelection->Count() )
+             {
+             TPckgBuf<TImImap4GetPartialMailInfo> package(info);
+             // only inbox is set, do we have to populate other folders also
+             TMsvId inboxId = (*childrenSelection)[0];
+             CMsvEntrySelection* sel = new(ELeave) CMsvEntrySelection;
+             CleanupStack::PushL( sel );
+             sel->AppendL(iServiceId);
+             sel->AppendL(inboxId);
+             iStatus = KRequestPending;
+             iOngoingOp = iImapClientMtm->InvokeAsyncFunctionL(
+                     KIMAP4MTMPopulateAllMailWhenAlreadyConnected, 
+                     *sel, package, iStatus);
+             SetActive();
+             syncStarting = ETrue;
+             SignalSyncStarted( iServiceId );
+             CleanupStack::PopAndDestroy( sel );
+             }
          CleanupStack::PopAndDestroy( 2, cEntry );
          
          }
-     else
+     if (!syncStarting)
          {
-         iState = EStateDisconnect;
          SignalSyncStarted( iServiceId );
          SetActiveAndCompleteThis();
          }
+    iState = EStateDisconnect;
     }
 
 // ----------------------------------------------------------------------------
@@ -543,6 +576,11 @@ void CIpsSosAOImapAgent::SetActiveAndCompleteThis()
     FUNC_LOG;
     if ( !IsActive() )
         {
+        SetActive();
+        }
+    else
+        {
+        Cancel();
         SetActive();
         }
     TRequestStatus* status = &iStatus;

@@ -652,6 +652,12 @@ private:
      * @param aMailBoxId specifies the mailbox
      */
     void DeleteActivityTimer( const TFSMailMsgId& aMailBoxId  );
+    
+    /**
+     * Get another message from queue, which contains messages to be 
+     * checked read/unread flag
+     */
+    void ProcessNextMessageFlagL();
 
 protected: // internal enumerations and data structures
 

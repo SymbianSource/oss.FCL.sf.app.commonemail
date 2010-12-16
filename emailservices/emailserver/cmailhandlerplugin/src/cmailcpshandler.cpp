@@ -107,9 +107,11 @@ void CMailCpsHandler::ConstructL()
 CMailCpsHandler::~CMailCpsHandler()
     {
     FUNC_LOG;
+    CleanWaitingForNewMailbox();
     delete iUpdateHelper;
     delete iLiwIf;
     delete iSettings;
+    delete iQuery;
     iAccountsArray.ResetAndDestroy();
     iExternalPlugins.ResetAndDestroy();
     }
@@ -591,17 +593,17 @@ void CMailCpsHandler::UpdateMessagesL( const TInt aMailBoxNumber,
             // Get sender information
             TBuf<KMaxDescLen> sender( NULL );
             TBuf<KMaxDescLen> subject( NULL );
-            subject.Append(msg->GetSubject());
+                subject = msg->GetSubject().Left( KMaxDescLen ); 
             CFSMailAddress* fromAddress = msg->GetSender();
             if ( fromAddress )
                 {
                 if ( IsValidDisplayName(fromAddress->GetDisplayName()) )
                     {
-                    sender.Append(fromAddress->GetDisplayName());
+                    sender = fromAddress->GetDisplayName().Left( KMaxDescLen ); 
                     }
                 else
                     {
-                    sender.Append(fromAddress->GetEmailAddress());
+                    sender = fromAddress->GetEmailAddress().Left( KMaxDescLen ); 
                     }
                 }
 
@@ -1711,7 +1713,8 @@ void CMailCpsHandler::SetWaitingForNewMailbox( const TDesC& aContentId )
     HBufC* newCid = aContentId.Alloc();
     if ( newCid )
         {
-        delete iWaitingForNewMailbox;
+  
+        CleanWaitingForNewMailbox();
         iWaitingForNewMailbox = newCid;
         }
     }

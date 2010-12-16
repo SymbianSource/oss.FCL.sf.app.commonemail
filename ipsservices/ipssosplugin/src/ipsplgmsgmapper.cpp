@@ -302,12 +302,18 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     TMsvEmailEntry& aEmlEntry,
     const CFSMailMessage& aMessage )
     {
+    return ChangeTEntryFlagsL( aEmlEntry, aMessage.GetFlags() );
+    }
+
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL( TMsvEmailEntry& aEmlEntry, TInt aMsgFlags )
+    {
     FUNC_LOG;
-    TInt msgFlags = aMessage.GetFlags();
     TBool modified ( EFalse );
     TBool unread( aEmlEntry.Unread() );
 
-    if ( !LogicalXor( unread, msgFlags & EFSMsgFlag_Read ) )
+    if ( !LogicalXor( unread, aMsgFlags & EFSMsgFlag_Read ) )
         {
         aEmlEntry.SetUnread( !unread );
         modified = ETrue;
@@ -317,11 +323,11 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     // EFSMsgFlag_Important
     TMsvPriority msgPriority;
 
-    if ( msgFlags & EFSMsgFlag_Important )
+    if ( aMsgFlags & EFSMsgFlag_Important )
         {
         msgPriority = EMsvHighPriority;
         }
-    else if ( msgFlags & EFSMsgFlag_Low )
+    else if ( aMsgFlags & EFSMsgFlag_Low )
         {
         msgPriority = EMsvLowPriority;
         }
@@ -346,7 +352,7 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     // EFSMsgFlag_Multiple: no counterpart in Symbian message
 
     // EFSMsgFlag_CalendarMsg
-    if( ( aEmlEntry.iMtm == KSenduiMtmSmtpUid ) && ( msgFlags & EFSMsgFlag_CalendarMsg ) )
+    if( ( aEmlEntry.iMtm == KSenduiMtmSmtpUid ) && ( aMsgFlags & EFSMsgFlag_CalendarMsg ) )
         {
         if( !aEmlEntry.ICalendar() )
             {
@@ -359,6 +365,11 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
     // EFSMsgFlag_Answered: supported only with IMAP4 (see below)
 
     // EFSMsgFlag_Forwarded: no counterpart in Symbian message in S60 3.1
+    if ( LogicalXor( aEmlEntry.Forwarded(), aMsgFlags & EFSMsgFlag_Forwarded ) )
+        {
+        aEmlEntry.SetForwarded( !aEmlEntry.Forwarded() );
+        modified = ETrue;
+        }
 
     // EFSMsgFlag_OnlyToMe: no counterpart in Symbian message
 
@@ -376,14 +387,14 @@ TBool CIpsPlgMsgMapper::ChangeTEntryFlagsL(
         {
             // EFSMsgFlag_FollowUp
         if ( LogicalXor( aEmlEntry.FlaggedIMAP4Flag(),
-                         ( msgFlags & EFSMsgFlag_FollowUp ) ) )
+                         ( aMsgFlags & EFSMsgFlag_FollowUp ) ) )
             {
             aEmlEntry.SetFlaggedIMAP4Flag( !aEmlEntry.FlaggedIMAP4Flag() );
             modified = ETrue;
             }
         // EFSMsgFlag_Answered
         if ( LogicalXor( aEmlEntry.AnsweredIMAP4Flag(),
-                         ( msgFlags & EFSMsgFlag_Answered ) ) )
+                         ( aMsgFlags & EFSMsgFlag_Answered ) ) )
             {
             aEmlEntry.SetAnsweredIMAP4Flag( !aEmlEntry.AnsweredIMAP4Flag() );
             modified = ETrue;
@@ -420,27 +431,54 @@ void CIpsPlgMsgMapper::UpdateMessageFlagsL(
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
-CMsvOperation* CIpsPlgMsgMapper::UpdateMessageFlagsAsyncL(
+TInt CIpsPlgMsgMapper::UpdateMessageFlagsAsyncL(
     TMsvId aEntryId,
-    const CFSMailMessage& aMessage,
-    TRequestStatus& aStatus )
+    const CFSMailMessage& aMessage )
     {
     FUNC_LOG;
-    // This function updates tEntry from aMessage
-    CMsvEntry* cEntry = iSession.GetEntryL( aEntryId );
-    CleanupStack::PushL( cEntry );
-    TMsvEmailEntry tEntry( cEntry->Entry() );
+    TInt previousCount = iFlagChangedMessagerArray.Count();
+    TMessageInfo info( aEntryId, aMessage.GetFlags() );
+    iFlagChangedMessagerArray.AppendL( info );
+    return previousCount;
+    }
 
-    TBool isModified = ChangeTEntryFlagsL( tEntry, aMessage );
+// ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
+CMsvOperation* CIpsPlgMsgMapper::UpdateNextMessageFlagAsyncL( TRequestStatus& aStatus, TInt& aIndex )
+    {
     CMsvOperation* ops = NULL;
-    if ( isModified )
+    aIndex = KErrNotFound;
+    if ( iFlagChangedMessagerArray.Count() > 0 )
         {
-        ops = cEntry->ChangeL( tEntry, aStatus );
+        aIndex = iFlagChangedMessagerArray.Count() - 1;
+        TMessageInfo messageInfo = iFlagChangedMessagerArray[aIndex]; 
+        CMsvEntry* cEntry = iSession.GetEntryL( messageInfo.iId );
+        TMsvEmailEntry tEntry( cEntry->Entry() );
+        CleanupStack::PushL( cEntry );
+        TBool isModified = ChangeTEntryFlagsL( tEntry, messageInfo.iFlags );
+        if ( isModified )
+            {
+            ops = cEntry->ChangeL( tEntry, aStatus );
+            }
+        else
+            {
+            iFlagChangedMessagerArray.Remove( aIndex );
+            }
+        CleanupStack::PopAndDestroy( cEntry );
         }
-
-    CleanupStack::PopAndDestroy( cEntry );
     return ops;
     }
+
+void CIpsPlgMsgMapper::UpdateNextMessageFlagFinished( TInt aIndex )
+    {
+    TInt count = iFlagChangedMessagerArray.Count();
+    ASSERT( aIndex < count );
+    if ( count )
+        {
+        iFlagChangedMessagerArray.Remove( aIndex );
+        }
+    }
+
 
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -1584,3 +1622,15 @@ void CIpsPlgMsgMapper::GetCharsetParameterL(
     CleanupStack::PopAndDestroy( cEntry );
     }
 // </cmail>
+
+// ---------------------------------------------------------------------------
+// TMessageInfo constructor
+// ---------------------------------------------------------------------------
+//
+TMessageInfo::TMessageInfo( TMsvId aId, TInt aFlags )
+    {
+    iId = aId;
+    iFlags = aFlags;
+    }
+
+

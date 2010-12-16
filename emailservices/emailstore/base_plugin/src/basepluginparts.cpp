@@ -162,7 +162,7 @@ EXPORT_C void CBasePlugin::StoreMessagePartL(
         aMessagePart.GetPartId().Id(), ETrue );
     CleanupStack::PushL( part );
 
-    TranslateEmailFwMessageL( aMessagePart, *part, EFalse );
+    TranslateEmailFwMessageL( aMessagePart, *part );
     part->StorePropertiesL();
 
     CleanupStack::PopAndDestroy( part );

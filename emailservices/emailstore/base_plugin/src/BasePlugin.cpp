@@ -812,27 +812,7 @@ EXPORT_C void CBasePlugin::StoreMessageL(
         aMessage.GetMessageId().Id(), KMsgStoreInvalidId );
     CleanupStack::PushL( message );
 
-    //determine whether the message is in the inbox folder or some of its
-    //children; the translation is different for inbox and all the other folders.
-    TBool inInbox = EFalse;
-    TMsgStoreId parentId = message->ParentId();
-    while ( KMsgStoreInvalidId != parentId
-    	&& EMsgStoreFolderContainer == mailBox().ContainerTypeById( parentId ) )
-    	{
-    	if ( parentId == mailBox.iRootFolders.iFolders[EFSInbox] )
-    		{
-    		inInbox = ETrue;
-    		break;
-    		}
-    	else
-    		{
-    		CMsgStoreFolder* parent = mailBox().FolderL( parentId );
-    		parentId = parent->ParentId();
-    		delete parent;
-    		}
-    	}
-    
-    TranslateEmailFwMessageL( aMessage, *message, inInbox );
+    TranslateEmailFwMessageL( aMessage, *message );
     message->StorePropertiesL();
     
     CleanupStack::PopAndDestroy( message );
@@ -887,7 +867,7 @@ EXPORT_C void CBasePlugin::SendMessageL( CFSMailMessage& aMessage )
     CMsgStoreMessage* message = GetCachedMsgL( mailBoxId, msgId );
     __LOG_WRITE8_FORMAT1_INFO( "Fetched message : 0x%X.", msgId )
 
-    TranslateEmailFwMessageL( aMessage, *message, EFalse );
+    TranslateEmailFwMessageL( aMessage, *message );
     //the sendmessagel will store the message's properties!
 
     TTime sentTime;

@@ -18,10 +18,13 @@
 #include "emailtrace.h"
 #include "ipsplgheaders.h"
 #include "FreestyleEmailUiConstants.h"
+#include "emailservermonitor.hrh"
 
 #define FREESTYLE_EMAIL_UI_SID 0x2001E277
 
 const TInt KOpGranularity = 2;
+
+const TUid KAlwaysOnlineEmailPluginUid =  { KAlwaysOnlineEmailPluginUidAsTInt };
 
 _LIT( KMimeTextCalRequest,  "text/calendar; method=REQUEST;" );
 _LIT( KMimeTextCalResponse, "text/calendar; method=RESPONSE;" );
@@ -134,6 +137,8 @@ void CIpsPlgSosBasePlugin::BaseConstructL()
         iIsUnderUiProcess = EFalse;
         }
     RAlwaysOnlineClientSession aosession;
+    CleanupClosePushL( aosession );
+    //Close the older email plugin just in case it's floating around.
     TInt err = aosession.Connect();
     if ( err == KErrNone )
         {
@@ -143,6 +148,10 @@ void CIpsPlgSosBasePlugin::BaseConstructL()
                 dummyBuf ) );
         }
     aosession.Close();
+    //Start the new plugin in case it was closed by install/uninstall operation.
+    TPckgBuf<TUid> id( KAlwaysOnlineEmailPluginUid );
+    aosession.SendSinglePacketL( EServerAPIBaseCommandStart, id );
+    CleanupStack::PopAndDestroy( &aosession );
     }
 
 // ----------------------------------------------------------------------------
@@ -165,13 +174,14 @@ void CIpsPlgSosBasePlugin::SessionTerminated()
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 void CIpsPlgSosBasePlugin::OpCompleted(
-	CIpsPlgSingleOpWatcher& aOpWatcher,
-	TInt aCompletionCode )
+    CIpsPlgSingleOpWatcher& aOpWatcher,
+    TInt aCompletionCode )
     {
     FUNC_LOG;
     // Get valid operation count in each, some operations could have been
     // deleted in array
     TInt opId = aOpWatcher.Operation().Id();
+    TInt opIndex = aOpWatcher.OperationIndex();
     for ( TInt i = iOperations.Count()-1; i >= 0; i-- )
         {
         CMsvOperation& oper = iOperations[i]->Operation();
@@ -181,12 +191,40 @@ void CIpsPlgSosBasePlugin::OpCompleted(
             DeleteAndRemoveOperation( i, aCompletionCode );
             }
         }
+    
+    if ( opIndex != KErrNotFound )
+        {
+        iMsgMapper->UpdateNextMessageFlagFinished( opIndex );
+        TRAP_IGNORE( ProcessNextMessageFlagL() );
+        }
+    
     // make draft deletion synchronous so that empty drafts are not left after application close.
     if ( iWait.IsStarted() )
         {
         iWait.AsyncStop();
         }
     }
+
+
+void CIpsPlgSosBasePlugin::ProcessNextMessageFlagL()
+    {
+    CIpsPlgSingleOpWatcher* opW = CIpsPlgSingleOpWatcher::NewLC( *this );
+    TInt index;
+    CMsvOperation* op = iMsgMapper->UpdateNextMessageFlagAsyncL( opW->iStatus, index );
+    if ( op )
+        {
+        ASSERT( index >= 0 );
+        opW->SetOperation( op );
+        opW->SetOperationIndex( index );
+        iOperations.AppendL( opW );
+        CleanupStack::Pop( opW );
+        }
+    else
+        {
+        CleanupStack::PopAndDestroy( opW );
+        }    
+    }
+
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -924,24 +962,11 @@ void CIpsPlgSosBasePlugin::StoreMessageL(
 
     if ( incoming )
         {
-        // It`s commented because when it`s used heavile cause -16 error
-        // For example when user want to mark as read/unread many messages
-        // Synchronous method solves this issue
-        iMsgMapper->UpdateMessageFlagsL(msgId.Id(), aMessage);
-        /*CIpsPlgSingleOpWatcher* opW = CIpsPlgSingleOpWatcher::NewLC( *this );
-        CMsvOperation* op = iMsgMapper->UpdateMessageFlagsAsyncL(
-                msgId.Id(), aMessage, opW->iStatus );
-
-        if ( op )
+        TInt index = iMsgMapper->UpdateMessageFlagsAsyncL( msgId.Id(), aMessage );
+        if ( !index )
             {
-            opW->SetOperation( op );
-            iOperations.AppendL( opW );
-            CleanupStack::Pop( opW );
+            ProcessNextMessageFlagL();
             }
-        else
-            {
-            CleanupStack::PopAndDestroy( opW );
-            }*/
         }
     else
         {

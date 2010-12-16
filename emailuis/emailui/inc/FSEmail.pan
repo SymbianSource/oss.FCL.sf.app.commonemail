@@ -29,7 +29,8 @@ enum TFsEmailUiPanics
     EFSEmailUiUnknownView,
     EFSEmailUiUnexpectedValue,
     EFSEmailUiNullPointerException,
-    EFSEmailUiBaseViewMethodNotOverriden
+    EFSEmailUiBaseViewMethodNotOverriden,
+    EFSEmailUiInconsistentMessageData
     // add further panics here
     };
 

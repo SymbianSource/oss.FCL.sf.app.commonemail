@@ -238,8 +238,12 @@ EXPORT_C void CESMRField::Draw( const TRect& aRect ) const
     // Draw only if field is not on screen
     if ( Position().iX != Parent()->Position().iX )
         {
+        // Calculate field visible area. Intersection with list pane
+        TRect clippingRect( aRect );
+        clippingRect.Intersection( Parent()->Parent()->Rect() );
+
         // Flush cached drawing commands from custom graphics context
-        iRecordingGc->FlushBuffer( aRect );
+        iRecordingGc->FlushBuffer( aRect, clippingRect );
         }
 
     }
@@ -276,6 +280,31 @@ EXPORT_C void CESMRField::HandlePointerEventL(
     }
 
 // ---------------------------------------------------------------------------
+// CESMRField::HandleResourceChange
+// ---------------------------------------------------------------------------
+//
+EXPORT_C void CESMRField::HandleResourceChange( TInt aType )
+    {
+    FUNC_LOG;
+
+    CCoeControl::HandleResourceChange( aType );
+
+    switch ( aType )
+        {
+        case KAknsMessageSkinChange:
+        case KEikMessageColorSchemeChange:
+        case KEikDynamicLayoutVariantSwitch:
+        case KAknLocalZoomLayoutSwitch:
+            {
+            iRecorded = EFalse;
+            break;
+            }
+        default:
+            break;
+        }
+    }
+
+/// ---------------------------------------------------------------------------
 // CESMRField::SetContainerWindowL
 // ---------------------------------------------------------------------------
 //
@@ -418,6 +447,7 @@ EXPORT_C void CESMRField::InternalizeL( // codescanner::LFunctionCantLeave
     {
     FUNC_LOG;
     /* Empty implementation, subclasses should overwrite */
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------
@@ -633,6 +663,24 @@ EXPORT_C void CESMRField::SetFocusType( TESMRFieldFocusType aFocusType )
     {
     FUNC_LOG;
     iFocusType = aFocusType;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRField::RecordEnabled
+// ---------------------------------------------------------------------------
+//
+EXPORT_C TBool CESMRField::RecordEnabled()
+    {
+    FUNC_LOG;
+
+    TBool enabled( ETrue );
+
+    if ( iFieldMode == EESMRFieldModeView )
+        {
+        enabled = !iRecorded;
+        }
+
+    return enabled;
     }
 
 // ---------------------------------------------------------------------------
@@ -910,7 +958,7 @@ EXPORT_C void CESMRField::MoveToScreen( TBool aVisible )
     // Check that field is activated
     if ( IsActivated() )
         {
-        TPoint pos( Position() );
+        TPoint pos( iPosition );
 
         if ( aVisible )
             {
@@ -920,12 +968,17 @@ EXPORT_C void CESMRField::MoveToScreen( TBool aVisible )
         else
             {
             // Move field outside screen
+
             pos.iX = KOffScreenPositionX;
-            // Record field drawing commands
-            RecordField();
+
+            if ( pos != iPosition )
+                {
+                // Record field drawing commands
+                RecordField();
+                }
             }
 
-        if ( pos != Position() )
+        if ( pos != iPosition )
             {
             // Set new position only if it different from current one
             // Setting new position potentially causes relayout in field
@@ -972,8 +1025,10 @@ EXPORT_C void CESMRField::RecordField()
     FUNC_LOG;
 
     // Record only activated field
-    if ( IsActivated() )
+    if ( IsActivated() && RecordEnabled() )
         {
+        iRecorded = ETrue;
+
         // Purge old draw commands
         iRecordingGc->PurgeBuffer();
 
@@ -1012,7 +1067,7 @@ void CESMRField::DrawControl( CCoeControl* aControl ) const
         CCoeControl* control = aControl->ComponentControl( i );
 
         // Draw only non-window owning children
-        if ( !control->OwnsWindow() )
+        if ( !control->OwnsWindow() && control->IsVisible() )
             {
             TRect rect( control->Rect() );
 

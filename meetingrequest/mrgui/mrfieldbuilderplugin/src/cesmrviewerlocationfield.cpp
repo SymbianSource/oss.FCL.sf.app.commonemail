@@ -138,6 +138,8 @@ void CESMRViewerLocationField::InternalizeL( MESMRCalEntry& aEntry )
     		        ETrue );
     		}
     	}
+
+    iRecorded = EFalse;
     }
 
 // ---------------------------------------------------------------------------
@@ -166,7 +168,6 @@ TBool CESMRViewerLocationField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
     if ( iObserver && aEdwin == iRichTextViewer )
         {
         iObserver->ControlSizeChanged( this );
-        RecordField();
         reDraw = ETrue;
         }
 
@@ -180,7 +181,6 @@ TBool CESMRViewerLocationField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
 CESMRViewerLocationField::CESMRViewerLocationField()
     {
     SetFieldId( EESMRFieldLocation );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -197,13 +197,14 @@ void CESMRViewerLocationField::ConstructL( )
 			NMRBitmapManager::EMRBitmapLockField,
 			this,
 			ETrue );
-	
+
     iRichTextViewer = CESMRRichTextViewer::NewL( this );
     CESMRField::ConstructL( iRichTextViewer ); // ownership transfered
     iRichTextViewer->SetEdwinSizeObserver( this );
     iRichTextViewer->SetParent( this );
 
     iFeatures = CESMRFeatureSettings::NewL();
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -294,11 +295,7 @@ void CESMRViewerLocationField::SetWaypointIconL( TBool aEnabled )
 
     // Relayout
     SizeChanged();
-    
-    if ( !iOutlineFocus )
-        {
-        RecordField();
-        }
+
     }
 
 // ---------------------------------------------------------------------------
@@ -402,7 +399,7 @@ void CESMRViewerLocationField::SizeChanged( )
                     NMRLayoutManager::EMRLayoutSingleRowDColumnGraphic ) );
         AknLayoutUtils::LayoutImage( iWaypointIcon, rowRect, iconLayout );
         }
-    
+
     // Layouting lock icon
     if( iLockIcon && IsLocked() )
         {
@@ -431,6 +428,8 @@ void CESMRViewerLocationField::SizeChanged( )
     // Resize height according to actual height required by edwin.
     viewerRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
     iRichTextViewer->SetRect( viewerRect );
+    // Update text view rect
+    iRichTextViewer->PositionChanged();
 
     // Layouting focus
     TRect bgRect( viewerRect );
@@ -528,7 +527,7 @@ void CESMRViewerLocationField::LockL()
 		}
 
 	if( !iLockIcon )
-		{	
+		{
 		iLockIcon = CMRImage::NewL(
 				NMRBitmapManager::EMRBitmapLockField,
 				this,

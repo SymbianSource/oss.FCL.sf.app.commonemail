@@ -90,7 +90,6 @@ TBool IsValidAttachmentViewerCommand( TInt aCommand )
 CMRViewerAttachmentsField::CMRViewerAttachmentsField()
     {
     FUNC_LOG;
-    SetFocusType( EESMRHighlightFocus );
     SetFieldId( EESMRFieldViewerAttachments );
     }
 
@@ -156,6 +155,7 @@ void CMRViewerAttachmentsField::ConstructL( )
 
     iRichTextViewer->SetSkinBackgroundControlContextL( iBgCtrlContext );
     iSelectedLink = NULL;
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -344,7 +344,9 @@ void CMRViewerAttachmentsField::SizeChanged( )
     // Resize height according to actual height required by edwin.
     viewerRect.Resize( 0, iSize.iHeight - viewerRect.Height() );
     iRichTextViewer->SetRect( viewerRect );
-
+    // Update text view rect
+    iRichTextViewer->PositionChanged();
+        
     // Layouting focus
     TRect bgRect( 0, 0, 0, 0 );
     if( iAttachmentCount > 1 )
@@ -420,11 +422,9 @@ TBool CMRViewerAttachmentsField::HandleEdwinSizeEventL( CEikEdwin* aEdwin,
            {
            iObserver->ControlSizeChanged( this );
            reDraw = ETrue;
-           
-           if ( !iOutlineFocus )
-               {
-               RecordField();
-               }
+
+           //Recaculate max text length while screen size changed.
+           UpdateAttachmentsListL();
            }
         }
 
@@ -469,10 +469,10 @@ TBool CMRViewerAttachmentsField::ExecuteGenericCommandL( TInt aCommand )
         {
         const CESMRRichTextLink* currentLink = iRichTextViewer->GetSelectedLink();
         // remember the state if Saving all is not in progress
-        if( currentLink && !iAttachmentCommandHandler->IsSaveAllAttachmentsInProgress() ) 
+        if( currentLink && !iAttachmentCommandHandler->IsSaveAllAttachmentsInProgress() )
         	{
             iSelectedLink = currentLink;
-        	}      
+        	}
         else
             {
             currentLink = iSelectedLink;// restore link when selection is lost
@@ -770,11 +770,11 @@ void CMRViewerAttachmentsField::HandleLongtapEventL( const TPoint& aPosition )
 
     // prevent link selection if SaveAllAttachments is in progress
     TBool saveAllInProgress ( EFalse );
-    if( iAttachmentCommandHandler ) 
+    if( iAttachmentCommandHandler )
     	{
         saveAllInProgress = iAttachmentCommandHandler->IsSaveAllAttachmentsInProgress( );
     	}
-    
+
     if ( !saveAllInProgress && iRichTextViewer->Rect().Contains( aPosition ) )
         {
         iRichTextViewer->LinkSelectedL();
@@ -798,11 +798,11 @@ TBool CMRViewerAttachmentsField::HandleRawPointerEventL(
 
         // prevent handling events if SaveAllAttachments is in progress
         TBool saveAllInProgress ( EFalse );
-        if( iAttachmentCommandHandler ) 
+        if( iAttachmentCommandHandler )
     	    {
             saveAllInProgress = iAttachmentCommandHandler->IsSaveAllAttachmentsInProgress( );
     	    }
-           
+
         if(  !saveAllInProgress && iRichTextViewer->Rect().Contains( aPointerEvent.iPosition ) )
             {
             iRichTextViewer->HandlePointerEventL( aPointerEvent );

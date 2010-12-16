@@ -18,21 +18,22 @@
 #include "cmrbackground.h"
 
 #include "nmrglobalfeaturesettings.h"
+#include "nmrlayoutmanager.h"
 #include <AknUtils.h>
 
 
 // unnamed namespace for local definitions
-namespace // codescanner::namespace 
-    { 
+namespace // codescanner::namespace
+    {
     const TInt KEdge (8);
     const TInt KGranularity( 9 );
-    
+
     #ifdef _DEBUG
         enum TPanic
             {
             EErrorItemCount = 1
             };
-        
+
         void Panic( TPanic aPanic )
             {
             _LIT( KCategory, "CMRBackground" );
@@ -60,7 +61,7 @@ namespace // codescanner::namespace
 // CMRBackground::NewL
 // ---------------------------------------------------------------------------
 //
-EXPORT_C 
+EXPORT_C
 CMRBackground* CMRBackground::NewL()
     {
     CMRBackground* self = new (ELeave) CMRBackground();
@@ -127,11 +128,11 @@ EXPORT_C void CMRBackground::Draw(
 // ---------------------------------------------------------------------------
 // CMRBackground::IconSkinIdL
 // ---------------------------------------------------------------------------
-// 
-CArrayFixFlat<NMRBitmapManager::TMRBitmapId>* 
+//
+CArrayFixFlat<NMRBitmapManager::TMRBitmapId>*
 CMRBackground::IconSkinIdL( TBgType aType ) const
     {
-    CArrayFixFlat<NMRBitmapManager::TMRBitmapId>* array = 
+    CArrayFixFlat<NMRBitmapManager::TMRBitmapId>* array =
         new (ELeave) CArrayFixFlat<NMRBitmapManager::TMRBitmapId>( KGranularity );
     CleanupStack::PushL( array );
     if( aType == EViewerFieldWithFocus )
@@ -144,7 +145,7 @@ CMRBackground::IconSkinIdL( TBgType aType ) const
         array->AppendL( NMRBitmapManager::EMRBitmapListBottom );
         array->AppendL( NMRBitmapManager::EMRBitmapListTopRight );
         array->AppendL( NMRBitmapManager::EMRBitmapListRight );
-        array->AppendL( NMRBitmapManager::EMRBitmapListBottomRight );   
+        array->AppendL( NMRBitmapManager::EMRBitmapListBottomRight );
         }
     else if ( aType == EEditorFieldWithFocus )
         {
@@ -156,7 +157,7 @@ CMRBackground::IconSkinIdL( TBgType aType ) const
         array->AppendL( NMRBitmapManager::EMRBitmapInputBottom );
         array->AppendL( NMRBitmapManager::EMRBitmapInputTopRight );
         array->AppendL( NMRBitmapManager::EMRBitmapInputRight );
-        array->AppendL( NMRBitmapManager::EMRBitmapInputBottomRight );         
+        array->AppendL( NMRBitmapManager::EMRBitmapInputBottomRight );
         }
     else
         {
@@ -168,9 +169,9 @@ CMRBackground::IconSkinIdL( TBgType aType ) const
         array->AppendL( NMRBitmapManager::EMRBitmapSetOptBottom );
         array->AppendL( NMRBitmapManager::EMRBitmapSetOptTopRight );
         array->AppendL( NMRBitmapManager::EMRBitmapSetOptRight );
-        array->AppendL( NMRBitmapManager::EMRBitmapSetOptBottomRight );        
+        array->AppendL( NMRBitmapManager::EMRBitmapSetOptBottomRight );
         }
- 
+
     CleanupStack::Pop( array );
     return array;
     }
@@ -178,97 +179,114 @@ CMRBackground::IconSkinIdL( TBgType aType ) const
 // ---------------------------------------------------------------------------
 // CMRBackground::DrawFocus
 // ---------------------------------------------------------------------------
-//    
-void CMRBackground::DrawFocus( 
-        CWindowGc& aGc, 
-        TRect aRect, 
-        const CCoeControl& aControl, 
+//
+void CMRBackground::DrawFocus(
+        CWindowGc& aGc,
+        TRect aRect,
+        const CCoeControl& aControl,
         TBgType aType ) const
         {
         CFbsBitmap* selector = NULL;
         CFbsBitmap* selectorMask = NULL;
-        
+
         CArrayFixFlat<NMRBitmapManager::TMRBitmapId>* iconIds = NULL;
-        // Error does not matter, we'll check that array is created and 
+        // Error does not matter, we'll check that array is created and
         // it contains all items.
         TRAP_IGNORE( iconIds = IconSkinIdL( aType ) );
-        
+
         if( iconIds )
             {
-            __ASSERT_DEBUG( 
-                    iconIds->Count() == KGranularity, 
+            __ASSERT_DEBUG(
+                    iconIds->Count() == KGranularity,
                     Panic(EErrorItemCount) );
             TSize corner(KEdge, KEdge);
-            TInt error = NMRBitmapManager::GetSkinBasedBitmap( 
+            TInt error = NMRBitmapManager::GetSkinBasedBitmap(
                     (*iconIds)[0], selector, selectorMask, corner );
-    
+
+            // Reduce color stripe from background
+            TRect rect( aRect );
+            TAknLayoutRect stripeLayoutRect =
+                    NMRLayoutManager::GetLayoutRect( aRect,
+                            NMRLayoutManager::EMRLayoutStripe );
+            TInt width( stripeLayoutRect.Rect().Width() );
+
+            // Reduce stripe width from right hand side.
+            // This makes rectangle correct for mirrored layout.
+            rect.Resize( -width, 0 );
+
+            if ( !AknLayoutUtils::LayoutMirrored() )
+                {
+                // Move rect to right when layout is not mirrored.
+                rect.Move( width, 0 );
+                }
+
             if( selector && selectorMask && error == KErrNone )
                 {
                 //corner TL
-                aGc.BitBltMasked( 
-                        aRect.iTl, selector, corner, selectorMask, EFalse );
-    
+                aGc.BitBltMasked(
+                        rect.iTl, selector, corner, selectorMask, EFalse );
+
                 //side L
-                TSize side(KEdge, (aRect.Height() - 2 * KEdge) );
-                NMRBitmapManager::GetSkinBasedBitmap( 
+                TSize side(KEdge, (rect.Height() - 2 * KEdge) );
+                NMRBitmapManager::GetSkinBasedBitmap(
                         (*iconIds)[1], selector, selectorMask, side );
-                aGc.BitBltMasked( TPoint(aRect.iTl.iX, aRect.iTl.iY + KEdge),
+                aGc.BitBltMasked( TPoint(rect.iTl.iX, rect.iTl.iY + KEdge),
                                   selector, side, selectorMask, EFalse );
-    
+
                 //corner BL
-                NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::GetSkinBasedBitmap(
                         (*iconIds)[2], selector, selectorMask, corner );
-                aGc.BitBltMasked( 
-                        TPoint(aRect.iTl.iX, 
-                                aRect.iTl.iY + KEdge + side.iHeight),
+                aGc.BitBltMasked(
+                        TPoint(rect.iTl.iX,
+                                rect.iTl.iY + KEdge + side.iHeight),
                         selector, corner, selectorMask, EFalse );
-    
+
                 //top
-                TSize top( (aRect.Width() - 2 * KEdge) , KEdge);
-                NMRBitmapManager::GetSkinBasedBitmap( 
+                TSize top( (rect.Width() - 2 * KEdge) , KEdge);
+                NMRBitmapManager::GetSkinBasedBitmap(
                         (*iconIds)[3], selector, selectorMask, top );
-                aGc.BitBltMasked( TPoint(aRect.iTl.iX + KEdge, aRect.iTl.iY),
+                aGc.BitBltMasked( TPoint(rect.iTl.iX + KEdge, rect.iTl.iY),
                                   selector, top, selectorMask, EFalse );
-    
+
                 //center
                 TSize center( top.iWidth, side.iHeight);
-                NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::GetSkinBasedBitmap(
                         (*iconIds)[4], selector, selectorMask, center );
-                aGc.BitBltMasked( 
-                        TPoint(aRect.iTl.iX + KEdge, aRect.iTl.iY + KEdge),
+                aGc.BitBltMasked(
+                        TPoint(rect.iTl.iX + KEdge, rect.iTl.iY + KEdge),
                             selector, center, selectorMask, EFalse );
-    
+
                 //bottom
-                NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::GetSkinBasedBitmap(
                         (*iconIds)[5], selector, selectorMask, top );
-                aGc.BitBltMasked( 
-                TPoint(aRect.iTl.iX + KEdge, 
-                        aRect.iTl.iY + side.iHeight + KEdge),
+                aGc.BitBltMasked(
+                TPoint(rect.iTl.iX + KEdge,
+                        rect.iTl.iY + side.iHeight + KEdge),
                 selector, top, selectorMask, EFalse );
-    
+
                 //corner TR
-                NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::GetSkinBasedBitmap(
                         (*iconIds)[6], selector, selectorMask, corner );
-                aGc.BitBltMasked( 
-                        TPoint(aRect.iTl.iX + KEdge + top.iWidth, 
-                                aRect.iTl.iY),
+                aGc.BitBltMasked(
+                        TPoint(rect.iTl.iX + KEdge + top.iWidth,
+                                rect.iTl.iY),
                         selector, corner, selectorMask, EFalse );
-    
+
                 //side R
-                NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::GetSkinBasedBitmap(
                         (*iconIds)[7], selector, selectorMask, side );
-                aGc.BitBltMasked( 
-                        TPoint(aRect.iTl.iX + KEdge + top.iWidth, 
-                                aRect.iTl.iY + KEdge),
+                aGc.BitBltMasked(
+                        TPoint(rect.iTl.iX + KEdge + top.iWidth,
+                                rect.iTl.iY + KEdge),
                  selector, side, selectorMask, EFalse );
-    
+
                 //corner Br
-                NMRBitmapManager::GetSkinBasedBitmap( 
+                NMRBitmapManager::GetSkinBasedBitmap(
                         (*iconIds)[8], selector, selectorMask, corner );
-                aGc.BitBltMasked( 
-                        TPoint(aRect.iTl.iX + KEdge + top.iWidth, 
-                                aRect.iTl.iY + KEdge + side.iHeight),
-                                    selector, corner, selectorMask, EFalse );        
+                aGc.BitBltMasked(
+                        TPoint(rect.iTl.iX + KEdge + top.iWidth,
+                                rect.iTl.iY + KEdge + side.iHeight),
+                                    selector, corner, selectorMask, EFalse );
                 }
             else // This should NOT be called ever.
                 {

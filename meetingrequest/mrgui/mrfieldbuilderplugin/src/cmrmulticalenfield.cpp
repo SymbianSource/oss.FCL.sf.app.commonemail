@@ -219,7 +219,6 @@ CMRMultiCalenField::CMRMultiCalenField( ) :
     {
     FUNC_LOG;
     SetFieldId( EESMRFieldCalendarName );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -238,6 +237,7 @@ void CMRMultiCalenField::ConstructL( )
             NMRBitmapManager::EMRBitmapCalendarSelection,
             this );
 
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------

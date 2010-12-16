@@ -99,6 +99,7 @@ CMailCpsIf::~CMailCpsIf()
         {
         iInstIdList.Remove(i);
         }
+    iInstIdList.Close();
     CCoeEnv::Static()->DeleteResourceFile( iResourceFileOffset );
     if ( iContentControlClient ) 
         {

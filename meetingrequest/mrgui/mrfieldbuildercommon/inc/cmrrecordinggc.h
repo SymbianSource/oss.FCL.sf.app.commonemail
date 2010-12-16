@@ -29,30 +29,33 @@ public:
 
     CMRRecordingGc( CWindowGc& aRealGc );
 	~CMRRecordingGc();
-		
+
 public:
-    
+
 	/**
 	 * Flush recorded drawing commands from buffer to the real
 	 * graphics context.
-	 * 
+	 *
 	 * @param aRect Target rectangle to draw
+	 * @param aClippingRect Clipping rectangle to use
 	 */
-	void FlushBuffer( const TRect& aRect );
-	
+	void FlushBuffer(
+	        const TRect& aRect,
+	        const TRect& aClippingRect );
+
 	/**
 	 * Delete recorded drawing commands
 	 */
     void PurgeBuffer();
-    
+
 public: // From CGraphicsContext
-    
+
     void SetOrigin(const TPoint &aPoint=TPoint(0,0));
-    
+
 protected:
-    
+
     // From CWindowGc
-    	
+
 	void Activate( RDrawableWindow &aDevice );
 	void Deactivate();
 
@@ -67,7 +70,7 @@ protected:
 	void DiscardFont();
 	void SetUnderlineStyle(TFontUnderline aUnderlineStyle);
 	void SetStrikethroughStyle( TFontStrikethrough aStrikethroughStyle );
-	
+
 	void SetWordJustification(TInt aExcessWidth,TInt aNumGaps);
 	void SetCharJustification(TInt aExcessWidth,TInt aNumChars);
 
@@ -89,7 +92,7 @@ protected:
 	void DrawLine(const TPoint &aPoint1,const TPoint &aPoint2);
 	void DrawLineTo(const TPoint &aPoint);
 	void DrawLineBy( const TPoint& aPoint );
-	
+
 	void DrawPolyLine(const CArrayFix<TPoint> *aPointList);
 	void DrawPolyLine(const TPoint* aPointList,TInt aNumPoints);
 
@@ -135,15 +138,15 @@ protected:
 	void SetFadingParameters(TUint8 aBlackMap,TUint8 aWhiteMap);
 	TInt AlphaBlendBitmaps(const TPoint& aDestPt, const CFbsBitmap* aSrcBmp, const TRect& aSrcRect, const CFbsBitmap* aAlphaBmp, const TPoint& aAlphaPt);
 	TInt AlphaBlendBitmaps(const TPoint& aDestPt, const CWsBitmap* aSrcBmp, const TRect& aSrcRect, const CWsBitmap* aAlphaBmp, const TPoint& aAlphaPt);
-	
+
 	TAny* Interface( TUid aInterfaceId );
     const TAny* Interface( TUid aInterfaceId ) const;
-    
-protected:  
+
+protected:
     TInt APIExtension( TUid aUid, TAny*& aOutput, TAny* aInput );
-    
+
 private:
-    
+
     /**
      * Buffer item to store drawing command and parameters
      */
@@ -169,43 +172,49 @@ private:
             EClear,
             EDrawLine,
             ESetUnderlineStyle,
-            ESetStrikethroughStyle
+            ESetStrikethroughStyle,
+            EError // General error. To be omitted when flushing commands
             };
-        
+
         public:
             ~CBufferItem();
-            
+
             /**
              * Translated commaned with given point
              */
             void Translate( const TPoint& aPoint );
-            
+
+            /**
+             * Resets item for reuse
+             */
+            void Reset();
+
             TInt iType;
             HBufC* iText;
             TPoint iPosition;
             TRect iBox;
             TInt iBaseLineOffset;
-            //TTextAlign iHorizontal;
             TInt iLeftMargin;
             TRgb iColor;
-            const CFbsBitmap* iBitmap;
-            const CFbsBitmap* iMask;
+            CFbsBitmap* iBitmap;
+            CFbsBitmap* iMask;
             TRect iSource;
             TBool iInvertMask;
             const CFont* iFont;
-            //TDrawMode iDrawMode;
-            //TBrushStyle iBrushStyle;
             TRect iRect;
             TInt iValue;
         };
-        
-    CBufferItem* BufferItem();
-        
+
+    CBufferItem* BufferItem( CBufferItem::TCommandType aType );
+
     /// Ref: Real window GC for actual drawing
     CWindowGc& iRealGc;
     /// Own: Array of recorded drawing commands
     RPointerArray<CBufferItem> iItems;
     /// Own: Recording origin relative to real context
     TPoint iOrigin;
+    /// Own: current count of recorded commands
+    TInt iItemCount;
+
     };
 

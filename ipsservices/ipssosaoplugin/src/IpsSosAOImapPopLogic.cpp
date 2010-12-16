@@ -113,6 +113,7 @@ TInt CIpsSosAOImapPopLogic::HandleAOServerCommandL(
     switch ( aCommand )
         {
         case EAOManagerPluginStart:
+            INFO( "HandleAOServerCommandL: EAOManagerPluginStart" );
             RefreshMailboxListL( );
             if ( !iNoNWOpsAllowed )
                 {
@@ -121,30 +122,36 @@ TInt CIpsSosAOImapPopLogic::HandleAOServerCommandL(
             break;
             
         case EAOManagerPluginStop:
+            INFO( "HandleAOServerCommandL: EAOManagerPluginStop" );
             SendCommandToMailboxesL( CIpsSosAOMBoxLogic::ECommandStop );
             // Return value does not matter, plugin will be stopped anyway.
             break;
 
         case EAOManagerNWOpsNotAllowed:
+            INFO( "HandleAOServerCommandL: EAOManagerNWOpsNotAllowed" );
             iNoNWOpsAllowed = ETrue;
             SendCommandToMailboxesL( CIpsSosAOMBoxLogic::ECommandStop );
             break;
             
         case EAOManagerNWOpsAllowed:
+            INFO( "HandleAOServerCommandL: EAOManagerNWOpsAllowed" );
             iNoNWOpsAllowed = EFalse;
             SendCommandToMailboxesL( CIpsSosAOMBoxLogic::ECommandStart );
             break;
             
         case EAOManagerStartedRoaming:
+            INFO( "HandleAOServerCommandL: EAOManagerStartedRoaming" );
             SendCommandToMailboxesL( 
                     CIpsSosAOMBoxLogic::ECommandStartedRoaming );
             break;
             
         case EAOManagerStoppedRoaming:
+            INFO( "HandleAOServerCommandL: EAOManagerStoppedRoaming" );
             SendCommandToMailboxesL( CIpsSosAOMBoxLogic::ECommandStoppedRoaming );
             break;
             
         case EAOManagerDiskSpaceAboveCritical:
+            INFO( "HandleAOServerCommandL: EAOManagerDiskSpaceAboveCritical" );
             if ( !iNoNWOpsAllowed )
                 {
                 SendCommandToMailboxesL( CIpsSosAOMBoxLogic::ECommandStart );
@@ -152,19 +159,23 @@ TInt CIpsSosAOImapPopLogic::HandleAOServerCommandL(
             break;
             
         case EAOManagerDiskSpaceBelowCritical:
+            INFO( "HandleAOServerCommandL: EAOManagerDiskSpaceBelowCritical" );
             SendCommandToMailboxesL( CIpsSosAOMBoxLogic::ECommandStop );
             break;
         case EAOManagerSuicideQuery:
+            INFO( "HandleAOServerCommandL: EAOManagerSuicideQuery" );
             // Always tell to server, that we don't 
             // want to make a suicide.
             result = EFalse;
             break;
         // Mailbox handling
         case EAOManagerMailboxAgentSuspend:
+            INFO( "HandleAOServerCommandL: EAOManagerMailboxAgentSuspend" );
             SendCommandToSpecificMailboxL( mailboxId, 
                     CIpsSosAOMBoxLogic::ECommandStop );
             break;
         case EAOManagerMailboxAgentResume:
+            INFO( "HandleAOServerCommandL: EAOManagerMailboxAgentResume" );
             RefreshMailboxListL( );
             if ( !iNoNWOpsAllowed )
                 {
@@ -173,38 +184,47 @@ TInt CIpsSosAOImapPopLogic::HandleAOServerCommandL(
                 }
             break;
         case EAOManagerMailboxAgentRemove:
+            INFO( "HandleAOServerCommandL: EAOManagerMailboxAgentRemove" );
             StopAndRemoveMailboxL( mailboxId );
             //cancel all
             break;
         case EAOManagerEMNReceived:
+            INFO( "HandleAOServerCommandL: EAOManagerEMNReceived" );
             if ( aParameters )
                 {
                 HandleEMNMessageL( *aParameters );
                 }
             break;
         case EAOManagerMailboxAgentUpdateMailWhileConnected:
+            INFO( "HandleAOServerCommandL: EAOManagerMailboxAgentUpdateMailWhileConnected" );
             // Not supported atm, was in old plugin Imap-idle
             break;
         case EAOManagerQueryState:
+            INFO( "HandleAOServerCommandL: EAOManagerQueryState" );
             result = QueryMailboxStatus( *aParameters );
             break;
         case EAOManagerCancelAllAndDisconnect:
+            INFO( "HandleAOServerCommandL: EAOManagerCancelAllAndDisconnect" );
             SendCommandToSpecificMailboxL( mailboxId, 
                     CIpsSosAOMBoxLogic::ECommandCancelAndDisconnect );
             break;
         case EAOManagerCancelAllAndDoNotDisconnect:
+            INFO( "HandleAOServerCommandL: EAOManagerCancelAllAndDoNotDisconnect" );
             SendCommandToSpecificMailboxL( mailboxId, 
                     CIpsSosAOMBoxLogic::ECommandCancelDoNotDiconnect );
             break;
         case EAOManagerSuspend:
+            INFO( "HandleAOServerCommandL: EAOManagerSuspend" );
             SendCommandToSpecificMailboxL( mailboxId, 
                     CIpsSosAOMBoxLogic::ECommandSuspend );
             break;
         case EAOManagerContinue:
+            INFO( "HandleAOServerCommandL: EAOManagerContinue" );
             SendCommandToSpecificMailboxL( mailboxId, 
                     CIpsSosAOMBoxLogic::ECommandContinue );
             break;
         case EAOManagerDoNotDisconnect:
+            INFO( "HandleAOServerCommandL: EAOManagerDoNotDisconnect" );
             SendCommandToSpecificMailboxL( mailboxId, 
                     CIpsSosAOMBoxLogic::ECommandDoNotDisconnect );
             break;
@@ -212,7 +232,8 @@ TInt CIpsSosAOImapPopLogic::HandleAOServerCommandL(
         // EAOManagerAOSchdulerError not handled because 
         // there's no badly behaving active objects
         case EAOManagerAOSchdulerError:
-        default:    
+        default:
+            INFO( "HandleAOServerCommandL: EAOManagerAOSchdulerError" );
             result = KErrNotSupported;
             break;
         }
@@ -233,8 +254,6 @@ void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
     FUNC_LOG;
     switch( aEvent )
         {
-        case MMsvSessionObserver::EMsvEntriesCreated:
-            break;
         case MMsvSessionObserver::EMsvEntriesChanged:
             {
             TMsvId parent = (*(TMsvId*) (aArg2));
@@ -247,25 +266,30 @@ void CIpsSosAOImapPopLogic::HandleMsvSessionEventL(
                 
                 TMsvEntry tEntry;
                 TMsvId service;
-                if ( selection->Count() )
+                if ( selection->Count() && iMailboxLogics.Count() )
                     {
                     iSession.GetEntry( selection->At(0), service, tEntry );
-                    }
-                
-                if ( !tEntry.Connected() )
-                    {
-                    SendCommandToSpecificMailboxL( 
-                            tEntry.Id(), 
-                            CIpsSosAOMBoxLogic::ECommandClearDoNotDisconnect );
+                    if ( !tEntry.Connected() )
+                        {
+                        SendCommandToSpecificMailboxL( 
+                                tEntry.Id(), 
+                                CIpsSosAOMBoxLogic::ECommandClearDoNotDisconnect );
+                        }
                     }
                 }
             }
             break;
         case MMsvSessionObserver::EMsvEntriesDeleted:
-            // NOTE: if mailbox is deleted somewhere else than ips plugin
-            // in here need to put logic for removing corresponding 
-            // mailboxlogic object
-        case MMsvSessionObserver::EMsvEntriesMoved:
+            if (aArg2) 
+                {
+                TMsvId parent = (*(TMsvId*) (aArg2));
+                //we check that parent is the root. if not, it cannot be an 
+                //event indicating deleted mailbox entry
+                if ( parent == KMsvRootIndexEntryId )
+                    {
+                    RemoveOrphanLogicsL();
+                    }
+                }
         default:
             break;
         };
@@ -431,6 +455,8 @@ void CIpsSosAOImapPopLogic::UpdateLogicArrayL(
             }
         CleanupStack::PopAndDestroy( extSet );
         }
+    //finally, check for orphans ( mailbox has been deleted )
+    RemoveOrphanLogicsL();
     }
 
 // ----------------------------------------------------------------------------
@@ -495,5 +521,36 @@ TInt CIpsSosAOImapPopLogic::GetMailboxLogicIndex( TMsvId aMailboxId )
     return index;
     }
 
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//
+void CIpsSosAOImapPopLogic::RemoveOrphanLogicsL()
+    {
+    CMsvEntry* cEntry = iSession.GetEntryL( KMsvRootIndexEntryId );
+    if(cEntry)
+        { 
+        CleanupStack::PushL( cEntry );
+        
+        CMsvEntrySelection* popEntries = cEntry->ChildrenWithMtmL( KUidMsgTypePOP3 );
+        CleanupStack::PushL( popEntries );
+        
+        CMsvEntrySelection* imapEntries = cEntry->ChildrenWithMtmL( KUidMsgTypeIMAP4 );
+        CleanupStack::PushL( imapEntries );
+            
+            
+        TInt count = iMailboxLogics.Count();
+        
+        for(TInt i=count-1; i>-1;i--)
+            {
+            if( popEntries->Find(iMailboxLogics[i]->GetMailboxId()) == KErrNotFound &&
+                imapEntries->Find(iMailboxLogics[i]->GetMailboxId()) == KErrNotFound)
+                {
+                StopAndRemoveMailboxL( iMailboxLogics[i]->GetMailboxId() );
+                }
+            }
+        
+        CleanupStack::PopAndDestroy( 3, cEntry );
+        }
+    }
 // End of file
 

@@ -40,6 +40,8 @@ const TInt KVerticalScrollMargin = 3;
 TInt IndexByFieldId( const MESMRFieldStorage& aFactory,
                      TESMREntryFieldId aFieldId )
     {
+    FUNC_LOG;
+
     TInt index( KErrNotFound );
     TInt count( aFactory.Count() );
 
@@ -202,9 +204,9 @@ TKeyResponse CMRFieldContainer::MoveFocusUpL( TBool aHiddenFocus )
                         focusedField->MoveToScreen( EFalse );
 
                         // Set focus to new position
+                        field->MoveToScreen( ETrue );
                         field->SetOutlineFocusL( ETrue );
                         field->SetFocus( ETrue );
-                        field->MoveToScreen( ETrue );
 
                         // Scrollbar and physics update is done here
                         ScrollControlVisible( iFocusedFieldIndex );
@@ -268,9 +270,9 @@ TKeyResponse CMRFieldContainer::MoveFocusDownL( TBool aHiddenFocus )
                     focusedField->MoveToScreen( EFalse );
 
                     // Set focus to new position
+                    field->MoveToScreen( ETrue );
                     field->SetOutlineFocusL( ETrue );
                     field->SetFocus( ETrue );
-                    field->MoveToScreen( ETrue );
 
                     // Scrollbar and physics update is done here
                     ScrollControlVisible( iFocusedFieldIndex );
@@ -485,6 +487,7 @@ void CMRFieldContainer::SizeChanged()
             tl.iY += height;
             }
         }
+    SetSizeWithoutNotification( MinimumSize() );
     }
 
 
@@ -769,26 +772,27 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
 
     ASSERT( field );
 
-    TRect fieldRect( field->Position(), field->Size() );
-    TRect parentRect( Parent()->Rect() );
+    TRect fieldRect( field->Rect() );
+    TRect listPaneRect( Parent()->Rect() );
+    TRect containerRect( Rect() );
 
     /*
      * Case 1: Field's height is less than the viewable area height,
      * let's scroll the whole field visible.
      */
-    if( fieldRect.Height() < parentRect.Height() )
+    if( fieldRect.Height() < listPaneRect.Height() )
         {
         // Scrolling down, let's move fields up
-        if( fieldRect.iBr.iY > parentRect.iBr.iY )
+        if( fieldRect.iBr.iY > listPaneRect.iBr.iY )
             {
             iObserver->ScrollFieldsUp(
-                    fieldRect.iBr.iY - parentRect.iBr.iY );
+                    fieldRect.iBr.iY - listPaneRect.iBr.iY );
             }
         // scrolling up, let's move field down
-        if( fieldRect.iTl.iY < parentRect.iTl.iY )
+        if( fieldRect.iTl.iY < listPaneRect.iTl.iY )
             {
             iObserver->ScrollFieldsDown(
-                    parentRect.iTl.iY - fieldRect.iTl.iY );
+                    listPaneRect.iTl.iY - fieldRect.iTl.iY );
             }
         }
 
@@ -806,7 +810,7 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
                 // Let's scroll the top of the field to the
                 // top of the viewable area
                 iObserver->ScrollFieldsUp(
-                                   fieldRect.iTl.iY - parentRect.iTl.iY );
+                                   fieldRect.iTl.iY - listPaneRect.iTl.iY );
 
                 }
             // Focus to this field is coming from below
@@ -815,14 +819,14 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
                 // Let's scroll the bottom of the field to the
                 // bottom of the viewable area
                 iObserver->ScrollFieldsDown(
-                                   parentRect.iBr.iY - fieldRect.iBr.iY );
+                        listPaneRect.iBr.iY - fieldRect.iBr.iY );
                 }
             }
 
         // Field is in edit mode
         if( field->FieldMode() == EESMRFieldModeEdit )
             {
-            TInt viewBottom( parentRect.iBr.iY );
+            TInt viewBottom( listPaneRect.iBr.iY );
 
             TInt fieldUpper( 0 );
             TInt fieldLower( 0 );
@@ -832,7 +836,7 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
             TInt focusFieldVisibleBottom( fieldRect.iTl.iY + fieldLower );
 
             // desired position below view rect:
-            TInt viewHeight( parentRect.Height() );
+            TInt viewHeight( listPaneRect.Height() );
             if ( focusFieldVisibleBottom > viewBottom )
                 {
                 // move field focus line bottom to view bottom
@@ -852,7 +856,7 @@ void CMRFieldContainer::ScrollControlVisible( TInt aInd )
             else
                 {
                 // If field top is invisible, move downwards to make top visible.
-                TInt viewTop( parentRect.iTl.iY );
+                TInt viewTop( listPaneRect.iTl.iY );
 
                 // recalculate field rect
                 focusFieldVisibleUp = fieldRect.iTl.iY + fieldUpper;
@@ -922,11 +926,16 @@ void CMRFieldContainer::MoveFields( TInt aIndex, TPoint& aTl )
 
         if ( field->IsVisible() )
             {
-			TPoint pos( field->Position() );
-			pos.iY = aTl.iY;
-			field->SetPosition( pos );
-	
-			aTl.iY += field->Size().iHeight;
+            // Get the current position
+            TPoint pos( field->Position() );
+
+            // Update only y coordinate
+            pos.iY = aTl.iY;
+
+            // Set new position
+            field->SetPosition( pos );
+
+            aTl.iY += field->Size().iHeight;
             }
         }
     }
@@ -1060,12 +1069,20 @@ void CMRFieldContainer::SetScrolling( TBool aScrolling )
     {
     FUNC_LOG;
 
-    iScrolling = aScrolling;
+    if ( aScrolling != iScrolling )
+        {
+        iScrolling = aScrolling;
 
-    // Move focused field away from screen if container is scrolling.
-    // Otherwise move it to screen.
-    CESMRField* field = iFactory.Field( iFocusedFieldIndex );
-    field->MoveToScreen( !iScrolling );
+        // Move focused field away from screen if container is scrolling.
+        // Otherwise move it to screen.
+        CESMRField* field = iFactory.Field( iFocusedFieldIndex );
+        
+        // Remove control focus while container is scrolling
+        TRAP_IGNORE( field->SetOutlineFocusL( !iScrolling ) );
+        field->SetFocus( !iScrolling );
+        
+        field->MoveToScreen( !iScrolling );                
+        }
     }
 
 // ---------------------------------------------------------------------------
@@ -1079,10 +1096,20 @@ void CMRFieldContainer::RedrawField( CESMRField& aField )
     // Record and redraw field only if it is not on screen
     if ( !aField.HasOutlineFocus() )
         {
+        // Record and redraw field only if it is not on screen
         aField.RecordField();
-        TRect rect( aField.Rect() );
-        rect.Move( iPosition.iX - rect.iTl.iX, 0 );
-        aField.DrawNow( rect );
+
+        if ( Parent()->IsVisible() )
+            {
+            // Redraw only if list pane is visible
+            TRect rect( aField.Rect() );
+            rect.Move( iPosition.iX - rect.iTl.iX, 0 );
+            aField.DrawNow( rect );
+            }
+        }
+    else if ( Parent()->IsVisible() )
+        {
+        aField.DrawDeferred();
         }
     }
 
@@ -1090,7 +1117,7 @@ void CMRFieldContainer::RedrawField( CESMRField& aField )
 // CMRFieldContainer::Draw
 // ---------------------------------------------------------------------------
 //
-void CMRFieldContainer::Draw( const TRect& aRect ) const
+void CMRFieldContainer::Draw( const TRect& /*aRect*/ ) const
     {
     FUNC_LOG;
 
@@ -1118,16 +1145,17 @@ void CMRFieldContainer::Draw( const TRect& aRect ) const
         if ( field->IsVisible() )
             {
             // Calculate actual field rect on screen
-            TRect screenRect( tl, field->Size() );
+            TRect fieldRect( tl, field->Size() );
 
             // Draw field if it intersects with screen visible area
             if ( i != fieldToSkip
-                 && screenRect.Intersects( parent ) )
+                 && fieldRect.Intersects( parent ) )
                 {
-                field->Draw( screenRect );
+                // Draw the field
+                field->Draw( fieldRect );
                 }
             // Move next field top left corner
-            tl.iY += screenRect.Height();
+            tl.iY += fieldRect.Height();
             }
         }
     }

@@ -62,8 +62,6 @@
                
 ; emailuis / uicomponents
 ""-"z:\sys\bin\fs_generic.dll"
-""-"z:\sys\bin\fsscrollbarplugin.dll"
-""-"z:\resource\plugins\fsscrollbarplugin.r*"
 
 ; emailuis / emailui / sendasmtm
 ""-"z:\sys\bin\fssendashelper.dll"

@@ -1222,7 +1222,12 @@ TFileType TFsEmailUiUtility::GetFileType( const TDesC& aFileName, const TDesC& a
     {
     FUNC_LOG;
 	TFileType fileType = EUnidentifiedType;
-    TPtrC ext = TParsePtrC( aFileName ).Ext();
+	TInt extPos = aFileName.LocateReverse( KExtDelimiter );
+    TPtrC ext = TDesC( KNullDesC );
+    if ( extPos >= 0 && extPos < aFileName.Length() )
+        {
+        ext.Set( aFileName.Mid( extPos ) );
+        }
 
     // here we make sure that content type does not have extra parameters
     TPtrC mimeType( aMimeType );

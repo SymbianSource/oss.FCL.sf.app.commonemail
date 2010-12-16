@@ -113,9 +113,6 @@ data=DATAZ_\RESOURCE_FILES_DIR\mrcaleventdata.rsc           RESOURCE_FILES_DIR\m
 
 #endif // FF_CAL_MEETING_REQUEST_UI
 
-// Stub sis
-data=ZSYSTEM\install\meetingrequeststub.sis   System\Install\meetingrequeststub.sis
-
 #endif // FF_EMAIL_FRAMEWORK && FF_MEETING_REQUEST_UI
 
 

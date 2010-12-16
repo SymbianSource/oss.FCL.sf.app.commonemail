@@ -427,6 +427,18 @@ protected:
       */
     IMPORT_C virtual TBool HandleRawPointerEventL( const TPointerEvent& aPointerEvent );
 
+    /**
+     * Tests if field should be recorded. The default implementation enables
+     * record on editor fields every time. A viewer field is allowed to be
+     * recorded only once for given layout. The recording state is stored in
+     * iRecorded member. Subclasses may override default implementation for
+     * more sophisticated policy.
+     *
+     * @see RecordField
+     * @return ETrue if field can be recorded using RecordField
+     */
+    IMPORT_C virtual TBool RecordEnabled();
+
 public: // From base class CCoeControl
     IMPORT_C void SetContainerWindowL(const CCoeControl& aContainer);
     IMPORT_C virtual TKeyResponse OfferKeyEventL( const TKeyEvent& aEvent, TEventCode aType );
@@ -448,6 +460,11 @@ protected: // From base class CCoeControl
      *  @see HandleRawPointerEventL
      */
     IMPORT_C void HandlePointerEventL( const TPointerEvent& aPointerEvent );
+
+    /**
+     * Handles layout and color scheme related resource changes
+     */
+    IMPORT_C void HandleResourceChange( TInt aType );
 
 protected:
 
@@ -519,6 +536,8 @@ protected: // data
     TBool iLocked;
     /// Own: Cache for drawing commands
     CMRRecordingGc* iRecordingGc;
+    /// Own: Record state
+    TBool iRecorded;
     };
 
 #endif // CESMRFIELD_H

@@ -41,5 +41,8 @@
  */
 #define KGeneralSettingsAppUidAsTInt 0x100058EC
 
+/** HomeScreen Email Widget Settings application UID
+ */
+#define KEmailWidgetSettAppUidAsTInt 0x2002429E
 
 #endif // EMAILSERVERMONITOR_HRH

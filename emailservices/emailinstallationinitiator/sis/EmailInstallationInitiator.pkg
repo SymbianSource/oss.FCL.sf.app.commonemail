@@ -26,4 +26,4 @@
 ;Supports S60 v 5.0
 [0x1028315F], 0, 0, 0, {"S60ProductID"}
 
-"\epoc32\release\armv5\urel\emailinstallationinitiator.exe"		  -"c:\sys\bin\emailinstallationinitiator.exe", FILERUN, RUNBOTH, RUNWAITEND
+"\epoc32\release\armv5\urel\emailinstallationinitiator.exe"		  -"c:\sys\bin\emailinstallationinitiator.exe", FILERUN, RUNINSTALL, RUNWAITEND

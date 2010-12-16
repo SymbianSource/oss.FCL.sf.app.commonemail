@@ -107,6 +107,7 @@ const TInt KIpsSetDataFullBodyAndAttas      = -1;
 const TInt KIpsSetDataFullBodyOnly          = -3;
 const TInt KIpsSetDataDefaultDownloadSizeKb = 2; 
 const TUint KIpsSetDataEveryDayMask = 0x7f;
+const TInt KIpsSetDataMaxLines = 99999999;
 
 const TInt KRetrieve50Messages = 50;
 const TInt KRetrieve100Messages = 100;

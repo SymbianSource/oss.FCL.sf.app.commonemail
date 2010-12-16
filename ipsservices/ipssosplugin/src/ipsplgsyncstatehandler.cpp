@@ -98,10 +98,12 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
     // already running, it means that it will be synchronized when the mailbox
     // goes online. So we need to check is there any connection operation
     // ongoing and return StartingSync in that case.
+    TBool connOpRunning = ConnOpRunning( aMailboxId );
     if( !tEntry.Connected() )
         {
-        if( ConnOpRunning( aMailboxId ) )
+        if( connOpRunning )
             {
+            INFO( "CIpsPlgSyncStateHandler::GetCurrentSyncState: conn op running - not yet connected" );
             // Some connection operation already processing, so the sync
             // will start soon
             return StartingSync;
@@ -113,49 +115,33 @@ TSSMailSyncState CIpsPlgSyncStateHandler::GetCurrentSyncState(
             return Idle;
             }
         }
+    else if (connOpRunning) 
+        {
+        INFO( "CIpsPlgSyncStateHandler::GetCurrentSyncState: conn op running - online" );
+        return EmailSyncing;
+        }
 
     RAlwaysOnlineClientSession aosession;
     
     err = aosession.Connect();
     if ( err == KErrNone )
-        {
-        
-        TPckgBuf<TInt> idBuf( aMailboxId.Id() );
-        TInt status = KErrNotFound;
-        TPckgBuf<TInt> statusBuf( status );
-        TInt error = aosession.SendReceiveSync(
-            EServerAPIEmailQueryState, idBuf, statusBuf );
-        status = statusBuf();
-        if ( error == KErrNone && 
-                status == EIpsAOPluginStatusSyncStarted )
-            {
-            aosession.Close();
-            return EmailSyncing;
-            }
-        }
-    aosession.Close();
-   
-   // found correct operation
-   for ( TInt i = 0; i < iOperationsRef.Count(); i++ )
        {
-       const CIpsPlgBaseOperation* baseOp = iOperationsRef[i]->BaseOperation();
        
-       if ( baseOp && baseOp->FSMailboxId() == aMailboxId &&
-            ( baseOp->IpsOpType() == EIpsOpTypePop3SyncOp ||
-              baseOp->IpsOpType() == EIpsOpTypePop3PopulateOp ||		
-              baseOp->IpsOpType() == EIpsOpTypeImap4SyncOp ||
-              baseOp->IpsOpType() == EIpsOpTypeImap4PopulateOp ) )
+       TPckgBuf<TInt> idBuf( aMailboxId.Id() );
+       TInt status = KErrNotFound;
+       TPckgBuf<TInt> statusBuf( status );
+       TInt error = aosession.SendReceiveSync(
+           EServerAPIEmailQueryState, idBuf, statusBuf );
+       status = statusBuf();
+       if ( error == KErrNone && 
+               status == EIpsAOPluginStatusSyncStarted )
            {
-           // Due to timing problems we might in some rare cases report
-           // EmailSyncing here even if the actual syncing is already
-           // finsihed, because the operation is removed from the array
-           // with an async function call. HandlePropertyEventL events
-           // seem to be even more unreliable (sync start event comes with
-           // big delay), so we can't trust those either. Some kind of
-           // redesign is needed to get this sync state query more reliable.
+           aosession.Close();
            return EmailSyncing;
            }
        }
+    aosession.Close();
+   
     return Idle;
     }
 

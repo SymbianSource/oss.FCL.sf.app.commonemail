@@ -1,21 +1,7 @@
 <html dir="rtl">
-<header>
-<script language="javascript">
-function setEmailBodyDirection() {
-    var htmlTagName = "html";
-	var d = document.getElementById("body_frame").contentWindow.document;
-	var a = d.getElementsByTagName(htmlTagName);
-	if (a.length > 0 )  {
-	    a[0].setAttribute("dir", "rtl");
-    }
-}
-onload=setEmailBodyDirection;
-</script>
 <script language="javascript" src="email.js"></script>
-</header>
-<frameset rows="10%,*" border="0" id="email_frameSet" onLoad="hideImages('body_frame')">
-<frame id="header_frame" src="header.html" >
-<frame id="body_frame" src="temp/body.html" onLoad="setEmailBodyDirection()" >
+<frameset rows="10%,*" border="0" id="email_frameSet" onLoad="hideImages('body_frame'); setDirections();">
+<frame id="header_frame" src="header.html">
+<frame id="body_frame" src="temp/body.html">
 </frameset>
-
 </html>

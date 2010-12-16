@@ -501,6 +501,13 @@ class CBasePlugin :
          */
         IMPORT_C virtual void TranslateEmailFwMessageL(
             CFSMailMessagePart& aSrc,
+            CMsgStoreMessagePart& aDst );
+
+        /**
+         * DEPRECATED.  aInInbox is no longer used by TranslateEmailFwMessageL().
+         */
+        IMPORT_C virtual void TranslateEmailFwMessageL(
+            CFSMailMessagePart& aSrc,
             CMsgStoreMessagePart& aDst,
             TBool aInInbox );
 

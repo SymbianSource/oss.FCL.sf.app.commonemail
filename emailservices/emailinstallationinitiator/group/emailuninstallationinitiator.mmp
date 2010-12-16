@@ -1,0 +1,60 @@
+/*
+* ============================================================================
+*  Name     : emailuninstallationinitiator.mmp
+*  Part of  : ?module_name (e.g. Continuus subproject name)
+*  Origin   : ?project,?company
+*  Created  : Fri Oct 15 15:22:00 2010 by jysaari
+*  Description:
+*     This is project specification file for the ?module_name.
+*     
+*  Version  :
+*   %version: 1 %, %date_modified: Fri Oct 15 15:22:01 2010 % by %derived_by: jysaari % 
+*  Copyright (c) 2000 Nokia Mobile Phones. All rights reserved.
+*  ---------------------------------------------------------------------------
+*  Version history:
+*  Template version: 1.0, 28.2.2000 by maparnan
+*  <ccm_history>
+*
+*  Version: 1, Fri Oct 15 15:22:01 2010 by jysaari
+*  Ref: ?reference_to_reason_doc_if_any (e.g. ActionDb ID)
+*  ?change_reason_comment
+*
+*  </ccm_history>
+* ============================================================================
+*/
+
+#include <platform_paths.hrh>
+#include <data_caging_paths.hrh>
+
+#include "../../../inc/emailversionnumbers.hrh"     // KEmailBinaryVersionNumber
+#include "../inc/emailinstallationinitiator.hrh"    // KEmailInstallationInitiatorUidAsTInt
+
+
+TARGET                  emailuninstallationinitiator.exe
+TARGETTYPE              exe
+UID                     0x00000000 KEmailUnInstallationInitiatorUidAsTInt
+
+CAPABILITY              CAP_APPLICATION PowerMgmt WriteUserData ReadUserData
+VENDORID                VID_DEFAULT
+
+VERSION       KEmailBinaryVersionNumber
+KEmailBinaryDemandPaging
+
+SOURCEPATH              ../src
+SOURCE                  emailinstallationinitiator.cpp
+
+// ONLY FOR TESTING
+//START RESOURCE          ../data/emailinstallationinitiator_reg.rss
+//TARGETPATH              /private/10003a3f/apps
+//END
+
+USERINCLUDE             ../inc
+USERINCLUDE             ../../../inc
+
+APP_LAYER_SYSTEMINCLUDE
+
+LIBRARY                 apparc.lib
+LIBRARY                 apgrfx.lib
+LIBRARY                 euser.lib
+LIBRARY                 flogger.lib
+LIBRARY                 cmaillogger.lib

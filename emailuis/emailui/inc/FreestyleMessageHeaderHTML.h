@@ -60,46 +60,32 @@ public:
     
 public:
     
-    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
-                                  RWriteStream& aWriteStream, 
-                                  TInt aVisibleWidth, 
-                                  TInt aScrollPosition,
-                                  const TBool aAutoLoadImages,                                  
-                                  const TBitFlags& aFlags );
-    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
-                                  RFile& aFile, 
-                                  TInt aVisibleWidth, 
-                                  TInt aScrollPosition,
-                                  const TBool aAutoLoadImages,
-                                  const TBitFlags& aFlags );
-    IMPORT_C static void ExportL( CFSMailMessage& aMailMessage, 
-                                  RFs& aFs, 
-                                  const TPath& aFilePath, 
-                                  TInt aVisibleWidth, 
-                                  TInt aScrollPosition,
-                                  const TBool aAutoLoadImages,
-                                  const TBitFlags& aFlags );
-    
-    IMPORT_C static CFreestyleMessageHeaderHTML* NewL( CFSMailMessage& aMailMessage,
-                                                       RWriteStream& aWriteStream,
-                                                       TInt aVisibleWidth,
-                                                       TInt aScrollPosition,
-                                                       const TBool aAutoLoadImages,
-                                                       const TBitFlags& aFlags );
-    
+    static void ExportL( CFSMailMessage& aMailMessage,
+        RWriteStream& aWriteStream, TInt aVisibleWidth, TInt aScrollPosition,
+        TBool aAutoLoadImages, const TBitFlags& aFlags );
+
+    static void ExportL( CFSMailMessage& aMailMessage, RFile& aFile,
+        TInt aVisibleWidth, TInt aScrollPosition, TBool aAutoLoadImages,
+        const TBitFlags& aFlags );
+
+    static void ExportL( CFSMailMessage& aMailMessage, RFs& aFs,
+        const TPath& aFilePath, TInt aVisibleWidth, TInt aScrollPosition,
+        TBool aAutoLoadImages, const TBitFlags& aFlags );
+
+    static CFreestyleMessageHeaderHTML* NewL( CFSMailMessage& aMailMessage,
+        RWriteStream& aWriteStream, TInt aVisibleWidth, TInt aScrollPosition,
+        TBool aAutoLoadImages, const TBitFlags& aFlags );
+
     ~CFreestyleMessageHeaderHTML();
-    
-    IMPORT_C void ExportL() const;
-    
+
+    void ExportL() const;
+
 private:
     CFreestyleMessageHeaderHTML( CFSMailMessage& aMailMessage,
-                                 RWriteStream& aWriteStream,
-                                 TInt aVisibleWidth,
-                                 TInt aScrollPosition,
-                                 const TBool aAutoLoadImages,
-                                 const TBitFlags& aFlags );
+        RWriteStream& aWriteStream, TInt aVisibleWidth, TInt aScrollPosition,
+        TBool aAutoLoadImages, const TBitFlags& aFlags );
     void ConstructL();
-        
+
     void ExportHeaderTablesL() const;
     void ExportCollapsedHeaderTableL() const;
     void ExportExpandedHeaderTablesL() const;
@@ -142,13 +128,16 @@ private:
     TInt CalculateTotalSpaceRequired( const TDesC& aText, CFindItemEngine& aItemEngine, 
             TInt& aMaxLength ) const;
     HBufC* CreateLinksLC( const TDesC& aText, const TInt aSearchCases ) const;
-    void ExportHTMLBodyStartL() const;
-    void ExportHTMLBodyEndL() const;
+    void ExportHtmlStartL() const;
+    void ExportHeadL() const;
+    void ExportBodyStartL() const;
+    void ExportBodyEndL() const;
+    void ExportHtmlEndL() const;
     void ExportDisplayImagesTableL() const;
     void ExportBodyStyleL() const;
     
 private:
-    
+
     // Table formatting flags
     enum TTableStyleFlags
         {

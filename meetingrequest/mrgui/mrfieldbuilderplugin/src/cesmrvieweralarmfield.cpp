@@ -119,7 +119,7 @@ void CESMRViewerAlarmField::InternalizeL( MESMRCalEntry& aEntry )
         else
             {
             stringholder = StringLoader::LoadLC(
-                    R_QTN_MEET_REQ_ALARM_OFF , iEikonEnv );
+                    R_QTN_MEET_REQ_ALARM_OFF , iCoeEnv );
             iLabel->SetTextL( *stringholder );
             CleanupStack::PopAndDestroy( stringholder );
             return;
@@ -133,31 +133,32 @@ void CESMRViewerAlarmField::InternalizeL( MESMRCalEntry& aEntry )
             {
             timeUnits = minutes / KHourInMinutes;
             stringholder = StringLoader::LoadLC(
-                    R_QTN_MEET_REQ_ALARM_HOUR , timeUnits, iEikonEnv );
+                    R_QTN_MEET_REQ_ALARM_HOUR , timeUnits, iCoeEnv );
             }
         // Alarm time is more than one hour and less than one day before
         else if( minutes > KHourInMinutes && minutes < KDayInMinutes )
             {
             timeUnits = minutes / KHourInMinutes;
             stringholder = StringLoader::LoadLC(
-                    R_QTN_MEET_REQ_ALARM_HOURS , timeUnits, iEikonEnv );
+                    R_QTN_MEET_REQ_ALARM_HOURS , timeUnits, iCoeEnv );
             }
         // Alarm is several days before //
         else if( minutes >= KDayInMinutes )
             {
             timeUnits = minutes / KDayInMinutes;
             stringholder = StringLoader::LoadLC(
-                    R_QTN_MEET_REQ_ALARM_DAYS , timeUnits, iEikonEnv );
+                    R_QTN_MEET_REQ_ALARM_DAYS , timeUnits, iCoeEnv );
             }
         // Alarm is minutes before //
         else
             {
             stringholder = StringLoader::LoadLC(
-                    R_QTN_MEET_REQ_ALARM_MINUTES , minutes, iEikonEnv );
+                    R_QTN_MEET_REQ_ALARM_MINUTES , minutes, iCoeEnv );
             }
 
         iLabel->SetTextL( *stringholder );
         CleanupStack::PopAndDestroy( stringholder );
+        iRecorded = EFalse;
         }
     }
 

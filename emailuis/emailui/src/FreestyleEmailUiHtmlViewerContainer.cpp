@@ -298,7 +298,8 @@ CFsEmailUiHtmlViewerContainer::CFsEmailUiHtmlViewerContainer(
     iView( aView ),
     iFs( iCoeEnv->FsSession() ),
     iFirstTime( ETrue ),
-    iZoomLevel( KZoomLevelIndex100 )
+    iZoomLevel( KZoomLevelIndex100 ),
+    iAsyncConnector( NULL )
     {
     FUNC_LOG;
     }
@@ -315,6 +316,7 @@ CFsEmailUiHtmlViewerContainer::~CFsEmailUiHtmlViewerContainer()
         {
         iAppUi.DownloadInfoMediator()->StopObserving( this );
         }
+    delete iAsyncConnector;
     iFile.Close();
     iLinkContents.Close();
     iMessageParts.Close();
@@ -336,10 +338,20 @@ void CFsEmailUiHtmlViewerContainer::PrepareForExit()
         iAppUi.DownloadInfoMediator()->StopObserving( this );
         iObservingDownload = EFalse;
         }
-    delete iBrCtlInterface;
-    iBrCtlInterface = NULL;
-    iConnection.Close();
-    iSocketServer.Close();
+    // Check whether we can clean up iBrCtlInterface, etc. now, or must
+    // defer them until later (i.e. when destructor is called).
+    TBool asyncCleanupNeeded = EFalse;
+    if ( iBrCtlInterface && iAsyncConnector )
+        {
+        asyncCleanupNeeded = iAsyncConnector->CancelConnection( iBrCtlInterface, EFalse, EFalse );
+        }
+    if ( !asyncCleanupNeeded )
+        {
+        delete iBrCtlInterface;
+        iBrCtlInterface = NULL;
+        iConnection.Close();
+        iSocketServer.Close();
+        }
     }
 
 void CFsEmailUiHtmlViewerContainer::PrepareForMessageNavigation()
@@ -350,15 +362,15 @@ void CFsEmailUiHtmlViewerContainer::PrepareForMessageNavigation()
 
 void CFsEmailUiHtmlViewerContainer::ZoomInL()
     {
-    SetZoomLevelL( ZoomLevelL() + 1 );
+    SetZoomLevelL( NextZoomLevelL() );
     }
 
 void CFsEmailUiHtmlViewerContainer::ZoomOutL()
     {
-    SetZoomLevelL( ZoomLevelL() - 1 );
+    SetZoomLevelL( PreviousZoomLevelL() );
     }
 
-TInt CFsEmailUiHtmlViewerContainer::ZoomLevelL() const
+TInt CFsEmailUiHtmlViewerContainer::NextZoomLevelL() const
     {
     FUNC_LOG;
     TInt zoomLevelIdx = iBrCtlInterface->BrowserSettingL(
@@ -373,12 +385,15 @@ TInt CFsEmailUiHtmlViewerContainer::ZoomLevelL() const
         {
         // new browser:
         // BrowserControlIf gives zoom level percentage insted of index to array
-        TBool found = EFalse;
+        TInt zoomLevelPercentage = zoomLevelIdx;
 
+        // Find the smallest zoom level greater than the current level.
+        TBool found = EFalse;
         for ( TInt i = 0 ; i < KZoomLevelCount && !found ; ++i )
             {
-            if ( zoomLevelIdx == KZoomLevels[i] )
+            if ( zoomLevelPercentage < KZoomLevels[i] )
                 {
+                // First value greater than current level found.
                 zoomLevelIdx = i;
                 found = ETrue;
                 }
@@ -388,6 +403,51 @@ TInt CFsEmailUiHtmlViewerContainer::ZoomLevelL() const
             {
             zoomLevelIdx = KErrNotFound;
             }
+        }
+    else
+        {
+        zoomLevelIdx += 1;
+        }
+    return zoomLevelIdx;
+    }
+
+TInt CFsEmailUiHtmlViewerContainer::PreviousZoomLevelL() const
+    {
+    FUNC_LOG;
+    TInt zoomLevelIdx = iBrCtlInterface->BrowserSettingL(
+            TBrCtlDefs::ESettingsCurrentZoomLevelIndex );
+
+    // Behaviour of zooming in Browser Control Interface is different in version 7.1
+    // than in previous versions and we need to support both. In older versions there
+    // are 4 preset zoom levels while version 7.1 can zoom to any percent.
+    RArray<TUint>* zoomLevels = iBrCtlInterface->ZoomLevels();
+
+    if ( !zoomLevels || !zoomLevels->Count() || ( *zoomLevels )[0] != KZoomLevels[0] )
+        {
+        // new browser:
+        // BrowserControlIf gives zoom level percentage insted of index to array
+        const TInt zoomLevelPercentage = zoomLevelIdx;
+
+        // Find the greates zoom level smaller than the current level.
+        TBool found = EFalse;
+        for ( TInt i = KZoomLevelCount - 1; i >= 0 && !found; --i )
+            {
+            if ( KZoomLevels[i] < zoomLevelPercentage )
+                {
+                // First value smaller than current level found.
+                zoomLevelIdx = i;
+                found = ETrue;
+                }
+            }
+
+        if ( !found )
+            {
+            zoomLevelIdx = KErrNotFound;
+            }
+        }
+    else
+        {
+        zoomLevelIdx -= 1;
         }
     return zoomLevelIdx;
     }
@@ -417,9 +477,12 @@ void CFsEmailUiHtmlViewerContainer::SetZoomLevelL( const TInt aZoomLevel )
         newValue = aZoomLevel;
         }
 
-    iZoomLevel = ( newValue > KMinTInt ) ? newValue : aZoomLevel;
-    iBrCtlInterface->SetBrowserSettingL(
-        TBrCtlDefs::ESettingsCurrentZoomLevelIndex, iZoomLevel );
+    if ( newValue > KMinTInt )
+        {
+        iZoomLevel = newValue;
+        iBrCtlInterface->SetBrowserSettingL(
+            TBrCtlDefs::ESettingsCurrentZoomLevelIndex, iZoomLevel );
+        }
     }
 
 TInt CFsEmailUiHtmlViewerContainer::DoZoom( TAny* aPtr  )
@@ -446,8 +509,9 @@ void CFsEmailUiHtmlViewerContainer::CreateBrowserControlInterfaceL()
 
     if ( iBrCtlInterface )
         {
-        delete iBrCtlInterface;
-        iBrCtlInterface = NULL;
+        SetZoomLevelL( 100 );
+        iBrCtlInterface->SetBrowserSettingL( TBrCtlDefs::ESettingsAutoLoadImages, iViewerSettings->AutoLoadImages() );
+        return;
         }
 
     TUint brCtlCapabilities = TBrCtlDefs::ECapabilityClientResolveEmbeddedURL |
@@ -501,10 +565,6 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
     Window().EnableAdvancedPointers();
 #endif 
 
-    
-    SetRect( iView.ContainerRect() );
-    CreateBrowserControlInterfaceL();
-
     iEventHandler = CFreestyleMessageHeaderURLEventHandler::NewL( iAppUi, iView );
 
     TRect nextButtonRect = OverlayButtonRect( EFalse );
@@ -522,6 +582,9 @@ void CFsEmailUiHtmlViewerContainer::ConstructL()
     iTouchFeedBack = MTouchFeedback::Instance();
     iTouchFeedBack->EnableFeedbackForControl(this, ETrue);
 
+    CreateBrowserControlInterfaceL();
+    SetRect( iView.ContainerRect() );
+    
     ActivateL();
     }
 
@@ -653,14 +716,17 @@ void CFsEmailUiHtmlViewerContainer::LoadContentFromMailMessageL(
     // insert email header into email.html file
     // CFreestyleMessageHeaderHTML will replace contents of email.html
     // So, no need to clear the contents
-    if(aResetScrollPos)
+    if ( aResetScrollPos )
         {
         iScrollPosition = 0;
         }
+
     const TInt visibleWidth(iAppUi.ClientRect().Width());
-    CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile, visibleWidth, iScrollPosition,
-            iViewerSettings->AutoLoadImages() || iAppUi.DisplayImagesCache().Contains(*iMessage), iFlags );
-    
+    const TBool autoloadImages = iViewerSettings->AutoLoadImages() || 
+        iAppUi.DisplayImagesCache().Contains( *iMessage );
+    CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs, headerHtmlFile,
+        visibleWidth, iScrollPosition, autoloadImages, iFlags );
+
     // Remove all previously created files from temporary HTML folder
     EmptyTempHtmlFolderL();
 
@@ -704,14 +770,27 @@ void CFsEmailUiHtmlViewerContainer::ResetContent(const TBool aDisconnect)
     FUNC_LOG;
     if ( iBrCtlInterface )
         {
-        TRAP_IGNORE(
-                iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
-                        ( TInt )TBrCtlDefs::ECommandFreeMemory ) );
-        if (aDisconnect)
+        TBool asyncCleanupNeeded = EFalse;
+        if ( iAsyncConnector )
             {
+            // If we're in the process of making a network connection,
+            // cancel it and see whether any cleanup needs to be done
+            // asynchronously or not.
+            asyncCleanupNeeded = iAsyncConnector->CancelConnection( iBrCtlInterface, ETrue, aDisconnect );
+            }
+    
+        if ( !asyncCleanupNeeded )
+            {
+            // We can clean up now.
             TRAP_IGNORE(
                     iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
-                                                      ( TInt )TBrCtlDefs::ECommandDisconnect ) );
+                            ( TInt )TBrCtlDefs::ECommandFreeMemory ) );
+            if ( aDisconnect )
+                {
+                TRAP_IGNORE(
+                        iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
+                                                          ( TInt )TBrCtlDefs::ECommandDisconnect ) );
+                }
             }
         }
     iFile.Close();
@@ -825,38 +904,40 @@ TKeyResponse CFsEmailUiHtmlViewerContainer::OfferKeyEventL(
     FUNC_LOG;
 
     TKeyResponse retVal = EKeyWasNotConsumed;
-
-    // Handle keyboard shortcuts already on key down event as all keys
-    // do not necessarily send the key event at all.
-    if ( aType == EEventKeyDown )
+    if ( iAppUi.CurrentActiveView() == &iView )
         {
-        // Check keyboard shortcuts
-        TInt shortcutCommand = iAppUi.ShortcutBinding().CommandForShortcutKey(
-            aKeyEvent, CFSEmailUiShortcutBinding::EContextHtmlViewer );
-
-        if ( shortcutCommand != KErrNotFound )
+        // Handle keyboard shortcuts already on key down event as all keys
+        // do not necessarily send the key event at all.
+        if ( aType == EEventKeyDown )
             {
-            iView.HandleCommandL( shortcutCommand );
-            retVal = EKeyWasConsumed;
+            // Check keyboard shortcuts
+            TInt shortcutCommand = iAppUi.ShortcutBinding().CommandForShortcutKey(
+                aKeyEvent, CFSEmailUiShortcutBinding::EContextHtmlViewer );
+    
+            if ( shortcutCommand != KErrNotFound )
+                {
+                iView.HandleCommandL( shortcutCommand );
+                retVal = EKeyWasConsumed;
+                }
             }
-        }
 
-    if ( iBrCtlInterface && retVal == EKeyWasNotConsumed )
-        {
-        TKeyEvent event = aKeyEvent;
-        if ( iBrCtlInterface->FocusedElementType() == TBrCtlDefs::EElementButton
-             && ( aKeyEvent.iScanCode == EStdKeyNkpEnter 
-                  || aKeyEvent.iScanCode == EStdKeyEnter ) )
+        if ( iBrCtlInterface && retVal == EKeyWasNotConsumed )
             {
-            // Enter key events are converted to selection key event in
-            // order to get browser to handle them in similar way.
-            event.iScanCode = EStdKeyDevice3;
-            event.iCode = aKeyEvent.iCode ? EKeyDevice3 : 0;
+            TKeyEvent event = aKeyEvent;
+            if ( iBrCtlInterface->FocusedElementType() == TBrCtlDefs::EElementButton
+                 && ( aKeyEvent.iScanCode == EStdKeyNkpEnter 
+                      || aKeyEvent.iScanCode == EStdKeyEnter ) )
+                {
+                // Enter key events are converted to selection key event in
+                // order to get browser to handle them in similar way.
+                event.iScanCode = EStdKeyDevice3;
+                event.iCode = aKeyEvent.iCode ? EKeyDevice3 : 0;
+                }
+            retVal = iBrCtlInterface->OfferKeyEventL( event, aType );
             }
-        retVal = iBrCtlInterface->OfferKeyEventL( event, aType );
-        }
 
-    iView.SetMskL();
+        iView.SetMskL();
+        }
 
     return retVal;
     }
@@ -882,7 +963,28 @@ void CFsEmailUiHtmlViewerContainer::NetworkConnectionNeededL(
         prefs.SetDialogPreference( ECommDbDialogPrefDoNotPrompt );
         prefs.SetDirection( ECommDbConnectionDirectionOutgoing );
         prefs.SetIapId( 0 ); // Ask for access point
-        User::LeaveIfError( iConnection.Start( prefs ) );
+        
+        if ( !iAsyncConnector )
+            {
+            iAsyncConnector =  
+                 new(ELeave) CFsEmailUiHtmlViewerAsyncConnection( iConnection );
+            }
+        // This call estabilish connection using asynchronous RConnection::Start 
+        // and synchronous wait by ActiveShedulerWait. It is better then synchro-
+        // nous RConnection::Start since thread is not blocked durring whole
+        // connection process.
+        TInt error = iAsyncConnector->StartConnectL( prefs );
+
+        // If there was an error during connection (e.g. the connection was
+        // cancelled) we leave here, *without* deleting the asynchronous
+        // connector.  This is because there may be some delayed cleanup
+        // operation that needs to be run later, in which case the
+        // asynchronous connector will be deleted in the destructor, or the
+        // next time it is (successfully) used.
+        User::LeaveIfError( error );
+
+        delete iAsyncConnector;
+        iAsyncConnector = NULL;
         *aNewConn = ETrue;
         iFirstTime = EFalse;
         }
@@ -1684,8 +1786,8 @@ void CFsEmailUiHtmlViewerContainer::HandleResourceChange( TInt aType )
     CCoeControl::HandleResourceChange( aType );
     if ( aType == CFsEmailUiViewBase::EScreenLayoutChanged )
         {
-        RefreshCurrentMailHeader();
-	    SetRect( iView.ContainerRect() );
+        SetRect( iView.ContainerRect() );
+        Window().Invalidate();
         }
    }
 
@@ -1698,13 +1800,13 @@ void CFsEmailUiHtmlViewerContainer::RefreshCurrentMailHeader()
         headerHtmlFile.Copy( iHtmlFolderPath );
         headerHtmlFile.Append( KHeaderHtmlFile );
 
-            TRAP_IGNORE( CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs,
-                headerHtmlFile, iAppUi.ClientRect().Width(), iScrollPosition,
-                iViewerSettings->AutoLoadImages() || iAppUi.DisplayImagesCache().Contains(*iMessage),
-                iFlags ) )
-        
-        
-        if(!iEventHandler->IsMenuVisible())
+        const TInt visibleWidth = iAppUi.ClientRect().Width();
+        const TBool autoloadImages = iViewerSettings->AutoLoadImages() || 
+            iAppUi.DisplayImagesCache().Contains( *iMessage );
+        TRAP_IGNORE( CFreestyleMessageHeaderHTML::ExportL( *iMessage, iFs,
+            headerHtmlFile, visibleWidth, iScrollPosition, autoloadImages, iFlags ) );
+
+        if ( !iEventHandler->IsMenuVisible() )
             {
             TRAP_IGNORE( ReloadPageL() );
             }
@@ -2342,4 +2444,134 @@ void PlainTextToHtmlConverter::ConvertUrlL(const TDesC& aSource, RBuf& aTarget)
     aTarget.Append( *formatBuffer );
         
     CleanupStack::PopAndDestroy( formatBuffer );
+    }
+
+
+
+// ---------------------------------------------------------------------------
+// CFsEmailUiHtmlViewerAsyncConnection
+//
+// ---------------------------------------------------------------------------
+//
+
+CFsEmailUiHtmlViewerAsyncConnection::
+            CFsEmailUiHtmlViewerAsyncConnection( RConnection& aConnection ) : 
+                                                  CActive( EPriorityStandard ),
+                                                  iConnection( aConnection ),
+                                                  iState( EFinishConnection ),
+                                                  iRequestCancelled( EFalse ),
+                                                  iWait( NULL ),
+                                                  iBrCtlInterface( NULL ),
+                                                  iDisconnect( EFalse )
+    {
+    CActiveScheduler::Add( this );
+    }
+
+CFsEmailUiHtmlViewerAsyncConnection::~CFsEmailUiHtmlViewerAsyncConnection()
+    {
+    if ( IsActive() )
+        {
+        Cancel();
+        }
+    delete iWait;
+    }
+    
+    // Start establishing a network connection with the given preferences.
+TInt CFsEmailUiHtmlViewerAsyncConnection::StartConnectL( TConnPref& aConnPref )
+    {
+    Cancel();
+    iRequestCancelled = EFalse;
+    iWait = new(ELeave) CActiveSchedulerWait();
+    SetActive();
+    iConnection.Start( aConnPref, iStatus );
+    iState = EFinishConnection;
+    // Run the nested scheduler.
+    iWait->Start();
+    delete iWait;
+    iWait = NULL;
+    return iRequestCancelled ? KErrCancel : iStatus.Int();
+    }
+
+void CFsEmailUiHtmlViewerAsyncConnection::RunL()
+    {
+    switch( iState )
+        {
+            case EFinishConnection:
+                // We have finished establishing the connection, so stop the
+                // nested scheduler.
+                iWait->AsyncStop();
+                break;
+        
+            case EResetRequested:
+                // Clean up the BrCtlInterface and disconnect if requested.
+                TRAP_IGNORE( iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
+                                    ( TInt )TBrCtlDefs::ECommandFreeMemory ) );
+                if ( iDisconnect )
+                    {
+                        TRAP_IGNORE( iBrCtlInterface->HandleCommandL( ( TInt )TBrCtlDefs::ECommandIdBase +
+                                                                  ( TInt )TBrCtlDefs::ECommandDisconnect ) );
+                    }
+                break;
+                
+            default:
+                User::Invariant();
+        }
+    }   
+
+void CFsEmailUiHtmlViewerAsyncConnection::DoCancel()
+    {
+    if ( IsActive() )
+        {
+        iConnection.Close();
+        if ( iState != EResetRequested )
+            {
+            // Stop the nested scheduler if it hasn't been already.
+            iWait->AsyncStop();
+            }
+        }
+    }
+
+TBool CFsEmailUiHtmlViewerAsyncConnection::CancelConnection( 
+                    CBrCtlInterface* aBrCtlInterface, TBool aReset, TBool aDisconnect )
+    {
+    iRequestCancelled = ETrue;
+
+    if ( !IsActive() )
+        {
+        // If we're not active, there is nothing to cancel.
+        // Return False - no need to defer any cleanup.
+        return EFalse;
+        }
+
+    if ( iState == EResetRequested )
+        {
+        // Another cancellation has been requested while a reset is
+        // scheduled: if it also requests a reset, merge the disconnect
+        // flags, so that a disconnection happens if any of the cancellation
+        // requests wants a disconnection.
+        if ( aReset )
+            {
+            iDisconnect = iDisconnect || aDisconnect;
+            }
+        }
+    else
+        {
+        // Cancel the connection operation.
+        Cancel();
+
+        if ( aReset )
+            {
+            // A reset has been requested, possibly with disconnection, so
+            // schedule that.
+            iBrCtlInterface = aBrCtlInterface;
+            iDisconnect = aDisconnect;
+
+            iState = EResetRequested;
+            SetActive();
+            TRequestStatus* status = &iStatus; 
+            User::RequestComplete( status, KErrNone );
+            }
+
+        }
+    return ETrue;
     }

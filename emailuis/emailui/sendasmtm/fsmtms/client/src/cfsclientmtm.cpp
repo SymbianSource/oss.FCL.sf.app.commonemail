@@ -738,13 +738,13 @@ TInt CFsMtmClient::RenameAccountL( const TDesC& aAccountNewName,
            		{
            	    // Operation is mailbox name change.
            		// We end up here when TFSEventMailboxRenamed  event is received by server.
-                tEntry.iDetails.Set( *aAccountNewName.AllocL() );
+                tEntry.iDetails.Set( aAccountNewName );
             	}
             if ( aOwnAddress != KNullDesC && tEntry.iDescription != aOwnAddress )
             	{
             	// Operation is owner email address change.
             	// We end up here when TFSEventMailboxSettingsChanged event is received by server.
-            	tEntry.iDescription.Set( *aOwnAddress.AllocL() );
+                tEntry.iDescription.Set( aOwnAddress );
             	}
             root->ChangeL( tEntry );
             break;

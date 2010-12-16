@@ -30,6 +30,7 @@
 #include "cconnectionstatusqueryext.h" 
 
 const TInt KMaxMruEntries( 150 );
+const TInt32 KFsPop3PluginId = 0x2000e53e;
 
 // ================= MEMBER FUNCTIONS ==========================================
 // -----------------------------------------------------------------------------
@@ -566,17 +567,20 @@ EXPORT_C void CFSMailBox::SetCredentialsL( const TDesC& aUsername, const TDesC& 
 EXPORT_C void CFSMailBox::RemoveDownLoadedAttachmentsL()
     {
     FUNC_LOG;
-    
-    CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( GetId() );
-    if ( plugin )
+    const TFSMailMsgId boxId = GetId();
+    if ( boxId.PluginId().iUid != KFsPop3PluginId )
         {
-        // get inbox folder from plugin
-        TFSMailMsgId folderId = GetStandardFolderId( EFSInbox );
-        CFSMailFolder* folder = plugin->GetFolderByUidL( GetId(), folderId );
-        if ( folder )
+        CFSMailPlugin* plugin = iRequestHandler->GetPluginByUid( boxId );
+        if ( plugin )
             {
-            folder->RemoveDownLoadedAttachmentsL();
-            delete folder;
+            // get inbox folder from plugin
+            TFSMailMsgId folderId = GetStandardFolderId( EFSInbox );
+            CFSMailFolder* folder = plugin->GetFolderByUidL( GetId(), folderId );
+            if ( folder )
+                {
+                folder->RemoveDownLoadedAttachmentsL();
+                delete folder;
+                }
             }
         }
     }

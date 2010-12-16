@@ -24,3 +24,4 @@ PRJ_EXPORTS
 
 PRJ_MMPFILES
 emailinstallationinitiator.mmp
+emailuninstallationinitiator.mmp

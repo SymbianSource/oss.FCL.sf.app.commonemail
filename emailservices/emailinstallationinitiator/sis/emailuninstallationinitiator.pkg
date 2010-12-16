@@ -11,27 +11,19 @@
 ;
 ; Contributors:
 ;
-; Description:  Rom eclipsing stub file for emailstore.
+; Description:
+; Package file for email uninstallation initiator
 ;
 
-&EN
+#{"Email uninstallation initiator"},(0x20029F1B), 1,0,0, TYPE=SA,RU
 
-; standard SIS file header
-#{"Email Store"},(0x2001FDA4),1,0,0
- 
-;Localized Vendor Name
-%{"Nokia"}
+;Localised Vendor name
+%{"Symbian"}
 
 ;Unique Vendor name
-:"Nokia"
+:"Symbian"
 
-;Message store
-""-"z:\sys\bin\MessageStoreClient.dll"
-""-"z:\sys\bin\MessageStoreServer.dll"
-""-"z:\sys\bin\MessageStoreExe.exe"
-""-"z:\sys\bin\DebugLog.dll"
-""-"z:\sys\bin\ImsPointSecMonitor.dll"
+;Supports S60 v 5.0
+[0x1028315F], 0, 0, 0, {"S60ProductID"}
 
-
-;Base plugin
-""-"z:\sys\bin\baseplugin.dll"
+"\epoc32\release\armv5\urel\emailuninstallationinitiator.exe"		  -"c:\sys\bin\emailuninstallationinitiator.exe", FILERUN, RUNREMOVE, RUNWAITEND

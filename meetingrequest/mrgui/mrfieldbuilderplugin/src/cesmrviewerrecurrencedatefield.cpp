@@ -49,7 +49,6 @@ CESMRViewerRecurrenceDateField::CESMRViewerRecurrenceDateField()
     {
     FUNC_LOG;
     SetFieldId( EESMRFieldRecurrenceDate );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -105,6 +104,7 @@ void CESMRViewerRecurrenceDateField::InitializeL()
 
     NMRColorManager::SetColor( *iRepeatDate,
                                NMRColorManager::EMRMainAreaTextColor );
+
     //this control cannot ever get keyboard focus
     SetFocusing(EFalse);
     }
@@ -268,15 +268,15 @@ void CESMRViewerRecurrenceDateField::FormatRepeatUntilDateL()
     HBufC* topicHolder =
             StringLoader::LoadLC(
                     R_QTN_MEET_REQ_REPEAT_UNTIL,
-                    iEikonEnv );
+                    iCoeEnv );
 
     // Set text for repeat topic (e.g. "Repeat until")
     iRepeatTopic->SetTextL( *topicHolder );
     CleanupStack::PopAndDestroy( topicHolder );
 
     // Format date string
-    HBufC* timeFormatString = iEikonEnv->AllocReadResourceLC(
-                                    R_QTN_DATE_USUAL);
+    HBufC* timeFormatString = iCoeEnv->AllocReadResourceLC(
+    		R_QTN_DATE_USUAL_WITH_ZERO );
 
     TBuf< KDateStringLength > finalBuf;
     iRepeatUntilDate.FormatL( finalBuf, *timeFormatString );

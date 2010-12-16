@@ -118,7 +118,9 @@ class CGSEmailSettingsView: public CGSPluginInterface
 
 	   
     private: // data
-       	RConeResourceLoader iResourceLoader;
+	    
+	    // Caption text shown in general settings application
+	    HBufC* iCaptionText;
 	};
 	
 

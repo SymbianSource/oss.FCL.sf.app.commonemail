@@ -77,7 +77,6 @@ CESMRViewerRecurrenceField::CESMRViewerRecurrenceField()
     {
     FUNC_LOG;
     SetFieldId( EESMRFieldRecurrence );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -91,6 +90,8 @@ void CESMRViewerRecurrenceField::ConstructL()
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapRecurrence, this );
+
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -131,39 +132,44 @@ void CESMRViewerRecurrenceField::InternalizeL( MESMRCalEntry& aEntry )
         {
         case ERecurrenceDaily:
             {
-            recHolder = StringLoader::LoadLC( R_QTN_MEET_REQ_RECURRING_DAILY,
-                                              iEikonEnv );
+            recHolder = StringLoader::LoadLC(
+                    R_QTN_MEET_REQ_RECURRING_DAILY,
+                    iCoeEnv );
             break;
             }
         case ERecurrenceWeekly:
             {
-            recHolder = StringLoader::LoadLC( R_QTN_MEET_REQ_RECURRING_WEEKLY,
-                                              iEikonEnv );
+            recHolder = StringLoader::LoadLC(
+                    R_QTN_MEET_REQ_RECURRING_WEEKLY,
+                    iCoeEnv );
             break;
             }
         case ERecurrenceEverySecondWeek:
             {
-            recHolder =
-                StringLoader::LoadLC( R_QTN_MEET_REQ_RECURRING_SEC_WEEK,
-                                      iEikonEnv );
+            recHolder = StringLoader::LoadLC(
+                    R_QTN_MEET_REQ_RECURRING_SEC_WEEK,
+                    iCoeEnv );
             break;
             }
         case ERecurrenceMonthly:
             {
-            recHolder = StringLoader::LoadLC( R_QTN_MEET_REQ_RECURRING_MONTHLY,
-                                              iEikonEnv );
+            recHolder = StringLoader::LoadLC(
+                    R_QTN_MEET_REQ_RECURRING_MONTHLY,
+                    iCoeEnv );
             break;
             }
         case ERecurrenceYearly:
             {
-            recHolder = StringLoader::LoadLC( R_QTN_MEET_REQ_RECURRING_YEARLY,
-                                              iEikonEnv );
+            recHolder = StringLoader::LoadLC(
+                    R_QTN_MEET_REQ_RECURRING_YEARLY,
+                    iCoeEnv );
             break;
             }
         case ERecurrenceUnknown:
             {
-            recHolder = StringLoader::LoadLC( R_QTN_MEET_REQ_RECURRENCE_EVENT,
-                                              iEikonEnv );
+            recHolder = StringLoader::LoadLC(
+                    R_QTN_MEET_REQ_RECURRENCE_EVENT,
+                    iCoeEnv );
             break;
             }
         case ERecurrenceNot:
@@ -179,6 +185,7 @@ void CESMRViewerRecurrenceField::InternalizeL( MESMRCalEntry& aEntry )
         iLabel->SetTextL( *recHolder );
         CleanupStack::PopAndDestroy( recHolder );
         }
+    iRecorded = EFalse;
     }
 
 // -----------------------------------------------------------------------------

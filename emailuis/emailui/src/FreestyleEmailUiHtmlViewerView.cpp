@@ -155,6 +155,28 @@ void CFsEmailUiHtmlViewerView::HandleCommandL( TInt aCommand )
 
     if ( !iAppUi.ViewSwitchingOngoing() )
         {
+        // prohibit usage of deleted message
+        if ( !iMessage || iLastDeletedMessageID == iMessage->GetMessageId() )
+            {
+            switch ( aCommand )
+                {
+                case EFsEmailUiCmdActionsOpen:
+                case EFsEmailUiCmdActionsReply:
+                case EFsEmailUiCmdActionsReplyAll:
+                case EFsEmailUiCmdActionsForward:
+                case EFsEmailUiCmdActionsDelete:
+                case EFsEmailUiCmdOpenAttachmentList:
+                case EFsEmailUiCmdMarkAsUnread:
+                case EFsEmailUiCmdMarkAsRead:
+                case EFsEmailUiCmdActionsMoveMessage:
+                case EFsEmailUiCmdActionsFlag:
+                case EFsEmailUiCmdMessageDetails:
+                case EFsEmailUiCmdCompose:
+                    return;
+                default:
+                    break;
+                }
+            }
         switch ( aCommand )
             {
                 // Open MSK handling
@@ -927,21 +949,21 @@ void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane*
 
         // Some commands are blocked when viewing embedded message object
         // or separate HTML file.
-        const TBool blockCmds( !iMessage || iActivationData.iEmbeddedMessageMode || toolbarExists );
-        const TBool blockReplyALLCmd( toolbarExists || !iMessage || iActivationData.iEmbeddedMessageMode ||
-                TFsEmailUiUtility::CountRecipientsSmart( iAppUi, iMessage ) < 2 );
+        const TBool blockedMsg(!iMessage 
+            || (iLastDeletedMessageID == iMessage->GetMessageId()) 
+            || iActivationData.iEmbeddedMessageMode );
+        const TBool blockCmds( blockedMsg || toolbarExists );
+        const TBool blockReplyALLCmd( blockCmds 
+            || TFsEmailUiUtility::CountRecipientsSmart( iAppUi, iMessage ) < 2 );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReply, blockCmds );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsReplyAll, blockReplyALLCmd );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsForward, blockCmds );
         aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsDelete, blockCmds );
 
-        if( iActivationData.iEmbeddedMessageMode )
-            {
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, ETrue );
-            }
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, blockedMsg );
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, blockedMsg );
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, blockedMsg );
+        aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, blockedMsg );
 
         TBool hideNext = !ShowNextMessageMenuInOptions();
         TBool blockNextCmd = !iMessage || iActivationData.iEmbeddedMessageMode || hideNext;
@@ -957,42 +979,45 @@ void CFsEmailUiHtmlViewerView::DynInitMenuPaneL( TInt aResourceId, CEikMenuPane*
             aMenuPane->SetItemDimmed( EFsEmailUiCmdPreviousMessage, blockPrevCmd );
             }
 
-        CFSMailFolder* currentFolder = NULL;
-        if ( iMessage )
-            {
-            TRAP_IGNORE( currentFolder =
-                iAppUi.GetMailClient()->GetFolderByUidL(
-                        iMessage->GetMailBoxId(),
-                        iMessage->GetFolderId() ) );
+        if ( !blockedMsg ) 
+        {
+            CFSMailFolder* currentFolder = NULL;
+            if ( iMessage )
+                {
+                TRAP_IGNORE( currentFolder =
+                    iAppUi.GetMailClient()->GetFolderByUidL(
+                            iMessage->GetMailBoxId(),
+                            iMessage->GetFolderId() ) );
+                }
+    
+            if ( currentFolder &&
+                 currentFolder->GetFolderType() != EFSOutbox )
+                {
+                // Mark as read/unread options
+                TBool messageIsRead( iMessage->IsFlagSet( EFSMsgFlag_Read ) );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, messageIsRead );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, !messageIsRead );
+    
+                // Move to another folder option
+                aMenuPane->SetItemDimmed(
+                        EFsEmailUiCmdActionsMoveMessage,
+                        !iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder ) );
+    
+                // Follow-up flag option
+                aMenuPane->SetItemDimmed(
+                        EFsEmailUiCmdActionsFlag,
+                        !( iMailBox && TFsEmailUiUtility::IsFollowUpSupported( *iMailBox ) ) );
+                }
+            else
+                {
+                // In case of outbox, all these are dimmed
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, ETrue );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, ETrue );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, ETrue );
+                aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, ETrue );
+                }
+            delete currentFolder;
             }
-
-        if ( currentFolder &&
-             currentFolder->GetFolderType() != EFSOutbox )
-            {
-            // Mark as read/unread options
-            TBool messageIsRead( iMessage->IsFlagSet( EFSMsgFlag_Read ) );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, messageIsRead );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, !messageIsRead );
-
-            // Move to another folder option
-            aMenuPane->SetItemDimmed(
-                    EFsEmailUiCmdActionsMoveMessage,
-                    !iAppUi.GetActiveMailbox()->HasCapability( EFSMBoxCapaMoveToFolder ) );
-
-            // Follow-up flag option
-            aMenuPane->SetItemDimmed(
-                    EFsEmailUiCmdActionsFlag,
-                    !( iMailBox && TFsEmailUiUtility::IsFollowUpSupported( *iMailBox ) ) );
-            }
-        else
-            {
-            // In case of outbox, all these are dimmed
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsUnread, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdMarkAsRead, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsMoveMessage, ETrue );
-            aMenuPane->SetItemDimmed( EFsEmailUiCmdActionsFlag, ETrue );
-            }
-        delete currentFolder;
         }
     else if ( aResourceId == R_FSEMAILUI_HTMLVIEWER_SUBMENU_ZOOM_LEVEL &&
               iContainer && iContainer->BrowserControlIf() )
@@ -1199,7 +1224,7 @@ void CFsEmailUiHtmlViewerView::DeleteMailL( TBool aSilentDelete )
             //Open the previous message or navigate back to list viewer
             if ( available )
                 {
-				iMessageIsDeleted = ETrue;
+                iMessageIsDeleted = ETrue;
                 TRAPD( err, iAppUi.MoveToPreviousMsgAfterDeleteL( prevMsgId ) );
                 iMessageIsDeleted = EFalse;
 
@@ -1210,10 +1235,10 @@ void CFsEmailUiHtmlViewerView::DeleteMailL( TBool aSilentDelete )
                 ChangeMskCommandL( R_FSE_QTN_MSK_EMPTY );
                 NavigateBackL();
                 }
-			}
+            }
         //inform user that mail is deleted
         if (!aSilentDelete)
-        	TFsEmailUiUtility::ShowDiscreetInfoNoteL( R_FREESTYLE_EMAIL_MAIL_DELETED );
+            TFsEmailUiUtility::ShowDiscreetInfoNoteL( R_FREESTYLE_EMAIL_MAIL_DELETED );
         }
     }
 
@@ -2505,21 +2530,49 @@ TBool CFsEmailUiHtmlViewerView::CanProcessCommand(
 void CFsEmailUiHtmlViewerView::ProcessAsyncCommandL( TESMRIcalViewerOperationType aCommandId,
                                                      const CFSMailMessage& aMessage,
                                                      MESMRIcalViewerObserver* aObserver )
-{
-FUNC_LOG;
-if ( aObserver )
+    {
+    FUNC_LOG;
+    if ( aObserver )
     {
     iMrObserverToInform = aObserver;
     }
-// we must cast constness away from message because of flaws in MRUI API
-CFSMailMessage* messagePtr = const_cast<CFSMailMessage*>(&aMessage);
-if ( messagePtr )
+    // we must cast constness away from message because of flaws in MRUI API
+    CFSMailMessage* messagePtr = const_cast<CFSMailMessage*>(&aMessage);
+
+    // prohibit working with last deleted message
+    if ( !messagePtr || iLastDeletedMessageID == messagePtr->GetMessageId() )
+        { // not valid or deleted message
+        switch ( aCommandId )
+            {
+            case EESMRCmdMailMessageDetails:
+            case EESMRCmdMailDelete:
+            case EESMRCmdMailMoveMessage:
+            case EESMRCmdOpenAttachment:
+            case EESMRCmdDownloadAttachment:
+            case EESMRCmdDownloadAllAttachments:
+            case EESMRCmdSaveAttachment:
+            case EESMRCmdSaveAllAttachments:
+            case EESMRCmdOpenAttachmentView:
+            case EESMRCmdMailReply:
+            case EESMRCmdMailReplyAll:
+            case EESMRCmdMailForwardAsMessage:
+                // Fill in result struct and inform caller
+                iOpResult.iOpType = aCommandId;
+                iOpResult.iMessage = messagePtr;
+                iOpResult.iResultCode = KErrNotFound;
+                CompletePendingMrCommand();
+                return;
+             default:
+                break;
+            }
+        }
+
+    if ( messagePtr )
     {
     // Fill in result struct
     iOpResult.iOpType = aCommandId;
     iOpResult.iMessage = messagePtr;
     iOpResult.iResultCode = KErrNotFound;
-
     switch ( aCommandId )
         {
         case EESMRCmdMailMessageDetails:
@@ -2693,12 +2746,13 @@ if ( messagePtr )
         CompletePendingMrCommand();
         }
     }
+    
 void CFsEmailUiHtmlViewerView::ProcessSyncCommandL(
     TESMRIcalViewerOperationType aCommandId,
     const CFSMailMessage& aMessage )
     {
     FUNC_LOG;
-    if ( &aMessage )
+    if ( &aMessage && aMessage.GetMessageId() != iLastDeletedMessageID )
         {
         switch ( aCommandId )
             {

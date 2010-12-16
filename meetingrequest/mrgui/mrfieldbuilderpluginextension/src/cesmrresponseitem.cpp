@@ -112,21 +112,40 @@ void CESMRResponseItem::ConstructL( const TDesC& aItemText, TBool aHasIcon )
 void CESMRResponseItem::Draw( const TRect& aRect ) const
     {
     FUNC_LOG;
-    NMRColorManager::SetColor( *iSelectionLabel, 
+    NMRColorManager::SetColor( *iSelectionLabel,
                                NMRColorManager::EMRMainAreaTextColor );
-    
+
     if( iHighlighted )
         {
+        TRect rect( aRect );
+
+        // Get the stripe layout for response item
+        // It must be removed from the focus highlight because the highlight
+        // otherwise overlaps the stripe.
+        TAknLayoutRect stripeLayoutRect = NMRLayoutManager::GetLayoutRect(
+                rect,
+                NMRLayoutManager::EMRLayoutStripe );
+        TInt width( stripeLayoutRect.Rect().Width() );
+
+        // Reduce stripe width from right hand side.
+		// This makes rectangle correct for mirrored layout.
+        rect.Resize( -width, 0 );
+
+        if ( !AknLayoutUtils::LayoutMirrored() )
+            {
+            // Move rect to right when layout is not mirrored.
+            rect.Move( width, 0 );
+            }
+
         CWindowGc& gc = SystemGc();
-        TRect rect = aRect;
         TBool enableEdges(ETrue);
 
         CFbsBitmap* selector = NULL;
         CFbsBitmap* selectorMask = NULL;
-        
+
         TSize corner(KEdge, KEdge);
-        NMRBitmapManager::GetSkinBasedBitmap( 
-                NMRBitmapManager::EMRBitmapListTopLeft, 
+        NMRBitmapManager::GetSkinBasedBitmap(
+                NMRBitmapManager::EMRBitmapListTopLeft,
                 selector, selectorMask, corner );
 
         if( selector && selectorMask && enableEdges)
@@ -136,65 +155,65 @@ void CESMRResponseItem::Draw( const TRect& aRect ) const
 
             //side L
             TSize side(KEdge, (rect.Height() - 2 * KEdge) );
-            NMRBitmapManager::GetSkinBasedBitmap( 
-                    NMRBitmapManager::EMRBitmapListLeft, 
+            NMRBitmapManager::GetSkinBasedBitmap(
+                    NMRBitmapManager::EMRBitmapListLeft,
                     selector, selectorMask, side );
             gc.BitBltMasked( TPoint(rect.iTl.iX, rect.iTl.iY + KEdge),
                              selector, side, selectorMask, EFalse );
 
             //corner BL
-            NMRBitmapManager::GetSkinBasedBitmap( 
-                    NMRBitmapManager::EMRBitmapListBottomLeft, 
+            NMRBitmapManager::GetSkinBasedBitmap(
+                    NMRBitmapManager::EMRBitmapListBottomLeft,
                     selector, selectorMask, corner );
-            gc.BitBltMasked( TPoint(rect.iTl.iX, 
+            gc.BitBltMasked( TPoint(rect.iTl.iX,
                             rect.iTl.iY + KEdge + side.iHeight),
                             selector, corner, selectorMask, EFalse );
 
             //top
             TSize top( (rect.Width() - 2 * KEdge) , KEdge);
-            NMRBitmapManager::GetSkinBasedBitmap( 
-                    NMRBitmapManager::EMRBitmapListTop, 
+            NMRBitmapManager::GetSkinBasedBitmap(
+                    NMRBitmapManager::EMRBitmapListTop,
                     selector, selectorMask, top );
             gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge, rect.iTl.iY),
                              selector, top, selectorMask, EFalse );
 
             //center
             TSize center( top.iWidth, side.iHeight);
-            NMRBitmapManager::GetSkinBasedBitmap( 
-                    NMRBitmapManager::EMRBitmapListCenter, 
+            NMRBitmapManager::GetSkinBasedBitmap(
+                    NMRBitmapManager::EMRBitmapListCenter,
                     selector, selectorMask, center );
             gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge, rect.iTl.iY + KEdge),
                              selector, center, selectorMask, EFalse );
 
             //bottom
-            NMRBitmapManager::GetSkinBasedBitmap( 
-                    NMRBitmapManager::EMRBitmapListBottom, 
+            NMRBitmapManager::GetSkinBasedBitmap(
+                    NMRBitmapManager::EMRBitmapListBottom,
                     selector, selectorMask, top );
-            gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge, 
+            gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge,
                             rect.iTl.iY + side.iHeight + KEdge),
                             selector, top, selectorMask, EFalse );
 
             //corner TR
-            NMRBitmapManager::GetSkinBasedBitmap( 
-                    NMRBitmapManager::EMRBitmapListTopRight, 
+            NMRBitmapManager::GetSkinBasedBitmap(
+                    NMRBitmapManager::EMRBitmapListTopRight,
                     selector, selectorMask, corner );
-            gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge + top.iWidth, 
+            gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge + top.iWidth,
                             rect.iTl.iY),
                             selector, corner, selectorMask, EFalse );
 
             //side R
-            NMRBitmapManager::GetSkinBasedBitmap( 
-                    NMRBitmapManager::EMRBitmapListRight, 
+            NMRBitmapManager::GetSkinBasedBitmap(
+                    NMRBitmapManager::EMRBitmapListRight,
                     selector, selectorMask, side );
-            gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge + top.iWidth, 
+            gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge + top.iWidth,
                             rect.iTl.iY + KEdge),
                             selector, side, selectorMask, EFalse );
 
             //corner Br
-            NMRBitmapManager::GetSkinBasedBitmap( 
-                    NMRBitmapManager::EMRBitmapListBottomRight, 
+            NMRBitmapManager::GetSkinBasedBitmap(
+                    NMRBitmapManager::EMRBitmapListBottomRight,
                     selector, selectorMask, corner );
-            gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge + top.iWidth, 
+            gc.BitBltMasked( TPoint(rect.iTl.iX + KEdge + top.iWidth,
                             rect.iTl.iY + KEdge + side.iHeight),
                             selector, corner, selectorMask, EFalse );
             }
@@ -202,10 +221,10 @@ void CESMRResponseItem::Draw( const TRect& aRect ) const
             {
             //center
             TSize center( rect.Width(), rect.Height() );
-            NMRBitmapManager::GetSkinBasedBitmap( 
-                    NMRBitmapManager::EMRBitmapListCenter, 
+            NMRBitmapManager::GetSkinBasedBitmap(
+                    NMRBitmapManager::EMRBitmapListCenter,
                     selector, selectorMask, center );
-            gc.BitBltMasked( TPoint(rect.iTl.iX, rect.iTl.iY), 
+            gc.BitBltMasked( TPoint(rect.iTl.iX, rect.iTl.iY),
                     selector, center, selectorMask, EFalse );
             }
         else // This should NOT be called ever.
@@ -270,26 +289,26 @@ CCoeControl* CESMRResponseItem::ComponentControl( TInt aInd ) const
 void CESMRResponseItem::SizeChanged()
     {
     FUNC_LOG;
-    TRect rect( this->Rect() );
+    TRect rect( Rect() );
 
     // Icon exists, this is answer item ( accept / tentative / decline )
     if( iIcon )
         {
         // Icon
-        TAknWindowComponentLayout iconLayout = 
-            NMRLayoutManager::GetWindowComponentLayout( 
+        TAknWindowComponentLayout iconLayout =
+            NMRLayoutManager::GetWindowComponentLayout(
                     NMRLayoutManager::EMRLayoutCheckboxIcon );
         AknLayoutUtils::LayoutImage( iIcon, rect, iconLayout );
-        // Label 
+        // Label
         TAknTextComponentLayout labelLayout =
-            NMRLayoutManager::GetTextComponentLayout( 
+            NMRLayoutManager::GetTextComponentLayout(
                     NMRLayoutManager::EMRTextLayoutCheckboxEditor );
         AknLayoutUtils::LayoutLabel( iSelectionLabel, rect, labelLayout );
         }
     else // There is no icon (this is the topic item)
         {
         TAknTextComponentLayout labelLayout =
-            NMRLayoutManager::GetTextComponentLayout( 
+            NMRLayoutManager::GetTextComponentLayout(
                     NMRLayoutManager::EMRTextLayoutText );
         AknLayoutUtils::LayoutLabel( iSelectionLabel, rect, labelLayout );
         // SizeChange() is called when rect for ResponseItem is ready to be used.
@@ -305,11 +324,11 @@ void CESMRResponseItem::SizeChanged()
 void CESMRResponseItem::SetContainerWindowL( const CCoeControl& aContainer )
     {
     FUNC_LOG;
-    
+
     CCoeControl::SetContainerWindowL( aContainer );
-    
+
     TInt count( CountComponentControls() );
-    
+
     for ( TInt i = 0; i < count; ++i )
         {
         ComponentControl( i )->SetContainerWindowL( *this );
@@ -323,7 +342,7 @@ void CESMRResponseItem::SetContainerWindowL( const CCoeControl& aContainer )
 CMRImage* CESMRResponseItem::IconL( TBool aChecked )
     {
     FUNC_LOG;
-    NMRBitmapManager::TMRBitmapId iconID( 
+    NMRBitmapManager::TMRBitmapId iconID(
             NMRBitmapManager::EMRBitmapCheckBoxOff );
 
     if( aChecked )
@@ -376,7 +395,7 @@ void CESMRResponseItem::SetFont( const CFont* aFont )
     FUNC_LOG;
     iSelectionLabel->SetFont( aFont );
 
-    NMRColorManager::SetColor( *iSelectionLabel, 
+    NMRColorManager::SetColor( *iSelectionLabel,
                                NMRColorManager::EMRMainAreaTextColor );
     }
 
@@ -419,26 +438,26 @@ void CESMRResponseItem::SetTextToLabelL()
 			{
 			lineCount = KMaxLinesInResponseTopicItem;
 			}
-		
+
 		// Text wrapping
 		CArrayFixFlat<TInt>* widthArray =
 							new (ELeave) CArrayFixFlat<TInt>( lineCount );
 		CleanupStack::PushL( widthArray );
-		
+
 		for ( TInt i(0); i < lineCount; i++ )
 			{
 			// If this item has no icon, all the space is for text
 			if( !iIcon )
 				{
-				TAknLayoutText layout = NMRLayoutManager::GetLayoutText( 
-						Rect(), NMRLayoutManager::EMRTextLayoutText );            
+				TAknLayoutText layout = NMRLayoutManager::GetLayoutText(
+						Rect(), NMRLayoutManager::EMRTextLayoutText );
 				widthArray->AppendL( layout.TextRect().Width() );
 				}
 			else
 				{
 				// This layout leaves space for the icon to the left side
-				TAknLayoutText layout = NMRLayoutManager::GetLayoutText( 
-						Rect(), NMRLayoutManager::EMRTextLayoutTextEditor ); 	
+				TAknLayoutText layout = NMRLayoutManager::GetLayoutText(
+						Rect(), NMRLayoutManager::EMRTextLayoutTextEditor );
 				widthArray->AppendL( layout.TextRect().Width() );
 				}
 			}
@@ -456,7 +475,7 @@ void CESMRResponseItem::SetTextToLabelL()
 
 		// Set the text to label
 		iSelectionLabel->SetTextL( *wrappedText );
-		CleanupStack::PopAndDestroy(3); // widthArray, wrappedText, buffer		
+		CleanupStack::PopAndDestroy(3); // widthArray, wrappedText, buffer
 		}
 	}
 
@@ -491,6 +510,8 @@ TESMRCommand CESMRResponseItem::CommandId() const
 //
 void CESMRResponseItem::SetUnderlineL( TBool aUndreline )
     {
+    FUNC_LOG;
+
     iSelectionLabel->SetUnderlining( aUndreline );
     }
 

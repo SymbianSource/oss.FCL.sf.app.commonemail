@@ -147,12 +147,12 @@ NONSHARABLE_CLASS( CESMRView ):
          * Returns the the currently focused field id.
          */
         TESMREntryFieldId FocusedField() const;
-        
+
         /**
          * Returns the the currently clicked (if exists) or focused field id.
          */
         TESMREntryFieldId ClickedOrFocusedField() const;
-        
+
         /**
          * Set the navi arrows' visibility.
          * @param aLeftArrowVisible  Indicate if the left arrow visible
@@ -183,13 +183,13 @@ NONSHARABLE_CLASS( CESMRView ):
                 TMRMenuStyle aMenuStyle,
                 TInt aResourceId,
                 CEikMenuPane* aMenuPane );
-        
+
         /**
          * Processes event.
          * @param aEvent Reference to event to be processed
          */
         void ProcessEventL( const MESMRFieldEvent& aEvent );
-        
+
         inline CMRListPane* ListPane() { return iListPane; }
     public: // From CCoeControl
         TKeyResponse OfferKeyEventL(const TKeyEvent &aKeyEvent, TEventCode aType);
@@ -198,10 +198,10 @@ NONSHARABLE_CLASS( CESMRView ):
     	/*
         * Set MRUI MR view mode for judge editor mode or viewer mode is using.
         * @param aMode MRUI MR view mode
-        */    	
+        */
     	void SetViewMode(TESMRViewMode aMode);
     	TESMRViewMode GetViewMode();
-    	
+
     private: // MESMRTitlePaneObserver
         void UpdateTitlePaneTextL( const TDesC& aText );
 
@@ -211,12 +211,12 @@ NONSHARABLE_CLASS( CESMRView ):
     private: // From MEikScrollBarObserver
         void HandleScrollEventL( CEikScrollBar* aScrollBar,
                                  TEikScrollEvent aEventType );
-        
+
     private: // From MESMRToolbarVisibilityObserver
-    	void MRToolbarVisibilityChanged( 
-    	        TBool aVisible, 
+    	void MRToolbarVisibilityChanged(
+    	        TBool aVisible,
     	        TRect aToolbarRect );
-    	
+
 
     private: // From MCoeControlBackground
         void Draw(CWindowGc& aGc,
@@ -226,7 +226,7 @@ NONSHARABLE_CLASS( CESMRView ):
                 CCoeTextDrawerBase*& aText,
                 const CCoeControl* aControl) const;
 
-    private: // From CCoeControl 
+    private: // From CCoeControl
         void SetContainerWindowL(const CCoeControl& aContainer);
         TInt CountComponentControls() const;
         CCoeControl* ComponentControl( TInt aInd ) const;
@@ -236,9 +236,6 @@ NONSHARABLE_CLASS( CESMRView ):
         TTypeUid::Ptr MopSupplyObject( TTypeUid aId );
         void HandlePointerEventL(
             const TPointerEvent &aPointerEvent );
-
-    private: // From CCoeControl
-        void Draw( const TRect& aRect ) const;
 
     private: // implementation
         void ConstructL( const TRect& aRect );
@@ -251,9 +248,9 @@ NONSHARABLE_CLASS( CESMRView ):
         void SetTitlePaneObserver();
         TRect CalculateAttachmentIndicatorLayout();
         TRect ContainerRect() const;
-        
+
     private: // data
-        
+
         /**
          * Defines the component is clicked
          */
@@ -266,7 +263,7 @@ NONSHARABLE_CLASS( CESMRView ):
             // List component is clicked
             EComponentListPane
             };
-        
+
         /// Own: UI list pane in event editor and viewer
         CMRListPane* iListPane;
         /// Ref: List item storage
@@ -293,10 +290,8 @@ NONSHARABLE_CLASS( CESMRView ):
         MESMRNaviArrowEventObserver* iObserver;
         /// Own: judge which view mode is using
         TESMRViewMode iViewMode;
-        /// Ref: Reference to viewer dialog owned mr toolbar 
+        /// Ref: Reference to viewer dialog owned mr toolbar
         CMRToolbar& iToolbar;
-        /// Own: Record the rect of stripe.
-        TRect iStripeRect;
         /// Own: Attachment download indicator
         CMRAttachmentIndicator* iAttachmentIndicator;
         /// Own: Control array

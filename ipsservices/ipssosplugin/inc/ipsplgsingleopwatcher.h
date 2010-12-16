@@ -71,6 +71,9 @@ class CIpsPlgSingleOpWatcher : public CActive
         IMPORT_C CMsvOperation& Operation() const;
         
         const CIpsPlgBaseOperation* BaseOperation( ) const;
+        
+        TInt OperationIndex();
+        void SetOperationIndex( TInt aOperationIndex );
 
     private:
         /**
@@ -98,6 +101,7 @@ class CIpsPlgSingleOpWatcher : public CActive
         CMsvOperation *iOperation;
         CIpsPlgBaseOperation* iBaseOperation;
         CIpsPlgImap4MoveRemoteOpObserver* iRequestObserver;
+        TInt iOperationIndex;
     };
 
 

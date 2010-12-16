@@ -57,7 +57,6 @@ CESMRViewerStopDateField::CESMRViewerStopDateField()
     {
     FUNC_LOG;
     SetFieldId ( EESMRFieldStopDate );
-    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -96,6 +95,8 @@ void CESMRViewerStopDateField::ConstructL()
     CESMRField::ConstructL( iLabel ); // ownership transfered
 
     iIcon = CMRImage::NewL( NMRBitmapManager::EMRBitmapDateEnd, this );
+
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // ---------------------------------------------------------------------------
@@ -154,6 +155,8 @@ void CESMRViewerStopDateField::InternalizeL(
         iStopTime = endTime;
         FormatDateStringL();
         }
+
+    iRecorded = EFalse;
     }
 // ---------------------------------------------------------------------------
 // CESMRViewerStopDateField::SizeChanged()

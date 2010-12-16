@@ -107,10 +107,7 @@ CFSMailClient::CFSMailClient()
 EXPORT_C CFSMailClient::~CFSMailClient()
 {
     FUNC_LOG;
-	if(iBrandManager)
-		{
-		delete iBrandManager;
-		}
+
 	Close();
 }
 
@@ -575,7 +572,6 @@ EXPORT_C void CFSMailClient::PrepareMrDescriptionL(  const TFSMailMsgId& aMailBo
                                                      const TFSMailMsgId& aMessageId )
     {
     FUNC_LOG;
-    CFSMailMessage* message = NULL;
     // select plugin
     CFSMailPlugin* plugin = iFWImplementation->GetPluginManager().GetPluginByUid( aMessageId );
     if ( plugin )
@@ -614,6 +610,13 @@ EXPORT_C void CFSMailClient::Close()
 			delete iFWImplementation;
 			iFWImplementation = NULL;		
 		}
+		
+		if(iBrandManager)
+		{
+			delete iBrandManager;
+			iBrandManager = NULL;
+		}
+		
 		Dll::FreeTls();
   		delete instance;
 	}

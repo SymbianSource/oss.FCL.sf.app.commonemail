@@ -43,6 +43,15 @@
 @"\ext\app\eas\sis\eas_engine_udeb_loc.sisx",(0x20012BE9)
 
 ;-----------------------------------------------------------------------------
+; Email uninstallation initiator, need to be as a separate embedded sis-package
+; to get it run as first. Initiates process shutdown and holds uninstallation
+; until all processes have been closed. The order of embedded package
+; uninstallation has been reversed compared to installation order, so we need
+; have separate unistallation initiator.
+;-------------------------
+@"..\..\..\emailservices\emailinstallationinitiator\sis\emailuninstallationinitiator_udeb.sisx",(0x20029F1B)
+
+;-----------------------------------------------------------------------------
 ; Actual common email files to be installed
 ;-------------------------
 
@@ -72,6 +81,11 @@
 "\epoc32\data\z\private\2001E277\HtmlFile\hidden.png"               - "c:\private\2001E277\HtmlFile\hidden.png"
 "\epoc32\data\z\private\2001E277\HtmlFile\expand.png"               - "c:\private\2001E277\HtmlFile\expand.png"
 "\epoc32\data\z\private\2001E277\HtmlFile\collapse.png"             - "c:\private\2001E277\HtmlFile\collapse.png"
+; Install also the flag file to indicate that html-viewer related files are
+; up to date in c-drive. This way also this flag gets removed along with other
+; files when the update is uninstalled, and hence they get copied from z-drive
+; where the application is also run after uninstallation -> files stay in sync.
+"..\data\html\html.flag"                                            - "c:\private\2001E277\HtmlFile\html.flag"
 
 ; Emailuis / gsemailsettings
 "\epoc32\release\armv5\udeb\GSEmailSettingsPluginDll.dll"        - "c:\sys\bin\GSEmailSettingsPluginDll.dll"
@@ -81,8 +95,6 @@
                
 ; Emailuis / uicomponents
 "\epoc32\release\armv5\udeb\fs_generic.dll"                      - "c:\sys\bin\fs_generic.dll"
-"\epoc32\release\armv5\udeb\fsscrollbarplugin.dll"               - "c:\sys\bin\fsscrollbarplugin.dll"
-"\epoc32\data\Z\Resource\Plugins\fsscrollbarplugin.rsc"          - "c:\resource\plugins\fsscrollbarplugin.rsc"
 "\epoc32\data\Z\private\10202BE9\2001E280.txt"                   - "c:\private\10202be9\2001E280.txt"
 
 ; Emailuis / emailui / sendasmtm

@@ -461,10 +461,14 @@ void CNcsComposeView::ChildDoActivateL( const TVwsViewId& aPrevViewId,
         }
     
     if ( iIncludeMessageTextAsync )
-    	{
-		// including message body in async way
-		IncludeMessageTextAsyncL( ETrue );
-    	}
+        {
+        // including message body in async way
+        TRAP( err, IncludeMessageTextAsyncL( ETrue ) );
+        if (err) 
+            {
+            ExitComposer();
+            }
+        }
     
     iViewFullyActivated = ETrue;
         
@@ -1942,7 +1946,7 @@ void CNcsComposeView::IncludeMessageTextL(
 // -----------------------------------------------------------------------------
 //
 void CNcsComposeView::IncludeMessageTextAsyncL( TBool aEnsureSpaceInBegin /*= EFalse*/ )
-	{
+    {
     FUNC_LOG;
 
     __ASSERT_DEBUG( iContainer, Panic( ENcsBasicUi ) );
@@ -1951,6 +1955,15 @@ void CNcsComposeView::IncludeMessageTextAsyncL( TBool aEnsureSpaceInBegin /*= EF
     iBody = NULL;
     HBufC* rawBody = GetMessageBodyL();
 
+    // Convert bytes length to words length
+    TInt readOnlyLength = iNewMessageTextPart->ReadOnlyPartSize() / 2;
+
+    // ensure the function returned consistent data
+    __ASSERT_DEBUG(  rawBody->Length() >= readOnlyLength , Panic( EFSEmailUiInconsistentMessageData ) );
+    if ( rawBody->Length() < readOnlyLength ) 
+        {
+        User::Leave(KErrUnderflow);
+        } 
     // Ensure there's free space in the beginning of the message if required
     if ( aEnsureSpaceInBegin && rawBody->Length() )
         {
@@ -1958,7 +1971,7 @@ void CNcsComposeView::IncludeMessageTextAsyncL( TBool aEnsureSpaceInBegin /*= EF
         _LIT( KNewLines, "\r\n\x2028\x2029" );
         if ( KNewLines().Locate( firstChar ) == KErrNotFound )
             {
-			CleanupStack::PushL( rawBody );
+            CleanupStack::PushL( rawBody );
             // First character is not a new line character. Insert one.
             iBody = HBufC::NewL( rawBody->Length() + KIMSLineFeed().Length() );
             TPtr ptr = iBody->Des();
@@ -1978,31 +1991,29 @@ void CNcsComposeView::IncludeMessageTextAsyncL( TBool aEnsureSpaceInBegin /*= EF
     // Now we have possibly decorated message text in body pointer and
     // in cleanup stack
 
-    // Divide the contents into normal body and the read-only quote fields
-    // Convert bytes length to words length
-    TInt readOnlyLength = iNewMessageTextPart->ReadOnlyPartSize() / 2;
 	//This check is unnecessary, but without that coverity complains
     if ( iBody )
-    	{
-		TInt modifiableLength = iBody->Length() - readOnlyLength;
-	
-		// Remove one newline from the end of the modifiable body if there's
-		// read-only quote present. This is because the field boundary appears
-		// as newline on the screen. This newline is added back when saving
-		// the message.
-		TInt lfLength = KIMSLineFeed().Length();
-		if ( readOnlyLength && modifiableLength >= lfLength &&
-			 iBody->Mid( modifiableLength-lfLength, lfLength ) == KIMSLineFeed )
-			{
-			modifiableLength -= lfLength;
-			}
-	
-		iContainer->SetBodyContentAsyncL( iBody->Left( modifiableLength ),
-			iBody->Right( readOnlyLength ) );
-		
-		// callback: SetBodyContentCompleteL
-    	}
-	}
+        {
+        // Divide the contents into normal body and the read-only quote fields
+        TInt modifiableLength = iBody->Length() - readOnlyLength;
+    
+        // Remove one newline from the end of the modifiable body if there's
+        // read-only quote present. This is because the field boundary appears
+        // as newline on the screen. This newline is added back when saving
+        // the message.
+        TInt lfLength = KIMSLineFeed().Length();
+        if ( readOnlyLength && modifiableLength >= lfLength &&
+             iBody->Mid( modifiableLength-lfLength, lfLength ) == KIMSLineFeed )
+            {
+            modifiableLength -= lfLength;
+            }
+
+        iContainer->SetBodyContentAsyncL( iBody->Left( modifiableLength ),
+            iBody->Right( readOnlyLength ) );
+
+        // callback: SetBodyContentCompleteL
+        }
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsComposeView::SetBodyContentComplete()
@@ -2161,7 +2172,8 @@ HBufC* CNcsComposeView::GetMessageBodyL()
     __ASSERT_DEBUG( iNewMessageTextPart, Panic( ENcsBasicUi ) );
 
     TInt messageSize = iNewMessageTextPart->FetchedContentSize();
-
+    // there are also ContentSize() and ReadOnlyPartSize()/2 possibilities
+    
     HBufC* data = NULL;
 
     if ( messageSize > 0 )
@@ -3124,7 +3136,7 @@ void CNcsComposeView::SaveToDraftsL( TBool aParseAddresses )
 //
 TBool CNcsComposeView::FetchLogicComplete( 
         TComposerFetchState /*aState*/, TInt aError )
-	{
+    {
     FUNC_LOG;
     TBool result = EFalse;
     if ( iFirstStartCompleted ) // Safety
@@ -3167,11 +3179,18 @@ TBool CNcsComposeView::FetchLogicComplete(
             // it is done here only if view was already activated
             // this mean that attachments were added in async way
             // and we couldn't start async including body text 
-            TRAP_IGNORE( IncludeMessageTextAsyncL( ETrue ) );
+            TRAP( aError, IncludeMessageTextAsyncL( ETrue ) );
+            // something went wrong - message may be in inconsistent state
+            if ( aError )
+                {
+                DoSafeExit( ENoSave );
+                iMailFetchingErrCode = aError;
+                result = ETrue;
+                }
             }
         }
     return result;
-	}
+    }
 
 // -----------------------------------------------------------------------------
 // CNcsComposeView::ExitComposer

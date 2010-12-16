@@ -21,6 +21,7 @@
 
 #include "ipsplgonlineoperation.h"
 class CIpsPlgEventHandler;
+class CIpsPlgOnlineOperation;
 
 /**
 * Connect operation.
@@ -74,6 +75,11 @@ public://from MIpsPlgConnectOpCallback
         *
         */
         virtual TInt IpsOpType() const;
+        
+        /**
+         * 
+         */
+        void ReleaseOperationL();
 
     protected:
 
@@ -123,6 +129,11 @@ public://from MIpsPlgConnectOpCallback
         *
         */
         void DoConnectL();
+        
+        /**
+         * DoDisconnectL()
+         */
+        void DoDisconnectL();
 
         /**
         *
@@ -165,6 +176,8 @@ public://from MIpsPlgConnectOpCallback
             EPopulate,
             EQueryingDetails,
             EQueryingDetailsBusy,
+            EDisconnected,
+            EFinalize,
             EIdle
             };
 

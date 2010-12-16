@@ -679,7 +679,9 @@ void CIpsPlgEventHandler::HandleEntriesCreatedL(
                 mbox = SymId2FsId( tNew.iServiceId , tNew.iMtm.iUid );
                 // start automatic sync
                 if ( iBasePlugin.IsUnderUiProcess() &&
-                        iBasePlugin.PluginId() == KIpsPlgImap4PluginUidValue )
+                        iBasePlugin.PluginId() == KIpsPlgImap4PluginUidValue
+                        && iBasePlugin.GetSyncStateHandler().GetCurrentSyncState(
+                                mbox) == Idle)
                     {
                     iBasePlugin.PopulateNewMailL(
                             mbox, tNew.Id(), tNew.Parent() );

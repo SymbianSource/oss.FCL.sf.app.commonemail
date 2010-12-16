@@ -22,6 +22,10 @@
 #include "nmrlayoutmanager.h"
 #include "esmrhelper.h"
 #include "cfsmailcommon.h"
+#include "tesmrinputparams.h"
+#include "cfsmailcommon.h"
+#include "cfsmailbox.h"
+#include "cfsmailclient.h"
 
 #include "cesmrlistquery.h"
 #include <esmrgui.rsg>
@@ -105,6 +109,8 @@ void CESMRResponseField::ConstructL()
     responseItem->SetContainerWindowL( *this );
     iResponseItemArray.AppendL( responseItem );
     CleanupStack::Pop( responseItem );
+
+    SetFocusType( EESMRHighlightFocus );
     }
 
 // -----------------------------------------------------------------------------
@@ -176,7 +182,6 @@ void CESMRResponseField::SizeChanged()
                 choiceLayoutRect.Rect().Width(),
                 choiceLayoutRect.Rect().Height() );
         }
-    RecordField();
     }
 
 // -----------------------------------------------------------------------------
@@ -283,6 +288,7 @@ void CESMRResponseField::FocusChanged( TDrawNow /*aDrawNow*/ )
 void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
     {
     FUNC_LOG;
+    iEntry = &aEntry;
     iNormalResponse = EFalse;
     iRemoveResponse = EFalse;
     MESMRMeetingRequestEntry* entry = NULL;
@@ -308,7 +314,8 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
 
         HBufC* conflictString;
         conflictString = StringLoader::LoadLC(
-                       R_QTN_MEET_REQ_RESPONSE_CONFLICT , iEikonEnv );
+                       R_QTN_MEET_REQ_RESPONSE_CONFLICT,
+                       iCoeEnv );
         // Show prompt conflict dialog
         iConfPopup = CESMRConflictPopup::NewL(aEntry);
 
@@ -330,7 +337,8 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
         case MESMRMeetingRequestEntry::EESMREntryInfoOutOfDate:
             {
             stringholder = StringLoader::LoadLC(
-                           R_QTN_MEET_REQ_RESPONSE_OUT_OF_DATE , iEikonEnv );
+                           R_QTN_MEET_REQ_RESPONSE_OUT_OF_DATE,
+                           iCoeEnv );
             if( entry->IsOpenedFromMail() )
             	{
                 iRemoveResponse = ETrue;
@@ -341,7 +349,8 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
         case MESMRMeetingRequestEntry::EESMREntryInfoCancelled:
             {
             stringholder = StringLoader::LoadLC(
-                           R_QTN_MEET_REQ_RESPONSE_CANCELLED , iEikonEnv );
+                           R_QTN_MEET_REQ_RESPONSE_CANCELLED,
+                           iCoeEnv );
             HandleCancelledEventItemsL( aEntry );
             if( entry->IsOpenedFromMail() )
             	{
@@ -353,7 +362,8 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
         case MESMRMeetingRequestEntry::EESMREntryInfoAccepted:
             {
             stringholder = StringLoader::LoadLC(
-                           R_QTN_MEET_REQ_RESPOND_ACCEPTED , iEikonEnv );
+                           R_QTN_MEET_REQ_RESPOND_ACCEPTED,
+                           iCoeEnv );
             iNormalResponse = ETrue;
             break;
             }
@@ -361,7 +371,8 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
         case MESMRMeetingRequestEntry::EESMREntryInfoTentativelyAccepted:
             {
             stringholder = StringLoader::LoadLC(
-                           R_QTN_MEET_REQ_RESPOND_TENTATIVE , iEikonEnv );
+                           R_QTN_MEET_REQ_RESPOND_TENTATIVE,
+                           iCoeEnv );
             iNormalResponse = ETrue;
             break;
             }
@@ -369,7 +380,8 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
         case MESMRMeetingRequestEntry::EESMREntryInfoDeclined:
             {
             stringholder = StringLoader::LoadLC(
-                           R_QTN_MEET_REQ_RESPOND_DECLINED , iEikonEnv );
+                           R_QTN_MEET_REQ_RESPOND_DECLINED,
+                           iCoeEnv );
             iNormalResponse = ETrue;
             break;
             }
@@ -377,7 +389,8 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
        case MESMRMeetingRequestEntry::EESMREntryInfoOccursInPast:
             {
             stringholder = StringLoader::LoadLC(
-                           R_QTN_MEET_REQ_RESPONSE_OCCURS_PAST , iEikonEnv );
+                           R_QTN_MEET_REQ_RESPONSE_OCCURS_PAST,
+                           iCoeEnv );
             if( entry->IsOpenedFromMail() )
             	{
             	iRemoveResponse = ETrue;
@@ -388,14 +401,16 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
         case MESMRMeetingRequestEntry::EESMREntryInfoNormal:
             {
             stringholder = StringLoader::LoadLC(
-                           R_QTN_MEET_REQ_RESPONSE_PLEASE_RESPOND , iEikonEnv );
+                           R_QTN_MEET_REQ_RESPONSE_PLEASE_RESPOND,
+                           iCoeEnv );
             iNormalResponse = ETrue;
             break;
             }
 
         default:
             stringholder = StringLoader::LoadLC(
-                           R_QTN_MEET_REQ_RESPONSE_PLEASE_RESPOND , iEikonEnv );
+                           R_QTN_MEET_REQ_RESPONSE_PLEASE_RESPOND,
+                           iCoeEnv );
             iNormalResponse = ETrue;
         break;
         }
@@ -407,7 +422,7 @@ void CESMRResponseField::InternalizeL( MESMRCalEntry& aEntry )
         }
 
     iResponseItemArray[repondItemIndex]->SetUnderlineL( ETrue );
-    iResponseItemArray[repondItemIndex]->SetTextL( stringholder->Des() );
+    iResponseItemArray[repondItemIndex]->SetTextL( *stringholder );
 
     SizeChanged();
     CleanupStack::PopAndDestroy( stringholder );
@@ -464,19 +479,18 @@ TBool CESMRResponseField::ItemSelectedL()
             if ( iNormalResponse )
                 {
                 // Try to send response
-                CESMRListQuery* query =
-                        CESMRListQuery::NewL( CESMRListQuery::EESMRNormalResponseQuery );
-                CleanupStack::PushL( query );
-                ret = query->ExecuteLD();
-                CleanupStack::Pop( query );
+            	ret = ShowQueryL( CESMRListQuery::EESMRNormalResponseQuery );
                 }
             if ( iRemoveResponse )
                 {
-                CESMRListQuery* query =
-                        CESMRListQuery::NewL( CESMRListQuery::EESMRRemoveResponseQuery );
-                CleanupStack::PushL( query );
-                ret = query->ExecuteLD();
-                CleanupStack::Pop( query );
+                if ( AllowedRemoveMrFromCalL() )
+                    {
+                    ret = ShowQueryL( CESMRListQuery::EESMRRemoveResponseQuery );
+                    }
+                else
+                    {
+                    ret = ShowQueryL( CESMRListQuery::EESMRDeleteEventResponseQuery );
+                    }
                 }
             }
         }
@@ -487,19 +501,19 @@ TBool CESMRResponseField::ItemSelectedL()
             if ( iNormalResponse )
                 {
                 // Try to send response
-                CESMRListQuery* query =
-                        CESMRListQuery::NewL( CESMRListQuery::EESMRNormalResponseQuery );
-                CleanupStack::PushL( query );
-                ret = query->ExecuteLD();
-                CleanupStack::Pop( query );
+				ret = ShowQueryL(
+						CESMRListQuery::EESMRNormalResponseQuery );
                 }
             if ( iRemoveResponse )
                 {
-                CESMRListQuery* query =
-                        CESMRListQuery::NewL( CESMRListQuery::EESMRRemoveResponseQuery );
-                CleanupStack::PushL( query );
-                ret = query->ExecuteLD();
-                CleanupStack::Pop( query );
+                if ( AllowedRemoveMrFromCalL() )
+                    {
+                    ret = ShowQueryL( CESMRListQuery::EESMRRemoveResponseQuery );
+                    }
+                else
+                    {
+                    ret = ShowQueryL( CESMRListQuery::EESMRDeleteEventResponseQuery );
+                    }
                 }
             }
         }
@@ -604,8 +618,10 @@ void CESMRResponseField::HandleLongtapEventL( const TPoint& aPosition )
 //
 TBool CESMRResponseField::HandleTapEventL( const TPoint& aPosition )
     {
-    TBool handled = EFalse;
-    TInt ret = KErrCancel;
+    FUNC_LOG;
+
+    TBool handled( EFalse );
+    TInt ret( KErrCancel );
 
     if ( Rect().Contains( aPosition ) )
         {
@@ -616,7 +632,7 @@ TBool CESMRResponseField::HandleTapEventL( const TPoint& aPosition )
             if ( conflictItemRect.Contains( aPosition ) )
                 {
                 iResponseItemArray[KExtraInfoItemIndex]->RemoveHighlight();
-                iResponseItemArray[KConflictItemIndex]->SetHighlight();
+                iResponseItemArray[KConflictItemIndex]->RemoveHighlight();
                 iSelectionIndex = KConflictItemIndex;
                  if ( iConfPopup )
                     {
@@ -627,52 +643,53 @@ TBool CESMRResponseField::HandleTapEventL( const TPoint& aPosition )
             else
                 {
                 iResponseItemArray[KConflictItemIndex]->RemoveHighlight();
-                iResponseItemArray[KExtraInfoItemIndex]->SetHighlight();
+                iResponseItemArray[KExtraInfoItemIndex]->RemoveHighlight();
                 iSelectionIndex = KExtraInfoItemIndex;
                 DrawDeferred();
                 if ( iNormalResponse )
                     {
-                    CESMRListQuery* query =
-                            CESMRListQuery::NewL( CESMRListQuery::EESMRNormalResponseQuery );
-                    CleanupStack::PushL( query );
+					ret = ShowQueryL(
+							CESMRListQuery::EESMRNormalResponseQuery );
                     // Use this flag to avoid the same event be handled by
                     // HandleSingletapEventL() when HandleLongtapEventL().
                     iLongTapEventConsumed = ETrue;
-                    ret = query->ExecuteLD();
-                    CleanupStack::Pop( query );
                     }
                 if ( iRemoveResponse )
                     {
-                    CESMRListQuery* query =
-                            CESMRListQuery::NewL( CESMRListQuery::EESMRRemoveResponseQuery );
-                    CleanupStack::PushL( query );
+                    if ( AllowedRemoveMrFromCalL() )
+                        {
+                        ret = ShowQueryL( CESMRListQuery::EESMRRemoveResponseQuery );
+                        }
+                    else
+                        {
+                        ret = ShowQueryL( CESMRListQuery::EESMRDeleteEventResponseQuery );
+                        }
                     iLongTapEventConsumed = ETrue;
-                    ret = query->ExecuteLD();
-                    CleanupStack::Pop( query );
                     }
                 }
             }
         else
             {
-            iResponseItemArray[0]->SetHighlight();
+            iResponseItemArray[0]->RemoveHighlight();
             if ( iNormalResponse )
                 {
-                CESMRListQuery* query =
-                        CESMRListQuery::NewL( CESMRListQuery::EESMRNormalResponseQuery );
-                CleanupStack::PushL( query );
+				ret = ShowQueryL(
+						CESMRListQuery::EESMRNormalResponseQuery );
                 iLongTapEventConsumed = ETrue;
-                ret = query->ExecuteLD();
-                CleanupStack::Pop( query );
                 }
 
             if ( iRemoveResponse )
                 {
-                CESMRListQuery* query =
-                        CESMRListQuery::NewL( CESMRListQuery::EESMRRemoveResponseQuery );
-                CleanupStack::PushL( query );
+                if ( AllowedRemoveMrFromCalL() )
+                    {
+                    ret = ShowQueryL( CESMRListQuery::EESMRRemoveResponseQuery );
+                    }
+                else
+                    {
+                    ret = ShowQueryL( CESMRListQuery::EESMRDeleteEventResponseQuery );
+                    }
+
                 iLongTapEventConsumed = ETrue;
-                ret = query->ExecuteLD();
-                CleanupStack::Pop( query );
                 }
             }
 
@@ -691,5 +708,104 @@ TBool CESMRResponseField::HandleTapEventL( const TPoint& aPosition )
     return handled;
     }
 
+// ---------------------------------------------------------------------------
+// CESMRResponseField::HandleRawPointerEventL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRResponseField::HandleRawPointerEventL(
+        const TPointerEvent& aPointerEvent )
+	{
+    FUNC_LOG;
+
+    if( aPointerEvent.iType == TPointerEvent::EButton1Down )
+    	{
+    	TInt count( iResponseItemArray.Count() );
+
+    	for( TInt i = 0; i < count; ++i )
+    		{
+    		if( iResponseItemArray[i]->Rect().Contains(
+    				aPointerEvent.iPosition ) )
+    			{
+    			iResponseItemIndex = i;
+    			iResponseItemArray[i]->SetHighlight();
+    			DrawDeferred();
+    			}
+    		}
+    	}
+
+    // If iResponseItemIndex is valid
+    if(  iResponseItemIndex >= 0 &&
+    		iResponseItemIndex <= iResponseItemArray.Count() )
+    	{
+    	// If event type is Up or drag outside response items rect ...
+		if( ( aPointerEvent.iType == TPointerEvent::EDrag &&
+				!( iResponseItemArray[iResponseItemIndex]->Rect().Contains(
+						aPointerEvent.iPosition ) ) ) ||
+				aPointerEvent.iType == TPointerEvent::EButton1Up )
+			{
+			// ... highlight is removed.
+			iResponseItemArray[iResponseItemIndex]->RemoveHighlight();
+			DrawDeferred();
+			}
+    	}
+
+    // This function does not consume the pointer event
+    return EFalse;
+	}
+
+// ---------------------------------------------------------------------------
+// CESMRResponseField::ShowQueryL
+// ---------------------------------------------------------------------------
+//
+TInt CESMRResponseField::ShowQueryL(
+		const CESMRListQuery::TESMRListQueryType aType ) const
+    {
+    FUNC_LOG;
+    TInt ret( KErrCancel );
+
+    CESMRListQuery* query =
+            CESMRListQuery::NewL( aType );
+    CleanupStack::PushL( query );
+    ret = query->ExecuteLD();
+    CleanupStack::Pop( query );
+
+    return ret;
+    }
+
+// ---------------------------------------------------------------------------
+// CESMRResponseField::AllowedRemoveMrFromCalL
+// ---------------------------------------------------------------------------
+//
+TBool CESMRResponseField::AllowedRemoveMrFromCalL()
+	{
+    TBool syncEnable( EFalse );
+
+    if ( MESMRCalEntry::EESMRCalEntryMeetingRequest == iEntry->Type() )
+        {
+        MESMRMeetingRequestEntry* mrEntry =
+                static_cast<MESMRMeetingRequestEntry*>( iEntry );
+
+        TESMRInputParams esmrParams;
+        if ( mrEntry->IsOpenedFromMail() &&
+                mrEntry->StartupParameters( esmrParams ) )
+            {
+            TFSMailMsgId mailboxId(
+                    esmrParams.iMailMessage->GetMailBoxId() );
+
+            CFSMailBox* mailbox =
+                    esmrParams.iMailClient->GetMailBoxByUidL( mailboxId );
+            CleanupStack::PushL( mailbox );
+
+            if ( mailbox->HasCapability( EFSMBoxCapaSupportsSync ) )
+                {
+                syncEnable = ETrue;
+                }
+            CleanupStack::PopAndDestroy( mailbox );
+            mailbox = NULL;
+            }
+        }
+
+    return syncEnable && iEntry->IsStoredL();
+	}
 // EOF
 

@@ -25,6 +25,7 @@
 #include <emailwidgetsettings.mbg>
 #include <emailobserverinterface.hrh>
 #include <memaildata.h>
+#include <data_caging_path_literals.hrh>
 
 #include "emailtrace.h"
 #include "emailwidgetsettingslistview.h"
@@ -40,7 +41,7 @@ _LIT( KDissociated,"0");
 const TInt KMaxDescLen = 256;
 const TUid KUidWizardApp = { 0x10281c96 };
 const TUid KUidEmailWizardView = { 0x10281C9A };
-_LIT( KMifPath, "z:\\resource\\apps\\emailwidgetsettings.mif");
+_LIT( KMifFileName, "emailwidgetsettings.mif");
 _LIT( KMifPrefix, "mif(" );
 
 // ======== MEMBER FUNCTIONS ========
@@ -63,10 +64,11 @@ void CEmailWidgetSettingsListViewContainer::ConstructL(CEmailWidgetSettingsListV
     {
     FUNC_LOG;
     iEnv = CEikonEnv::Static( );
-    iMailboxes = CEmailWidgetSettingsMailboxes::NewL();    
+    iMailboxes = CEmailWidgetSettingsMailboxes::NewL();
     CreateWindowL();
     SetBlank();
 
+    GetIconFileNameAndPathL();
     CreateCbaL(aView);
     CreateListBoxL(aView);
     SetRect(aRect);
@@ -274,7 +276,7 @@ void CEmailWidgetSettingsListViewContainer::AppendIconL(
     CGulIcon*    newIcon;
     CFbsBitmap*  newIconBmp;
     CFbsBitmap*  newIconMaskBmp;
-    AknIconUtils::CreateIconLC( newIconBmp, newIconMaskBmp, KMifPath,
+    AknIconUtils::CreateIconLC( newIconBmp, newIconMaskBmp, iIconFilePath,
             aFileBitmapId,
             aFileMaskId );   
     newIcon = CGulIcon::NewL(newIconBmp, newIconMaskBmp);
@@ -609,6 +611,18 @@ void CEmailWidgetSettingsListViewContainer::EmailObserverEvent(
     EmailInterface::MEmailData& /*aEmailData*/ )
     {
     FUNC_LOG;
+    }
+
+// -----------------------------------------------------------------------------
+// CEmailWidgetSettingsListViewContainer::GetIconFileNameL
+// -----------------------------------------------------------------------------
+void CEmailWidgetSettingsListViewContainer::GetIconFileNameAndPathL()
+    {
+    FUNC_LOG;
+    iIconFilePath.Zero();
+    iIconFilePath.Copy( KDC_APP_BITMAP_DIR );
+    iIconFilePath.Append( KMifFileName );
+    User::LeaveIfError( CompleteWithAppPath( iIconFilePath ) );
     }
 
 // End of File

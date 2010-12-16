@@ -109,7 +109,11 @@ void CIpsPlgOnlineOperation::RunL()
     TRAP( err, DoRunL() );
     
     // Just end the operation, if something has gone wrong
-    if ( err != KErrNone )
+    if ( err == KErrAbort )
+        {
+        delete this;
+        }
+    else if ( err != KErrNone )
         {
         CompleteObserver( err );
         }

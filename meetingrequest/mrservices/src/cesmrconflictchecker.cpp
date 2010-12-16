@@ -12,7 +12,7 @@
 * Contributors:
 *
 *  Description : ESMR conflict checker implementation
-*  Version     : %version: e002sa33#10.1.2 %
+*  Version     : %version: e002sa33#10.1.2.1.1 %
 *
 */
 
@@ -31,12 +31,16 @@
 #include <calinstanceiterator.h>
 #include <ct/rcpointerarray.h>
 #include <calrrule.h>
+#include <e32cmn.h>
 
 /// Unnamed namespace for local definitions
 namespace { // codescanner::namespace
 
 // Definition for zero
 const TInt KZero(0);
+
+// Definition the max number of ocurrences can be checked
+const TInt KMaxNumOcurrenceCanBeChecked( 200 );
 
 /** Defines instace filter type */
 enum TInstanceFilter
@@ -97,7 +101,7 @@ CalCommon::TCalTimeRange ResolveFetchTimeRangeL(
     {
     FUNC_LOG;
     const CalCommon::TCalViewFilter instanceFilter =
-            CalCommon::EIncludeAppts | CalCommon::EIncludeEvents;
+            CalCommon::EIncludeAppts;
 
     TDateTime start = aStart.DateTime();
     TDateTime end   = aEnd.DateTime();
@@ -296,8 +300,7 @@ void FindConflictsForEntryL(
 
         allCalenInstanceView[i]->FindInstanceL(
                 aInstances,
-                CalCommon::EIncludeAppts |
-                CalCommon::EIncludeEvents ,
+                CalCommon::EIncludeAppts,
                 timeRange );
         }
 
@@ -349,14 +352,18 @@ void FindConflictsForDailyRRuleL(
 
     if ( rRule.Count() )
         {
-        for ( TInt i = 0; i < rRule.Count(); ++i )
+    	TInt interval = rRule.Interval();
+    	TCalTime startTime;
+    	TCalTime endTime;
+    	// If the number of ocurrence bigger than KMaxNumOcurrenceCanBeChecked, 
+    	// then we choice KMaxNumOcurrenceCanBeChecked
+    	TInt maxCheckTimes( Min( rRule.Count(), KMaxNumOcurrenceCanBeChecked ) );
+        for ( TInt i = 0; i < maxCheckTimes; ++i )
             {
             // Set each occurence start and end time on entry
-            TTimeIntervalDays interval( i * rRule.Interval() );
-            TCalTime startTime;
-            startTime.SetTimeUtcL( start + interval );
-            TCalTime endTime;
-            endTime.SetTimeUtcL( end + interval );
+            TTimeIntervalDays intervalDays( i * interval );
+            startTime.SetTimeUtcL( start + intervalDays );
+            endTime.SetTimeUtcL( end + intervalDays );
             aEntry.SetStartAndEndTimeL(
                     startTime,
                     endTime );
@@ -371,6 +378,7 @@ void FindConflictsForDailyRRuleL(
                     {
                     //break;
                     }
+                tmpInstanceArray.Reset();
                 }
             }
         }
@@ -380,14 +388,19 @@ void FindConflictsForDailyRRuleL(
         TTime start( aEntry.StartTimeL().TimeUtcL() );
         TTime end( aEntry.EndTimeL().TimeUtcL() );
         TTimeIntervalDays interval( rRule.Interval() );
+        
+        TCalTime startTime;
+        TCalTime endTime;
+        // The counter of ocurrences that has been checked
+        TInt numOfCheckedOcurrences(0);
+        
 
         // Loop while start time is before until time
-        while ( start <= until )
+        while ( ( start <= until ) && ( 
+        		numOfCheckedOcurrences < KMaxNumOcurrenceCanBeChecked ) )
             {
-            // Set start and end time for occurence
-            TCalTime startTime;
+            // Set start and end time for occurence            
             startTime.SetTimeUtcL( start );
-            TCalTime endTime;
             endTime.SetTimeUtcL( end );
             aEntry.SetStartAndEndTimeL(
                     startTime,
@@ -403,11 +416,14 @@ void FindConflictsForDailyRRuleL(
                     {
                     //break;
                     }
+                tmpInstanceArray.Reset();
                 }
 
             // Move to next occurence
             start += interval;
-            end += interval;
+            end += interval;   
+            
+            numOfCheckedOcurrences++;
             }
         }
 
@@ -450,7 +466,11 @@ void FindConflictsForWeeklyRRuleL(
 
     if ( rRule.Count() )
         {
-        for ( TInt i = 0; i < rRule.Count(); ++i )
+    	TCalTime startCalTime;
+    	TCalTime endCalTime;
+    	TInt maxCheckTimes( Min( rRule.Count(), KMaxNumOcurrenceCanBeChecked ) );
+    	
+        for ( TInt i = 0; i < maxCheckTimes; ++i )
             {
             // Calculate weekly start time
             TTimeIntervalDays interval( i* KWeek.Int() );
@@ -466,10 +486,8 @@ void FindConflictsForWeeklyRRuleL(
                 if ( start <= entryStartTime )
                     {
                     // Start time is in recurrence range
-                    // Calcualte end time
-                    TCalTime startCalTime;
+                    // Calcualte end time  
                     startCalTime.SetTimeUtcL( entryStartTime );
-                    TCalTime endCalTime;
                     endCalTime.SetTimeUtcL( entryStartTime + duration );
                     aEntry.SetStartAndEndTimeL( startCalTime, endCalTime );
 
@@ -483,6 +501,7 @@ void FindConflictsForWeeklyRRuleL(
                             {
                             //break;
                             }
+                        tmpInstanceArray.Reset();
                         }
                     }
                 }
@@ -500,7 +519,13 @@ void FindConflictsForWeeklyRRuleL(
         TTime weekStartTime( date );
         TTime until( rRule.Until().TimeUtcL() );
 
-        while ( weekStartTime < until )
+        TCalTime startCalTime;
+        TCalTime endCalTime;
+        // The counter of ocurrences that has been checked
+        TInt numOfCheckedOcurrences(0);
+        
+        while ( ( weekStartTime < until ) &&
+        		( numOfCheckedOcurrences < KMaxNumOcurrenceCanBeChecked ) )
             {
             for ( TInt j = 0; j < days.Count(); ++j )
                 {
@@ -510,13 +535,10 @@ void FindConflictsForWeeklyRRuleL(
                 if ( start <= entryStartTime )
                     {
                     // Start time is in recurrence range
-                    // Calculate end time
-                    TCalTime startCalTime;
-                    startCalTime.SetTimeUtcL( entryStartTime );
-                    TCalTime endCalTime;
+                    // Calculate end time      
+                    startCalTime.SetTimeUtcL( entryStartTime );       
                     endCalTime.SetTimeUtcL( entryStartTime + duration );
                     aEntry.SetStartAndEndTimeL( startCalTime, endCalTime );
-
                     // Find conflicts of for entry and move them to result array
                     FindConflictsForEntryL( aEntry, tmpInstanceArray, aDb );
 
@@ -527,7 +549,10 @@ void FindConflictsForWeeklyRRuleL(
                             {
                            // break;
                             }
+                        tmpInstanceArray.Reset();
                         }
+                    
+                    numOfCheckedOcurrences++;
                     }
                 }
 
@@ -650,8 +675,12 @@ void FindConflictsForRepeatingMeetingL(
 				{
 				MoveInstancesL( tmpInstanceArray, aInstances );
 				}
+
+			// The counter of ocurrences that has been checked
+			TInt numOfCheckedOcurrences( 1 );
 			 // does the normal find conflict action. From the second to the end.
-			 while ( iterator->HasMore() )
+			 while ( ( iterator->HasMore() ) && 
+					 ( numOfCheckedOcurrences < KMaxNumOcurrenceCanBeChecked ) )
 				{
 				CCalInstance* next = iterator->NextL();
 				CleanupStack::PushL( next );
@@ -667,6 +696,7 @@ void FindConflictsForRepeatingMeetingL(
 					{
 					MoveInstancesL( tmpInstanceArray, aInstances );
 					}
+				numOfCheckedOcurrences++;
 				}
         	}
 
@@ -737,7 +767,9 @@ void FindConflictsForRepeatingMeetingL(
                     start,
                     duration );
 
-            for ( TInt i = 0; i < rDates.Count(); ++i )
+            TInt maxCheckTimes( Min( rDates.Count(), KMaxNumOcurrenceCanBeChecked ) );
+
+            for ( TInt i = 0; i < maxCheckTimes; ++i )
                 {
                 // Set start and end times for entry
                 TCalTime startTime( rDates[ i ] );
@@ -755,6 +787,7 @@ void FindConflictsForRepeatingMeetingL(
                         {
                         break;
                         }
+                    tmpInstanceArray.Reset();
                     }
                 }
 

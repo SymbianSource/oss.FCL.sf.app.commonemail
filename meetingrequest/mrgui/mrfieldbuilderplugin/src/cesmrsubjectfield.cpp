@@ -532,7 +532,6 @@ void CESMRSubjectField::SizeChanged( )
 
     if ( !iOutlineFocus )
         {
-        RecordField();
         iObserver->RedrawField( *this );
         }
     }

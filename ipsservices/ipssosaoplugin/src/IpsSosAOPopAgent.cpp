@@ -268,10 +268,15 @@ void CIpsSosAOPopAgent::StartSyncL()
     LoadSettingsL( );
     if ( !IsConnected() )
         {
+        if ( IsActive() ) 
+            {
+            Cancel();
+            }
         TBuf8<1> dummy;
         // connect and synchronise starts background sync or idle
         iSelection->ResizeL(0);
         iSelection->AppendL( iServiceId );
+        iStatus = KRequestPending;
         iPopClientMtm->SwitchCurrentEntryL( iServiceId );
         iOngoingOp = iPopClientMtm->InvokeAsyncFunctionL(
                 KPOP3MTMConnect, *iSelection, dummy, iStatus);
@@ -300,6 +305,14 @@ void CIpsSosAOPopAgent::StartFetchMessagesL(
 void CIpsSosAOPopAgent::CancelAllAndDisconnectL()
     {
     FUNC_LOG;
+    // if we are already idle state, do nothing,
+    // completing in idle state might cause unvanted events to ui
+    bool isConnected = IsConnected();
+    if ( !isConnected && iState == EStateIdle) 
+        {
+        return;
+        }
+
     iDoNotDisconnect = EFalse;
     iState = EStateCompleted;
     if ( IsActive() )
@@ -307,7 +320,7 @@ void CIpsSosAOPopAgent::CancelAllAndDisconnectL()
         Cancel();
         }
 
-    if ( IsConnected() )
+    if ( isConnected )
         {
         TBuf8<1> dummy;
         iSelection->ResizeL(0);
@@ -338,6 +351,14 @@ void CIpsSosAOPopAgent::CancelAllAndDisconnectL()
 void CIpsSosAOPopAgent::CancelAllAndDoNotDisconnect()
     {
     FUNC_LOG;
+    // if we are already idle state, do nothing
+    // completing in idle state might cause unvanted events to ui
+    if (iState == EStateIdle) 
+        {
+        return;
+        }
+    
+
     iDoNotDisconnect = ETrue;
     if ( IsActive() )
         {
@@ -477,6 +498,11 @@ void CIpsSosAOPopAgent::SetActiveAndCompleteThis()
     FUNC_LOG;
     if ( !IsActive() )
         {
+        SetActive();
+        }
+    else
+        {
+        Cancel();
         SetActive();
         }
     TRequestStatus* status = &iStatus;

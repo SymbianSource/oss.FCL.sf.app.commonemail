@@ -70,7 +70,8 @@ EXPORT_C CIpsPlgSingleOpWatcher* CIpsPlgSingleOpWatcher::NewL(
 //
 CIpsPlgSingleOpWatcher::CIpsPlgSingleOpWatcher( 
     MIpsPlgSingleOpWatcher& aObserver )
-    : CActive( KSingleOpWatcherPriority ), iObserver( aObserver )
+    : CActive( KSingleOpWatcherPriority ), iObserver( aObserver ), 
+                      iOperationIndex( KErrNotFound )
     {
     FUNC_LOG;
     CActiveScheduler::Add( this );
@@ -98,8 +99,21 @@ EXPORT_C CIpsPlgSingleOpWatcher::~CIpsPlgSingleOpWatcher()
     {
     FUNC_LOG;
     Cancel();
+    
     delete iOperation;
-    delete iBaseOperation;
+    
+    if ( iBaseOperation && iBaseOperation->IpsOpType() == EIpsOpTypePop3SyncOp )
+        {
+        TRAPD( err, STATIC_CAST( CIpsPlgPop3ConnectOp*, iBaseOperation )->ReleaseOperationL() );
+        if ( err != KErrNone )
+            {
+            delete iBaseOperation;
+            }
+        }
+    else
+        {
+        delete iBaseOperation;
+        }
     delete iRequestObserver;
     }
 
@@ -235,6 +249,16 @@ void CIpsPlgSingleOpWatcher::SetRequestObserver(
     {
     delete iRequestObserver;
     iRequestObserver = aObserver;
+    }
+
+TInt CIpsPlgSingleOpWatcher::OperationIndex()
+    {
+    return iOperationIndex;
+    }
+
+void CIpsPlgSingleOpWatcher::SetOperationIndex( TInt aOperationIndex )
+    {
+    iOperationIndex = aOperationIndex;
     }
 
 // End of file

@@ -415,6 +415,15 @@ void CESMRListQuery::SetListQueryTextsL(
 	        		R_QTN_MEET_REQ_OPTIONS_REMOVE_FROM_CAL));
 	        CleanupStack::PopAndDestroy(); // Resource string
 	        }
+		else if ( iType == EESMRDeleteEventResponseQuery )
+			{
+			aPopupList->SetTitleL(*StringLoader::LoadLC(
+					R_QTN_MEET_REQ_RESPONSE_PLEASE_RESPOND, iEnv));
+			CleanupStack::PopAndDestroy(); // Resource string
+			aItemArray->AppendL(*StringLoader::LoadLC(
+					R_QTN_MEET_REQ_OPTIONS_DELETE_EVENT, iEnv));
+			CleanupStack::PopAndDestroy(); // Resource string
+			}
     }
 
 // -----------------------------------------------------------------------------
@@ -639,6 +648,19 @@ TInt CESMRListQuery::MapSelectedIndexToReturnValue(TInt aIndex)
                     break;
                 }
         	}
+        else if( iType == EESMRDeleteEventResponseQuery )
+            {
+            switch ( aIndex )
+                {
+                case 0:
+                    {
+                    response = EESMRCmdRemoveFromCalendar;
+                    break;
+                    }
+                default:
+                    break;
+                }
+            }
         
     return response;
     }

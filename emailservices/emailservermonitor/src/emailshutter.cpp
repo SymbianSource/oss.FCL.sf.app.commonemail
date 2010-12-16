@@ -47,11 +47,11 @@
 const TUid KApplicationsToClose[] =
     {
     KFSEmailUiUid,                     // Freestyle Email UI
+    { KEmailWidgetSettAppUidAsTInt },  // HS Email widget settings application
     { SettingWizardUidAsTInt },        // TP Wizard
     { KMceAppUid },                    // MCE
     { KPhoneBookUid },                 // Phonebook 1 & 2
     { KCalendarAppUid1 },              // Calendar
-    { KGeneralSettingsAppUidAsTInt },  // General settings
     };
 
 // Applications that should not be closed. Should include only system
@@ -60,6 +60,7 @@ const TUid KApplicationsNotToBeClosed[] =
     {
     { AI_SID_AIFW_EXE },               // HomeScreen
     { AI_UID3_AIFW_COMMON },           // HomeScreen
+    { KGeneralSettingsAppUidAsTInt },  // General settings
     };
 
 // Non-UI clients that need to be closed

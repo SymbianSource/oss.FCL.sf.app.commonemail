@@ -21,6 +21,7 @@
 
 // Constants and defines
 const TInt KFetchOpPriority = CActive::EPriorityStandard;
+const TInt KConnectionAtemps = 3;
 
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
@@ -55,6 +56,14 @@ CIpsPlgPop3FetchOperation* CIpsPlgPop3FetchOperation::NewL(
 CIpsPlgPop3FetchOperation::~CIpsPlgPop3FetchOperation()
     {
     FUNC_LOG;
+    if ( iConnectOp )
+        {
+        TRAPD( err, iConnectOp->ReleaseOperationL() );
+        if ( err != KErrNone )
+            {
+            delete iConnectOp;
+            }    
+        }
     delete iFetchErrorProgress;
     delete iSelection;
     
@@ -127,7 +136,7 @@ void CIpsPlgPop3FetchOperation::ConstructL(const CMsvEntrySelection& aSel)
             }
         }
 
-    if ( !iOperation )
+    if ( !iConnectOp && !iOperation )
         {
         DoConnectL();
         }
@@ -146,12 +155,9 @@ void CIpsPlgPop3FetchOperation::DoConnectL()
     
     // when connecting for the fetch operation, don't let connect operation to do fetch,
     // because we do it by ourself. That's why give 0 to connect operation.    
-    CIpsPlgPop3ConnectOp* connOp = CIpsPlgPop3ConnectOp::NewL(
+    iConnectOp = CIpsPlgPop3ConnectOp::NewL(
         iMsvSession, iStatus, iService, EFalse, *iActivityTimer,
         iFSMailboxId, iFSOperationObserver, iFSRequestId, NULL,EFalse );
-        
-    delete iOperation;
-    iOperation = connOp;
 
     SetActive();
     }
@@ -203,7 +209,8 @@ CIpsPlgPop3FetchOperation::CIpsPlgPop3FetchOperation(
     CIpsPlgOnlineOperation( aMsvSession, KFetchOpPriority,
         aObserverRequestStatus, aActivityTimer, aFSMailBoxId,
         aFSOperationObserver, aFSRequestId), iFunctionId( aFunctionId ),
-        iGetMailInfo( aGetMailInfo ), iEventHandler( aEventHandler )
+        iGetMailInfo( aGetMailInfo ), iEventHandler( aEventHandler ),
+        iConnectOp( NULL ), iConnectionAtempsCounter( 0 )
     {
     FUNC_LOG;
     iService = aService;
@@ -231,6 +238,10 @@ void CIpsPlgPop3FetchOperation::DoCancel()
     FUNC_LOG;
 
     CIpsPlgOnlineOperation::DoCancel();
+    if ( iConnectOp && iConnectOp->IsActive() )
+        {
+        iConnectOp->Cancel();
+        }
     if(iState == EStateFetching)
         {
         // Cancelled while fetching. Need to disconnect.
@@ -289,7 +300,7 @@ void CIpsPlgPop3FetchOperation::DoRunL()
                     }
                 }
 
-            if ( !iOperation )
+            if ( !iConnectOp && !iOperation )
                 {
                 DoConnectL();
                 }
@@ -299,11 +310,36 @@ void CIpsPlgPop3FetchOperation::DoRunL()
         case EStateConnecting:
             {
             // Connect complete.
-            TBool connected = 
-                STATIC_CAST( CIpsPlgPop3ConnectOp*, iOperation )->Connected();
+            TBool connected = EFalse;
+            if ( iConnectOp )
+                {
+                connected = STATIC_CAST( CIpsPlgPop3ConnectOp*, iConnectOp )->Connected();
+                }
+            else if ( iOperation )
+                {
+                connected = STATIC_CAST( CIpsPlgPop3ConnectOp*, iOperation )->Connected();
+                }
+            
             if(!connected)
                 {
-                CompleteObserver( KErrCouldNotConnect );
+                if ( iConnectionAtempsCounter < KConnectionAtemps )
+                    {
+                    if ( iConnectOp )
+                        {
+                        delete iConnectOp;
+                        iConnectOp = NULL;
+                        }
+                    iState = EStateClearCompleteFlag;
+                    iConnectionAtempsCounter++;
+                    iStatus = KRequestPending;
+                    SetActive();
+                    TRequestStatus* status = &iStatus; 
+                    User::RequestComplete( status, KErrNone );
+                    }
+                else
+                    {
+                    CompleteObserver( KErrCouldNotConnect );
+                    }
                 return;
                 }
             DoFetchL();
